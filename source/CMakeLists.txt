@@ -74,8 +74,8 @@ add_sources(main.cpp
             InheritedPicker.h
             selectedpointwidget.cpp
             selectedpointwidget.h
-            newShapeModelDialog.h
-            newShapeModelDialog.cpp
+            newshapemodeldialog.h
+            newshapemodeldialog.cpp
 )
 
 # # Add subdirectories
