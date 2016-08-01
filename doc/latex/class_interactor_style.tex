@@ -1,0 +1,67 @@
+\hypertarget{class_interactor_style}{}\section{Interactor\+Style Class Reference}
+\label{class_interactor_style}\index{Interactor\+Style@{Interactor\+Style}}
+
+
+{\ttfamily \#include $<$Interactor.\+h$>$}
+
+Inheritance diagram for Interactor\+Style\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_interactor_style}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries vtk\+Type\+Macro} (\hyperlink{class_interactor_style}{Interactor\+Style}, vtk\+Interactor\+Style\+Rubber\+Band\+Pick)\hypertarget{class_interactor_style_a43338f1434b768677a2feac0b1a05c13}{}\label{class_interactor_style_a43338f1434b768677a2feac0b1a05c13}
+
+\item 
+virtual void {\bfseries On\+Left\+Button\+Up} ()\hypertarget{class_interactor_style_a441fa7b70b39c61768f0d9a8d48faf3c}{}\label{class_interactor_style_a441fa7b70b39c61768f0d9a8d48faf3c}
+
+\item 
+void \hyperlink{class_interactor_style_aca72fd8ef4db10f2356795ae9cf32d9b}{Set\+Points} (vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ points\+\_\+polydata)
+\item 
+void \hyperlink{class_interactor_style_aa7d59db5ac179da9469081c14e77b6d0}{Set\+Main\+Window} (\hyperlink{class_main_window}{Main\+Window} $\ast$mainwindow)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_interactor_style}{Interactor\+Style} $\ast$ {\bfseries New} ()\hypertarget{class_interactor_style_aaea3b0cff00feb99c42325bf49168fc6}{}\label{class_interactor_style_aaea3b0cff00feb99c42325bf49168fc6}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Declaration of the \hyperlink{class_interactor_style}{Interactor\+Style}. This class enables the user to access (read A\+ND write) the underlying data displayed in the Q\+V\+T\+K\+Widget of the main window 
+
+\subsection{Member Function Documentation}
+\index{Interactor\+Style@{Interactor\+Style}!Set\+Main\+Window@{Set\+Main\+Window}}
+\index{Set\+Main\+Window@{Set\+Main\+Window}!Interactor\+Style@{Interactor\+Style}}
+\subsubsection[{\texorpdfstring{Set\+Main\+Window(\+Main\+Window $\ast$mainwindow)}{SetMainWindow(MainWindow *mainwindow)}}]{\setlength{\rightskip}{0pt plus 5cm}void Interactor\+Style\+::\+Set\+Main\+Window (
+\begin{DoxyParamCaption}
+\item[{{\bf Main\+Window} $\ast$}]{mainwindow}
+\end{DoxyParamCaption}
+)}\hypertarget{class_interactor_style_aa7d59db5ac179da9469081c14e77b6d0}{}\label{class_interactor_style_aa7d59db5ac179da9469081c14e77b6d0}
+Enables the interactor to get access to the G\+UI\textquotesingle{}s mainwindow 
+\begin{DoxyParams}{Parameters}
+{\em points\+\_\+polydata} & Pointer to the G\+UI\textquotesingle{}s mainwindow \\
+\hline
+\end{DoxyParams}
+\index{Interactor\+Style@{Interactor\+Style}!Set\+Points@{Set\+Points}}
+\index{Set\+Points@{Set\+Points}!Interactor\+Style@{Interactor\+Style}}
+\subsubsection[{\texorpdfstring{Set\+Points(vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ points\+\_\+polydata)}{SetPoints(vtkSmartPointer< vtkPolyData > points_polydata)}}]{\setlength{\rightskip}{0pt plus 5cm}void Interactor\+Style\+::\+Set\+Points (
+\begin{DoxyParamCaption}
+\item[{vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$}]{points\+\_\+polydata}
+\end{DoxyParamCaption}
+)}\hypertarget{class_interactor_style_aca72fd8ef4db10f2356795ae9cf32d9b}{}\label{class_interactor_style_aca72fd8ef4db10f2356795ae9cf32d9b}
+Enables the interactor to get access to the vtk\+Poly\+Data storing the shape\textquotesingle{}s vertices 
+\begin{DoxyParams}{Parameters}
+{\em points\+\_\+polydata} & Pointer to the vtk\+Poly\+Data storing the vertices of the shape model \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+source/Interactor.\+h\item 
+source/Interactor.\+cpp\end{DoxyCompactItemize}
