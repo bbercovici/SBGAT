@@ -1,0 +1,86 @@
+\hypertarget{class_selected_point_widget}{}\section{Selected\+Point\+Widget Class Reference}
+\label{class_selected_point_widget}\index{Selected\+Point\+Widget@{Selected\+Point\+Widget}}
+
+
+{\ttfamily \#include $<$selectedpointwidget.\+h$>$}
+
+Inheritance diagram for Selected\+Point\+Widget\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_selected_point_widget}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_selected_point_widget_a6973c27e249b2956b820cc67d8e01353}{Selected\+Point\+Widget} (vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ points\+\_\+polydata, vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ selected\+\_\+points\+\_\+polydata)
+\item 
+void \hyperlink{class_selected_point_widget_afd1322240157289461a8e97b744519c5}{populate} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Q\+Table\+Widget $\ast$ {\bfseries table}\hypertarget{class_selected_point_widget_af975e399fc7a609981722bda4dbeea28}{}\label{class_selected_point_widget_af975e399fc7a609981722bda4dbeea28}
+
+\item 
+Q\+H\+Box\+Layout $\ast$ {\bfseries layout}\hypertarget{class_selected_point_widget_a9bc3e002ad38008034fa18e34c136e32}{}\label{class_selected_point_widget_a9bc3e002ad38008034fa18e34c136e32}
+
+\item 
+Q\+V\+Box\+Layout $\ast$ {\bfseries list\+\_\+holder\+\_\+layout}\hypertarget{class_selected_point_widget_a6305deed174162dbddab977db14bcc28}{}\label{class_selected_point_widget_a6305deed174162dbddab977db14bcc28}
+
+\item 
+Q\+Dialog\+Button\+Box $\ast$ {\bfseries button\+\_\+box}\hypertarget{class_selected_point_widget_aad58e8b55b796c4c60ec77e60ec70c5d}{}\label{class_selected_point_widget_aad58e8b55b796c4c60ec77e60ec70c5d}
+
+\item 
+Q\+Widget $\ast$ {\bfseries list\+\_\+holder\+\_\+widget}\hypertarget{class_selected_point_widget_a16b8e10427ac123e0d0a218a20b708a7}{}\label{class_selected_point_widget_a16b8e10427ac123e0d0a218a20b708a7}
+
+\item 
+Q\+Label $\ast$ {\bfseries transform\+\_\+direction\+\_\+title}\hypertarget{class_selected_point_widget_a69ea9e8a79fd9f1b508742b9ad71ef87}{}\label{class_selected_point_widget_a69ea9e8a79fd9f1b508742b9ad71ef87}
+
+\item 
+Q\+Label $\ast$ {\bfseries interpolation\+\_\+type\+\_\+title}\hypertarget{class_selected_point_widget_a8f260244a3198fa2e5d1d52dea031ae5}{}\label{class_selected_point_widget_a8f260244a3198fa2e5d1d52dea031ae5}
+
+\item 
+Q\+Combo\+Box $\ast$ {\bfseries transform\+\_\+direction\+\_\+list}\hypertarget{class_selected_point_widget_a08e55d0422a889983c7d4ba36d322f68}{}\label{class_selected_point_widget_a08e55d0422a889983c7d4ba36d322f68}
+
+\item 
+Q\+Combo\+Box $\ast$ {\bfseries interpolation\+\_\+type\+\_\+list}\hypertarget{class_selected_point_widget_a55451a9a8351fa26bffd964d20422edc}{}\label{class_selected_point_widget_a55451a9a8351fa26bffd964d20422edc}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Declaration of the \hyperlink{class_selected_point_widget}{Selected\+Point\+Widget} class. \hyperlink{class_selected_point_widget}{Selected\+Point\+Widget} refers to the widget displayed on the screen when the user selects at least one vertex of the displayed shape model by means of the rectangular box selector. The widget that is then displayed lists the I\+Ds of the selected vertices, as well as a choice of possible geometric transforms to be applied to them N\+O\+TE\+: for now, the only possible transform (homothetic transform) is hardcoded 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{Selected\+Point\+Widget@{Selected\+Point\+Widget}!Selected\+Point\+Widget@{Selected\+Point\+Widget}}
+\index{Selected\+Point\+Widget@{Selected\+Point\+Widget}!Selected\+Point\+Widget@{Selected\+Point\+Widget}}
+\subsubsection[{\texorpdfstring{Selected\+Point\+Widget(vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ points\+\_\+polydata, vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$ selected\+\_\+points\+\_\+polydata)}{SelectedPointWidget(vtkSmartPointer< vtkPolyData > points_polydata, vtkSmartPointer< vtkPolyData > selected_points_polydata)}}]{\setlength{\rightskip}{0pt plus 5cm}Selected\+Point\+Widget\+::\+Selected\+Point\+Widget (
+\begin{DoxyParamCaption}
+\item[{vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$}]{points\+\_\+polydata, }
+\item[{vtk\+Smart\+Pointer$<$ vtk\+Poly\+Data $>$}]{selected\+\_\+points\+\_\+polydata}
+\end{DoxyParamCaption}
+)}\hypertarget{class_selected_point_widget_a6973c27e249b2956b820cc67d8e01353}{}\label{class_selected_point_widget_a6973c27e249b2956b820cc67d8e01353}
+Constructor. The pointer passed as arguments allow the widget to have access to the point properties 
+\begin{DoxyParams}{Parameters}
+{\em points\+\_\+polydata} & Pointer to the vtk\+Poly\+Data storing the vertices of the shape model \\
+\hline
+{\em selected\+\_\+points\+\_\+polydata} & Pointer to the vtk\+Poly\+Data storing the selected vertices of the displayed shape model \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{Selected\+Point\+Widget@{Selected\+Point\+Widget}!populate@{populate}}
+\index{populate@{populate}!Selected\+Point\+Widget@{Selected\+Point\+Widget}}
+\subsubsection[{\texorpdfstring{populate()}{populate()}}]{\setlength{\rightskip}{0pt plus 5cm}void Selected\+Point\+Widget\+::populate (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_selected_point_widget_afd1322240157289461a8e97b744519c5}{}\label{class_selected_point_widget_afd1322240157289461a8e97b744519c5}
+Populates the Q\+Table\+Widget table with the relevant data 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+source/selectedpointwidget.\+h\item 
+source/selectedpointwidget.\+cpp\end{DoxyCompactItemize}

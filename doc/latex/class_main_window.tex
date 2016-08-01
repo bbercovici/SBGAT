@@ -1,0 +1,75 @@
+\hypertarget{class_main_window}{}\section{Main\+Window Class Reference}
+\label{class_main_window}\index{Main\+Window@{Main\+Window}}
+
+
+{\ttfamily \#include $<$mainwindow.\+h$>$}
+
+Inheritance diagram for Main\+Window\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_main_window}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+vtk\+Smart\+Pointer$<$ vtk\+Renderer $>$ \hyperlink{class_main_window_a2fb384b2232488ced24aad4237e0290e}{get\+Renderer} ()
+\item 
+\hyperlink{class_main_window_a34c4b4207b46d11a4100c9b19f0e81bb}{Main\+Window} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Q\+V\+T\+K\+Widget $\ast$ {\bfseries qvtk\+Widget}\hypertarget{class_main_window_a987c16edfdf86679ea180e3c1af08e07}{}\label{class_main_window_a987c16edfdf86679ea180e3c1af08e07}
+
+\item 
+Q\+Widget $\ast$ {\bfseries central\+\_\+wrapping\+\_\+widget}\hypertarget{class_main_window_a607a0ae3a2d1785d11b65560e125f835}{}\label{class_main_window_a607a0ae3a2d1785d11b65560e125f835}
+
+\item 
+Q\+Widget $\ast$ {\bfseries dock\+\_\+wrapping\+\_\+widget}\hypertarget{class_main_window_a867cba72789a67607c2029391cb29b6b}{}\label{class_main_window_a867cba72789a67607c2029391cb29b6b}
+
+\item 
+Q\+H\+Box\+Layout $\ast$ {\bfseries layout\+\_\+central}\hypertarget{class_main_window_a6c85c0aeb8404eb5f0bb5b9a8a640d0f}{}\label{class_main_window_a6c85c0aeb8404eb5f0bb5b9a8a640d0f}
+
+\item 
+Q\+V\+Box\+Layout $\ast$ {\bfseries layout\+\_\+dock\+\_\+right}\hypertarget{class_main_window_af64854e3c836aa6ad4e8d85e553dd58e}{}\label{class_main_window_af64854e3c836aa6ad4e8d85e553dd58e}
+
+\item 
+Q\+Dock\+Widget $\ast$ {\bfseries menu\+\_\+dock}\hypertarget{class_main_window_a2e7fc292c9a123fd522a363844e39fa0}{}\label{class_main_window_a2e7fc292c9a123fd522a363844e39fa0}
+
+\item 
+bool {\bfseries selector\+Active} = false\hypertarget{class_main_window_a330930fdef1adf6db5446c93e203c9b2}{}\label{class_main_window_a330930fdef1adf6db5446c93e203c9b2}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Declaration of the \hyperlink{class_main_window}{Main\+Window} Class. Main class of the G\+UI as it hosts the V\+TK pipeline visualizer and the actions/menus allowing the user to interact with the program data. 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{Main\+Window@{Main\+Window}!Main\+Window@{Main\+Window}}
+\index{Main\+Window@{Main\+Window}!Main\+Window@{Main\+Window}}
+\subsubsection[{\texorpdfstring{Main\+Window()}{MainWindow()}}]{\setlength{\rightskip}{0pt plus 5cm}Main\+Window\+::\+Main\+Window (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_main_window_a34c4b4207b46d11a4100c9b19f0e81bb}{}\label{class_main_window_a34c4b4207b46d11a4100c9b19f0e81bb}
+Constructor. Setups the G\+UI and creates an instance of Q\+V\+TK Widget 
+
+\subsection{Member Function Documentation}
+\index{Main\+Window@{Main\+Window}!get\+Renderer@{get\+Renderer}}
+\index{get\+Renderer@{get\+Renderer}!Main\+Window@{Main\+Window}}
+\subsubsection[{\texorpdfstring{get\+Renderer()}{getRenderer()}}]{\setlength{\rightskip}{0pt plus 5cm}vtk\+Smart\+Pointer$<$ vtk\+Renderer $>$ Main\+Window\+::get\+Renderer (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_main_window_a2fb384b2232488ced24aad4237e0290e}{}\label{class_main_window_a2fb384b2232488ced24aad4237e0290e}
+Returns a pointer to the vtk\+Renderer associated with the window\textquotesingle{}s Q\+V\+TK widget \begin{DoxyReturn}{Returns}
+Pointer to the vtk\+Renderer associated with the window\textquotesingle{}s Q\+V\+TK widget 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+source/mainwindow.\+h\item 
+source/mainwindow.\+cpp\end{DoxyCompactItemize}
