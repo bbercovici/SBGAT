@@ -99,10 +99,10 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         // The interactor is set up and connected to the shape model being displayed
         vtkSmartPointer<InteractorStyle> style =
             vtkSmartPointer<InteractorStyle>::New();
-        style -> SetPoints(read_polydata);
+        style -> set_points(read_polydata);
 
         // The mainwindow and the interactor style are connected with each other
-        style -> SetMainWindow(this);
+        style -> set_mainwindow(this);
         this -> style = style;
 
         vtkSmartPointer<vtkAreaPicker> areaPicker =
@@ -114,9 +114,9 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
         renderWindowInteractor -> SetInteractorStyle( style );
 
-
-
         this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+
 
 
 
@@ -172,10 +172,10 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         // The interactor is set up and connected to the shape model being displayed
         vtkSmartPointer<InteractorStyle> style =
             vtkSmartPointer<InteractorStyle>::New();
-        style -> SetPoints(read_polydata);
+        style -> set_points(read_polydata);
 
         // The mainwindow and the interactor style are connected with each other
-        style -> SetMainWindow(this);
+        style -> set_mainwindow(this);
         this -> style = style;
 
         vtkSmartPointer<vtkAreaPicker> areaPicker =
@@ -189,6 +189,9 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
+        vtkSmartPointer<vtkCellArray> polys = read_polydata -> GetPolys ();
+        vtkSmartPointer<vtkIdTypeArray> polys_ids = polys -> GetData();
+        
 
     }
 
@@ -280,7 +283,7 @@ void MainWindow::open() {
 
 }
 
-void MainWindow::setBackgroundColor() {
+void MainWindow::set_background_color() {
     QColorDialog * palette  = new QColorDialog();
     QColor qcolor =  palette -> getColor();
     if (qcolor.isValid()) {
@@ -290,7 +293,7 @@ void MainWindow::setBackgroundColor() {
 
 }
 
-void MainWindow::setShapeColor() {
+void MainWindow::set_shape_color() {
     QColorDialog * palette  = new QColorDialog();
     QColor qcolor =  palette -> getColor();
     if (qcolor.isValid()) {
@@ -301,7 +304,7 @@ void MainWindow::setShapeColor() {
 
 }
 
-void MainWindow::newShapeModel() {
+void MainWindow::new_shape_model() {
     NewShapeModelDialog * newshapemodeldialog = new NewShapeModelDialog();
 
     if ( newshapemodeldialog -> exec() == QDialog::Accepted ) {
@@ -316,11 +319,11 @@ void MainWindow::newShapeModel() {
 }
 
 void MainWindow::select() {
-    // Allows the interactor to grab props by 
-    // setting its style mode to selection 
+    // Allows the interactor to grab props by
+    // setting its style mode to selection
     // equivalent to pressing the "r" key
     // when the interactor is in ORIENT mode
-    this -> style -> SetCurrentMode(INTERACTOR_IS_SELECT);
+    this -> style -> set_current_mode(INTERACTOR_IS_SELECT);
 
 }
 
@@ -379,18 +382,18 @@ void MainWindow::createActions() {
 
     shapeColorAct = new QAction(tr("Shape Color"), this);
     shapeColorAct -> setStatusTip(tr("Set the shape actor color"));
-    connect(shapeColorAct, &QAction::triggered, this, &MainWindow::setShapeColor);
+    connect(shapeColorAct, &QAction::triggered, this, &MainWindow::set_shape_color);
     shapeColorAct -> setDisabled(true);
 
 
     backgroundColorAct = new QAction(tr("Background Color"), this);
     backgroundColorAct -> setStatusTip(tr("Set the background color"));
-    connect(backgroundColorAct, &QAction::triggered, this, &MainWindow::setBackgroundColor);
+    connect(backgroundColorAct, &QAction::triggered, this, &MainWindow::set_background_color);
 
     newShapeModelAct = new QAction(tr("New"), this);
     newShapeModelAct -> setShortcuts(QKeySequence::New);
     newShapeModelAct -> setStatusTip(tr("Generate a new shape model"));
-    connect(newShapeModelAct, &QAction::triggered, this, &MainWindow::newShapeModel);
+    connect(newShapeModelAct, &QAction::triggered, this, &MainWindow::new_shape_model);
 
 
     vertexVisibilityAct = new QAction(tr("Show Vertices"), this);
@@ -398,12 +401,12 @@ void MainWindow::createActions() {
     vertexVisibilityAct -> setCheckable(true);
     vertexVisibilityAct -> setChecked(true);
     vertexVisibilityAct -> setDisabled(true);
-
-    connect(vertexVisibilityAct, &QAction::triggered, this, &MainWindow::changeVertexVisibility);
+    connect(vertexVisibilityAct, &QAction::triggered, this, &MainWindow::change_vertex_visibility);
 
 }
 
-void MainWindow::changeVertexVisibility() {
+void MainWindow::change_vertex_visibility() {
+    // The first actor is shown/hidden
     vtkSmartPointer<vtkActor> point_cloud_actor = vtkActor::SafeDownCast(
                 this -> renderer -> GetActors() -> GetItemAsObject(0));
 
@@ -438,7 +441,7 @@ void MainWindow::createMenus() {
 
 }
 
-vtkSmartPointer<vtkRenderer> MainWindow::getRenderer() {
+vtkSmartPointer<vtkRenderer> MainWindow::get_renderer() {
     return this -> renderer;
 }
 

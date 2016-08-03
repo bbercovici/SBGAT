@@ -16,8 +16,10 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
+#include <vtkIdTypeArray.h>
 
 #include "interactor.h"
+#include <set>
 
 // Forward declaration of InteractorStyle
 class InteractorStyle;
@@ -41,9 +43,7 @@ public:
 	@param selected_points_polydata Pointer to the vtkPolyData storing the selected vertices
 	of the displayed shape model
 	*/
-	SelectedPointWidget(vtkSmartPointer<vtkPolyData> points_polydata,
-	                    vtkSmartPointer<vtkPolyData> selected_points_polydata,
-	                    bool * widget_is_open,vtkSmartPointer<InteractorStyle> interactor_style);
+	SelectedPointWidget(vtkSmartPointer<InteractorStyle> interactor_style);
 
 
 	QTableWidget * table;
@@ -54,17 +54,17 @@ public:
 	QWidget * list_holder_widget;
 	QLabel * transform_direction_title;
 	QLabel * interpolation_type_title;
+	QLabel * transform_selection_title;
+
 
 	QComboBox * transform_direction_list;
 	QComboBox * interpolation_type_list;
+	QComboBox * transform_selection_list;
+
 
 	QPushButton * button_show_vertex_table;
 
-	/**
-	Populates the QTableWidget table with the relevant data
-	*/
-	void populate_vertex_table();
-
+	
 
 	// Slots
 private slots:
@@ -77,6 +77,18 @@ private:
 	void createActions();
 	void createMenus();
 	bool * widget_is_open;
+	void remove_selected_points_actor();
+	/**
+	Populates the QTableWidget table with the relevant data
+	*/
+	void populate_vertex_table();
+
+	/**
+	Returns a pointer to the structured polydata representing the selected facets/vertices
+	*/
+	vtkSmartPointer<vtkPolyData> get_selected_blob_polydata();
+
+
 
 	QStringList labels;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;

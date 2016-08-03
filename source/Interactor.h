@@ -50,22 +50,32 @@ public:
 	Enables the interactor to get access to the vtkPolyData storing the shape's vertices
 	@param points_polydata Pointer to the vtkPolyData storing the vertices of the shape model
 	*/
-	void SetPoints(vtkSmartPointer<vtkPolyData> points_polydata);
+	void set_points(vtkSmartPointer<vtkPolyData> points_polydata);
 
 	/**
 	Enables the interactor to get access to the GUI's mainwindow
 	@param points_polydata Pointer to the GUI's mainwindow
 	*/
-	void SetMainWindow(MainWindow * mainwindow);
+	void set_mainwindow(MainWindow * mainwindow);
+
+	/**
+	Returns a pointer to the GUI's mainwindow (i.e the highest QT Widget)
+	*/
+	MainWindow * get_mainwindow();
 
 	/**
 	Sets the interactor style
 	@param mode Int representing the mode (0: orient, 1:select)
 	*/
-	void SetCurrentMode(const int mode);
+	void set_current_mode(const int mode);
 
 
 	void transform_points();
+
+	vtkSmartPointer<vtkPolyData> get_selected_points_polydata();
+	vtkSmartPointer<vtkPolyData> get_points_polydata();
+
+	bool * get_widget_is_open();
 
 
 private:

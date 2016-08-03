@@ -62,7 +62,7 @@ public:
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
 	@return Pointer to the vtkRenderer associated with the window's QVTK widget
 	*/
-	vtkSmartPointer<vtkRenderer> getRenderer();
+	vtkSmartPointer<vtkRenderer> get_renderer();
 
 	/** Constructor. Setups the GUI and creates an instance of QVTK Widget
 	*/
@@ -91,22 +91,22 @@ private slots:
 	Sets the shape color to that chosen by the user. A shape model must be displayed so that
 	the corresponding action is enabled
 	*/
-	void setShapeColor();
+	void set_shape_color();
 
 	/**
 	Sets the background color to that chosen by the user
 	*/
-	void setBackgroundColor();
+	void set_background_color();
 
 	/**
 	Generates a new shape model with N points normally distributed in space.
 	*/
-	void newShapeModel();
+	void new_shape_model();
 
 	/**
 	Enables/Disables vertex visibility on the displayed shape model
 	*/
-	void changeVertexVisibility();
+	void change_vertex_visibility();
 
 	
 
