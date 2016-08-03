@@ -1,3 +1,7 @@
+
+#ifndef HEADER_INTERACTORSTYLE
+#define HEADER_INTERACTORSTYLE
+
 #include <vtkSmartPointer.h>
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkPolyData.h>
@@ -26,9 +30,12 @@
 #include "vtkObjectFactory.h"
 #include "mainwindow.h"
 
+// forward declaration of the MainWindow class
+class MainWindow;
+
 /**
 Declaration of the InteractorStyle. This class enables the user to access (read AND write) the underlying data
-displayed in the QVTKWidget of the main window
+displayed in the main window's QVTKWidget
 */
 
 class InteractorStyle : public vtkInteractorStyleRubberBandPick {
@@ -36,6 +43,7 @@ public:
 	static InteractorStyle * New();
 	vtkTypeMacro(InteractorStyle, vtkInteractorStyleRubberBandPick);
 	InteractorStyle();
+	virtual ~InteractorStyle();
 	virtual void OnLeftButtonUp();
 
 	/**
@@ -50,10 +58,25 @@ public:
 	*/
 	void SetMainWindow(MainWindow * mainwindow);
 
+	/**
+	Sets the interactor style
+	@param mode Int representing the mode (0: orient, 1:select)
+	*/
+	void SetCurrentMode(const int mode);
+
+
+	void transform_points();
+
 
 private:
 	vtkSmartPointer<vtkPolyData> points_polydata;
+	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkActor> SelectedActor;
 	vtkSmartPointer<vtkDataSetMapper> SelectedMapper;
-	MainWindow * mainwindow;
+	MainWindow * mainwindow ;
+	bool * widget_is_open;
+
+
 };
+
+#endif

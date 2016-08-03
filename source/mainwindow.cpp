@@ -1,6 +1,9 @@
 #include "mainwindow.h"
-#include "Interactor.h"
+#include "utilities.h"
 
+// shortcut to interactor modes
+#define INTERACTOR_IS_ORIENT 0
+#define INTERACTOR_IS_SELECT 1
 
 MainWindow::MainWindow() {
     this -> setupUi();
@@ -23,13 +26,6 @@ void MainWindow::setupUi() {
     layout_central -> addWidget(qvtkWidget);
     central_wrapping_widget -> setLayout(layout_central);
 
-    // Right Dock widget
-    // dock_wrapping_widget = new QWidget();
-    // menu_dock = new QDockWidget();
-    // layout_dock_right = new QVBoxLayout();
-    // dock_wrapping_widget -> setLayout(layout_dock_right);
-    // menu_dock -> setWidget(dock_wrapping_widget);
-    // addDockWidget(Qt::RightDockWidgetArea, menu_dock);
 
     //Top Menu Bar
     createActions();
@@ -104,7 +100,10 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         vtkSmartPointer<InteractorStyle> style =
             vtkSmartPointer<InteractorStyle>::New();
         style -> SetPoints(read_polydata);
+
+        // The mainwindow and the interactor style are connected with each other
         style -> SetMainWindow(this);
+        this -> style = style;
 
         vtkSmartPointer<vtkAreaPicker> areaPicker =
             vtkSmartPointer<vtkAreaPicker>::New();
@@ -146,9 +145,9 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         vtkSmartPointer<vtkActor> shape_actor = vtkSmartPointer<vtkActor>::New();
 
         shape_actor -> SetMapper(mapper);
-        shape_actor -> GetMapper()->ScalarVisibilityOff();
-        shape_actor -> GetProperty()->SetColor(1, 1, 1);
-        shape_actor -> GetProperty()->SetPointSize(3);
+        shape_actor -> GetMapper() -> ScalarVisibilityOff();
+        shape_actor -> GetProperty() -> SetColor(1, 1, 1);
+        shape_actor -> GetProperty() -> SetPointSize(3);
 
 
         // Remove any already existing actor from the rendering window
@@ -174,7 +173,10 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         vtkSmartPointer<InteractorStyle> style =
             vtkSmartPointer<InteractorStyle>::New();
         style -> SetPoints(read_polydata);
+
+        // The mainwindow and the interactor style are connected with each other
         style -> SetMainWindow(this);
+        this -> style = style;
 
         vtkSmartPointer<vtkAreaPicker> areaPicker =
             vtkSmartPointer<vtkAreaPicker>::New();
@@ -184,7 +186,6 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         renderWindowInteractor -> SetPicker(areaPicker);
         renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
         renderWindowInteractor -> SetInteractorStyle( style );
-
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
@@ -315,8 +316,12 @@ void MainWindow::newShapeModel() {
 }
 
 void MainWindow::select() {
-    selectorActive = true ;
-    // TODO: bypass "r" key depression by simulating keyboard input
+    // Allows the interactor to grab props by 
+    // setting its style mode to selection 
+    // equivalent to pressing the "r" key
+    // when the interactor is in ORIENT mode
+    this -> style -> SetCurrentMode(INTERACTOR_IS_SELECT);
+
 }
 
 void MainWindow::save() {
@@ -436,3 +441,4 @@ void MainWindow::createMenus() {
 vtkSmartPointer<vtkRenderer> MainWindow::getRenderer() {
     return this -> renderer;
 }
+

@@ -76,6 +76,9 @@ add_sources(main.cpp
             selectedpointwidget.h
             newshapemodeldialog.h
             newshapemodeldialog.cpp
+            utilities.h
+            utilities.cpp
+	
 )
 
 # # Add subdirectories

@@ -1,3 +1,4 @@
+
 #ifndef HEADER_MAINWINDOW
 #define HEADER_MAINWINDOW
 
@@ -26,11 +27,15 @@
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkOBJReader.h>
-
-
 #include "QVTKWidget.h"
+
+
 #include "newShapeModelDialog.h"
 #include "selectedPointWidget.h"
+#include "Interactor.h"
+
+// forward declaration of InteractorStyle
+class InteractorStyle;
 
 /**
 Declaration of the MainWindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
@@ -52,11 +57,7 @@ public:
 
 	// Docks
 	QDockWidget * menu_dock;
-
-	bool selectorActive = false ;
-
-
-
+	
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
 	@return Pointer to the vtkRenderer associated with the window's QVTK widget
@@ -80,7 +81,9 @@ private slots:
 	void save();
 
 	/**
-	Enables vertices selection
+	Allows the interactor to grab props by 
+    setting its style mode to INTERACTOR_IS_SELECT
+    It is rigourosly equivalent to pressing the "r" key
 	*/
 	void select();
 
@@ -104,6 +107,10 @@ private slots:
 	Enables/Disables vertex visibility on the displayed shape model
 	*/
 	void changeVertexVisibility();
+
+	
+
+
 
 private:
 	/**
@@ -146,7 +153,7 @@ private:
 	*/
 	void set_action_status(bool enabled, const std::string & menu_name, const std::string & action_name);
 
-
+	
 	QMenu * fileMenu;
 	QMenu * OperationMenu;
 	QMenu * ViewMenu;
@@ -160,6 +167,7 @@ private:
 
 
 	vtkSmartPointer<vtkRenderer> renderer;
+	vtkSmartPointer<InteractorStyle> style;
 
 
 

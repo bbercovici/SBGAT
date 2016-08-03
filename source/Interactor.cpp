@@ -1,18 +1,29 @@
 #include "interactor.h"
 #include "InheritedPicker.h"
+#include "utilities.h"
+
+// shortcut to interactor modes
+#define INTERACTOR_IS_ORIENT 0
+#define INTERACTOR_IS_SELECT 1
 
 
 InteractorStyle::InteractorStyle() {
-	this->SelectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-	this->SelectedActor = vtkSmartPointer<vtkActor>::New();
-	this->SelectedActor->SetMapper(this->SelectedMapper);
+	this -> SelectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+	this -> SelectedActor = vtkSmartPointer<vtkActor>::New();
+	this -> SelectedActor -> SetMapper(this -> SelectedMapper);
+	this -> widget_is_open = new bool();
+    *this -> widget_is_open = false;
+    
 }
+
 
 void InteractorStyle::OnLeftButtonUp() {
 	// Forward events
+
 	vtkInteractorStyleRubberBandPick::OnLeftButtonUp();
 
-	if (this -> mainwindow -> selectorActive == true) {
+	if (this -> CurrentMode == INTERACTOR_IS_SELECT && *this -> widget_is_open == false) {
+
 
 		InheritedPicker * picker ;
 		picker = static_cast< InheritedPicker * >(this -> Interactor -> GetPicker());
@@ -38,53 +49,69 @@ void InteractorStyle::OnLeftButtonUp() {
 		select_visible_points -> Update();
 
 		// The selected points are finally obtained in the form of a vtkPolyData
-		vtkSmartPointer<vtkPolyData> selected_points_polydata = select_visible_points -> GetOutput();
-		vtkSmartPointer<vtkDataArray> ids = selected_points_polydata -> GetPointData() -> GetArray("ids");
-		vtkSmartPointer<vtkIdTypeArray> visible_points_ids = vtkIdTypeArray::SafeDownCast(ids);
-
-		// If at least one vertex was selected
-		if (selected_points_polydata -> GetNumberOfPoints() > 0) {
+		this -> selected_points_polydata = select_visible_points -> GetOutput();
 
 
-
+		// If at least one vertex was selected, the selection widget will open
+		if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
 
 
 			// The widget allowing the user to visualize the selected point and
-			// define the transform to be applied is populated
-			SelectedPointWidget * pc_editing_widget = new SelectedPointWidget(points_polydata, selected_points_polydata);
+			// define the transform to be applied is created
+			SelectedPointWidget * pc_editing_widget = new SelectedPointWidget(this -> points_polydata,
+			        this -> selected_points_polydata, this -> widget_is_open, this);
 
-			// The widget is run as a modal window
-			pc_editing_widget -> exec();
-
-			vtkSmartPointer<vtkPoints> points = this -> points_polydata -> GetPoints();
+			// The widget is run as a non-modal window
+			pc_editing_widget -> show();
 
 
-			for (int i = 0; i < visible_points_ids -> GetNumberOfTuples () ; ++i ) {
-				double p[3];
-				points -> GetPoint (* (visible_points_ids -> GetTuple (i)), p);
-				double new_p[3];
-				new_p[0] = 0.75 * p[0] ;
-				new_p[1] = 0.75 * p[1] ;
-				new_p[2] = 0.75 * p[2] ;
-				points -> SetPoint(* (visible_points_ids -> GetTuple (i)), new_p);
+			// Back to orient mode
+			this -> CurrentMode = INTERACTOR_IS_ORIENT;
 
-			}
-			this -> points_polydata -> SetPoints(points);
-			this -> points_polydata -> Modified();
-			this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+
 		}
 
-		this -> mainwindow -> selectorActive = false;
+
+
 	}
+
 }
 
 vtkStandardNewMacro(InteractorStyle);
 
+void InteractorStyle::transform_points() {
+	vtkSmartPointer<vtkPoints> points = this -> points_polydata -> GetPoints();
+	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
+	vtkSmartPointer<vtkIdTypeArray> visible_points_ids = vtkIdTypeArray::SafeDownCast(ids);
+
+	for (int i = 0; i < visible_points_ids -> GetNumberOfTuples () ; ++i ) {
+		double p[3];
+		points -> GetPoint (* (visible_points_ids -> GetTuple (i)), p);
+		double new_p[3];
+		new_p[0] = 0.75 * p[0] ;
+		new_p[1] = 0.75 * p[1] ;
+		new_p[2] = 0.75 * p[2] ;
+		points -> SetPoint(* (visible_points_ids -> GetTuple (i)), new_p);
+
+	}
+	this -> points_polydata -> SetPoints(points);
+	this -> points_polydata -> Modified();
+	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+}
 
 void InteractorStyle::SetPoints(vtkSmartPointer<vtkPolyData> points_polydata) {
-	this->points_polydata = points_polydata;
+	this -> points_polydata = points_polydata;
 }
 
 void InteractorStyle::SetMainWindow(MainWindow * mainwindow) {
 	this->mainwindow = mainwindow;
 }
+
+void InteractorStyle::SetCurrentMode(const int mode) {
+	this -> CurrentMode = mode;
+}
+
+InteractorStyle::~InteractorStyle() {
+	delete (this -> widget_is_open);
+}
+

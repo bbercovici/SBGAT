@@ -1,3 +1,6 @@
+#ifndef HEADER_INHERITEDPICKER
+#define HEADER_INHERITEDPICKER
+
 
 /**
 Definition of the InheritedPicker class. This class directly inherits from vtkAreaPicker.
@@ -29,3 +32,4 @@ public:
 	}
 
 };
+#endif

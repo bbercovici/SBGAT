@@ -1,3 +1,4 @@
+
 #ifndef HEADER_SELECTEDPOINTWIDGET
 #define HEADER_SELECTEDPOINTWIDGET
 
@@ -9,11 +10,17 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 #include <QComboBox>
+#include <QPushButton>
 
 #include <vtkDataArray.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
+
+#include "interactor.h"
+
+// Forward declaration of InteractorStyle
+class InteractorStyle;
 
 /**
 Declaration of the SelectedPointWidget class. SelectedPointWidget refers to the
@@ -35,7 +42,8 @@ public:
 	of the displayed shape model
 	*/
 	SelectedPointWidget(vtkSmartPointer<vtkPolyData> points_polydata,
-	                    vtkSmartPointer<vtkPolyData> selected_points_polydata);
+	                    vtkSmartPointer<vtkPolyData> selected_points_polydata,
+	                    bool * widget_is_open,vtkSmartPointer<InteractorStyle> interactor_style);
 
 
 	QTableWidget * table;
@@ -50,22 +58,30 @@ public:
 	QComboBox * transform_direction_list;
 	QComboBox * interpolation_type_list;
 
+	QPushButton * button_show_vertex_table;
+
 	/**
 	Populates the QTableWidget table with the relevant data
 	*/
-	void populate();
+	void populate_vertex_table();
+
 
 	// Slots
 private slots:
+	void show_vertex_table();
+	void accept();
+	void reject();
+
 
 private:
 	void createActions();
 	void createMenus();
+	bool * widget_is_open;
 
 	QStringList labels;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> points_polydata;
-
+	vtkSmartPointer<InteractorStyle> interactor_style;
 };
 
 
