@@ -42,8 +42,8 @@ class InteractorStyle : public vtkInteractorStyleRubberBandPick {
 public:
 	static InteractorStyle * New();
 	vtkTypeMacro(InteractorStyle, vtkInteractorStyleRubberBandPick);
+	
 	InteractorStyle();
-	virtual ~InteractorStyle();
 	virtual void OnLeftButtonUp();
 
 	/**
@@ -75,7 +75,6 @@ public:
 	vtkSmartPointer<vtkPolyData> get_selected_points_polydata();
 	vtkSmartPointer<vtkPolyData> get_points_polydata();
 
-	bool * get_widget_is_open();
 
 
 private:
@@ -84,7 +83,6 @@ private:
 	vtkSmartPointer<vtkActor> SelectedActor;
 	vtkSmartPointer<vtkDataSetMapper> SelectedMapper;
 	MainWindow * mainwindow ;
-	bool * widget_is_open;
 
 
 };

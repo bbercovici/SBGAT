@@ -36,6 +36,7 @@
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
+class SelectedPointWidget;
 
 /**
 Declaration of the MainWindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
@@ -48,15 +49,10 @@ class MainWindow : public QMainWindow {
 public:
 	// Widgets
 	QVTKWidget * qvtkWidget;
-	QWidget * central_wrapping_widget;
-	QWidget * dock_wrapping_widget;
-
-	// Layouts
-	QHBoxLayout * layout_central;
-	QVBoxLayout * layout_dock_right;
-
+    SelectedPointWidget * pc_editing_widget;
+    
 	// Docks
-	QDockWidget * menu_dock;
+	QDockWidget * selected_point_dockwidget;
 	
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
@@ -67,6 +63,18 @@ public:
 	/** Constructor. Setups the GUI and creates an instance of QVTK Widget
 	*/
 	MainWindow();
+
+	/**
+	Destructor
+	*/
+	~MainWindow();
+    
+    /**
+     Pointer to boolean indicating whether the selection widget is already open
+     */
+    bool * selection_widget_is_open;
+    
+    
 
 	// Slots
 private slots:
@@ -164,10 +172,12 @@ private:
 	QAction * shapeColorAct;
 	QAction * backgroundColorAct;
 	QAction * vertexVisibilityAct;
+    QColorDialog * palette;
 
 
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<InteractorStyle> style;
+	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 
 
 

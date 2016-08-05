@@ -11,67 +11,60 @@ InteractorStyle::InteractorStyle() {
 	this -> SelectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
 	this -> SelectedActor = vtkSmartPointer<vtkActor>::New();
 	this -> SelectedActor -> SetMapper(this -> SelectedMapper);
-	this -> widget_is_open = new bool();
-	*this -> widget_is_open = false;
+	this -> CurrentMode = INTERACTOR_IS_ORIENT;
+	this -> mainwindow = NULL;
 }
 
 
 void InteractorStyle::OnLeftButtonUp() {
 	// Forward events
-
 	vtkInteractorStyleRubberBandPick::OnLeftButtonUp();
 
-	if (this -> CurrentMode == INTERACTOR_IS_SELECT && *this -> widget_is_open == false) {
+	if (this -> mainwindow != NULL) {
+		// If the interactor is in selection mode 
+		// AND if the selection widget is not already open
+		if (this -> CurrentMode == INTERACTOR_IS_SELECT 
+			&&  *this -> mainwindow -> selection_widget_is_open == false) {
 
+			InheritedPicker * picker ;
+			picker = static_cast< InheritedPicker * >(this -> Interactor -> GetPicker());
 
-		InheritedPicker * picker ;
-		picker = static_cast< InheritedPicker * >(this -> Interactor -> GetPicker());
+			// The filter in charge of effectively extracting the points is
+			// created.
+			vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points =
+			    vtkSmartPointer<vtkSelectVisiblePoints>::New();
 
+			select_visible_points -> SelectionWindowOn();
 
-		// The filter in charge of effectively extracting the points is
-		// created.
-		vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points =
-		    vtkSmartPointer<vtkSelectVisiblePoints>::New();
+			// The filter is provided with a pointer to the vtkPolyData of interest
+			select_visible_points -> SetInputDataObject(this -> points_polydata);
 
-		select_visible_points -> SelectionWindowOn();
+			// The dimension of the selection area is set
+			// The seemingly akward operation within brackets is simply a
+			// conversion from a std::vector<int> containing 4 items to int[4]
+			select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
 
-		// The filter is provided with a pointer to the vtkPolyData of interest
-		select_visible_points -> SetInputDataObject(this -> points_polydata);
+			// The filter renderer is set to the current renderer
+			select_visible_points -> SetRenderer(this -> mainwindow -> get_renderer());
+			select_visible_points -> Update();
 
-		// The dimension of the selection area is set
-		// The seemingly akward operation within brackets is simply a
-		// conversion from a std::vector<int> containing 4 items to int[4]
-		select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
+			// The selected points are finally obtained in the form of a vtkPolyData
+			this -> selected_points_polydata = select_visible_points -> GetOutput();
 
-		// The filter renderer is set to the current renderer
-		select_visible_points -> SetRenderer(this -> mainwindow -> get_renderer());
-		select_visible_points -> Update();
+			// If at least one vertex was selected, the selection widget will open
+			if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
 
-		
+				// The widget is run as a non-modal window
+				this -> mainwindow -> pc_editing_widget -> set_data(this);
+				this -> mainwindow -> pc_editing_widget -> highlight_selected_cells();
+				this -> mainwindow -> pc_editing_widget -> show();
 
+				// Back to orient mode
+				this -> CurrentMode = INTERACTOR_IS_ORIENT;
 
-		// The selected points are finally obtained in the form of a vtkPolyData
-		this -> selected_points_polydata = select_visible_points -> GetOutput();
-		// this -> selected_cells_polydata = select_visible_cells -> GetOutput();
-
-		// If at least one vertex was selected, the selection widget will open
-		if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
-
-
-			// The widget allowing the user to visualize the selected point and
-			// define the transform to be applied is created
-			
-			SelectedPointWidget * pc_editing_widget = new SelectedPointWidget(this);
-
-			// The widget is run as a non-modal window
-			pc_editing_widget -> show();
-
-			// Back to orient mode
-			this -> CurrentMode = INTERACTOR_IS_ORIENT;
+			}
 
 		}
-
-
 
 	}
 
@@ -111,22 +104,16 @@ void InteractorStyle::set_current_mode(const int mode) {
 	this -> CurrentMode = mode;
 }
 
-InteractorStyle::~InteractorStyle() {
-	delete (this -> widget_is_open);
-}
 
-MainWindow * InteractorStyle::get_mainwindow(){
+MainWindow * InteractorStyle::get_mainwindow() {
 	return this -> mainwindow;
 }
 
 
-vtkSmartPointer<vtkPolyData> InteractorStyle::get_selected_points_polydata(){
+vtkSmartPointer<vtkPolyData> InteractorStyle::get_selected_points_polydata() {
 	return this -> selected_points_polydata;
 }
-vtkSmartPointer<vtkPolyData> InteractorStyle::get_points_polydata(){
+vtkSmartPointer<vtkPolyData> InteractorStyle::get_points_polydata() {
 	return this -> points_polydata;
 }
 
-bool * InteractorStyle::get_widget_is_open(){
-	return this -> widget_is_open;
-}

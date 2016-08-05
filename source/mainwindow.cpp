@@ -13,27 +13,31 @@ MainWindow::MainWindow() {
     this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(renderer);
     this -> renderer -> SetGradientBackground (true);
     this -> renderer -> SetBackground (0.5, 0.5, 1);
+    this -> selection_widget_is_open = new bool();
+    *this -> selection_widget_is_open = false;
+
 
 }
 
 void MainWindow::setupUi() {
     this -> resize(990, 583);
+    selected_point_dockwidget = new QDockWidget(this);
+    palette = new QColorDialog(this);
+    qvtkWidget = new QVTKWidget(this);
 
-    // Central widget
-    central_wrapping_widget = new QWidget();
-    qvtkWidget = new QVTKWidget();
-    layout_central = new QHBoxLayout();
-    layout_central -> addWidget(qvtkWidget);
-    central_wrapping_widget -> setLayout(layout_central);
+    selected_point_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
+    pc_editing_widget = new SelectedPointWidget();
+    pc_editing_widget -> QDialog::reject();
 
-
-    //Top Menu Bar
     createActions();
     createMenus();
 
-    this -> setCentralWidget(central_wrapping_widget);
+    this -> setCentralWidget(qvtkWidget);
     this -> setWindowTitle(QStringLiteral("PDART (WIP)"));
+    this -> addDockWidget(Qt::RightDockWidgetArea, this -> selected_point_dockwidget);
+    this -> selected_point_dockwidget -> setWidget(pc_editing_widget);
 
+    pc_editing_widget -> hide();
 
 }
 
@@ -77,13 +81,11 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         delaunay_actor -> GetProperty() -> SetColor(0, 1, 0);
 
         // Remove any already existing actor from the rendering window
-        vtkSmartPointer<vtkActorCollection> actor_coll = this -> renderer -> GetActors();
-        int actor_count = actor_coll -> GetNumberOfItems();
-
-        if (actor_count > 0) {
-            for (int i = 0; i < actor_count; ++i)
-                this -> renderer -> RemoveActor(actor_coll -> GetLastActor());
+        for (std::vector<vtkSmartPointer<vtkActor>>::iterator iter = this -> actor_vector.begin();
+                iter != this -> actor_vector.end(); ++iter) {
+            this -> renderer -> RemoveActor(*iter);
         }
+        actor_vector.clear();
 
         // The new actors are added to the scene
         this -> renderer -> AddActor(point_cloud_actor);
@@ -115,6 +117,10 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         renderWindowInteractor -> SetInteractorStyle( style );
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+        // The pointers to both actors are stored
+        actor_vector.push_back(point_cloud_actor);
+        actor_vector.push_back(delaunay_actor);
 
 
 
@@ -151,13 +157,11 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
 
         // Remove any already existing actor from the rendering window
-        vtkSmartPointer<vtkActorCollection> actor_coll = this -> renderer -> GetActors();
-        int actor_count = actor_coll -> GetNumberOfItems();
-
-        if (actor_count > 0) {
-            for (int i = 0; i < actor_count; ++i)
-                this -> renderer -> RemoveActor(actor_coll -> GetLastActor());
+        for (std::vector<vtkSmartPointer<vtkActor>>::iterator iter = this -> actor_vector.begin();
+                iter != this -> actor_vector.end(); ++iter) {
+            this -> renderer -> RemoveActor(*iter);
         }
+        actor_vector.clear();
 
         // The new actor is added to the scene
         this -> renderer -> AddActor(shape_actor);
@@ -189,9 +193,7 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
-        vtkSmartPointer<vtkCellArray> polys = read_polydata -> GetPolys ();
-        vtkSmartPointer<vtkIdTypeArray> polys_ids = polys -> GetData();
-        
+        actor_vector.push_back(shape_actor);
 
     }
 
@@ -271,7 +273,6 @@ void MainWindow::open() {
             }
 
             default:
-
                 break;
 
             }
@@ -284,7 +285,6 @@ void MainWindow::open() {
 }
 
 void MainWindow::set_background_color() {
-    QColorDialog * palette  = new QColorDialog();
     QColor qcolor =  palette -> getColor();
     if (qcolor.isValid()) {
         this -> renderer -> SetBackground (float(qcolor.red()) / 255, float(qcolor.green()) / 255, float(qcolor.blue()) / 255);
@@ -294,7 +294,6 @@ void MainWindow::set_background_color() {
 }
 
 void MainWindow::set_shape_color() {
-    QColorDialog * palette  = new QColorDialog();
     QColor qcolor =  palette -> getColor();
     if (qcolor.isValid()) {
         this -> renderer -> GetActors () -> GetLastActor()
@@ -321,7 +320,7 @@ void MainWindow::new_shape_model() {
 void MainWindow::select() {
     // Allows the interactor to grab props by
     // setting its style mode to selection
-    // equivalent to pressing the "r" key
+    // this is equivalent to pressing the "r" key
     // when the interactor is in ORIENT mode
     this -> style -> set_current_mode(INTERACTOR_IS_SELECT);
 
@@ -445,3 +444,6 @@ vtkSmartPointer<vtkRenderer> MainWindow::get_renderer() {
     return this -> renderer;
 }
 
+MainWindow::~MainWindow() {
+    delete selection_widget_is_open;
+}
