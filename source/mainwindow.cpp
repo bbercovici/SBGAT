@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "utilities.h"
+#include <vtkSphereSource.h>
 
 // shortcut to interactor modes
 #define INTERACTOR_IS_ORIENT 0
@@ -8,14 +9,26 @@
 MainWindow::MainWindow() {
     this -> setupUi();
 
-    // A VTK renderer is created and bound with the qvtk widget
+    // A VTK renderer is created and linked with the qvtk widget
     this -> renderer = vtkSmartPointer<vtkRenderer>::New();
-    this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(renderer);
+    this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
+
     this -> renderer -> SetGradientBackground (true);
     this -> renderer -> SetBackground (0.5, 0.5, 1);
+
     this -> selection_widget_is_open = new bool();
     *this -> selection_widget_is_open = false;
 
+
+    vtkSmartPointer<vtkAreaPicker> areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
+    this -> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    this -> renderWindowInteractor -> SetPicker(areaPicker);
+    this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
+
+    vtkSmartPointer<InteractorStyle> style =
+        vtkSmartPointer<InteractorStyle>::New();
+    this -> renderWindowInteractor -> SetInteractorStyle( style );
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 }
 
@@ -24,9 +37,11 @@ void MainWindow::setupUi() {
     selected_point_dockwidget = new QDockWidget(this);
     palette = new QColorDialog(this);
     qvtkWidget = new QVTKWidget(this);
+    pc_editing_widget = new SelectedPointWidget();
 
     selected_point_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
-    pc_editing_widget = new SelectedPointWidget();
+
+    // hides the dock widget
     pc_editing_widget -> QDialog::reject();
 
     createActions();
@@ -38,6 +53,8 @@ void MainWindow::setupUi() {
     this -> selected_point_dockwidget -> setWidget(pc_editing_widget);
 
     pc_editing_widget -> hide();
+
+    this -> show();
 
 }
 
@@ -107,15 +124,7 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
         style -> set_mainwindow(this);
         this -> style = style;
 
-        vtkSmartPointer<vtkAreaPicker> areaPicker =
-            vtkSmartPointer<vtkAreaPicker>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-            vtkSmartPointer<vtkRenderWindowInteractor>::New();
-
-        renderWindowInteractor -> SetPicker(areaPicker);
-        renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
-        renderWindowInteractor -> SetInteractorStyle( style );
-
+        this -> renderWindowInteractor -> SetInteractorStyle( style );
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
         // The pointers to both actors are stored
@@ -182,14 +191,7 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         style -> set_mainwindow(this);
         this -> style = style;
 
-        vtkSmartPointer<vtkAreaPicker> areaPicker =
-            vtkSmartPointer<vtkAreaPicker>::New();
-        vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-            vtkSmartPointer<vtkRenderWindowInteractor>::New();
-
-        renderWindowInteractor -> SetPicker(areaPicker);
-        renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
-        renderWindowInteractor -> SetInteractorStyle( style );
+        this -> renderWindowInteractor -> SetInteractorStyle( style );
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
@@ -212,7 +214,6 @@ void MainWindow::set_action_status(bool enabled, const std::string & menu_name, 
 
         }
     }
-
 }
 
 void MainWindow::open() {
@@ -246,6 +247,11 @@ void MainWindow::open() {
                 file_type = 1;
             }
 
+            // If the file has the right extension, the current job is terminated
+            if (file_type > 0) {
+                this -> terminate_current_job ();
+            }
+
             switch (file_type) {
 
             case 0: {
@@ -261,6 +267,7 @@ void MainWindow::open() {
             }
 
             case 1: {
+
                 // A .obj reader is created, connected to the file and fetched into a vtkPolyData structure
                 vtkSmartPointer<vtkOBJReader> reader =
                     vtkSmartPointer<vtkOBJReader>::New();
@@ -389,6 +396,11 @@ void MainWindow::createActions() {
     backgroundColorAct -> setStatusTip(tr("Set the background color"));
     connect(backgroundColorAct, &QAction::triggered, this, &MainWindow::set_background_color);
 
+
+    resetAct = new QAction(tr("Reset"), this);
+    resetAct -> setStatusTip(tr("Reset PDART to its start-up state"));
+    connect(resetAct, &QAction::triggered, this, &MainWindow::reset);
+
     newShapeModelAct = new QAction(tr("New"), this);
     newShapeModelAct -> setShortcuts(QKeySequence::New);
     newShapeModelAct -> setStatusTip(tr("Generate a new shape model"));
@@ -401,8 +413,24 @@ void MainWindow::createActions() {
     vertexVisibilityAct -> setChecked(true);
     vertexVisibilityAct -> setDisabled(true);
     connect(vertexVisibilityAct, &QAction::triggered, this, &MainWindow::change_vertex_visibility);
-
 }
+
+void MainWindow::set_actors_visibility(bool visibility) {
+    for (std::vector<vtkSmartPointer<vtkActor > >::iterator iter = actor_vector.begin();
+            iter != actor_vector.end(); ++ iter) {
+        (*iter) -> SetVisibility(visibility);
+    }
+}
+
+
+void MainWindow::remove_actors() {
+    for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
+            iter != this->actor_vector.end(); ++iter) {
+        this -> get_renderer() -> RemoveActor(*iter);
+    }
+    actor_vector.clear();
+}
+
 
 void MainWindow::change_vertex_visibility() {
     // The first actor is shown/hidden
@@ -424,24 +452,38 @@ void MainWindow::createMenus() {
     fileMenu -> addAction(saveAct);
     fileMenu -> addAction(newShapeModelAct);
     fileMenu -> addSeparator();
+    fileMenu -> addAction(resetAct);
 
 
-
-    OperationMenu = menuBar()->addMenu(tr("&Operation"));
+    OperationMenu = menuBar() -> addMenu(tr("&Operation"));
     OperationMenu -> addAction(selectPointAct);
 
-    ViewMenu = menuBar()->addMenu(tr("&Shape Graphic Properties"));
+    ViewMenu = menuBar() -> addMenu(tr("&Shape Graphic Properties"));
     ViewMenu -> addAction(shapeColorAct);
     ViewMenu -> addAction(backgroundColorAct);
     ViewMenu -> addSeparator();
     ViewMenu -> addAction(vertexVisibilityAct);
 
+}
 
-
+void MainWindow::terminate_current_job() {
+    if (*this -> selection_widget_is_open) {
+        this -> pc_editing_widget -> close();
+    }
 }
 
 vtkSmartPointer<vtkRenderer> MainWindow::get_renderer() {
     return this -> renderer;
+}
+
+
+void MainWindow::reset() {
+    this -> terminate_current_job();
+    this -> remove_actors();
+    this -> style  -> set_mainwindow(NULL);
+    this -> style -> Delete();
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
+
 }
 
 MainWindow::~MainWindow() {

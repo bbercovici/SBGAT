@@ -69,9 +69,6 @@ public:
 	*/
 	void set_current_mode(const int mode);
 
-
-	void transform_points();
-
 	vtkSmartPointer<vtkPolyData> get_selected_points_polydata();
 	vtkSmartPointer<vtkPolyData> get_points_polydata();
 
@@ -82,6 +79,7 @@ private:
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkActor> SelectedActor;
 	vtkSmartPointer<vtkDataSetMapper> SelectedMapper;
+	vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points;
 	MainWindow * mainwindow ;
 
 

@@ -52,9 +52,7 @@ public:
 	/**
 	Data Setter The pointer passed as arguments allow the widget to have access to the
 	point properties
-	@param points_polydata Pointer to the vtkPolyData storing the vertices of the shape model
-	@param selected_points_polydata Pointer to the vtkPolyData storing the selected vertices
-	of the displayed shape model
+	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
 	*/
 	void set_data(vtkSmartPointer<InteractorStyle> interactor_style);
 
@@ -80,18 +78,25 @@ public:
 	QComboBox * interpolation_type_list;
 	QComboBox * transform_selection_list;
 
-
-	QPushButton * button_show_vertex_table;
-
-
-
 	// Slots
 private slots:
+	/**
+	Displays the current slider position
+	@param pos Slider position
+	*/
 	void show_new_slider_pos(int pos);
+
+	/**
+	Redraw the shape model based on the slider position
+	@param pos Slider position
+	*/
 	void update_view(int pos);
 
+	/**
+	Sets the position slider value via the QLineEdit field
+	*/
 	void set_new_slider_pos();
-	void show_vertex_table();
+
 	void accept();
 	void reject();
 
@@ -100,23 +105,31 @@ private:
 	void createActions();
 	void createMenus();
 	bool * widget_is_open;
+
+	/**
+	Loops over the list of all actors created by this and remove each of those from the rendering window
+	*/
 	void remove_selected_points_actor();
 	/**
 	Populates the QTableWidget table with the relevant data
 	*/
 	void populate_vertex_table();
 
+	
 	/**
-	Returns a pointer to the structured polydata representing the selected facets/vertices
+	Constructs the vtkPolyData corresponding to 1) the selected cells 2) the rest of the cells in the 
+	currently displayed shape model. This allows the rendering window to represent both sets of cells 
+	separately
 	*/
-	vtkSmartPointer<vtkPolyData> get_selected_blob_polydata();
-
+	void compute_cell_blobs();
 
 
 	QStringList labels;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
+	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
+	vtkSmartPointer<vtkPoints> selected_points;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	MainWindow * mainwindow;
 };

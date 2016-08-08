@@ -49,11 +49,11 @@ class MainWindow : public QMainWindow {
 public:
 	// Widgets
 	QVTKWidget * qvtkWidget;
-    SelectedPointWidget * pc_editing_widget;
-    
+	SelectedPointWidget * pc_editing_widget;
+
 	// Docks
 	QDockWidget * selected_point_dockwidget;
-	
+
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
 	@return Pointer to the vtkRenderer associated with the window's QVTK widget
@@ -68,18 +68,24 @@ public:
 	Destructor
 	*/
 	~MainWindow();
-    
-    /**
-     Pointer to boolean indicating whether the selection widget is already open
-     */
-    bool * selection_widget_is_open;
-    
-    
+
+	/**
+	Sets the visibility of all the actors owned by this
+	@param visibility Boolean setting the visibility of the actors owned by this
+	*/
+	void set_actors_visibility(bool visibility);
+
+	/**
+	 Pointer to boolean indicating whether the selection widget is already open
+	 */
+	bool * selection_widget_is_open;
+
+
 
 	// Slots
 private slots:
 	/**
-	Opens a .vtp file storing vertex data using the path provided by the user
+	Opens a shape model
 	*/
 	void open();
 
@@ -89,9 +95,9 @@ private slots:
 	void save();
 
 	/**
-	Allows the interactor to grab props by 
-    setting its style mode to INTERACTOR_IS_SELECT
-    It is rigourosly equivalent to pressing the "r" key
+	Allows the interactor to grab props by
+	setting its style mode to INTERACTOR_IS_SELECT
+	It is rigourosly equivalent to pressing the "r" key
 	*/
 	void select();
 
@@ -115,9 +121,6 @@ private slots:
 	Enables/Disables vertex visibility on the displayed shape model
 	*/
 	void change_vertex_visibility();
-
-	
-
 
 
 private:
@@ -152,16 +155,30 @@ private:
 	*/
 	void setupUi();
 
+	/**
+	Ensures that the current job (currently displayed shape model and/or other widgets operating on
+	it, if any) are properly closed
+	*/
+	void terminate_current_job();
 
-	/** 
-	Enable/Disables an action
+	/**
+	Remove all actors owned by main window
+	*/
+	void remove_actors();
+
+	/**
+	Enable/Disables an action in the GUI
 	@param enabled Status the targeted action will be set to
 	@param menu_name String storing the name of the menu containing the targeted action
 	@param action_name String storing the name of the targeted action
 	*/
 	void set_action_status(bool enabled, const std::string & menu_name, const std::string & action_name);
 
-	
+	/**
+	Reset PDART to its start-up state
+	*/
+	void reset();
+
 	QMenu * fileMenu;
 	QMenu * OperationMenu;
 	QMenu * ViewMenu;
@@ -170,14 +187,17 @@ private:
 	QAction * newShapeModelAct;
 	QAction * selectPointAct;
 	QAction * shapeColorAct;
+	QAction * resetAct;
 	QAction * backgroundColorAct;
 	QAction * vertexVisibilityAct;
-    QColorDialog * palette;
+	QColorDialog * palette;
 
 
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<InteractorStyle> style;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
+
+	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 
 
 
