@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "utilities.h"
-#include <vtkSphereSource.h>
 
 // shortcut to interactor modes
 #define INTERACTOR_IS_ORIENT 0
@@ -25,10 +24,16 @@ MainWindow::MainWindow() {
     this -> renderWindowInteractor -> SetPicker(areaPicker);
     this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
 
-    vtkSmartPointer<InteractorStyle> style =
+    this -> style =
         vtkSmartPointer<InteractorStyle>::New();
     this -> renderWindowInteractor -> SetInteractorStyle( style );
+
+    this -> style -> set_mainwindow(this);
+
     this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+    leak_tracker = vtkDebugLeaks::New ();
+
 
 }
 
@@ -37,7 +42,7 @@ void MainWindow::setupUi() {
     selected_point_dockwidget = new QDockWidget(this);
     palette = new QColorDialog(this);
     qvtkWidget = new QVTKWidget(this);
-    pc_editing_widget = new SelectedPointWidget();
+    pc_editing_widget = new SelectedPointWidget(this);
 
     selected_point_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
 
@@ -116,16 +121,9 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
 
 
         // The interactor is set up and connected to the shape model being displayed
-        vtkSmartPointer<InteractorStyle> style =
-            vtkSmartPointer<InteractorStyle>::New();
-        style -> set_points(read_polydata);
 
-        // The mainwindow and the interactor style are connected with each other
-        style -> set_mainwindow(this);
-        this -> style = style;
+        style -> set_points_polydata(read_polydata);
 
-        this -> renderWindowInteractor -> SetInteractorStyle( style );
-        this -> qvtkWidget -> GetRenderWindow() -> Render();
 
         // The pointers to both actors are stored
         actor_vector.push_back(point_cloud_actor);
@@ -166,11 +164,8 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
 
         // Remove any already existing actor from the rendering window
-        for (std::vector<vtkSmartPointer<vtkActor>>::iterator iter = this -> actor_vector.begin();
-                iter != this -> actor_vector.end(); ++iter) {
-            this -> renderer -> RemoveActor(*iter);
-        }
-        actor_vector.clear();
+        this -> remove_actors();
+        actor_vector.push_back(shape_actor);
 
         // The new actor is added to the scene
         this -> renderer -> AddActor(shape_actor);
@@ -181,21 +176,15 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> set_action_status(true, "&Operation", "Select Points");
         this -> set_action_status(true, "&File", "&Save");
 
+        // The topology of the shape is constructed
+        read_polydata -> BuildLinks();
+
 
         // The interactor is set up and connected to the shape model being displayed
-        vtkSmartPointer<InteractorStyle> style =
-            vtkSmartPointer<InteractorStyle>::New();
-        style -> set_points(read_polydata);
+        style -> set_points_polydata(read_polydata);
 
-        // The mainwindow and the interactor style are connected with each other
-        style -> set_mainwindow(this);
-        this -> style = style;
-
-        this -> renderWindowInteractor -> SetInteractorStyle( style );
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
-
-        actor_vector.push_back(shape_actor);
 
     }
 
@@ -425,7 +414,7 @@ void MainWindow::set_actors_visibility(bool visibility) {
 
 void MainWindow::remove_actors() {
     for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
-            iter != this->actor_vector.end(); ++iter) {
+            iter != this -> actor_vector.end(); ++iter) {
         this -> get_renderer() -> RemoveActor(*iter);
     }
     actor_vector.clear();
@@ -433,7 +422,7 @@ void MainWindow::remove_actors() {
 
 
 void MainWindow::change_vertex_visibility() {
-    // The first actor is shown/hidden
+    // The first actor is shown/hiddenr
     vtkSmartPointer<vtkActor> point_cloud_actor = vtkActor::SafeDownCast(
                 this -> renderer -> GetActors() -> GetItemAsObject(0));
 
@@ -468,6 +457,7 @@ void MainWindow::createMenus() {
 
 void MainWindow::terminate_current_job() {
     if (*this -> selection_widget_is_open) {
+        // pc_editing_widget -> close() automatically calls pc_editing_widget -> reject();
         this -> pc_editing_widget -> close();
     }
 }
@@ -480,9 +470,19 @@ vtkSmartPointer<vtkRenderer> MainWindow::get_renderer() {
 void MainWindow::reset() {
     this -> terminate_current_job();
     this -> remove_actors();
-    this -> style  -> set_mainwindow(NULL);
+    this -> pc_editing_widget -> reset();
+    this -> style -> reset();
     this -> style -> Delete();
+
+    std::cout << leak_tracker -> PrintCurrentLeaks() << std::endl;
+
+//    the tree methods below do not appear to clear memory
+//    this -> pc_editing_widget -> reset();
+//    this -> style -> reset();
+
+
     this -> qvtkWidget -> GetRenderWindow() -> Render();
+
 
 }
 

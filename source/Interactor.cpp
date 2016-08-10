@@ -8,14 +8,13 @@
 
 
 InteractorStyle::InteractorStyle() {
-	this -> SelectedMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-	this -> SelectedActor = vtkSmartPointer<vtkActor>::New();
-	this -> SelectedActor -> SetMapper(this -> SelectedMapper);
 	this -> CurrentMode = INTERACTOR_IS_ORIENT;
 	this -> mainwindow = NULL;
 	select_visible_points =
 	    vtkSmartPointer<vtkSelectVisiblePoints>::New();
 	select_visible_points -> SelectionWindowOn();
+
+
 }
 
 
@@ -37,16 +36,16 @@ void InteractorStyle::OnLeftButtonUp() {
 			// The filter is provided with a pointer to the vtkPolyData of interest
 			select_visible_points -> SetInputDataObject(this -> points_polydata);
 
-			// // The dimension of the selection area is set
-			// // The seemingly akward operation within brackets is simply a
-			// // conversion from a std::vector<int> containing 4 items to int[4]
+			// The dimension of the selection area is set
+			// The seemingly akward operation within brackets is simply a
+			// conversion from a std::vector<int> containing 4 items to int[4]
 			select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
 			select_visible_points -> Update();
 
-			// // The selected points are finally obtained in the form of a vtkPolyData
+			// The selected points are finally obtained in the form of a vtkPolyData
 			this -> selected_points_polydata = select_visible_points -> GetOutput();
 
-			// // If at least one vertex was selected, the selection widget will open
+			// If at least one vertex was selected, the selection widget will open
 			if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
 
 				// 	// the widget is provided with the underlying shape model
@@ -81,21 +80,38 @@ void InteractorStyle::OnLeftButtonUp() {
 vtkStandardNewMacro(InteractorStyle);
 
 
-void InteractorStyle::set_points(vtkSmartPointer<vtkPolyData> points_polydata) {
+void InteractorStyle::set_points_polydata(vtkSmartPointer<vtkPolyData> points_polydata) {
 	this -> points_polydata = points_polydata;
+}
+
+
+void InteractorStyle::reset() {
+
+	// Assigning a new value to a SmartPointer
+	// will automatically destroy the previously pointed object
+	if (this -> selected_points_polydata) {
+
+		this -> selected_points_polydata = NULL;
+	}
+
+	if (this -> points_polydata) {
+
+
+		this -> points_polydata = NULL;
+	}
+
+
 }
 
 void InteractorStyle::set_mainwindow(MainWindow * mainwindow) {
 	this -> mainwindow = mainwindow;
 	// The filter renderer is set to the current renderer
 	select_visible_points -> SetRenderer(this -> mainwindow -> get_renderer());
-
 }
 
 void InteractorStyle::set_current_mode(const int mode) {
 	this -> CurrentMode = mode;
 }
-
 
 MainWindow * InteractorStyle::get_mainwindow() {
 	return this -> mainwindow;

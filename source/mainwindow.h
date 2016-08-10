@@ -30,9 +30,11 @@
 #include "QVTKWidget.h"
 
 
-#include "newShapeModelDialog.h"
-#include "selectedPointWidget.h"
+#include "newshapemodeldialog.h"
+#include "selectedpointWidget.h"
 #include "Interactor.h"
+
+#include <vtkDebugLeaks.h>
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
@@ -162,7 +164,7 @@ private:
 	void terminate_current_job();
 
 	/**
-	Remove all actors owned by main window
+	Remove all the actors owned by this instance of mainwindow
 	*/
 	void remove_actors();
 
@@ -196,8 +198,8 @@ private:
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<InteractorStyle> style;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
-
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
+	vtkDebugLeaks * leak_tracker;
 
 
 

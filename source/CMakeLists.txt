@@ -25,7 +25,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/Release")
 if(WIN32)
     set (CMAKE_PREFIX_PATH "C:/Qt/5.5/msvc2013/lib/cmake")
 elseif(APPLE)
-    set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/vtk_build/")
+    set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/vtk_build_debug/")
 endif()
 
 # Widgets finds its own dependencies (QtGui and QtCore)

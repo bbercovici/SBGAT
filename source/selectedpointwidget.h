@@ -23,12 +23,23 @@
 #include "mainwindow.h"
 
 #include <set>
+#include "vtkObjectFactory.h"
+
 
 // Forward declaration of InteractorStyle
 class InteractorStyle;
 
 // Forward declaration of MainWindow
 class MainWindow;
+
+
+
+class vtkPolyData_tracked : public vtkPolyData{
+public:
+    static vtkPolyData_tracked * New();
+    vtkTypeMacro(vtkPolyData_tracked, vtkPolyData);
+    vtkPolyData_tracked();
+};
 
 
 /**
@@ -44,10 +55,11 @@ class SelectedPointWidget : public QDialog {
 
 public:
 	/**
-	Constructor. 
+	Constructor.
+	@param parent Pointer to parent widget (here, pointer to instance of MainWindow )
 	*/
-	
-	SelectedPointWidget();
+
+	SelectedPointWidget(QWidget *parent);
 
 	/**
 	Data Setter The pointer passed as arguments allow the widget to have access to the
@@ -61,6 +73,12 @@ public:
 	*/
 	void highlight_selected_cells();
 
+	/**
+	Reset
+
+	*/
+	void reset();
+
 	QTableWidget * table;
 	QHBoxLayout * slider_layout;
 	QVBoxLayout * main_layout;
@@ -72,7 +90,6 @@ public:
 	QLabel * interpolation_type_title;
 	QLabel * transform_selection_title;
 	QLabel * slider_title;
-
 
 	QComboBox * transform_direction_list;
 	QComboBox * interpolation_type_list;
@@ -115,22 +132,35 @@ private:
 	*/
 	void populate_vertex_table();
 
-	
 	/**
-	Constructs the vtkPolyData corresponding to 1) the selected cells 2) the rest of the cells in the 
-	currently displayed shape model. This allows the rendering window to represent both sets of cells 
+	Constructs the vtkPolyData corresponding to 1) the selected cells 2) the rest of the cells in the
+	currently displayed shape model. This allows the rendering window to represent both sets of cells
 	separately
 	*/
 	void compute_cell_blobs();
 
 
 	QStringList labels;
+
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> points_polydata;
-	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
-	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
+	// vtkSmartPointer<vtkPolyData> selected_cells_polydata;
+	// vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
+
+
+	// vtkSmartPointer<vtkPolyData_tracked> selected_points_polydata;
+	// vtkSmartPointer<vtkPolyData_tracked> points_polydata;
+	vtkSmartPointer<vtkPolyData_tracked> selected_cells_polydata;
+	vtkSmartPointer<vtkPolyData_tracked> unselected_cells_polydata;
+
+
 	vtkSmartPointer<vtkPoints> selected_points;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
+	vtkSmartPointer<vtkCellArray> selected_polys_cell_array;
+	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array;
+	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids;
+	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids;
+
 	MainWindow * mainwindow;
 };
 

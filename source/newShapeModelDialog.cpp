@@ -1,4 +1,4 @@
-#include "newShapeModelDialog.h"
+#include "newshapemodeldialog.h"
 
 NewShapeModelDialog::NewShapeModelDialog() {
 	layout = new QHBoxLayout();

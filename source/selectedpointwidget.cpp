@@ -1,6 +1,11 @@
 #include "selectedpointwidget.h"
 
-SelectedPointWidget::SelectedPointWidget() {
+vtkPolyData_tracked::vtkPolyData_tracked(){
+}
+vtkStandardNewMacro(vtkPolyData_tracked);
+
+
+SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 
 	// The different GUI elements are created
 	slider = new QSlider(Qt::Horizontal, this);
@@ -19,8 +24,12 @@ SelectedPointWidget::SelectedPointWidget() {
 	slider_title = new QLabel("Transform magnitude:", this);
 
 
-	selected_cells_polydata = vtkPolyData::New();
-	unselected_cells_polydata = vtkPolyData::New();
+	// selected_cells_polydata = vtkPolyData::New();
+	// unselected_cells_polydata = vtkPolyData::New();
+
+	selected_cells_polydata = vtkPolyData_tracked::New();
+	unselected_cells_polydata = vtkPolyData_tracked::New();
+
 	selected_points = vtkPoints::New();
 
 
@@ -80,10 +89,8 @@ SelectedPointWidget::SelectedPointWidget() {
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(button_box, SIGNAL(rejected()), this, SLOT(reject()));
 
-	// The layout of the widget is set
 	this -> setLayout(main_layout);
-
-
+	this -> mainwindow =  qobject_cast<MainWindow*>(this -> parent());
 
 }
 
@@ -92,17 +99,15 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
 	this -> points_polydata = interactor_style -> get_points_polydata();
-	this -> mainwindow = interactor_style -> get_mainwindow();
 
 	// This prevents another instance of the widget to be opened
 	*this -> mainwindow -> selection_widget_is_open = true;
 
 	// The table showing the vertex info is populated and shown
-	this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
-	this -> populate_vertex_table();
-	this -> table -> show();
-	this -> slider -> setValue(0);
-
+	// this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
+	// this -> populate_vertex_table();
+	// this -> table -> show();
+	// this -> slider -> setValue(0);
 }
 
 void SelectedPointWidget::highlight_selected_cells() {
@@ -136,7 +141,6 @@ void SelectedPointWidget::highlight_selected_cells() {
 }
 
 
-
 void SelectedPointWidget::compute_cell_blobs() {
 
 	// The selected facets are highlighted by means of a polydata representing them
@@ -149,14 +153,12 @@ void SelectedPointWidget::compute_cell_blobs() {
 	vtkSmartPointer<vtkCellArray> polys = this -> points_polydata -> GetPolys ();
 	vtkSmartPointer<vtkIdTypeArray> polys_ids = polys -> GetData ();
 
-	// The topology of the shape is constructed (maybe should move this to load_obj?)
-	this -> points_polydata -> BuildLinks();
-
 	// Get the ids of the selected points
 	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
 	vtkSmartPointer<vtkIdTypeArray> visible_v_ids = vtkIdTypeArray::SafeDownCast(ids);
 
 	vtkSmartPointer<vtkIdList> cellIds = vtkIdList::New() ;
+
 	std::set<int> cells_to_include_indices;
 
 	for (int selected_v_index = 0;
@@ -171,16 +173,17 @@ void SelectedPointWidget::compute_cell_blobs() {
 		}
 	}
 
+
 	// The selected polys are then provided to selected_cells_polydata
-	vtkSmartPointer<vtkCellArray> selected_polys_cell_array = vtkCellArray::New();
-	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids =
+	selected_polys_cell_array = vtkCellArray::New();
+	selected_polys_ids =
 	    vtkSmartPointer<vtkIdTypeArray>::New();
 	selected_polys_ids -> SetNumberOfComponents(1);
 
 
 	// The same thing is done with the unselected cells
-	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array = vtkCellArray::New();
-	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids =
+	unselected_polys_cell_array = vtkCellArray::New();
+	unselected_polys_ids =
 	    vtkSmartPointer<vtkIdTypeArray>::New();
 	unselected_polys_ids -> SetNumberOfComponents(1);
 
@@ -235,13 +238,12 @@ void SelectedPointWidget::compute_cell_blobs() {
 
 	unselected_polys_cell_array -> SetCells(cells_not_included_indices.size(), unselected_polys_ids);
 
+	// // The structured polydata of the selected cells is finally constructed
+	this -> selected_cells_polydata -> SetPolys(selected_polys_cell_array);
 
-	// The structured polydata of the selected cells is finally constructed
-	selected_cells_polydata -> SetPolys(selected_polys_cell_array);
+	// // same for the unselected cells
+	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
 
-
-	// same for the unselected cells
-	unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
 
 }
 
@@ -303,6 +305,7 @@ void SelectedPointWidget::accept() {
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
 
+
 	this -> table -> clear();
 
 	QDialog::accept();
@@ -315,6 +318,8 @@ void SelectedPointWidget::reject() {
 
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+
+
 	QDialog::reject();
 
 }
@@ -325,6 +330,7 @@ void SelectedPointWidget::remove_selected_points_actor() {
 	        iter != this->actor_vector.end(); ++iter) {
 		this -> mainwindow -> get_renderer() -> RemoveActor(*iter);
 	}
+
 	actor_vector.clear();
 }
 
@@ -336,4 +342,32 @@ void SelectedPointWidget::set_new_slider_pos() {
 	this -> slider -> setValue(this -> slider_value -> text().toInt());
 
 }
+
+void SelectedPointWidget::reset() {
+	this -> selected_points_polydata = NULL;
+	this -> points_polydata = NULL;
+
+	this -> selected_cells_polydata -> SetPoints(NULL);
+	this -> selected_cells_polydata -> SetPolys(NULL);
+
+
+	this -> unselected_cells_polydata -> SetPoints(NULL);
+	this -> unselected_cells_polydata -> SetPolys(NULL);
+    
+    
+    this -> selected_cells_polydata = NULL;
+    this -> unselected_cells_polydata = NULL;
+
+
+	this -> unselected_polys_cell_array = NULL;
+	this -> selected_polys_cell_array = NULL;
+
+	this -> selected_points = NULL;
+
+	this -> unselected_polys_ids = NULL;
+	this -> selected_polys_ids = NULL;
+    
+
+}
+
 
