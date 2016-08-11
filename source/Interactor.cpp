@@ -87,18 +87,8 @@ void InteractorStyle::set_points_polydata(vtkSmartPointer<vtkPolyData> points_po
 
 void InteractorStyle::reset() {
 
-	// Assigning a new value to a SmartPointer
-	// will automatically destroy the previously pointed object
-	if (this -> selected_points_polydata) {
-
-		this -> selected_points_polydata = NULL;
-	}
-
-	if (this -> points_polydata) {
-
-
-		this -> points_polydata = NULL;
-	}
+	this -> selected_points_polydata -> Initialize();
+	this -> points_polydata -> Initialize();
 
 
 }

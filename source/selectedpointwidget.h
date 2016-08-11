@@ -39,6 +39,7 @@ public:
     static vtkPolyData_tracked * New();
     vtkTypeMacro(vtkPolyData_tracked, vtkPolyData);
     vtkPolyData_tracked();
+    virtual ~vtkPolyData_tracked();
 };
 
 
@@ -139,11 +140,18 @@ private:
 	*/
 	void compute_cell_blobs();
 
+	/**
+	Computes the memory space used by all the class members derived from vtkAbstractArray
+	@return size Int representing the memory used by class members derived from  
+	vtkAbstractArray in MbiBytes
+	*/
+	float get_actual_memory_size();
+
 
 	QStringList labels;
 
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
-	vtkSmartPointer<vtkPolyData> points_polydata;
+	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	// vtkSmartPointer<vtkPolyData> selected_cells_polydata;
 	// vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
 
@@ -160,6 +168,12 @@ private:
 	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array;
 	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids;
 	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids;
+	vtkSmartPointer<vtkPoints> new_selected_points_coordinates;
+
+	vtkSmartPointer<vtkIdTypeArray> polys_ids;
+	vtkSmartPointer<vtkIdTypeArray> visible_v_ids;
+	vtkSmartPointer<vtkIdList> cell_ids;
+
 
 	MainWindow * mainwindow;
 };

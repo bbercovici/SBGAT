@@ -1,8 +1,17 @@
 #include "selectedpointwidget.h"
+#include <chrono>
 
-vtkPolyData_tracked::vtkPolyData_tracked(){
+
+
+vtkPolyData_tracked::vtkPolyData_tracked() {
 }
 vtkStandardNewMacro(vtkPolyData_tracked);
+vtkPolyData_tracked::~vtkPolyData_tracked() {
+	std::cout << "destroyed" << std::endl;
+}
+
+
+
 
 
 SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
@@ -31,8 +40,20 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	unselected_cells_polydata = vtkPolyData_tracked::New();
 
 	selected_points = vtkPoints::New();
+	new_selected_points_coordinates = vtkPoints::New();
+
+	selected_polys_cell_array = vtkCellArray::New();
+	selected_polys_ids =
+	    vtkSmartPointer<vtkIdTypeArray>::New();
+	selected_polys_ids -> SetNumberOfComponents(1);
 
 
+	unselected_polys_cell_array = vtkCellArray::New();
+	unselected_polys_ids =
+	    vtkSmartPointer<vtkIdTypeArray>::New();
+	unselected_polys_ids -> SetNumberOfComponents(1);
+
+	cell_ids = vtkIdList::New() ;
 	// The slider position and range are set
 	slider -> setMinimum(-100);
 	slider -> setMaximum(100);
@@ -98,16 +119,20 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_style) {
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
-	this -> points_polydata = interactor_style -> get_points_polydata();
+	this -> all_points_polydata = interactor_style -> get_points_polydata();
+
+	// Get the polys connectivity of the full shape model. Those are not changing,
+	// and can hence be set when the new shape data is loaded
+	this -> polys_ids  = this -> all_points_polydata -> GetPolys ()-> GetData ();
 
 	// This prevents another instance of the widget to be opened
 	*this -> mainwindow -> selection_widget_is_open = true;
 
 	// The table showing the vertex info is populated and shown
-	// this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
-	// this -> populate_vertex_table();
-	// this -> table -> show();
-	// this -> slider -> setValue(0);
+	this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
+	this -> populate_vertex_table();
+	this -> table -> show();
+	this -> slider -> setValue(0);
 }
 
 void SelectedPointWidget::highlight_selected_cells() {
@@ -146,18 +171,14 @@ void SelectedPointWidget::compute_cell_blobs() {
 	// The selected facets are highlighted by means of a polydata representing them
 	// The same process is done with the unselected cells
 	// The points stored by those polydatas are all the vertices of the full shape model
-	selected_cells_polydata -> SetPoints(this -> points_polydata -> GetPoints());
-	unselected_cells_polydata -> SetPoints(this -> points_polydata -> GetPoints());
-
-	// Get the polys connectivity of the full shape model
-	vtkSmartPointer<vtkCellArray> polys = this -> points_polydata -> GetPolys ();
-	vtkSmartPointer<vtkIdTypeArray> polys_ids = polys -> GetData ();
+	selected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
+	unselected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
 
 	// Get the ids of the selected points
-	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
-	vtkSmartPointer<vtkIdTypeArray> visible_v_ids = vtkIdTypeArray::SafeDownCast(ids);
+	// vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
+	this -> visible_v_ids = vtkIdTypeArray::SafeDownCast(
+	                            this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
 
-	vtkSmartPointer<vtkIdList> cellIds = vtkIdList::New() ;
 
 	std::set<int> cells_to_include_indices;
 
@@ -165,27 +186,16 @@ void SelectedPointWidget::compute_cell_blobs() {
 	        selected_v_index < visible_v_ids -> GetNumberOfTuples () ;
 	        ++selected_v_index ) {
 		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> points_polydata -> GetPointCells	(* visible_v_ids -> GetTuple(selected_v_index), cellIds);
+		this -> all_points_polydata -> GetPointCells	(* visible_v_ids -> GetTuple(selected_v_index), cell_ids);
 
 		// Those IDs are eventually transfered in a set for uniqueness
-		for (int cell_id_index = 0; cell_id_index < cellIds -> GetNumberOfIds(); ++cell_id_index) {
-			cells_to_include_indices.insert(cellIds -> GetId (cell_id_index));
+		for (int cell_id_index = 0; cell_id_index < cell_ids -> GetNumberOfIds(); ++cell_id_index) {
+			cells_to_include_indices.insert(cell_ids -> GetId (cell_id_index));
 		}
 	}
 
 
-	// The selected polys are then provided to selected_cells_polydata
-	selected_polys_cell_array = vtkCellArray::New();
-	selected_polys_ids =
-	    vtkSmartPointer<vtkIdTypeArray>::New();
-	selected_polys_ids -> SetNumberOfComponents(1);
 
-
-	// The same thing is done with the unselected cells
-	unselected_polys_cell_array = vtkCellArray::New();
-	unselected_polys_ids =
-	    vtkSmartPointer<vtkIdTypeArray>::New();
-	unselected_polys_ids -> SetNumberOfComponents(1);
 
 
 	//The following constructs the set of cells that are not included in the selection
@@ -197,8 +207,12 @@ void SelectedPointWidget::compute_cell_blobs() {
 	std::set<int> cells_not_included_indices;
 	std::set<int> all_cells_indices;
 
-	for (int i = 0; i < this -> points_polydata -> GetNumberOfCells(); ++i) {
+
+
+
+	for (int i = 0; i < this -> all_points_polydata -> GetNumberOfCells(); ++i) {
 		all_cells_indices.insert(i);
+
 	}
 
 	// cells_not_included_indices contains the indices of the cells that were not included in the selection
@@ -238,11 +252,12 @@ void SelectedPointWidget::compute_cell_blobs() {
 
 	unselected_polys_cell_array -> SetCells(cells_not_included_indices.size(), unselected_polys_ids);
 
-	// // The structured polydata of the selected cells is finally constructed
+	// The structured polydata of the selected cells is finally constructed
 	this -> selected_cells_polydata -> SetPolys(selected_polys_cell_array);
 
-	// // same for the unselected cells
+	// same for the unselected cells
 	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
+
 
 
 }
@@ -276,48 +291,41 @@ void SelectedPointWidget::populate_vertex_table() {
 
 void SelectedPointWidget::update_view(int pos) {
 
-	this -> selected_points -> DeepCopy(this -> points_polydata -> GetPoints());
+	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
 
 	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
 	vtkSmartPointer<vtkIdTypeArray> visible_points_ids = vtkIdTypeArray::SafeDownCast(ids);
 
 	for (int i = 0; i < visible_points_ids -> GetNumberOfTuples () ; ++i ) {
 		double p[3];
-		selected_points -> GetPoint (* (visible_points_ids -> GetTuple (i)), p);
+		this -> selected_points -> GetPoint (* (visible_points_ids -> GetTuple (i)), p);
 		double new_p[3];
 		new_p[0] = (1 + float(pos) / 100) * p[0] ;
 		new_p[1] = (1 + float(pos) / 100) * p[1] ;
 		new_p[2] = (1 + float(pos) / 100) * p[2] ;
-		selected_points -> SetPoint(* (visible_points_ids -> GetTuple (i)), new_p);
+		this -> selected_points -> SetPoint(* (visible_points_ids -> GetTuple (i)), new_p);
 	}
 
 
-	this -> selected_cells_polydata -> SetPoints(selected_points);
+	this -> selected_cells_polydata -> SetPoints(this -> selected_points  );
 	this -> selected_cells_polydata -> Modified();
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
 }
 
 void SelectedPointWidget::accept() {
-	*this -> mainwindow -> selection_widget_is_open = false;
-	this -> points_polydata -> SetPoints(this -> selected_cells_polydata -> GetPoints());
-	this -> points_polydata -> Modified();
-	this -> remove_selected_points_actor();
-	this -> mainwindow -> set_actors_visibility(true);
-	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+	new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
+	this -> all_points_polydata -> SetPoints(new_selected_points_coordinates);
+	this -> all_points_polydata -> Modified();
 
-
-	this -> table -> clear();
+	this -> reset();
 
 	QDialog::accept();
 }
 
 void SelectedPointWidget::reject() {
-	*this -> mainwindow -> selection_widget_is_open = false;
-	this -> remove_selected_points_actor();
-	this -> table -> clear();
 
-	this -> mainwindow -> set_actors_visibility(true);
-	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+	this -> reset();
+
 
 
 	QDialog::reject();
@@ -344,30 +352,44 @@ void SelectedPointWidget::set_new_slider_pos() {
 }
 
 void SelectedPointWidget::reset() {
-	this -> selected_points_polydata = NULL;
-	this -> points_polydata = NULL;
+	std::cout << "resetting widget" << std::endl;
 
-	this -> selected_cells_polydata -> SetPoints(NULL);
-	this -> selected_cells_polydata -> SetPolys(NULL);
+	*this -> mainwindow -> selection_widget_is_open = false;
+	this -> remove_selected_points_actor();
 
+	this -> table -> clear();
 
-	this -> unselected_cells_polydata -> SetPoints(NULL);
-	this -> unselected_cells_polydata -> SetPolys(NULL);
-    
-    
-    this -> selected_cells_polydata = NULL;
-    this -> unselected_cells_polydata = NULL;
+	std::cout << " Memory used: "<< this -> get_actual_memory_size() << std::endl;
 
 
-	this -> unselected_polys_cell_array = NULL;
-	this -> selected_polys_cell_array = NULL;
+	this -> selected_cells_polydata -> Initialize();
+	this -> unselected_cells_polydata -> Initialize();
+	this -> selected_polys_ids -> Initialize();
+	this -> unselected_polys_ids -> Initialize();
+	this -> cell_ids -> Initialize();
+	this -> selected_points -> Initialize();
+	
+	// this -> selected_polys_cell_array -> Initialize();
+	// this -> unselected_polys_cell_array -> Initialize();
 
-	this -> selected_points = NULL;
+	this -> mainwindow -> set_actors_visibility(true);
+	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+	std::cout << " Memory used: "<< this -> get_actual_memory_size() << std::endl;
 
-	this -> unselected_polys_ids = NULL;
-	this -> selected_polys_ids = NULL;
-    
+}
 
+float SelectedPointWidget::get_actual_memory_size(){
+
+	float memory_used = float(
+		this -> selected_cells_polydata -> GetActualMemorySize() + 
+	this -> unselected_cells_polydata -> GetActualMemorySize() + 
+	this -> selected_polys_ids -> GetActualMemorySize() + 
+	this -> unselected_polys_ids  -> GetActualMemorySize()+ 
+	this -> selected_points -> GetActualMemorySize() + 
+	this -> selected_polys_cell_array  -> GetActualMemorySize()+ 
+	this -> unselected_polys_cell_array -> GetActualMemorySize())/1024 ;
+
+    return memory_used;
 }
 
 
