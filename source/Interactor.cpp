@@ -34,7 +34,7 @@ void InteractorStyle::OnLeftButtonUp() {
 			// The filter in charge of effectively extracting the points is
 			// fed with the data.
 			// The filter is provided with a pointer to the vtkPolyData of interest
-			select_visible_points -> SetInputDataObject(this -> points_polydata);
+			select_visible_points -> SetInputDataObject(this -> all_points_polydata);
 
 			// The dimension of the selection area is set
 			// The seemingly akward operation within brackets is simply a
@@ -48,14 +48,17 @@ void InteractorStyle::OnLeftButtonUp() {
 			// If at least one vertex was selected, the selection widget will open
 			if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
 
-				// 	// the widget is provided with the underlying shape model
-				// 	// by passing a pointer to this, which already owns it
+				// the widget is provided with the underlying shape model
+				// by passing a pointer to this, which already owns it
 				this -> mainwindow -> pc_editing_widget -> set_data(this);
 
 				// An actor is added to represent the selected cells
 				// Another one is also create to represent the rest of the shape model
 				// that is not selected
 				this -> mainwindow -> pc_editing_widget -> highlight_selected_cells();
+
+				// the normals of the selected cells are computed
+				this -> mainwindow -> pc_editing_widget -> compute_selected_points_normals();
 
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.
@@ -80,15 +83,15 @@ void InteractorStyle::OnLeftButtonUp() {
 vtkStandardNewMacro(InteractorStyle);
 
 
-void InteractorStyle::set_points_polydata(vtkSmartPointer<vtkPolyData> points_polydata) {
-	this -> points_polydata = points_polydata;
+void InteractorStyle::set_all_points_polydata(vtkSmartPointer<vtkPolyData> all_points_polydata) {
+	this -> all_points_polydata = all_points_polydata;
 }
 
 
 void InteractorStyle::reset() {
 
 	this -> selected_points_polydata -> Initialize();
-	this -> points_polydata -> Initialize();
+	this -> all_points_polydata -> Initialize();
 
 
 }
@@ -111,6 +114,6 @@ MainWindow * InteractorStyle::get_mainwindow() {
 vtkSmartPointer<vtkPolyData> InteractorStyle::get_selected_points_polydata() {
 	return this -> selected_points_polydata;
 }
-vtkSmartPointer<vtkPolyData> InteractorStyle::get_points_polydata() {
-	return this -> points_polydata;
+vtkSmartPointer<vtkPolyData> InteractorStyle::get_all_points_polydata() {
+	return this -> all_points_polydata;
 }

@@ -82,6 +82,7 @@ public:
 	 */
 	bool * selection_widget_is_open;
 
+	vtkDebugLeaks * leak_tracker;
 
 
 	// Slots
@@ -199,7 +200,6 @@ private:
 	vtkSmartPointer<InteractorStyle> style;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
-	vtkDebugLeaks * leak_tracker;
 
 
 

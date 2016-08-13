@@ -32,7 +32,7 @@ MainWindow::MainWindow() {
 
     this -> qvtkWidget -> GetRenderWindow() -> Render();
 
-    leak_tracker = vtkDebugLeaks::New ();
+    leak_tracker = vtkDebugLeaks::New();
 
 
 }
@@ -122,7 +122,7 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
 
         // The interactor is set up and connected to the shape model being displayed
 
-        style -> set_points_polydata(read_polydata);
+        style -> set_all_points_polydata(read_polydata);
 
 
         // The pointers to both actors are stored
@@ -140,6 +140,7 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
 
 
 void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id) {
+
     if (read_polydata_without_id != NULL) {
 
         // The polydata is fed to an IDFilter.
@@ -181,10 +182,9 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
 
         // The interactor is set up and connected to the shape model being displayed
-        style -> set_points_polydata(read_polydata);
+        style -> set_all_points_polydata(read_polydata);
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
-
 
     }
 
@@ -474,7 +474,7 @@ void MainWindow::reset() {
     this -> style -> reset();
     this -> style -> Delete();
 
-    std::cout << leak_tracker -> PrintCurrentLeaks() << std::endl;
+
 
 //    the tree methods below do not appear to clear memory
 //    this -> pc_editing_widget -> reset();

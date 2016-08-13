@@ -3,6 +3,8 @@
 #define HEADER_SELECTEDPOINTWIDGET
 
 #include <QDialog>
+#include <QString>
+
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHBoxLayout>
@@ -14,10 +16,12 @@
 #include <QSlider>
 
 #include <vtkDataArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkIdTypeArray.h>
+#include <vtkPolyDataNormals.h>
 
 #include "interactor.h"
 #include "mainwindow.h"
@@ -33,14 +37,33 @@ class InteractorStyle;
 class MainWindow;
 
 
-
-class vtkPolyData_tracked : public vtkPolyData{
+// for debug purposes. to be removed
+class vtkPolyData_tracked : public vtkPolyData {
 public:
-    static vtkPolyData_tracked * New();
-    vtkTypeMacro(vtkPolyData_tracked, vtkPolyData);
-    vtkPolyData_tracked();
-    virtual ~vtkPolyData_tracked();
+	static vtkPolyData_tracked * New();
+	vtkTypeMacro(vtkPolyData_tracked, vtkPolyData);
+	vtkPolyData_tracked();
+	virtual ~vtkPolyData_tracked();
 };
+
+/**
+Enum defining the state "transform direction" drop down list
+*/
+enum class TransformDirection {RADIAL, NORMAL};
+
+
+/**
+Enum defining the state "interpolation type" drop down list
+*/
+enum class InterpolationType {UNIFORM, LINEAR, PARABOLIC};
+
+
+/**
+Enum defining the state "transform selection" drop down list
+*/
+enum class TransformSelection {SELECTED, NCLOSEST};
+
+
 
 
 /**
@@ -48,8 +71,8 @@ Declaration of the SelectedPointWidget class. SelectedPointWidget refers to the
 widget displayed on the screen when the user selects at least one vertex of the
 displayed shape model by means of the rectangular box selector. The widget that is then
 displayed lists the IDs of the selected vertices, as well as a choice of possible geometric
-transforms to be applied to them
-NOTE: for now, the only possible transform (homothetic transform) is hardcoded
+transforms to be applied to them. A horizontal slider enalbes the user to choose
+the magnitude of the transform
 */
 class SelectedPointWidget : public QDialog {
 	Q_OBJECT
@@ -75,7 +98,14 @@ public:
 	void highlight_selected_cells();
 
 	/**
-	Reset
+	Computes the normals at the selected points
+	*/
+	void compute_selected_points_normals();
+
+
+
+	/**
+	Reset the widget by clearing the memory used by the different vtk container members
 
 	*/
 	void reset();
@@ -118,6 +148,22 @@ private slots:
 	void accept();
 	void reject();
 
+	/**
+	Sets the states of transform_direction_list
+	*/
+	void set_transform_direction(const int);
+
+
+	/**
+	Sets the states of interpolation_type_list
+	*/
+	void set_interpolation_type(const int);
+
+	/**
+	Sets the states of transform_selection_list
+	*/
+	void set_transform_selection(const int);
+
 
 private:
 	void createActions();
@@ -142,7 +188,7 @@ private:
 
 	/**
 	Computes the memory space used by all the class members derived from vtkAbstractArray
-	@return size Int representing the memory used by class members derived from  
+	@return size Int representing the memory used by class members derived from
 	vtkAbstractArray in MbiBytes
 	*/
 	float get_actual_memory_size();
@@ -171,8 +217,16 @@ private:
 	vtkSmartPointer<vtkPoints> new_selected_points_coordinates;
 
 	vtkSmartPointer<vtkIdTypeArray> polys_ids;
-	vtkSmartPointer<vtkIdTypeArray> visible_v_ids;
+	vtkSmartPointer<vtkIdTypeArray> visible_points_global_ids_from_local_index;
+
 	vtkSmartPointer<vtkIdList> cell_ids;
+	vtkDataArray * selected_points_normals;
+
+	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter;
+
+	TransformDirection transform_direction;
+	InterpolationType interpolation_type;
+	TransformSelection transform_selection;
 
 
 	MainWindow * mainwindow;

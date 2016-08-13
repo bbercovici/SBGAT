@@ -1,6 +1,5 @@
 #include "selectedpointwidget.h"
-#include <chrono>
-
+#include <vtkSphereSource.h>
 
 
 vtkPolyData_tracked::vtkPolyData_tracked() {
@@ -9,9 +8,6 @@ vtkStandardNewMacro(vtkPolyData_tracked);
 vtkPolyData_tracked::~vtkPolyData_tracked() {
 	std::cout << "destroyed" << std::endl;
 }
-
-
-
 
 
 SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
@@ -54,6 +50,12 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	unselected_polys_ids -> SetNumberOfComponents(1);
 
 	cell_ids = vtkIdList::New() ;
+
+
+	selected_polydata_normals_filter = vtkPolyDataNormals::New();
+	selected_polydata_normals_filter -> ComputePointNormalsOn();
+	selected_polydata_normals_filter -> ComputeCellNormalsOff();
+
 	// The slider position and range are set
 	slider -> setMinimum(-100);
 	slider -> setMaximum(100);
@@ -106,24 +108,44 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	transform_selection_list -> insertItem(0, "Selected blob");
 	transform_selection_list -> insertItem(1, "N closest neighbors from center");
 
+	// The state of those drop-down lists are set
+	transform_direction = TransformDirection::RADIAL;
+	interpolation_type = InterpolationType::UNIFORM;
+	transform_selection = TransformSelection::SELECTED;
+
+	// Each drop down lists generates a signal notyfing the program that it was changed
+	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::set_transform_direction);
+
+	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::set_interpolation_type);
+
+	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::set_transform_selection);
+
+
+
 	// The different buttons are connected to the corresponding slots
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(button_box, SIGNAL(rejected()), this, SLOT(reject()));
 
 	this -> setLayout(main_layout);
 	this -> mainwindow =  qobject_cast<MainWindow*>(this -> parent());
-
 }
 
-
 void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_style) {
+
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
-	this -> all_points_polydata = interactor_style -> get_points_polydata();
+	this -> all_points_polydata = interactor_style -> get_all_points_polydata();
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded
 	this -> polys_ids  = this -> all_points_polydata -> GetPolys ()-> GetData ();
+
+	// Likewise, the ids of the selected points are retrieved
+	this -> visible_points_global_ids_from_local_index = vtkIdTypeArray::SafeDownCast(
+	                                 this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
 
 	// This prevents another instance of the widget to be opened
 	*this -> mainwindow -> selection_widget_is_open = true;
@@ -174,19 +196,13 @@ void SelectedPointWidget::compute_cell_blobs() {
 	selected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
 	unselected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
 
-	// Get the ids of the selected points
-	// vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
-	this -> visible_v_ids = vtkIdTypeArray::SafeDownCast(
-	                            this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
-
-
 	std::set<int> cells_to_include_indices;
 
-	for (int selected_v_index = 0;
-	        selected_v_index < visible_v_ids -> GetNumberOfTuples () ;
-	        ++selected_v_index ) {
+	for (int selected_point_index = 0;
+	        selected_point_index < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ;
+	        ++selected_point_index ) {
 		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> all_points_polydata -> GetPointCells	(* visible_v_ids -> GetTuple(selected_v_index), cell_ids);
+		this -> all_points_polydata -> GetPointCells	(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), cell_ids);
 
 		// Those IDs are eventually transfered in a set for uniqueness
 		for (int cell_id_index = 0; cell_id_index < cell_ids -> GetNumberOfIds(); ++cell_id_index) {
@@ -259,7 +275,6 @@ void SelectedPointWidget::compute_cell_blobs() {
 	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
 
 
-
 }
 
 
@@ -293,17 +308,34 @@ void SelectedPointWidget::update_view(int pos) {
 
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
 
-	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
-	vtkSmartPointer<vtkIdTypeArray> visible_points_ids = vtkIdTypeArray::SafeDownCast(ids);
+	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
 
-	for (int i = 0; i < visible_points_ids -> GetNumberOfTuples () ; ++i ) {
+
 		double p[3];
-		this -> selected_points -> GetPoint (* (visible_points_ids -> GetTuple (i)), p);
+		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
 		double new_p[3];
-		new_p[0] = (1 + float(pos) / 100) * p[0] ;
-		new_p[1] = (1 + float(pos) / 100) * p[1] ;
-		new_p[2] = (1 + float(pos) / 100) * p[2] ;
-		this -> selected_points -> SetPoint(* (visible_points_ids -> GetTuple (i)), new_p);
+		double dir_transform[3];
+
+		switch (this -> transform_direction) {
+		case TransformDirection::RADIAL:
+			new_p[0] = (1 + float(pos) / 100) * p[0] ;
+			new_p[1] = (1 + float(pos) / 100) * p[1] ;
+			new_p[2] = (1 + float(pos) / 100) * p[2] ;
+			break;
+
+		case TransformDirection::NORMAL:
+
+			this -> selected_points_normals -> GetTuple(i,
+			                                    dir_transform);
+
+			new_p[0] =  p[0] + dir_transform[0] * float(pos) / 100;
+			new_p[1] =  p[1] + dir_transform[1] * float(pos) / 100;
+			new_p[2] =  p[2] + dir_transform[2] * float(pos) / 100;
+			break;
+
+		}
+
+		this -> selected_points -> SetPoint(* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), new_p);
 	}
 
 
@@ -359,8 +391,7 @@ void SelectedPointWidget::reset() {
 
 	this -> table -> clear();
 
-	std::cout << " Memory used: "<< this -> get_actual_memory_size() << std::endl;
-
+	std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
 
 	this -> selected_cells_polydata -> Initialize();
 	this -> unselected_cells_polydata -> Initialize();
@@ -368,28 +399,106 @@ void SelectedPointWidget::reset() {
 	this -> unselected_polys_ids -> Initialize();
 	this -> cell_ids -> Initialize();
 	this -> selected_points -> Initialize();
-	
+
 	// this -> selected_polys_cell_array -> Initialize();
 	// this -> unselected_polys_cell_array -> Initialize();
 
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
-	std::cout << " Memory used: "<< this -> get_actual_memory_size() << std::endl;
+	std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
+	this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
 
 }
 
-float SelectedPointWidget::get_actual_memory_size(){
+float SelectedPointWidget::get_actual_memory_size() {
 
 	float memory_used = float(
-		this -> selected_cells_polydata -> GetActualMemorySize() + 
-	this -> unselected_cells_polydata -> GetActualMemorySize() + 
-	this -> selected_polys_ids -> GetActualMemorySize() + 
-	this -> unselected_polys_ids  -> GetActualMemorySize()+ 
-	this -> selected_points -> GetActualMemorySize() + 
-	this -> selected_polys_cell_array  -> GetActualMemorySize()+ 
-	this -> unselected_polys_cell_array -> GetActualMemorySize())/1024 ;
+	                        this -> selected_cells_polydata -> GetActualMemorySize() +
+	                        this -> unselected_cells_polydata -> GetActualMemorySize() +
+	                        this -> selected_polys_ids -> GetActualMemorySize() +
+	                        this -> unselected_polys_ids  -> GetActualMemorySize() +
+	                        this -> selected_points -> GetActualMemorySize() +
+	                        this -> selected_polys_cell_array  -> GetActualMemorySize() +
+	                        this -> unselected_polys_cell_array -> GetActualMemorySize()) / 1024 ;
 
-    return memory_used;
+	return memory_used;
+}
+
+void SelectedPointWidget::compute_selected_points_normals() {
+
+	// vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter = vtkPolyDataNormals::New();
+	// selected_polydata_normals_filter -> ComputePointNormalsOn();
+	// selected_polydata_normals_filter -> ComputeCellNormalsOff();
+
+	selected_polydata_normals_filter -> SetInputData(this -> all_points_polydata);
+	selected_polydata_normals_filter -> Update ();
+
+	// Point normals
+	this -> selected_points_normals = selected_polydata_normals_filter -> GetOutput()
+	                          -> GetPointData() -> GetNormals();
+	// selected_polydata_normals_filter -> Delete();
+
+	double dir_transform[3];
+
+	for (int i = 0; i < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i) {
+		this -> selected_points_normals -> GetTuple(i,
+		                                    dir_transform);
+	}
+
+
+
+}
+
+void SelectedPointWidget::set_transform_direction(const int item_index) {
+	switch (item_index) {
+	case 0:
+		transform_direction = TransformDirection::RADIAL;
+		break;
+	case 1:
+
+		transform_direction = TransformDirection::NORMAL;
+		break;
+	default:
+		std::cout << " Case not implemented in set_transform_direction. Got item_index== " << item_index << std::endl;
+		break;
+
+	}
 }
 
 
+void SelectedPointWidget::set_interpolation_type(const int item_index) {
+	switch (item_index) {
+	case 0:
+		interpolation_type = InterpolationType::UNIFORM;
+		break;
+	case 1:
+
+		interpolation_type = InterpolationType::LINEAR;
+		break;
+	case 2:
+
+		interpolation_type = InterpolationType::PARABOLIC;
+		break;
+	default:
+		std::cout << " Case not implemented in set_interpolation_type. Got item_index== " << item_index << std::endl;
+		break;
+
+	}
+}
+
+
+void SelectedPointWidget::set_transform_selection(const int item_index) {
+	switch (item_index) {
+	case 0:
+		transform_selection = TransformSelection::SELECTED;
+		break;
+	case 1:
+
+		transform_selection = TransformSelection::NCLOSEST;
+		break;
+	default:
+		std::cout << " Case not implemented in set_transform_selection. Got item_index== " << item_index << std::endl;
+		break;
+
+	}
+}
