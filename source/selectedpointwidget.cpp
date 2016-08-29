@@ -136,12 +136,12 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 
-
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
 	this -> all_points_polydata = interactor_style -> get_all_points_polydata();
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded
+
 	this -> polys_ids  = this -> all_points_polydata -> GetPolys () -> GetData ();
 
 	// Likewise, the ids of the selected points are retrieved
@@ -277,6 +277,7 @@ void SelectedPointWidget::compute_cell_blobs() {
 	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
 
 
+
 }
 
 
@@ -386,16 +387,16 @@ void SelectedPointWidget::set_new_slider_pos() {
 }
 
 void SelectedPointWidget::reset() {
-	std::cout << "resetting widget" << std::endl;
+	// std::cout << "resetting widget" << std::endl;
 
 	*this -> mainwindow -> selection_widget_is_open = false;
 	this -> remove_selected_points_actor();
 
 	this -> table -> clear();
 
-	std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
+	// std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
 
-	this -> selected_cells_polydata -> Initialize();
+	// Do not call initialize on this -> selected_cells_polydata !
 	this -> unselected_cells_polydata -> Initialize();
 	this -> selected_polys_ids -> Initialize();
 	this -> unselected_polys_ids -> Initialize();
@@ -407,7 +408,8 @@ void SelectedPointWidget::reset() {
 
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
-	std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
+
+	// std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
 	this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
 
 }

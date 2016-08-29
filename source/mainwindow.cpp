@@ -180,9 +180,9 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         // The topology of the shape is constructed
         read_polydata -> BuildLinks();
 
-
         // The interactor is set up and connected to the shape model being displayed
         style -> set_all_points_polydata(read_polydata);
+        
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
