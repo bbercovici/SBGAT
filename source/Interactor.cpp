@@ -58,7 +58,7 @@ void InteractorStyle::OnLeftButtonUp() {
 				this -> mainwindow -> pc_editing_widget -> highlight_selected_cells();
 
 				// the normals of the selected cells are computed
-				this -> mainwindow -> pc_editing_widget -> compute_selected_points_normals();
+				this -> mainwindow -> pc_editing_widget -> compute_selected_cells_normals();
 
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.

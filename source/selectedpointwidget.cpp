@@ -44,9 +44,16 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	cell_ids = vtkIdList::New() ;
 
 
-	selected_polydata_normals_filter = vtkPolyDataNormals::New();
-	selected_polydata_normals_filter -> ComputePointNormalsOn();
-	selected_polydata_normals_filter -> ComputeCellNormalsOff();
+	this -> selected_polydata_normals_filter = vtkPolyDataNormals::New();
+
+	// selected_polydata_normals_filter -> ComputeCellNormalsOn();
+	this -> selected_polydata_normals_filter -> ComputePointNormalsOn();
+
+
+	this -> selected_polydata_normals_filter -> ComputeCellNormalsOff();
+	// selected_polydata_normals_filter -> ComputePointNormalsOff();
+
+	this -> selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
 
 	// The slider position and range are set
 	slider -> setMinimum(-100);
@@ -128,16 +135,18 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_style) {
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
+
+
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
 	this -> all_points_polydata = interactor_style -> get_all_points_polydata();
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded
-	this -> polys_ids  = this -> all_points_polydata -> GetPolys ()-> GetData ();
+	this -> polys_ids  = this -> all_points_polydata -> GetPolys () -> GetData ();
 
 	// Likewise, the ids of the selected points are retrieved
 	this -> visible_points_global_ids_from_local_index = vtkIdTypeArray::SafeDownCast(
-	                                 this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
+	            this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
 
 	// This prevents another instance of the widget to be opened
 	*this -> mainwindow -> selection_widget_is_open = true;
@@ -147,6 +156,8 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 	this -> populate_vertex_table();
 	this -> table -> show();
 	this -> slider -> setValue(0);
+
+
 }
 
 void SelectedPointWidget::highlight_selected_cells() {
@@ -300,12 +311,12 @@ void SelectedPointWidget::update_view(int pos) {
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
 
 	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
-
-
 		double p[3];
-		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
 		double new_p[3];
-		double dir_transform[3];
+		double transform_direction[3];
+
+		// The i-th visible point is queried
+		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
 
 		switch (this -> transform_direction) {
 		case TransformDirection::RADIAL:
@@ -316,12 +327,12 @@ void SelectedPointWidget::update_view(int pos) {
 
 		case TransformDirection::NORMAL:
 
-			this -> selected_points_normals -> GetTuple(i,
-			                                    dir_transform);
+			this -> selected_cells_normals -> GetTuple(i,
+			        transform_direction);
 
-			new_p[0] =  p[0] + dir_transform[0] * float(pos) / 100;
-			new_p[1] =  p[1] + dir_transform[1] * float(pos) / 100;
-			new_p[2] =  p[2] + dir_transform[2] * float(pos) / 100;
+			new_p[0] =  p[0] + transform_direction[0] * float(pos) / 100;
+			new_p[1] =  p[1] + transform_direction[1] * float(pos) / 100;
+			new_p[2] =  p[2] + transform_direction[2] * float(pos) / 100;
 			break;
 
 		}
@@ -415,27 +426,49 @@ float SelectedPointWidget::get_actual_memory_size() {
 	return memory_used;
 }
 
-void SelectedPointWidget::compute_selected_points_normals() {
+void SelectedPointWidget::compute_selected_cells_normals() {
 
-	// vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter = vtkPolyDataNormals::New();
-	// selected_polydata_normals_filter -> ComputePointNormalsOn();
-	// selected_polydata_normals_filter -> ComputeCellNormalsOff();
 
-	selected_polydata_normals_filter -> SetInputData(this -> all_points_polydata);
-	selected_polydata_normals_filter -> Update ();
+	this -> selected_polydata_normals_filter -> Update ();
 
-	// Point normals
-	this -> selected_points_normals = selected_polydata_normals_filter -> GetOutput()
-	                          -> GetPointData() -> GetNormals();
-	// selected_polydata_normals_filter -> Delete();
 
-	double dir_transform[3];
+	// // Point normals
+	// this -> selected_cells_normals = selected_polydata_normals_filter -> GetOutput()
+	//                                  -> GetCellData() -> GetNormals();
 
-	for (int i = 0; i < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i) {
-		this -> selected_points_normals -> GetTuple(i,
-		                                    dir_transform);
-	}
+	// std::cout << this -> selected_cells_normals -> GetNumberOfTuples() << std::endl;
 
+
+	// double transform_direction[3];
+	// double p[3];
+
+	/******************************************/
+	/***** old (incorrect approach)************/
+	// for (int i = 0; i < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i) {
+	// 	this -> selected_cells_normals -> GetTuple(i,
+	// 	        transform_direction);
+
+	// 	// for debug purpose. check that normals are all oriented radially outwards. well, no.
+	// 	this -> all_points_polydata -> GetPoints() -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
+
+	// 	std::cout << transform_direction[0] << " " << transform_direction[1] << " " << transform_direction[2] << std::endl;
+	// 	std::cout << p[0] << " " << p[1] << " " << p[2] << std::endl;
+
+	// 	std::cout << transform_direction[0]*p[0] + transform_direction[1]*p[1] + transform_direction[2]*p[2] << std::endl << std::endl;
+	// }
+	/******************************************/
+	/***** new approach looping on selected cells first ************/
+
+	// selected_cells_polydata -> GetNumberOfTuples
+
+	// double transform_direction[3];
+
+	// for (int i = 0; i < this -> selected_cells_normals -> GetNumberOfTuples(); ++i) {
+
+	// 	this -> selected_cells_normals -> GetTuple(i,
+	// 	        transform_direction);
+	// 	std::cout << transform_direction[0] << " " << transform_direction[1] << " " << transform_direction[2] << std::endl;
+	// }
 
 
 }

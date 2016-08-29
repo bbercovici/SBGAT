@@ -21,6 +21,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 #include <vtkIdTypeArray.h>
 #include <vtkPolyDataNormals.h>
 
@@ -90,9 +91,9 @@ public:
 	void highlight_selected_cells();
 
 	/**
-	Computes the normals at the selected points
+	Computes the normals of the selected cells
 	*/
-	void compute_selected_points_normals();
+	void compute_selected_cells_normals();
 
 
 
@@ -207,7 +208,7 @@ private:
 	vtkSmartPointer<vtkIdTypeArray> visible_points_global_ids_from_local_index;
 
 	vtkSmartPointer<vtkIdList> cell_ids;
-	vtkDataArray * selected_points_normals;
+	vtkDataArray * selected_cells_normals;
 
 	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter;
 
