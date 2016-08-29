@@ -74,8 +74,7 @@ add_sources(main.cpp
             InheritedPicker.h
             selectedpointwidget.cpp
             selectedpointwidget.h
-            newshapemodeldialog.h
-            newshapemodeldialog.cpp
+            
             utilities.h
             utilities.cpp
 	

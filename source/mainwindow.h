@@ -30,7 +30,6 @@
 #include "QVTKWidget.h"
 
 
-#include "newshapemodeldialog.h"
 #include "selectedpointWidget.h"
 #include "Interactor.h"
 
@@ -116,11 +115,6 @@ private slots:
 	void set_background_color();
 
 	/**
-	Generates a new shape model with N points normally distributed in space.
-	*/
-	void new_shape_model();
-
-	/**
 	Enables/Disables vertex visibility on the displayed shape model
 	*/
 	void change_vertex_visibility();
@@ -187,7 +181,6 @@ private:
 	QMenu * ViewMenu;
 	QAction * openAct;
 	QAction * saveAct;
-	QAction * newShapeModelAct;
 	QAction * selectPointAct;
 	QAction * shapeColorAct;
 	QAction * resetAct;

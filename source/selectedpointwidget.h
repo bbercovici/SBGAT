@@ -4,7 +4,6 @@
 
 #include <QDialog>
 #include <QString>
-
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHBoxLayout>
@@ -14,6 +13,8 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QSlider>
+#include <QLineEdit>
+
 
 #include <vtkDataArray.h>
 #include <vtkDoubleArray.h>

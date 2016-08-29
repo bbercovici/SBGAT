@@ -299,19 +299,6 @@ void MainWindow::set_shape_color() {
 
 }
 
-void MainWindow::new_shape_model() {
-    NewShapeModelDialog * newshapemodeldialog = new NewShapeModelDialog();
-
-    if ( newshapemodeldialog -> exec() == QDialog::Accepted ) {
-        int n_points = atoi(newshapemodeldialog -> input_box -> text().toStdString().c_str());
-        vtkSmartPointer<vtkPointSource> new_pc = vtkSmartPointer<vtkPointSource>::New();
-        new_pc -> SetNumberOfPoints(n_points);
-        new_pc -> Update();
-        vtkSmartPointer<vtkPolyData> new_polydata = new_pc -> GetOutput();
-        this -> load_pc(new_polydata);
-    }
-
-}
 
 void MainWindow::select() {
     // Allows the interactor to grab props by
@@ -390,11 +377,6 @@ void MainWindow::createActions() {
     resetAct -> setStatusTip(tr("Reset PDART to its start-up state"));
     connect(resetAct, &QAction::triggered, this, &MainWindow::reset);
 
-    newShapeModelAct = new QAction(tr("New"), this);
-    newShapeModelAct -> setShortcuts(QKeySequence::New);
-    newShapeModelAct -> setStatusTip(tr("Generate a new shape model"));
-    connect(newShapeModelAct, &QAction::triggered, this, &MainWindow::new_shape_model);
-
 
     vertexVisibilityAct = new QAction(tr("Show Vertices"), this);
     vertexVisibilityAct -> setStatusTip(tr("Display or Hide Vertices"));
@@ -439,7 +421,6 @@ void MainWindow::createMenus() {
 
     fileMenu -> addAction(openAct);
     fileMenu -> addAction(saveAct);
-    fileMenu -> addAction(newShapeModelAct);
     fileMenu -> addSeparator();
     fileMenu -> addAction(resetAct);
 
