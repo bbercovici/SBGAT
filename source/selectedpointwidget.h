@@ -38,15 +38,6 @@ class InteractorStyle;
 class MainWindow;
 
 
-// for debug purposes. to be removed
-class vtkPolyData_tracked : public vtkPolyData {
-public:
-	static vtkPolyData_tracked * New();
-	vtkTypeMacro(vtkPolyData_tracked, vtkPolyData);
-	vtkPolyData_tracked();
-	virtual ~vtkPolyData_tracked();
-};
-
 /**
 Enum defining the state "transform direction" drop down list
 */
@@ -199,14 +190,9 @@ private:
 
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> all_points_polydata;
-	// vtkSmartPointer<vtkPolyData> selected_cells_polydata;
-	// vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
+	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
+	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
 
-
-	// vtkSmartPointer<vtkPolyData_tracked> selected_points_polydata;
-	// vtkSmartPointer<vtkPolyData_tracked> points_polydata;
-	vtkSmartPointer<vtkPolyData_tracked> selected_cells_polydata;
-	vtkSmartPointer<vtkPolyData_tracked> unselected_cells_polydata;
 
 
 	vtkSmartPointer<vtkPoints> selected_points;

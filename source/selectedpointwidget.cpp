@@ -2,14 +2,6 @@
 #include <vtkSphereSource.h>
 
 
-vtkPolyData_tracked::vtkPolyData_tracked() {
-}
-vtkStandardNewMacro(vtkPolyData_tracked);
-vtkPolyData_tracked::~vtkPolyData_tracked() {
-	std::cout << "destroyed" << std::endl;
-}
-
-
 SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 
 	// The different GUI elements are created
@@ -32,8 +24,8 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	// selected_cells_polydata = vtkPolyData::New();
 	// unselected_cells_polydata = vtkPolyData::New();
 
-	selected_cells_polydata = vtkPolyData_tracked::New();
-	unselected_cells_polydata = vtkPolyData_tracked::New();
+	selected_cells_polydata = vtkPolyData::New();
+	unselected_cells_polydata = vtkPolyData::New();
 
 	selected_points = vtkPoints::New();
 	new_selected_points_coordinates = vtkPoints::New();
@@ -190,6 +182,7 @@ void SelectedPointWidget::highlight_selected_cells() {
 
 void SelectedPointWidget::compute_cell_blobs() {
 
+	/*************************************************************************/
 	// The selected facets are highlighted by means of a polydata representing them
 	// The same process is done with the unselected cells
 	// The points stored by those polydatas are all the vertices of the full shape model
@@ -209,21 +202,18 @@ void SelectedPointWidget::compute_cell_blobs() {
 			cells_to_include_indices.insert(cell_ids -> GetId (cell_id_index));
 		}
 	}
+	/*************************************************************************/
 
 
 
-
-
+	/*************************************************************************/
 	//The following constructs the set of cells that are not included in the selection
 	// This is done by simply taking the difference between two sets:
 	// - all_cells_indices: set containing the indices of all cells (all integers from zero to
 	// points_polydata -> GetNumberOfCells() - 1 )
 	// - cells_to_include_indices: set containing the indices of the selected cells
-
 	std::set<int> cells_not_included_indices;
 	std::set<int> all_cells_indices;
-
-
 
 
 	for (int i = 0; i < this -> all_points_polydata -> GetNumberOfCells(); ++i) {
@@ -235,6 +225,7 @@ void SelectedPointWidget::compute_cell_blobs() {
 	std::set_difference(all_cells_indices.begin(), all_cells_indices.end(),
 	                    cells_to_include_indices.begin(), cells_to_include_indices.end(),
 	                    std::inserter(cells_not_included_indices, cells_not_included_indices.end()));
+	/*************************************************************************/
 
 
 	for (std::set<int>::iterator iter = cells_to_include_indices.begin();
