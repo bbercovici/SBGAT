@@ -42,7 +42,7 @@ class MainWindow;
 /**
 Enum defining the state "transform direction" drop down list
 */
-enum class TransformDirection {RADIAL, NORMAL};
+enum class TransformDirection {RADIAL, NORMAL_POINT,NORMAL_AVERAGED};
 
 
 /**
@@ -198,8 +198,7 @@ private:
 
 	vtkSmartPointer<vtkPoints> selected_points;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
-	vtkSmartPointer<vtkCellArray> selected_polys_cell_array;
-	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array;
+	
 	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids;
 	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids;
 	vtkSmartPointer<vtkPoints> new_selected_points_coordinates;
@@ -209,8 +208,7 @@ private:
 
 	vtkSmartPointer<vtkIdList> cell_ids;
 	vtkDataArray * selected_cells_normals;
-
-	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter;
+	vtkSmartPointer<vtkDoubleArray > averaged_normal_array;
 
 	TransformDirection transform_direction;
 	InterpolationType interpolation_type;

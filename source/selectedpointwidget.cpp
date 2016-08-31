@@ -21,39 +21,39 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	slider_title = new QLabel("Transform magnitude:", this);
 
 
-	// selected_cells_polydata = vtkPolyData::New();
-	// unselected_cells_polydata = vtkPolyData::New();
-
 	selected_cells_polydata = vtkPolyData::New();
 	unselected_cells_polydata = vtkPolyData::New();
 
 	selected_points = vtkPoints::New();
 	new_selected_points_coordinates = vtkPoints::New();
 
-	selected_polys_cell_array = vtkCellArray::New();
+
 	selected_polys_ids =
 	    vtkSmartPointer<vtkIdTypeArray>::New();
 	selected_polys_ids -> SetNumberOfComponents(1);
 
 
-	unselected_polys_cell_array = vtkCellArray::New();
 	unselected_polys_ids =
 	    vtkSmartPointer<vtkIdTypeArray>::New();
 	unselected_polys_ids -> SetNumberOfComponents(1);
 
 	cell_ids = vtkIdList::New() ;
 
-
-	this -> selected_polydata_normals_filter = vtkPolyDataNormals::New();
-
-	// selected_polydata_normals_filter -> ComputeCellNormalsOn();
-	this -> selected_polydata_normals_filter -> ComputePointNormalsOn();
+	averaged_normal_array = vtkDoubleArray::New();
+	averaged_normal_array -> SetNumberOfComponents(3);
+	averaged_normal_array -> SetNumberOfTuples(1);
 
 
-	this -> selected_polydata_normals_filter -> ComputeCellNormalsOff();
-	// selected_polydata_normals_filter -> ComputePointNormalsOff();
 
-	this -> selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
+
+
+
+	// this -> selected_polydata_normals_filter = vtkPolyDataNormals::New();
+
+	// this -> selected_polydata_normals_filter -> ComputePointNormalsOff();
+	// this -> selected_polydata_normals_filter -> ComputeCellNormalsOn();
+
+	// this -> selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
 
 	// The slider position and range are set
 	slider -> setMinimum(-100);
@@ -100,7 +100,8 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 
 	// The two drop-down lists are filled
 	transform_direction_list -> insertItem(0, "Radial");
-	transform_direction_list -> insertItem(1, "Along blob normal");
+	transform_direction_list -> insertItem(1, "Average normal");
+	transform_direction_list -> insertItem(2, "Point normals");
 	interpolation_type_list -> insertItem(0, "Uniform (0th order)");
 	interpolation_type_list -> insertItem(1, "Linear (1st order)");
 	interpolation_type_list -> insertItem(2, "Parabolic (2nd order)");
@@ -215,7 +216,11 @@ void SelectedPointWidget::compute_cell_blobs() {
 	}
 	/*************************************************************************/
 
-
+	// Those two containers must be re-created everytime compute_cell_blobs is called. Calling Initialize on them
+	// somehow prevents them to be reused. Not calling Initialize will make compute_normals crash, probably
+	// because of an indexing discrepancy
+	vtkSmartPointer<vtkCellArray> selected_polys_cell_array = vtkCellArray::New();
+	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array = vtkCellArray::New();
 
 	/*************************************************************************/
 	//The following constructs the set of cells that are not included in the selection
@@ -276,8 +281,6 @@ void SelectedPointWidget::compute_cell_blobs() {
 	// same for the unselected cells
 	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
 
-
-
 }
 
 
@@ -326,10 +329,21 @@ void SelectedPointWidget::update_view(int pos) {
 			new_p[2] = (1 + float(pos) / 100) * p[2] ;
 			break;
 
-		case TransformDirection::NORMAL:
+		case TransformDirection::NORMAL_POINT:
 
 			this -> selected_cells_normals -> GetTuple(i,
 			        transform_direction);
+
+			new_p[0] =  p[0] + transform_direction[0] * float(pos) / 100;
+			new_p[1] =  p[1] + transform_direction[1] * float(pos) / 100;
+			new_p[2] =  p[2] + transform_direction[2] * float(pos) / 100;
+			break;
+
+		case TransformDirection::NORMAL_AVERAGED:
+
+			transform_direction[0] = this -> averaged_normal_array -> GetValue(0);
+			transform_direction[1] = this -> averaged_normal_array -> GetValue(1);
+			transform_direction[2] = this -> averaged_normal_array -> GetValue(2);
 
 			new_p[0] =  p[0] + transform_direction[0] * float(pos) / 100;
 			new_p[1] =  p[1] + transform_direction[1] * float(pos) / 100;
@@ -361,8 +375,6 @@ void SelectedPointWidget::reject() {
 
 	this -> reset();
 
-
-
 	QDialog::reject();
 
 }
@@ -387,29 +399,24 @@ void SelectedPointWidget::set_new_slider_pos() {
 }
 
 void SelectedPointWidget::reset() {
-	// std::cout << "resetting widget" << std::endl;
 
 	*this -> mainwindow -> selection_widget_is_open = false;
 	this -> remove_selected_points_actor();
 
 	this -> table -> clear();
 
-	// std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
 
 	// Do not call initialize on this -> selected_cells_polydata !
+	this -> selected_cells_polydata -> Initialize();
 	this -> unselected_cells_polydata -> Initialize();
 	this -> selected_polys_ids -> Initialize();
 	this -> unselected_polys_ids -> Initialize();
 	this -> cell_ids -> Initialize();
 	this -> selected_points -> Initialize();
 
-	// this -> selected_polys_cell_array -> Initialize();
-	// this -> unselected_polys_cell_array -> Initialize();
-
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
 
-	// std::cout << " Memory used: " << this -> get_actual_memory_size() << std::endl;
 	this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
 
 }
@@ -421,56 +428,49 @@ float SelectedPointWidget::get_actual_memory_size() {
 	                        this -> unselected_cells_polydata -> GetActualMemorySize() +
 	                        this -> selected_polys_ids -> GetActualMemorySize() +
 	                        this -> unselected_polys_ids  -> GetActualMemorySize() +
-	                        this -> selected_points -> GetActualMemorySize() +
-	                        this -> selected_polys_cell_array  -> GetActualMemorySize() +
-	                        this -> unselected_polys_cell_array -> GetActualMemorySize()) / 1024 ;
+	                        this -> selected_points -> GetActualMemorySize()
+	                    ) / 1024 ;
 
 	return memory_used;
 }
 
 void SelectedPointWidget::compute_selected_cells_normals() {
 
+	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter = vtkPolyDataNormals::New();
+	selected_polydata_normals_filter -> ComputePointNormalsOff();
+	selected_polydata_normals_filter -> ComputeCellNormalsOn();
+	selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
 
-	this -> selected_polydata_normals_filter -> Update ();
-
-
-	// // Point normals
-	// this -> selected_cells_normals = selected_polydata_normals_filter -> GetOutput()
-	//                                  -> GetCellData() -> GetNormals();
-
-	// std::cout << this -> selected_cells_normals -> GetNumberOfTuples() << std::endl;
+	selected_polydata_normals_filter -> Update ();
 
 
-	// double transform_direction[3];
-	// double p[3];
+	// Cell normals. There should be as many cell normals as cells in selected_cells_polydata
+	this -> selected_cells_normals = selected_polydata_normals_filter -> GetOutput()
+	                                 -> GetCellData() -> GetNormals();
 
-	/******************************************/
-	/***** old (incorrect approach)************/
-	// for (int i = 0; i < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i) {
-	// 	this -> selected_cells_normals -> GetTuple(i,
-	// 	        transform_direction);
 
-	// 	// for debug purpose. check that normals are all oriented radially outwards. well, no.
-	// 	this -> all_points_polydata -> GetPoints() -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
+	// *******************************************************
+	// The direction of the normals is averaged
+	double average_normal_direction[3];
+	for (int i = 0; i < this -> selected_cells_normals -> GetNumberOfTuples(); ++i) {
+		double average_normal_direction_buffer[3];
 
-	// 	std::cout << transform_direction[0] << " " << transform_direction[1] << " " << transform_direction[2] << std::endl;
-	// 	std::cout << p[0] << " " << p[1] << " " << p[2] << std::endl;
+		this -> selected_cells_normals -> GetTuple(i,
+		        average_normal_direction_buffer);
 
-	// 	std::cout << transform_direction[0]*p[0] + transform_direction[1]*p[1] + transform_direction[2]*p[2] << std::endl << std::endl;
-	// }
-	/******************************************/
-	/***** new approach looping on selected cells first ************/
+		average_normal_direction[0] = average_normal_direction[0] + average_normal_direction_buffer[0];
+		average_normal_direction[1] = average_normal_direction[1] + average_normal_direction_buffer[1];
+		average_normal_direction[2] = average_normal_direction[2] + average_normal_direction_buffer[2];
 
-	// selected_cells_polydata -> GetNumberOfTuples
+	}
 
-	// double transform_direction[3];
+	average_normal_direction[0] = average_normal_direction[0] /  this -> selected_cells_normals -> GetNumberOfTuples();
+	average_normal_direction[1] = average_normal_direction[1] /  this -> selected_cells_normals -> GetNumberOfTuples();
+	average_normal_direction[2] = average_normal_direction[2] /  this -> selected_cells_normals -> GetNumberOfTuples();
+	// *******************************************************
 
-	// for (int i = 0; i < this -> selected_cells_normals -> GetNumberOfTuples(); ++i) {
+	this -> averaged_normal_array ->SetTuple(0,average_normal_direction);
 
-	// 	this -> selected_cells_normals -> GetTuple(i,
-	// 	        transform_direction);
-	// 	std::cout << transform_direction[0] << " " << transform_direction[1] << " " << transform_direction[2] << std::endl;
-	// }
 
 
 }
@@ -481,8 +481,12 @@ void SelectedPointWidget::set_transform_direction(const int item_index) {
 		transform_direction = TransformDirection::RADIAL;
 		break;
 	case 1:
+		transform_direction = TransformDirection::NORMAL_AVERAGED;
+		break;
+	case 2:
 
-		transform_direction = TransformDirection::NORMAL;
+		transform_direction = TransformDirection::NORMAL_POINT;
+
 		break;
 	default:
 		std::cout << " Case not implemented in set_transform_direction. Got item_index== " << item_index << std::endl;
