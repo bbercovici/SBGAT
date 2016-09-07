@@ -1,12 +1,14 @@
-#include <ApplicationServices/ApplicationServices.h>
 #ifndef HEADER_UTILITIES
 #define HEADER_UTILITIES
 
+#include <iostream>
+#include <vector>
+
 
 /**
-Emulates a key down event
-@param keycode Int identifying the key depression to simulate
+Returns the l2 norm of the provided vector
+@param v Vector of double whose l2 norm is to be computed
 */
-void emulate_key_press(const int keyCode);
+double l2_norm(const std::vector<double> & v );
 
 #endif

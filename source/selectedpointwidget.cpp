@@ -43,18 +43,6 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	averaged_normal_array -> SetNumberOfComponents(3);
 	averaged_normal_array -> SetNumberOfTuples(1);
 
-
-
-
-
-
-	// this -> selected_polydata_normals_filter = vtkPolyDataNormals::New();
-
-	// this -> selected_polydata_normals_filter -> ComputePointNormalsOff();
-	// this -> selected_polydata_normals_filter -> ComputeCellNormalsOn();
-
-	// this -> selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
-
 	// The slider position and range are set
 	slider -> setMinimum(-100);
 	slider -> setMaximum(100);
@@ -310,9 +298,65 @@ void SelectedPointWidget::populate_vertex_table() {
 	}
 }
 
+void SelectedPointWidget::find_blob_center() {
+	// The location of the blob center is found by looping over each selected point
+	double blob_average_position[3];
+	double blob_center_position[3];
+
+	double point_position[3];
+
+	for (int i = 0; i < this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints(); ++i ) {
+		this -> selected_cells_polydata -> GetPoint (i, point_position);
+		blob_average_position[0] = blob_average_position[0] + point_position[0];
+		blob_average_position[1] = blob_average_position[1] + point_position[1];
+		blob_average_position[2] = blob_average_position[2] + point_position[2];
+	}
+
+	blob_average_position[0] = blob_average_position[0] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
+	blob_average_position[1] = blob_average_position[1] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
+	blob_average_position[2] = blob_average_position[2] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
+
+	// blob_average_position now contains the average location of the selected points. Note that this does not correspond to
+	// a point physically present in the blob. The next step thus consists in finding the selected point that is closest to this average.
+	// this point physically present in the blob is thus called the "blob center"
+
+	this -> selected_cells_polydata -> GetPoint(this -> selected_cells_polydata -> FindPoint(blob_average_position),
+	        blob_center_position);
+
+	// The coordinates are stored in two dedicated std::vector<double>
+	this -> blob_center_position.clear();
+	this -> blob_average_position.clear();
+
+	this -> blob_center_position.push_back(blob_center_position[0]);
+	this -> blob_center_position.push_back(blob_center_position[1])
+	this -> blob_center_position.push_back(blob_center_position[2])
+
+
+	this -> blob_average_position.push_back(blob_average_position[0]);
+	this -> blob_average_position.push_back(blob_average_position[1]);
+	this -> blob_average_position.push_back(blob_average_position[2]);
+
+
+}
+
 void SelectedPointWidget::update_view(int pos) {
 
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
+
+	// A scaling factor is computed to reflect the retained interpolation type.
+	double scaling_power;
+
+	switch (this -> interpolation_type ) {
+	case InterpolationType::UNIFORM:
+		scaling_power = 0;
+		break;
+	case InterpolationType::LINEAR:
+		scaling_power = 1;
+		break;
+	case InterpolationType::PARABOLIC:
+		scaling_power = 2;
+		break;
+	}
 
 	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
 		double p[3];
@@ -440,7 +484,6 @@ void SelectedPointWidget::compute_selected_cells_normals() {
 	selected_polydata_normals_filter -> ComputePointNormalsOff();
 	selected_polydata_normals_filter -> ComputeCellNormalsOn();
 	selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
-
 	selected_polydata_normals_filter -> Update ();
 
 
@@ -469,7 +512,8 @@ void SelectedPointWidget::compute_selected_cells_normals() {
 	average_normal_direction[2] = average_normal_direction[2] /  this -> selected_cells_normals -> GetNumberOfTuples();
 	// *******************************************************
 
-	this -> averaged_normal_array ->SetTuple(0,average_normal_direction);
+	// The averaged normal is stored for later reuse
+	this -> averaged_normal_array -> SetTuple(0, average_normal_direction);
 
 
 

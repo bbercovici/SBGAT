@@ -1,0 +1,4 @@
+/Users/bbercovici/GDrive/CUBoulder/Research/QT/PDART/pdart_prototype/bin/CMakeFiles/source.dir
+/Users/bbercovici/GDrive/CUBoulder/Research/QT/PDART/pdart_prototype/bin/CMakeFiles/source_automoc.dir
+/Users/bbercovici/GDrive/CUBoulder/Research/QT/PDART/pdart_prototype/bin/CMakeFiles/ALL_BUILD.dir
+/Users/bbercovici/GDrive/CUBoulder/Research/QT/PDART/pdart_prototype/bin/CMakeFiles/ZERO_CHECK.dir

@@ -27,6 +27,7 @@
 
 #include "interactor.h"
 #include "mainwindow.h"
+#include "utilities.h"
 
 #include <set>
 #include "vtkObjectFactory.h"
@@ -94,6 +95,12 @@ public:
 	Computes the normals of the selected cells
 	*/
 	void compute_selected_cells_normals();
+
+	/**
+	Finds the position of the average of the selected vertices and 
+	the coordinates of the vertex that is closest to this average
+	*/
+	void find_blob_center();
 
 
 
@@ -194,8 +201,6 @@ private:
 	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
 	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
 
-
-
 	vtkSmartPointer<vtkPoints> selected_points;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	
@@ -213,6 +218,9 @@ private:
 	TransformDirection transform_direction;
 	InterpolationType interpolation_type;
 	TransformSelection transform_selection;
+
+	std::vector<double> blob_center_position;
+	std::vector<double> blob_average_position;
 
 
 	MainWindow * mainwindow;

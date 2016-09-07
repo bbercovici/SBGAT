@@ -60,6 +60,10 @@ void InteractorStyle::OnLeftButtonUp() {
 				// the normals of the selected cells are computed
 				this -> mainwindow -> pc_editing_widget -> compute_selected_cells_normals();
 
+				// the id of the blob "center" is found
+				this -> mainwindow -> pc_editing_widget -> find_blob_center();
+
+
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.
 				// hiding them after highlighting the cells
