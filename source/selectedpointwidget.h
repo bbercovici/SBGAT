@@ -24,13 +24,15 @@
 #include <vtkCellData.h>
 #include <vtkIdTypeArray.h>
 #include <vtkPolyDataNormals.h>
+#include "vtkObjectFactory.h"
 
 #include "interactor.h"
 #include "mainwindow.h"
 #include "utilities.h"
 
 #include <set>
-#include "vtkObjectFactory.h"
+#include <armadillo>
+
 
 
 // Forward declaration of InteractorStyle
@@ -141,6 +143,12 @@ private slots:
 	void update_view(int pos);
 
 	/**
+	Conveniency slot called when the view must be updated 
+	without changing the slider position
+	*/
+	void update_view_unchanged_slider();
+
+	/**
 	Sets the position slider value via the QLineEdit field
 	*/
 	void set_new_slider_pos();
@@ -219,8 +227,12 @@ private:
 	InterpolationType interpolation_type;
 	TransformSelection transform_selection;
 
-	std::vector<double> blob_center_position;
-	std::vector<double> blob_average_position;
+	// std::vector<double> blob_center_position;
+	// std::vector<double> blob_average_position;
+
+	arma::vec blob_center_position;
+	arma::vec blob_average_position;
+
 
 
 	MainWindow * mainwindow;

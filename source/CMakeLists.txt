@@ -7,14 +7,12 @@ get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
-
 # Specify the available build types for multi-configuration generators
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE INTERNAL "Configuration types")
 
 # Specify the directory that simulation code is located in
 # Should give you the option to change in the CMake gui
 # set(SIMULATION_DIR ${CMAKE_SOURCE_DIR}/../Simulation/ CACHE PATH "Directory containing simulation source code")
-
 # Put all the runtime targets in one folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/Debug")
@@ -34,6 +32,10 @@ find_package(Qt5Widgets REQUIRED)
 # Find VTK Package
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
+
+# Find armadillo package
+find_package(Armadillo REQUIRED)
+include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # The Qt5Widgets_INCLUDES also includes the include directories for dependencies QtCore and QtGui
 include_directories(${Qt5Widgets_INCLUDES})
@@ -160,6 +162,8 @@ elseif(APPLE)
     set(library_dependencies
             ${Qt5Widgets_LIBRARIES}
             ${VTK_LIBRARIES}
+            ${ARMADILLO_LIBRARIES}
+            
             # ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib
             # ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice.a
             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib

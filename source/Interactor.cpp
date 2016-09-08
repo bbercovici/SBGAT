@@ -10,9 +10,9 @@
 InteractorStyle::InteractorStyle() {
 	this -> CurrentMode = INTERACTOR_IS_ORIENT;
 	this -> mainwindow = NULL;
-	select_visible_points =
+	this -> select_visible_points =
 	    vtkSmartPointer<vtkSelectVisiblePoints>::New();
-	select_visible_points -> SelectionWindowOn();
+	this -> select_visible_points -> SelectionWindowOn();
 
 
 }
@@ -34,13 +34,13 @@ void InteractorStyle::OnLeftButtonUp() {
 			// The filter in charge of effectively extracting the points is
 			// fed with the data.
 			// The filter is provided with a pointer to the vtkPolyData of interest
-			select_visible_points -> SetInputDataObject(this -> all_points_polydata);
+			this -> select_visible_points -> SetInputDataObject(this -> all_points_polydata);
 
 			// The dimension of the selection area is set
 			// The seemingly akward operation within brackets is simply a
 			// conversion from a std::vector<int> containing 4 items to int[4]
-			select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
-			select_visible_points -> Update();
+			this -> select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
+			this -> select_visible_points -> Update();
 
 			// The selected points are finally obtained in the form of a vtkPolyData
 			this -> selected_points_polydata = select_visible_points -> GetOutput();
@@ -53,7 +53,7 @@ void InteractorStyle::OnLeftButtonUp() {
 				this -> mainwindow -> pc_editing_widget -> set_data(this);
 
 				// An actor is added to represent the selected cells
-				// Another one is also create to represent the rest of the shape model
+				// Another one is also created to represent the rest of the shape model
 				// that is not selected
 				this -> mainwindow -> pc_editing_widget -> highlight_selected_cells();
 

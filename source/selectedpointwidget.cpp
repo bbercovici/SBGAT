@@ -111,6 +111,15 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &SelectedPointWidget::set_transform_selection);
 
+	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::update_view_unchanged_slider);
+
+	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::update_view_unchanged_slider);
+
+	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &SelectedPointWidget::update_view_unchanged_slider);
+
 
 
 	// The different buttons are connected to the corresponding slots
@@ -299,102 +308,111 @@ void SelectedPointWidget::populate_vertex_table() {
 }
 
 void SelectedPointWidget::find_blob_center() {
+
 	// The location of the blob center is found by looping over each selected point
-	double blob_average_position[3];
-	double blob_center_position[3];
+	double blob_average_position[3]; // selected blob average coordinates
+	double blob_center_position[3]; // coordinates of vertex that's closest to the blob average
+	double point_position[3]; // local variable storing the coordinates of a vertex
 
-	double point_position[3];
-
-	for (int i = 0; i < this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints(); ++i ) {
-		this -> selected_cells_polydata -> GetPoint (i, point_position);
+	for (int i = 0; i < this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints(); ++i ) {
+		this -> selected_points_polydata -> GetPoint (i, point_position);
 		blob_average_position[0] = blob_average_position[0] + point_position[0];
 		blob_average_position[1] = blob_average_position[1] + point_position[1];
 		blob_average_position[2] = blob_average_position[2] + point_position[2];
 	}
 
-	blob_average_position[0] = blob_average_position[0] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
-	blob_average_position[1] = blob_average_position[1] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
-	blob_average_position[2] = blob_average_position[2] / this -> selected_cells_polydata -> GetPoints() -> GetNumberOfPoints();
+	blob_average_position[0] = blob_average_position[0] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
+	blob_average_position[1] = blob_average_position[1] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
+	blob_average_position[2] = blob_average_position[2] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
 
 	// blob_average_position now contains the average location of the selected points. Note that this does not correspond to
 	// a point physically present in the blob. The next step thus consists in finding the selected point that is closest to this average.
 	// this point physically present in the blob is thus called the "blob center"
 
-	this -> selected_cells_polydata -> GetPoint(this -> selected_cells_polydata -> FindPoint(blob_average_position),
+	this -> selected_points_polydata -> GetPoint(this -> selected_points_polydata -> FindPoint(blob_average_position),
 	        blob_center_position);
 
-	// The coordinates are stored in two dedicated std::vector<double>
-	this -> blob_center_position.clear();
-	this -> blob_average_position.clear();
-
-	this -> blob_center_position.push_back(blob_center_position[0]);
-	this -> blob_center_position.push_back(blob_center_position[1])
-	this -> blob_center_position.push_back(blob_center_position[2])
-
-
-	this -> blob_average_position.push_back(blob_average_position[0]);
-	this -> blob_average_position.push_back(blob_average_position[1]);
-	this -> blob_average_position.push_back(blob_average_position[2]);
-
+	// The computed locations are stored in arma::vec
+	this -> blob_center_position = {blob_center_position[0], blob_center_position[1], blob_center_position[2] };
+	this -> blob_average_position = {blob_average_position[0], blob_average_position[1], blob_average_position[2] };
 
 }
 
 void SelectedPointWidget::update_view(int pos) {
 
+
+	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
 
-	// A scaling factor is computed to reflect the retained interpolation type.
-	double scaling_power;
-
-	switch (this -> interpolation_type ) {
-	case InterpolationType::UNIFORM:
-		scaling_power = 0;
-		break;
-	case InterpolationType::LINEAR:
-		scaling_power = 1;
-		break;
-	case InterpolationType::PARABOLIC:
-		scaling_power = 2;
-		break;
-	}
-
+	// Each selected point is looped over and transformed accordingly
 	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
+
+		// local variables used to communicate with VTK routines
 		double p[3];
 		double new_p[3];
-		double transform_direction[3];
+		double normal_direction[3];
+
+		// interpolating factor used to locally smooth the transform
+		double interpolating_factor;
+
+		// Arma::vecs
+		arma::vec u; // normalized transform direction
+		arma::vec new_p_vec; // new point location
+		arma::vec old_p_vec; // old point location
 
 		// The i-th visible point is queried
 		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
 
+		// its position is stored in a arma::vec to enable further manipulations
+		old_p_vec = {p[0], p[1], p[2]};
+
 		switch (this -> transform_direction) {
-		case TransformDirection::RADIAL:
-			new_p[0] = (1 + float(pos) / 100) * p[0] ;
-			new_p[1] = (1 + float(pos) / 100) * p[1] ;
-			new_p[2] = (1 + float(pos) / 100) * p[2] ;
+		case TransformDirection::RADIAL :
+			u = arma::normalise(old_p_vec);
 			break;
 
-		case TransformDirection::NORMAL_POINT:
-
+		case TransformDirection::NORMAL_POINT :
 			this -> selected_cells_normals -> GetTuple(i,
-			        transform_direction);
+			        normal_direction);
 
-			new_p[0] =  p[0] + transform_direction[0] * float(pos) / 100;
-			new_p[1] =  p[1] + transform_direction[1] * float(pos) / 100;
-			new_p[2] =  p[2] + transform_direction[2] * float(pos) / 100;
+			u = {normal_direction[0], normal_direction[1], normal_direction[2] };
+			u = arma::normalise(u);
 			break;
 
-		case TransformDirection::NORMAL_AVERAGED:
+		case TransformDirection::NORMAL_AVERAGED :
+			normal_direction[0] = this -> averaged_normal_array -> GetValue(0);
+			normal_direction[1] = this -> averaged_normal_array -> GetValue(1);
+			normal_direction[2] = this -> averaged_normal_array -> GetValue(2);
 
-			transform_direction[0] = this -> averaged_normal_array -> GetValue(0);
-			transform_direction[1] = this -> averaged_normal_array -> GetValue(1);
-			transform_direction[2] = this -> averaged_normal_array -> GetValue(2);
+			u = {normal_direction[0], normal_direction[1], normal_direction[2] };
+			u = arma::normalise(u);
 
-			new_p[0] =  p[0] + transform_direction[0] * float(pos) / 100;
-			new_p[1] =  p[1] + transform_direction[1] * float(pos) / 100;
-			new_p[2] =  p[2] + transform_direction[2] * float(pos) / 100;
 			break;
 
 		}
+
+		// An interpolation factor is set depending on
+		// the current choice of interpolating type. the 0.3 factor appearing in the denominator
+		// appears to be a good compromise
+		switch (this -> interpolation_type ) {
+		case InterpolationType::UNIFORM:
+			interpolating_factor = 1;
+			break;
+		case InterpolationType::LINEAR:
+			interpolating_factor = std::max(0., 1 - arma::norm(this -> blob_center_position - old_p_vec) / ( this -> selected_points_polydata -> GetLength() * 0.3)  );
+
+			break;
+		case InterpolationType::PARABOLIC:
+			interpolating_factor = std::max(0., 1 - std::pow(arma::norm(this -> blob_center_position - old_p_vec)/ ( this -> selected_points_polydata -> GetLength() * 0.3) , 2));
+			break;
+		}
+
+		// The position of the transform vertex is computed
+		new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor;
+
+		new_p[0] = new_p_vec(0);
+		new_p[1] = new_p_vec(1);
+		new_p[2] = new_p_vec(2);
 
 		this -> selected_points -> SetPoint(* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), new_p);
 	}
@@ -409,18 +427,13 @@ void SelectedPointWidget::accept() {
 	new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
 	this -> all_points_polydata -> SetPoints(new_selected_points_coordinates);
 	this -> all_points_polydata -> Modified();
-
 	this -> reset();
-
 	QDialog::accept();
 }
 
 void SelectedPointWidget::reject() {
-
 	this -> reset();
-
 	QDialog::reject();
-
 }
 
 void SelectedPointWidget::remove_selected_points_actor() {
@@ -461,7 +474,7 @@ void SelectedPointWidget::reset() {
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
 
-	this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
+	// this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
 
 }
 
@@ -575,4 +588,9 @@ void SelectedPointWidget::set_transform_selection(const int item_index) {
 		break;
 
 	}
+}
+
+void SelectedPointWidget::update_view_unchanged_slider(){
+	int pos = this -> slider -> value();
+	this -> update_view(pos);
 }
