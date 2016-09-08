@@ -1,7 +1,7 @@
 # SBGAT
 Small Bodies Geophysical Analysis Tool implementation
 
-Private repository storing the source code of the implementation of PDART. 
+Private repository storing the source code of the implementation of the Small Bodies Geophysical Analysis Tool. 
 
 The PDART documentation can be accessed at https://bbercovici.github.io/pdart-doc/index.html (public link). 
 
