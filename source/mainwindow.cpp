@@ -313,31 +313,17 @@ void MainWindow::save() {
 
     // The save path is queried
     QString fileName = QFileDialog::getSaveFileName(this,
-                       tr("Save File"), "", tr("VTK PolyData file (*.vtp )"));
+                       tr("Save File"));
     if (!fileName.isEmpty()) {
 
-        // the PolyData currently displayed is saved to a .vtp file
+        // the shape model currently displayed in the Rendering window is saved to a .obj file
         // by means of the appropriate writer class
-        vtkSmartPointer<vtkXMLPolyDataWriter> writer =
-            vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-        writer -> SetFileName(fileName.toStdString().c_str());
-
-        // Based on the insertion order in MainWindow::load(), the first actor in
-        // the actor collection is the one we are interested in
-        vtkSmartPointer<vtkActor> point_cloud_actor = vtkActor::SafeDownCast(this -> renderer -> GetActors() -> GetItemAsObject(0));
-        vtkSmartPointer<vtkPolyDataMapper> pc_mapper = vtkPolyDataMapper::SafeDownCast(point_cloud_actor -> GetMapper());
-        vtkSmartPointer<vtkDataSet> data_set = point_cloud_actor -> GetMapper() -> GetInput() ;
-
-        // The polydata of interest is finally extracted
-        vtkSmartPointer<vtkPolyData> polydata = vtkPolyData::SafeDownCast (data_set);
-
-
-#if VTK_MAJOR_VERSION <= 5
-        writer -> SetInput(polydata);
-#else
-        writer -> SetInputData(polydata);
-#endif
-        writer -> Write();
+        vtkSmartPointer<vtkOBJExporter> exporter =
+            vtkSmartPointer<vtkOBJExporter>::New();
+        exporter -> SetFilePrefix(fileName.toStdString().c_str());
+        exporter -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow() );
+        exporter -> Update();
+        exporter -> Write();
 
     }
 }

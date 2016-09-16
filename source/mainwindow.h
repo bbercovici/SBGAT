@@ -27,6 +27,7 @@
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkOBJReader.h>
+#include <vtkOBJExporter.h>
 #include "QVTKWidget.h"
 
 
@@ -77,8 +78,8 @@ public:
 	void set_actors_visibility(bool visibility);
 
 	/**
-	 Pointer to boolean indicating whether the selection widget is already open
-	 */
+	Pointer to boolean indicating whether the selection widget is already open
+	*/
 	bool * selection_widget_is_open;
 
 	vtkDebugLeaks * leak_tracker;
@@ -92,7 +93,8 @@ private slots:
 	void open();
 
 	/**
-	Saves the vertex data of the shape model currently displayed to a .vtp file whose full name is chosen by the user
+	Saves the vertex data of the shape model currently displayed to an $prefix.obj file with $prefix chosen by the user
+	This function also generates $prefix.mtl file which contains material/lightning information
 	*/
 	void save();
 
