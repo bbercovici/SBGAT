@@ -26,6 +26,8 @@
 #include <vtkExtractSelection.h>
 #include <vtkSelectVisiblePoints.h>
 #include <vtkPointSource.h>
+#include <vtkKdTreePointLocator.h>
+
 
 #include "vtkObjectFactory.h"
 #include "mainwindow.h"
@@ -83,6 +85,7 @@ private:
 	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points;
+	vtkSmartPointer<vtkKdTreePointLocator> point_locator;
 	MainWindow * mainwindow ;
 
 

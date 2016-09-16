@@ -13,6 +13,7 @@ InteractorStyle::InteractorStyle() {
 	this -> select_visible_points =
 	    vtkSmartPointer<vtkSelectVisiblePoints>::New();
 	this -> select_visible_points -> SelectionWindowOn();
+	this -> point_locator = vtkSmartPointer<vtkKdTreePointLocator>::New();
 
 
 }

@@ -28,6 +28,7 @@
 #include <vtkXMLPolyDataReader.h>
 #include <vtkOBJReader.h>
 #include <vtkOBJExporter.h>
+
 #include "QVTKWidget.h"
 
 
@@ -189,7 +190,6 @@ private:
 	QAction * backgroundColorAct;
 	QAction * vertexVisibilityAct;
 	QColorDialog * palette;
-
 
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<InteractorStyle> style;
