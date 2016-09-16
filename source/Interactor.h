@@ -70,7 +70,7 @@ public:
 	void set_current_mode(const int mode);
 
 	/**
-	Reset
+	Resets the interactor
 	*/
 	void reset();
 
