@@ -26,7 +26,6 @@
 #include <vtkExtractSelection.h>
 #include <vtkSelectVisiblePoints.h>
 #include <vtkPointSource.h>
-#include <vtkKdTreePointLocator.h>
 
 
 #include "vtkObjectFactory.h"
@@ -50,7 +49,7 @@ public:
 
 	/**
 	Enables the interactor to get access to the vtkPolyData storing the shape's vertices
-	@param points_polydata Pointer to the vtkPolyData storing the vertices of the shape model
+	@param all_points_polydata Pointer to the vtkPolyData storing the vertices/facets of the shape model
 	*/
 	void set_all_points_polydata(vtkSmartPointer<vtkPolyData> all_points_polydata);
 
@@ -61,7 +60,7 @@ public:
 	void set_mainwindow(MainWindow * mainwindow);
 
 	/**
-	Returns a pointer to the GUI's mainwindow (i.e the highest QT Widget)
+	Returns a pointer to the GUI's mainwindow (i.e the highest-level QT Widget)
 	*/
 	MainWindow * get_mainwindow();
 
@@ -71,6 +70,7 @@ public:
 	*/
 	void set_current_mode(const int mode);
 
+	
 	/**
 	Resets the interactor
 	*/
@@ -85,7 +85,6 @@ private:
 	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points;
-	vtkSmartPointer<vtkKdTreePointLocator> point_locator;
 	MainWindow * mainwindow ;
 
 

@@ -24,6 +24,9 @@
 #include <vtkCellData.h>
 #include <vtkIdTypeArray.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkKdTreePointLocator.h>
+#include <vtkPoints.h>
+
 #include "vtkObjectFactory.h"
 
 #include "interactor.h"
@@ -67,7 +70,7 @@ Declaration of the SelectedPointWidget class. SelectedPointWidget refers to the
 widget displayed on the screen when the user selects at least one vertex of the
 displayed shape model by means of the rectangular box selector. The widget that is then
 displayed lists the IDs of the selected vertices, as well as a choice of possible geometric
-transforms to be applied to them. A horizontal slider enalbes the user to choose
+transforms to be applied to them. A horizontal slider_magnitude enalbes the user to choose
 the magnitude of the transform
 */
 class SelectedPointWidget : public QDialog {
@@ -113,16 +116,30 @@ public:
 	void reset();
 
 	QTableWidget * table;
-	QHBoxLayout * slider_layout;
+
+	QHBoxLayout * slider_magnitude_layout;
+	QHBoxLayout * slider_neighbors_layout;
+
 	QVBoxLayout * main_layout;
-	QSlider * slider;
-	QLineEdit * slider_value;
+
+	QSlider * slider_magnitude;
+	QSlider * slider_neighbors;
+
+	QLineEdit * slider_magnitude_value;
+	QLineEdit * slider_neighbors_value;
+
 	QDialogButtonBox * button_box;
-	QWidget * slider_holder_widget;
+
+	QWidget * slider_magnitude_holder_widget;
+	QWidget * slider_neighbors_holder_widget;
+
 	QLabel * transform_direction_title;
 	QLabel * interpolation_type_title;
 	QLabel * transform_selection_title;
-	QLabel * slider_title;
+
+	QLabel * slider_magnitude_title;
+	QLabel * slider_neighbors_title;
+
 
 	QComboBox * transform_direction_list;
 	QComboBox * interpolation_type_list;
@@ -131,27 +148,47 @@ public:
 	// Slots
 private slots:
 	/**
-	Displays the current slider position
+	Displays the current slider_magnitude position in the corresponding QEditText widget
 	@param pos Slider position
 	*/
-	void show_new_slider_pos(int pos);
+	void show_new_slider_magnitude_pos(int pos);
 
 	/**
-	Redraw the shape model based on the slider position
+	Displays the current slider_neighbors position in the corresponding QEditText widget
+	@param pos Slider position
+	*/
+	void show_new_slider_neighbors_pos(int pos);
+
+
+	/**
+	Redraw the shape model based on the slider_magnitude position
 	@param pos Slider position
 	*/
 	void update_view(int pos);
 
 	/**
 	Conveniency slot called when the view must be updated 
-	without changing the slider position
+	without changing the slider_magnitude position
 	*/
-	void update_view_unchanged_slider();
+	void update_view_unchanged_slider_magnitude();
 
 	/**
-	Sets the position slider value via the QLineEdit field
+	Finds the indices of the N closest neighboring vertices to the selected blob center
+	and uses this piece of information to update the view accordingly (using the 
+	N-closest neighbor selection)
+	@param N Number of neighboring vertices to identify
 	*/
-	void set_new_slider_pos();
+	void find_N_neighbors_indices_and_update_view(const int N);
+
+	/**
+	Sets the position slider_magnitude value via the QLineEdit field
+	*/
+	void set_new_slider_magnitude_pos();
+
+	/**
+	Sets the position slider_neighbors value via the QLineEdit field
+	*/
+	void set_new_slider_neighbors_pos();
 
 	void accept();
 	void reject();
@@ -201,10 +238,18 @@ private:
 	*/
 	float get_actual_memory_size();
 
+	/**
+	Finds the indice of the N closest neighbors to the blob center
+	@param N Number of neighbors to identify
+	*/
+	void find_N_neighbors_indices(const int N);
+
 
 	QStringList labels;
 
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
+	vtkSmartPointer<vtkPolyData> active_selected_points_polydata;
+
 	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
 	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
@@ -227,12 +272,12 @@ private:
 	InterpolationType interpolation_type;
 	TransformSelection transform_selection;
 
-	// std::vector<double> blob_center_position;
-	// std::vector<double> blob_average_position;
-
 	arma::vec blob_center_position;
 	arma::vec blob_average_position;
+	int blob_center_id;
 
+	vtkSmartPointer<vtkIdList> N_closest_vertices_indices;
+	vtkSmartPointer<vtkKdTreePointLocator> point_locator;
 
 
 	MainWindow * mainwindow;

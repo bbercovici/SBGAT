@@ -13,8 +13,6 @@ InteractorStyle::InteractorStyle() {
 	this -> select_visible_points =
 	    vtkSmartPointer<vtkSelectVisiblePoints>::New();
 	this -> select_visible_points -> SelectionWindowOn();
-	this -> point_locator = vtkSmartPointer<vtkKdTreePointLocator>::New();
-
 
 }
 
@@ -110,6 +108,7 @@ void InteractorStyle::set_mainwindow(MainWindow * mainwindow) {
 void InteractorStyle::set_current_mode(const int mode) {
 	this -> CurrentMode = mode;
 }
+
 
 MainWindow * InteractorStyle::get_mainwindow() {
 	return this -> mainwindow;

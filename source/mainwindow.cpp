@@ -121,7 +121,6 @@ void MainWindow::load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id) 
 
 
         // The interactor is set up and connected to the shape model being displayed
-
         style -> set_all_points_polydata(read_polydata);
 
 
@@ -182,7 +181,6 @@ void MainWindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
         // The interactor is set up and connected to the shape model being displayed
         style -> set_all_points_polydata(read_polydata);
-        
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
