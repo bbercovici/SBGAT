@@ -188,6 +188,9 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 	this -> populate_vertex_table();
 	this -> table -> show();
 	this -> slider_magnitude -> setValue(0);
+
+	// The point locator is cleaned up and provided with the selected blob
+	this -> point_locator -> Initialize();
 	this -> point_locator -> SetDataSet(this -> selected_points_polydata);
 	this -> point_locator -> BuildLocator();
 
@@ -526,8 +529,6 @@ void SelectedPointWidget::reset() {
 
 	this -> table -> clear();
 
-
-	// Do not call initialize on this -> selected_cells_polydata !
 	this -> selected_cells_polydata -> Initialize();
 	this -> unselected_cells_polydata -> Initialize();
 	this -> selected_polys_ids -> Initialize();
@@ -538,8 +539,21 @@ void SelectedPointWidget::reset() {
 	this -> mainwindow -> set_actors_visibility(true);
 	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
 
+	// Sets the drop down-lists to their default state.
+	this -> slider_neighbors_title -> setVisible(false);
+	this -> slider_neighbors_holder_widget -> setVisible(false);
 
-	// this -> mainwindow -> leak_tracker -> PrintCurrentLeaks();
+
+	this -> transform_direction_list -> setCurrentIndex(0);
+	this -> interpolation_type_list -> setCurrentIndex(0);
+	this -> transform_selection_list -> setCurrentIndex(0);
+
+	this -> set_transform_direction(0);
+	this -> set_interpolation_type(0);
+	this -> set_transform_selection(0);
+
+
+
 
 }
 
@@ -603,7 +617,6 @@ void SelectedPointWidget::find_N_neighbors_indices(const int N) {
 	this -> point_locator -> FindClosestNPoints(N, center_point, this -> N_closest_vertices_indices);
 	this -> active_selected_points_polydata -> GetPoints() -> Initialize();
 	this -> selected_points_polydata -> GetPoints() -> GetPoints(this -> N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
-	this -> active_selected_points_polydata -> Print(std::cout);
 }
 
 void SelectedPointWidget::set_transform_direction(const int item_index) {
@@ -652,17 +665,17 @@ void SelectedPointWidget::set_transform_selection(const int item_index) {
 		transform_selection = TransformSelection::SELECTED;
 		this -> slider_neighbors_title -> setVisible(false);
 		this -> slider_neighbors_holder_widget -> setVisible(false);
-
+		this -> slider_neighbors -> setValue(this -> selected_points_polydata -> GetNumberOfPoints());
+		// The line above is necessary because it will call the slot updating the view
 
 		break;
 	case 1:
-
 		transform_selection = TransformSelection::NCLOSEST;
 		this -> slider_neighbors_title -> setVisible(true);
 		this -> slider_neighbors_holder_widget -> setVisible(true);
 		this -> slider_neighbors -> setMaximum(this -> selected_points_polydata -> GetNumberOfPoints());
 		this -> slider_neighbors -> setValue(this -> selected_points_polydata -> GetNumberOfPoints());
-
+		break;
 	default:
 		std::cout << " Case not implemented in set_transform_selection. Got item_index== " << item_index << std::endl;
 		break;
