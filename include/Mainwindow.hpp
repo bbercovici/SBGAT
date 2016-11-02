@@ -30,32 +30,30 @@
 #include <vtkOBJExporter.h>
 
 #include "QVTKWidget.h"
+#include "osxHelper.h"
 
 
-#include "selectedpointWidget.h"
-#include "Interactor.h"
-
-#include <vtkDebugLeaks.h>
+#include "SelectedPointWidget.hpp"
+#include "Interactor.hpp"
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
 class SelectedPointWidget;
 
 /**
-Declaration of the MainWindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
+Declaration of the Mainwindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
 the actions/menus allowing the user to interact with the program data.
 */
 
-class MainWindow : public QMainWindow {
+class Mainwindow : public QMainWindow {
 	Q_OBJECT
 
 public:
 	// Widgets
 	QVTKWidget * qvtkWidget;
-	SelectedPointWidget * pc_editing_widget;
 
 	// Docks
-	QDockWidget * selected_point_dockwidget;
+	QDockWidget * lateral_dockwidget;
 
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
@@ -65,12 +63,13 @@ public:
 
 	/** Constructor. Setups the GUI and creates an instance of QVTK Widget
 	*/
-	MainWindow();
+	Mainwindow();
 
 	/**
-	Destructor
+	Closes any opened lateral dockwidget
 	*/
-	~MainWindow();
+	void close_lateral_dockwidget();
+
 
 	/**
 	Sets the visibility of all the actors owned by this
@@ -79,11 +78,19 @@ public:
 	void set_actors_visibility(bool visibility);
 
 	/**
-	Pointer to boolean indicating whether the selection widget is already open
-	*/
-	bool * selection_widget_is_open;
+		Enable/Disables an action in the GUI
+		@param enabled Status the targeted action will be set to
+		@param action Pointer to action to enable/disable
+		*/
+	void set_action_status(bool enabled, QAction * action);
 
-	vtkDebugLeaks * leak_tracker;
+	QAction * openAct;
+	QAction * saveAct;
+	QAction * selectPointAct;
+	QAction * shapeColorAct;
+	QAction * resetAct;
+	QAction * backgroundColorAct;
+	QAction * vertexVisibilityAct;
 
 
 	// Slots
@@ -135,12 +142,6 @@ private:
 	*/
 	void createMenus();
 
-	/**
-	Takes in a pointer to a vtkPolyData representing a point cloud,
-	generates the convex hull corresponding to this dataset and
-	displays both on the main window.
-	*/
-	void load_pc(vtkSmartPointer<vtkPolyData> read_polydata_without_id);
 
 	/**
 	Takes in a pointer to a vtkPolyData representing a shape model,
@@ -156,43 +157,20 @@ private:
 	void setupUi();
 
 	/**
-	Ensures that the current job (currently displayed shape model and/or other widgets operating on
-	it, if any) are properly closed
-	*/
-	void terminate_current_job();
-
-	/**
 	Remove all the actors owned by this instance of mainwindow
 	*/
 	void remove_actors();
 
 	/**
-	Enable/Disables an action in the GUI
-	@param enabled Status the targeted action will be set to
-	@param menu_name String storing the name of the menu containing the targeted action
-	@param action_name String storing the name of the targeted action
+	Clear all windows and loaded shape models
 	*/
-	void set_action_status(bool enabled, const std::string & menu_name, const std::string & action_name);
-
-	/**
-	Reset PDART to its start-up state
-	*/
-	void reset();
+	void clear_all();
 
 	QMenu * fileMenu;
 	QMenu * OperationMenu;
 	QMenu * ViewMenu;
-	QAction * openAct;
-	QAction * saveAct;
-	QAction * selectPointAct;
-	QAction * shapeColorAct;
-	QAction * resetAct;
-	QAction * backgroundColorAct;
-	QAction * vertexVisibilityAct;
-	QColorDialog * palette;
-
+	
 	vtkSmartPointer<vtkRenderer> renderer;
-	vtkSmartPointer<InteractorStyle> style;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 

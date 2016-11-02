@@ -1,30 +1,33 @@
+get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
+project(${EXE_NAME})
+
 # Specify the version used
 cmake_minimum_required(VERSION 3.0.2)
 
 # Set project name - based on current directory
 # Should give you the option to change in the CMake gui
-get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
-project(${EXE_NAME})
+
 
 # Specify the available build types for multi-configuration generators
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE INTERNAL "Configuration types")
+# set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE INTERNAL "Configuration types")
+
 
 # Specify the directory that simulation code is located in
 # Should give you the option to change in the CMake gui
 # set(SIMULATION_DIR ${CMAKE_SOURCE_DIR}/../Simulation/ CACHE PATH "Directory containing simulation source code")
 # Put all the runtime targets in one folder
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/Debug")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/Release")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin/Debug")
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin/Release")
 
-# Add in QT
-# Note: This is a windows path, but you will be able to change this in the cmake gui!
-if(WIN32)
-    set (CMAKE_PREFIX_PATH "C:/Qt/5.5/msvc2013/lib/cmake")
-elseif(APPLE)
-    set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
-endif()
+set (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
+set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
+
+add_definitions(-Wall)
+include_directories(include)
+
 
 # Widgets finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Widgets REQUIRED)
@@ -37,6 +40,10 @@ include(${VTK_USE_FILE})
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
+
+# Cocoa
+find_library( LIB_COCOA cocoa )
+
 # The Qt5Widgets_INCLUDES also includes the include directories for dependencies QtCore and QtGui
 include_directories(${Qt5Widgets_INCLUDES})
 
@@ -47,39 +54,37 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir, tell CMake to always look for includes there
 
-# As moc files are generated in the binary dir, tell CMake to always look for includes there
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Set up macro for adding sources
-macro(add_sources)
-    file(RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-    foreach(_src ${ARGN})
-        if(_relPath)
-            list(APPEND SRCS "${_relPath}/${_src}")
-        else()
-            list(APPEND SRCS "${_src}")
-        endif()
-    endforeach()
-    if(_relPath)
-        # propagate SRCS to parent directory
-        set(SRCS ${SRCS} PARENT_SCOPE)
-    endif()
-endmacro()
+# macro(add_sources)
+#     file(RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
+#     foreach(_src ${ARGN})
+#         if(_relPath)
+#             list(APPEND SRCS "${_relPath}/${_src}")
+#         else()
+#             list(APPEND SRCS "${_src}")
+#         endif()
+#     endforeach()
+#     if(_relPath)
+#         # propagate SRCS to parent directory
+#         set(SRCS ${SRCS} PARENT_SCOPE)
+#     endif()
+# endmacro()
 
 # Add source files in root directory
-add_sources(main.cpp
-            mainwindow.cpp
-            mainwindow.h
-            Interactor.h
-            Interactor.cpp
-            InheritedPicker.h
-            selectedpointwidget.cpp
-            selectedpointwidget.h
-            
-            utilities.h
-            utilities.cpp
-	
+add_executable(${EXE_NAME}
+source/main.cpp
+source/Mainwindow.cpp
+source/SelectedPointWidget.cpp
+source/Interactor.cpp
+source/osxHelper.mm
+include/Mainwindow.hpp
+include/Interactor.hpp
+include/InheritedPicker.hpp
+include/SelectedPointWidget.hpp
+include/osxHelper.h         
 )
 
 # # Add subdirectories
@@ -141,80 +146,88 @@ add_sources(main.cpp
 # endforeach()
 # source_group("" FILES ${_FILES})
 
+set(library_dependencies
+${Qt5Widgets_LIBRARIES}
+${VTK_LIBRARIES}
+${ARMADILLO_LIBRARIES})
+
+
+
+
 # Create list of libraries depending on system
-if(WIN32)
-    if(MSVC_VERSION EQUAL 1800) # VS2013
-        set(library_dependencies
-            ${Qt5Widgets_LIBRARIES}
-            ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/assimp.lib
-            ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice-vc120-mt.lib
-            ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_filesystem-vc120-mt-1_58.lib
-            ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_system-vc120-mt-1_58.lib
-            ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_serialization-vc120-mt-gd-1_58.lib
-            ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_thread-vc120-mt-1_58.lib
-        )
+# if(WIN32)
+#     if(MSVC_VERSION EQUAL 1800) # VS2013
+#         set(library_dependencies
+#             ${Qt5Widgets_LIBRARIES}
+#             ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/assimp.lib
+#             ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice-vc120-mt.lib
+#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_filesystem-vc120-mt-1_58.lib
+#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_system-vc120-mt-1_58.lib
+#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_serialization-vc120-mt-gd-1_58.lib
+#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_thread-vc120-mt-1_58.lib
+#         )
 
-    else()
-        message(FATAL_ERROR "Only Visual Studio 2013 is currently supported")
-    endif()
+#     else()
+#         message(FATAL_ERROR "Only Visual Studio 2013 is currently supported")
+#     endif()
 
-elseif(APPLE)
-    set(library_dependencies
-            ${Qt5Widgets_LIBRARIES}
-            ${VTK_LIBRARIES}
-            ${ARMADILLO_LIBRARIES}
+# elseif(APPLE)
+#     set(library_dependencies
+#             ${Qt5Widgets_LIBRARIES}
+#             ${VTK_LIBRARIES}
+#             ${ARMADILLO_LIBRARIES}
             
-            # ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib
-            # ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice.a
-            # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib
-            # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_system.dylib
-            # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_serialization.dylib
-            # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_thread.dylib
-    )
-else()
-    message(FATAL_ERROR "Only WIN32 and APPLE systems are currently supported")
-endif()
+#             # ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib
+#             # ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice.a
+#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib
+#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_system.dylib
+#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_serialization.dylib
+#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_thread.dylib
+#     )
+# else()
+#     message(FATAL_ERROR "Only WIN32 and APPLE systems are currently supported")
+# endif()
 
 # Add compiler flags 
-if(MSVC)
-    add_definitions(/D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
-    add_definitions(/D BOOST_MPL_LIMIT_LIST_SIZE=50)
-    add_definitions(/D _CRT_SECURE_NO_WARNINGS)
-    add_definitions(/D _WIN32_WINNT=0x0501) # Targets Windows xp
-    add_definitions(/D _WINSOCK_DEPRECATED_NO_WARNINGS)
-    add_definitions(/D BOOST_ALL_NO_LIB)
-    add_definitions(/D WIN32_LEAN_AND_MEAN)
-#    add_definitions(/W3)
-#    add_definitions(/wd"4913")
-    foreach(flag 
-        CMAKE_C_FLAGS
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS
-        CMAKE_CXX_FLAGS_DEBUGwd
-        CMAKE_CXX_FLAGS_RELEASE)
-        set("${flag}" "${${flag}} /EHsc ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-    endforeach()
-elseif(APPLE)
-    # add_definitions(-D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
-    # add_definitions(-D BOOST_MPL_LIMIT_LIST_SIZE=50)
-	add_definitions(-D QT_DEBUG_PLUGINS=1)
-    set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+# if(MSVC)
+#     add_definitions(/D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
+#     add_definitions(/D BOOST_MPL_LIMIT_LIST_SIZE=50)
+#     add_definitions(/D _CRT_SECURE_NO_WARNINGS)
+#     add_definitions(/D _WIN32_WINNT=0x0501) # Targets Windows xp
+#     add_definitions(/D _WINSOCK_DEPRECATED_NO_WARNINGS)
+#     add_definitions(/D BOOST_ALL_NO_LIB)
+#     add_definitions(/D WIN32_LEAN_AND_MEAN)
+# #    add_definitions(/W3)
+# #    add_definitions(/wd"4913")
+#     foreach(flag 
+#         CMAKE_C_FLAGS
+#         CMAKE_C_FLAGS_DEBUG
+#         CMAKE_C_FLAGS_RELEASE
+#         CMAKE_CXX_FLAGS
+#         CMAKE_CXX_FLAGS_DEBUGwd
+#         CMAKE_CXX_FLAGS_RELEASE)
+#         set("${flag}" "${${flag}} /EHsc ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+#     endforeach()
+# elseif(APPLE)
+#     # add_definitions(-D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
+#     # add_definitions(-D BOOST_MPL_LIMIT_LIST_SIZE=50)
+# 	# add_definitions(-D QT_DEBUG_PLUGINS=1)
+#     set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
-endif()
+# endif()
 
 # Generate executable
-if(WIN32)
-    add_executable(${EXE_NAME} WIN32 ${SRCS})
-else()
-    add_executable(${EXE_NAME} MACOSX_BUNDLE ${SRCS})
-    # add_executable(${EXE_NAME} ${SRCS})
-
-endif()
+# if(WIN32)
+#     add_executable(${EXE_NAME} WIN32 ${SRCS})
+# else()
+#     add_executable(${EXE_NAME} MACOSX_BUNDLE ${SRCS})
+#     # add_executable(${EXE_NAME} ${SRCS})
+# endif()
 
 # Set up library dependencies
-target_link_libraries(${EXE_NAME} debug ${library_dependencies})
-target_link_libraries(${EXE_NAME} optimized ${library_dependencies})
+# target_link_libraries(${EXE_NAME} debug ${library_dependencies})
+# target_link_libraries(${EXE_NAME} optimized ${library_dependencies})
+target_link_libraries(${EXE_NAME} ${library_dependencies})
 
 # Add the dynamic libraries to the build folder
 # if(WIN32)

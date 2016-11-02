@@ -29,10 +29,10 @@
 
 
 #include "vtkObjectFactory.h"
-#include "mainwindow.h"
+#include "Mainwindow.hpp"
 
-// forward declaration of the MainWindow class
-class MainWindow;
+// forward declaration of the Mainwindow class
+class Mainwindow;
 
 /**
 Declaration of the InteractorStyle. This class enables the user to access (read AND write) the underlying data
@@ -57,24 +57,18 @@ public:
 	Enables the interactor to get access to the GUI's mainwindow
 	@param points_polydata Pointer to the GUI's mainwindow
 	*/
-	void set_mainwindow(MainWindow * mainwindow);
+	void set_mainwindow(Mainwindow * mainwindow);
 
 	/**
 	Returns a pointer to the GUI's mainwindow (i.e the highest-level QT Widget)
 	*/
-	MainWindow * get_mainwindow();
+	Mainwindow * get_mainwindow();
 
 	/**
 	Sets the interactor style
 	@param mode Int representing the mode (0: orient, 1:select)
 	*/
 	void set_current_mode(const int mode);
-
-	
-	/**
-	Resets the interactor
-	*/
-	void reset();
 
 	vtkSmartPointer<vtkPolyData> get_selected_points_polydata();
 	vtkSmartPointer<vtkPolyData> get_all_points_polydata();
@@ -84,8 +78,7 @@ public:
 private:
 	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
-	vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points;
-	MainWindow * mainwindow ;
+	Mainwindow * mainwindow ;
 
 
 };

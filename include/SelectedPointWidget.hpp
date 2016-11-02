@@ -29,9 +29,8 @@
 
 #include "vtkObjectFactory.h"
 
-#include "interactor.h"
-#include "mainwindow.h"
-#include "utilities.h"
+#include "Interactor.hpp"
+#include "Mainwindow.hpp"
 
 #include <set>
 #include <armadillo>
@@ -41,8 +40,8 @@
 // Forward declaration of InteractorStyle
 class InteractorStyle;
 
-// Forward declaration of MainWindow
-class MainWindow;
+// Forward declaration of Mainwindow
+class Mainwindow;
 
 
 /**
@@ -79,17 +78,19 @@ class SelectedPointWidget : public QDialog {
 public:
 	/**
 	Constructor.
-	@param parent Pointer to parent widget (here, pointer to instance of MainWindow )
+	@param parent Pointer to parent widget (here, pointer to instance of Mainwindow )
+	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
 	*/
 
-	SelectedPointWidget(QWidget *parent);
+	SelectedPointWidget(Mainwindow * parent,
+	InteractorStyle * interactor_style);
 
 	/**
 	Data Setter The pointer passed as arguments allow the widget to have access to the
 	point properties
 	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
 	*/
-	void set_data(vtkSmartPointer<InteractorStyle> interactor_style);
+	void set_data(InteractorStyle * interactor_style);
 
 	/**
 	Highlights the cells corresponding to the selected points
@@ -108,12 +109,7 @@ public:
 	void find_blob_center();
 
 
-
-	/**
-	Reset the widget by clearing the memory used by the different vtk container members
-
-	*/
-	void reset();
+	void close();
 
 	QTableWidget * table;
 
@@ -213,7 +209,6 @@ private slots:
 private:
 	void createActions();
 	void createMenus();
-	bool * widget_is_open;
 
 	/**
 	Loops over the list of all actors created by this and remove each of those from the rendering window
@@ -279,8 +274,7 @@ private:
 	vtkSmartPointer<vtkIdList> N_closest_vertices_indices;
 	vtkSmartPointer<vtkKdTreePointLocator> point_locator;
 
-
-	MainWindow * mainwindow;
+	Mainwindow * parent;
 };
 
 

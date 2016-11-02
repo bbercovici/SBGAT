@@ -1,8 +1,12 @@
-#include "selectedpointwidget.h"
-#include <vtkSphereSource.h>
+#include "SelectedPointWidget.hpp"
 
 
-SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
+SelectedPointWidget::SelectedPointWidget(Mainwindow * parent,
+        InteractorStyle * interactor_style) : QDialog(parent) {
+
+	this -> setAttribute(Qt::WA_DeleteOnClose);
+	this -> parent = parent;
+
 
 	// The different GUI elements are created
 	this -> slider_magnitude = new QSlider(Qt::Horizontal, this);
@@ -34,6 +38,7 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 
 	this -> active_selected_points_polydata = vtkPolyData::New();
 	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
+
 	this -> selected_cells_polydata = vtkPolyData::New();
 	this -> unselected_cells_polydata = vtkPolyData::New();
 
@@ -81,11 +86,9 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	this -> slider_neighbors_layout -> addWidget(slider_neighbors);
 	this -> slider_neighbors_layout -> addWidget(slider_neighbors_value);
 
-
 	// Forces the QLine Edits widget to only accept integer values between the specified bounds
 	this -> slider_magnitude_value -> setValidator( new QIntValidator(-100, 100, this) );
 	this -> slider_neighbors_value -> setValidator( new QIntValidator(1, 100, this) );
-
 
 	// The slider_magnitude is connected to the QLineEdit
 	connect(this -> slider_magnitude, SIGNAL(valueChanged(int)), this, SLOT(show_new_slider_magnitude_pos(int)) );
@@ -100,7 +103,8 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 
 	// The table showing the selected vertex info is set up
 	this -> table -> setShowGrid(true);
-	this -> table -> setEditTriggers(QAbstractItemView::NoEditTriggers); //  prevents the user from editing the items
+	//  prevents the user from editing the items
+	this -> table -> setEditTriggers(QAbstractItemView::NoEditTriggers);
 	this -> table -> setColumnCount(4);
 	this -> labels << "ID" << "x" << "y" << "z";
 	this -> table -> setHorizontalHeaderLabels(labels);
@@ -162,10 +166,11 @@ SelectedPointWidget::SelectedPointWidget(QWidget * parent) : QDialog(parent) {
 	connect(this -> button_box, SIGNAL(rejected()), this, SLOT(reject()));
 
 	this -> setLayout(this -> main_layout);
-	this -> mainwindow =  qobject_cast<MainWindow*>(this -> parent());
+
+	this -> set_data(interactor_style);
 }
 
-void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_style) {
+void SelectedPointWidget::set_data(InteractorStyle * interactor_style) {
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
@@ -180,9 +185,6 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 	this -> visible_points_global_ids_from_local_index = vtkIdTypeArray::SafeDownCast(
 	            this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
 
-	// This prevents another instance of the widget to be opened
-	*this -> mainwindow -> selection_widget_is_open = true;
-
 	// The table showing the vertex info is populated and shown
 	this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
 	this -> populate_vertex_table();
@@ -190,7 +192,6 @@ void SelectedPointWidget::set_data(vtkSmartPointer<InteractorStyle> interactor_s
 	this -> slider_magnitude -> setValue(0);
 
 	// The point locator is cleaned up and provided with the selected blob
-	this -> point_locator -> Initialize();
 	this -> point_locator -> SetDataSet(this -> selected_points_polydata);
 	this -> point_locator -> BuildLocator();
 
@@ -208,7 +209,7 @@ void SelectedPointWidget::highlight_selected_cells() {
 	selected_cells_actor -> SetMapper(selected_cell_mapper);
 	selected_cells_actor -> GetMapper() -> ScalarVisibilityOff();
 	selected_cells_actor -> GetProperty() -> SetColor(1, 0 , 0);
-	this -> mainwindow -> get_renderer() -> AddActor(selected_cells_actor);
+	this -> parent -> get_renderer() -> AddActor(selected_cells_actor);
 
 	// The pointer to the newly created actor is saved for future use
 	this -> actor_vector.push_back(selected_cells_actor);
@@ -220,9 +221,9 @@ void SelectedPointWidget::highlight_selected_cells() {
 	unselected_cells_actor -> SetMapper(unselected_cell_mapper);
 	unselected_cells_actor -> GetMapper() -> ScalarVisibilityOff();
 	unselected_cells_actor -> GetProperty() -> SetColor(1, 1 , 1);
-	this -> mainwindow -> get_renderer() -> AddActor(unselected_cells_actor);
+	this -> parent -> get_renderer() -> AddActor(unselected_cells_actor);
 	this -> actor_vector.push_back(unselected_cells_actor);
-	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
 }
 
@@ -379,7 +380,6 @@ void SelectedPointWidget::find_blob_center() {
 
 void SelectedPointWidget::update_view(int pos) {
 
-
 	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
 
@@ -477,30 +477,28 @@ void SelectedPointWidget::update_view(int pos) {
 
 	this -> selected_cells_polydata -> SetPoints(this -> selected_points  );
 	this -> selected_cells_polydata -> Modified();
-	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
+	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 }
 
 void SelectedPointWidget::accept() {
-	new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
-	this -> all_points_polydata -> SetPoints(new_selected_points_coordinates);
+	this -> new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
+	this -> all_points_polydata -> SetPoints(this -> new_selected_points_coordinates);
 	this -> all_points_polydata -> Modified();
-	this -> reset();
-	QDialog::accept();
+	this -> close();
 }
 
 void SelectedPointWidget::reject() {
-	this -> reset();
-	QDialog::reject();
+	this -> close();
 }
 
 void SelectedPointWidget::remove_selected_points_actor() {
 
 	for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
-	        iter != this->actor_vector.end(); ++iter) {
-		this -> mainwindow -> get_renderer() -> RemoveActor(*iter);
+	        iter != this -> actor_vector.end(); ++iter) {
+		this -> parent -> get_renderer() -> RemoveActor(*iter);
 	}
 
-	actor_vector.clear();
+	this ->  actor_vector.clear();
 }
 
 
@@ -522,37 +520,17 @@ void SelectedPointWidget::set_new_slider_magnitude_pos() {
 
 }
 
-void SelectedPointWidget::reset() {
+void SelectedPointWidget::close() {
 
-	*this -> mainwindow -> selection_widget_is_open = false;
 	this -> remove_selected_points_actor();
 
-	this -> table -> clear();
+	this -> parent -> lateral_dockwidget -> hide();
+	this -> parent -> set_action_status(true, this -> parent -> selectPointAct);
 
-	this -> selected_cells_polydata -> Initialize();
-	this -> unselected_cells_polydata -> Initialize();
-	this -> selected_polys_ids -> Initialize();
-	this -> unselected_polys_ids -> Initialize();
-	this -> cell_ids -> Initialize();
-	this -> selected_points -> Initialize();
+	this -> parent -> set_actors_visibility(true);
+	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
-	this -> mainwindow -> set_actors_visibility(true);
-	this -> mainwindow -> qvtkWidget -> GetRenderWindow() -> Render();
-
-	// Sets the drop down-lists to their default state.
-	this -> slider_neighbors_title -> setVisible(false);
-	this -> slider_neighbors_holder_widget -> setVisible(false);
-
-
-	this -> transform_direction_list -> setCurrentIndex(0);
-	this -> interpolation_type_list -> setCurrentIndex(0);
-	this -> transform_selection_list -> setCurrentIndex(0);
-
-	this -> set_transform_direction(0);
-	this -> set_interpolation_type(0);
-	this -> set_transform_selection(0);
-
-
+	QDialog::close();
 
 
 }
@@ -594,7 +572,6 @@ void SelectedPointWidget::compute_selected_cells_normals() {
 		average_normal_direction[0] = average_normal_direction[0] + average_normal_direction_buffer[0];
 		average_normal_direction[1] = average_normal_direction[1] + average_normal_direction_buffer[1];
 		average_normal_direction[2] = average_normal_direction[2] + average_normal_direction_buffer[2];
-
 	}
 
 	average_normal_direction[0] = average_normal_direction[0] /  this -> selected_cells_normals -> GetNumberOfTuples();
