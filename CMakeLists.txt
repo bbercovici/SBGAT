@@ -78,13 +78,21 @@ add_executable(${EXE_NAME}
 source/main.cpp
 source/Mainwindow.cpp
 source/SelectedPointWidget.cpp
-source/Interactor.cpp
+source/InteractorStyle.cpp
 source/osxHelper.mm
+source/Asteroid.cpp
+source/Vect.cpp
+source/Matrix.cpp
+source/ComputePGMWidget.cpp
 include/Mainwindow.hpp
-include/Interactor.hpp
+include/InteractorStyle.hpp
 include/InheritedPicker.hpp
 include/SelectedPointWidget.hpp
-include/osxHelper.h         
+include/osxHelper.h   
+include/Asteroid.hpp
+include/Vect.hpp
+include/Matrix.hpp   
+include/ComputePGMWidget.hpp
 )
 
 # # Add subdirectories

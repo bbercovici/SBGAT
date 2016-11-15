@@ -29,12 +29,16 @@
 #include <vtkOBJReader.h>
 #include <vtkOBJExporter.h>
 
+#include <vtkExtractEdges.h>
+#include <vtkLine.h>
+
 #include "QVTKWidget.h"
 #include "osxHelper.h"
 
 
 #include "SelectedPointWidget.hpp"
-#include "Interactor.hpp"
+#include "InteractorStyle.hpp"
+#include "ComputePGMWidget.hpp"
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
@@ -70,6 +74,10 @@ public:
 	*/
 	void close_lateral_dockwidget();
 
+	/**
+	Returns a pointer to the window interactor
+	*/
+	vtkSmartPointer<vtkRenderWindowInteractor> get_render_window_interactor();
 
 	/**
 	Sets the visibility of all the actors owned by this
@@ -91,6 +99,7 @@ public:
 	QAction * resetAct;
 	QAction * backgroundColorAct;
 	QAction * vertexVisibilityAct;
+	QAction * openComputePGMWidgetAct;
 
 
 	// Slots
@@ -141,6 +150,12 @@ private:
 	Creates and populates the menu bar
 	*/
 	void createMenus();
+
+
+	/**
+	Opens a widget allowing the user to compute the polyhedron gravity model of the displayed shape model
+	*/
+	void open_compute_pgm_widget();
 
 
 	/**

@@ -71,8 +71,8 @@ endmacro()
 add_sources(main.cpp
             mainwindow.cpp
             mainwindow.h
-            Interactor.h
-            Interactor.cpp
+            InteractorStyle.h
+            InteractorStyle.cpp
             InheritedPicker.h
             selectedpointwidget.cpp
             selectedpointwidget.h

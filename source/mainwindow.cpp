@@ -49,10 +49,21 @@ void Mainwindow::close_lateral_dockwidget() {
     SelectedPointWidget * selected_point_widget =
         dynamic_cast<SelectedPointWidget *>(this -> lateral_dockwidget -> widget());
 
-    if (selected_point_widget != nullptr) {
+    ComputePGMWidget * compute_PGM_widget =
+        dynamic_cast<ComputePGMWidget *>(this -> lateral_dockwidget -> widget());
 
+    if (selected_point_widget != nullptr) {
         selected_point_widget -> close();
     }
+    else if (compute_PGM_widget != nullptr) {
+        compute_PGM_widget -> close();
+    }
+
+
+}
+
+vtkSmartPointer<vtkRenderWindowInteractor> Mainwindow::get_render_window_interactor() {
+    return this -> renderWindowInteractor;
 }
 
 void Mainwindow::set_action_status(bool enabled, QAction * action) {
@@ -71,6 +82,12 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         id_filter -> Update();
 
         vtkSmartPointer<vtkPolyData> read_polydata = id_filter -> GetPolyDataOutput();
+
+        vtkSmartPointer<vtkExtractEdges> extractEdges =
+            vtkSmartPointer<vtkExtractEdges>::New();
+        extractEdges -> SetInputData(read_polydata);
+        extractEdges -> Update();
+
 
         // Create a mapper and actor to represent the shape model
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -95,6 +112,7 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> set_action_status(true, shapeColorAct);
         this -> set_action_status(true, vertexVisibilityAct);
         this -> set_action_status(true, selectPointAct);
+        this -> set_action_status(true, openComputePGMWidgetAct);
         this -> set_action_status(true, saveAct);
 
         // The topology of the shape is constructed
@@ -212,6 +230,12 @@ void Mainwindow::createActions() {
     connect(selectPointAct, &QAction::triggered, this, &Mainwindow::select);
     selectPointAct -> setDisabled(true);
 
+    openComputePGMWidgetAct = new QAction(tr("Compute Polyhedron Gravity Model"), this);
+    openComputePGMWidgetAct -> setStatusTip(tr("Open widget enabling computation of the Polyhedron Gravity Model of the displayed shape assuming a constant density distribution"));
+    connect(openComputePGMWidgetAct, &QAction::triggered, this, &Mainwindow::open_compute_pgm_widget);
+    openComputePGMWidgetAct -> setDisabled(true);
+
+
 
     shapeColorAct = new QAction(tr("Shape Color"), this);
     shapeColorAct -> setStatusTip(tr("Set the shape actor color"));
@@ -235,6 +259,8 @@ void Mainwindow::createActions() {
     vertexVisibilityAct -> setChecked(true);
     vertexVisibilityAct -> setDisabled(true);
     connect(vertexVisibilityAct, &QAction::triggered, this, &Mainwindow::change_vertex_visibility);
+
+
 }
 
 void Mainwindow::set_actors_visibility(bool visibility) {
@@ -278,6 +304,7 @@ void Mainwindow::createMenus() {
 
     OperationMenu = menuBar() -> addMenu(tr("&Operation"));
     OperationMenu -> addAction(selectPointAct);
+    OperationMenu -> addAction(openComputePGMWidgetAct);
 
     ViewMenu = menuBar() -> addMenu(tr("&Shape Graphic Properties"));
     ViewMenu -> addAction(shapeColorAct);
@@ -291,7 +318,6 @@ vtkSmartPointer<vtkRenderer> Mainwindow::get_renderer() {
     return this -> renderer;
 }
 
-
 void Mainwindow::clear_all() {
     this -> remove_actors();
     this -> close_lateral_dockwidget();
@@ -299,3 +325,15 @@ void Mainwindow::clear_all() {
 
 
 }
+
+void Mainwindow::open_compute_pgm_widget() {
+
+    ComputePGMWidget * compute_PGM_widget = new ComputePGMWidget(this);
+
+    this ->  lateral_dockwidget -> setWidget(compute_PGM_widget);
+    this ->  lateral_dockwidget -> show();
+
+
+
+}
+

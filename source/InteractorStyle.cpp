@@ -1,4 +1,4 @@
-#include "Interactor.hpp"
+#include "InteractorStyle.hpp"
 #include "InheritedPicker.hpp"
 
 // shortcut to interactor modes

@@ -29,7 +29,7 @@
 
 #include "vtkObjectFactory.h"
 
-#include "Interactor.hpp"
+#include "InteractorStyle.hpp"
 #include "Mainwindow.hpp"
 
 #include <set>
@@ -135,7 +135,6 @@ public:
 
 	QLabel * slider_magnitude_title;
 	QLabel * slider_neighbors_title;
-
 
 	QComboBox * transform_direction_list;
 	QComboBox * interpolation_type_list;
