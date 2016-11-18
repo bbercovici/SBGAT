@@ -237,16 +237,16 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	selected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
 	unselected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
 
-	std::set<int> cells_to_include_indices;
+	std::set<unsigned int> cells_to_include_indices;
 
-	for (int selected_point_index = 0;
+	for (unsigned int selected_point_index = 0;
 	        selected_point_index < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ;
 	        ++selected_point_index ) {
 		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> all_points_polydata -> GetPointCells	(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), cell_ids);
+		this -> all_points_polydata -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), cell_ids);
 
 		// Those IDs are eventually transfered in a set for uniqueness
-		for (int cell_id_index = 0; cell_id_index < cell_ids -> GetNumberOfIds(); ++cell_id_index) {
+		for (unsigned int cell_id_index = 0; cell_id_index < cell_ids -> GetNumberOfIds(); ++cell_id_index) {
 			cells_to_include_indices.insert(cell_ids -> GetId (cell_id_index));
 		}
 	}
@@ -264,11 +264,11 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	// - all_cells_indices: set containing the indices of all cells (all integers from zero to
 	// points_polydata -> GetNumberOfCells() - 1 )
 	// - cells_to_include_indices: set containing the indices of the selected cells
-	std::set<int> cells_not_included_indices;
-	std::set<int> all_cells_indices;
+	std::set<unsigned int> cells_not_included_indices;
+	std::set<unsigned int> all_cells_indices;
 
 
-	for (int i = 0; i < this -> all_points_polydata -> GetNumberOfCells(); ++i) {
+	for (unsigned int i = 0; i < this -> all_points_polydata -> GetNumberOfCells(); ++i) {
 		all_cells_indices.insert(i);
 
 	}
@@ -280,10 +280,10 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	/*************************************************************************/
 
 
-	for (std::set<int>::iterator iter = cells_to_include_indices.begin();
+	for (std::set<unsigned int>::iterator iter = cells_to_include_indices.begin();
 	        iter != cells_to_include_indices.end(); ++iter ) {
 		// indices of the poly's vertices that were selected
-		int facet_vertices_ids[3];
+		unsigned int facet_vertices_ids[3];
 		facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * (*iter) + 1));
 		facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * (*iter) + 2));
 		facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * (*iter) + 3));
@@ -296,10 +296,10 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	selected_polys_cell_array -> SetCells(cells_to_include_indices.size(), selected_polys_ids);
 
 
-	for (std::set<int>::iterator iter = cells_not_included_indices.begin();
+	for (std::set<unsigned int>::iterator iter = cells_not_included_indices.begin();
 	        iter != cells_not_included_indices.end(); ++iter ) {
 		// indices of the poly's vertices that were not selected
-		int facet_vertices_ids[3];
+		unsigned int facet_vertices_ids[3];
 		facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * (*iter) + 1));
 		facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * (*iter) + 2));
 		facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * (*iter) + 3));

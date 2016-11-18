@@ -152,6 +152,7 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
+
     }
 
 }
