@@ -14,8 +14,8 @@ SetInputScalingWidget::SetInputScalingWidget(Mainwindow * parent) {
 	this -> wrapping_widget = new QGroupBox("Scaling factor", this);
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
 
-	this -> input_unit_combobox -> addItem("Meters (m)");
-	this -> input_unit_combobox -> addItem("Kilometers (km)");
+	this -> input_unit_combobox -> addItem("meters (m)");
+	this -> input_unit_combobox -> addItem("kilometers (km)");
 
 	this -> wrapping_widget -> setLayout(this -> wrapping_layout);
 

@@ -6,6 +6,7 @@ ShapeInfoWidget::ShapeInfoWidget(Mainwindow * parent) {
 
 	this -> main_layout = new QVBoxLayout();
 	this -> text_area = new QPlainTextEdit(this);
+	this -> text_area -> setReadOnly(true);
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
 
 	this -> main_layout -> addWidget(this -> text_area);

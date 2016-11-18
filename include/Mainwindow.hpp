@@ -30,8 +30,7 @@
 #include <vtkOBJExporter.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
-
-#include <vtkExtractEdges.h>
+#include <vtkCamera.h>
 #include <vtkLine.h>
 
 #include "QVTKWidget.h"

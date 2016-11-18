@@ -95,7 +95,6 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         // A scaling transform is applied to the input polydata so as to have its vertex
         // coordinates expressed in meters
 
-
         // The polydata is fed to an IDFilter.
         vtkSmartPointer<vtkIdFilter>  id_filter = vtkSmartPointer<vtkIdFilter>::New();
         id_filter -> SetIdsArrayName("ids");
@@ -104,12 +103,6 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         id_filter -> Update();
 
         vtkSmartPointer<vtkPolyData> read_polydata = id_filter -> GetPolyDataOutput();
-
-        vtkSmartPointer<vtkExtractEdges> extractEdges =
-            vtkSmartPointer<vtkExtractEdges>::New();
-        extractEdges -> SetInputData(read_polydata);
-        extractEdges -> Update();
-
 
         // Create a mapper and actor to represent the shape model
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -149,6 +142,13 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
         style -> set_mainwindow(this);
         style -> set_all_points_polydata(read_polydata);
+
+
+        // Camera position is adjusted
+        this -> renderer -> GetActiveCamera () -> SetPosition (
+            read_polydata -> GetLength() * 1.,
+            read_polydata -> GetLength() * 1.,
+            read_polydata -> GetLength() * 1.);
 
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
