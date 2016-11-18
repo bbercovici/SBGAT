@@ -1,7 +1,7 @@
-#include "SelectedPointWidget.hpp"
+#include "ModifyAreaWidget.hpp"
 
 
-SelectedPointWidget::SelectedPointWidget(Mainwindow * parent,
+ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
         InteractorStyle * interactor_style) : QDialog(parent) {
 
 	this -> setAttribute(Qt::WA_DeleteOnClose);
@@ -147,19 +147,19 @@ SelectedPointWidget::SelectedPointWidget(Mainwindow * parent,
 
 	// Each drop down lists generates a signal notyfing the program that it was changed
 	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-	         this, &SelectedPointWidget::set_transform_direction);
+	         this, &ModifyAreaWidget::set_transform_direction);
 
 	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-	         this, &SelectedPointWidget::set_interpolation_type);
+	         this, &ModifyAreaWidget::set_interpolation_type);
 
 	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-	         this, &SelectedPointWidget::set_transform_selection);
+	         this, &ModifyAreaWidget::set_transform_selection);
 
 	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-	         this, &SelectedPointWidget::update_view_unchanged_slider_magnitude);
+	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
 
 	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-	         this, &SelectedPointWidget::update_view_unchanged_slider_magnitude);
+	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
 
 	// The different buttons are connected to the corresponding slots
 	connect(this -> button_box, SIGNAL(accepted()), this, SLOT(accept()));
@@ -170,7 +170,7 @@ SelectedPointWidget::SelectedPointWidget(Mainwindow * parent,
 	this -> set_data(interactor_style);
 }
 
-void SelectedPointWidget::set_data(InteractorStyle * interactor_style) {
+void ModifyAreaWidget::set_data(InteractorStyle * interactor_style) {
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
@@ -197,7 +197,7 @@ void SelectedPointWidget::set_data(InteractorStyle * interactor_style) {
 
 }
 
-void SelectedPointWidget::highlight_selected_cells() {
+void ModifyAreaWidget::highlight_selected_cells() {
 
 	// the blobs representing the selected and unselected cells are created
 	this -> compute_cell_blobs();
@@ -228,7 +228,7 @@ void SelectedPointWidget::highlight_selected_cells() {
 }
 
 
-void SelectedPointWidget::compute_cell_blobs() {
+void ModifyAreaWidget::compute_cell_blobs() {
 
 	/*************************************************************************/
 	// The selected facets are highlighted by means of a polydata representing them
@@ -321,7 +321,7 @@ void SelectedPointWidget::compute_cell_blobs() {
 
 
 
-void SelectedPointWidget::populate_vertex_table() {
+void ModifyAreaWidget::populate_vertex_table() {
 
 	// Ids of selected points
 	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
@@ -346,7 +346,7 @@ void SelectedPointWidget::populate_vertex_table() {
 	}
 }
 
-void SelectedPointWidget::find_blob_center() {
+void ModifyAreaWidget::find_blob_center() {
 
 	// The location of the blob center is found by looping over each selected point
 	double blob_average_position[3]; // selected blob average coordinates
@@ -378,7 +378,7 @@ void SelectedPointWidget::find_blob_center() {
 
 }
 
-void SelectedPointWidget::update_view(int pos) {
+void ModifyAreaWidget::update_view(int pos) {
 
 	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
 	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
@@ -430,7 +430,6 @@ void SelectedPointWidget::update_view(int pos) {
 
 		}
 
-
 		// A characteristic length is extracted from the polydata's dimensions
 		double normalizing_constant;
 		switch (this -> transform_selection) {
@@ -464,7 +463,8 @@ void SelectedPointWidget::update_view(int pos) {
 		}
 
 		// The position of the transform vertex is computed
-		new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor;
+		double length = this -> all_points_polydata -> GetLength();
+		new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor * length;
 
 		new_p[0] = new_p_vec(0);
 		new_p[1] = new_p_vec(1);
@@ -480,18 +480,18 @@ void SelectedPointWidget::update_view(int pos) {
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 }
 
-void SelectedPointWidget::accept() {
+void ModifyAreaWidget::accept() {
 	this -> new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
 	this -> all_points_polydata -> SetPoints(this -> new_selected_points_coordinates);
 	this -> all_points_polydata -> Modified();
 	this -> close();
 }
 
-void SelectedPointWidget::reject() {
+void ModifyAreaWidget::reject() {
 	this -> close();
 }
 
-void SelectedPointWidget::remove_selected_points_actor() {
+void ModifyAreaWidget::remove_selected_points_actor() {
 
 	for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
 	        iter != this -> actor_vector.end(); ++iter) {
@@ -502,30 +502,29 @@ void SelectedPointWidget::remove_selected_points_actor() {
 }
 
 
-void SelectedPointWidget::show_new_slider_neighbors_pos(int pos) {
+void ModifyAreaWidget::show_new_slider_neighbors_pos(int pos) {
 	this -> slider_neighbors_value -> setText( QString::number(pos));
 }
 
-void SelectedPointWidget::set_new_slider_neighbors_pos() {
+void ModifyAreaWidget::set_new_slider_neighbors_pos() {
 	this -> slider_neighbors -> setValue(this -> slider_neighbors_value -> text().toInt());
 
 }
 
-void SelectedPointWidget::show_new_slider_magnitude_pos(int pos) {
+void ModifyAreaWidget::show_new_slider_magnitude_pos(int pos) {
 	this -> slider_magnitude_value -> setText( QString::number(pos));
 }
 
-void SelectedPointWidget::set_new_slider_magnitude_pos() {
+void ModifyAreaWidget::set_new_slider_magnitude_pos() {
 	this -> slider_magnitude -> setValue(this -> slider_magnitude_value -> text().toInt());
 
 }
 
-void SelectedPointWidget::close() {
-
+void ModifyAreaWidget::close() {
+	
 	this -> remove_selected_points_actor();
 
 	this -> parent -> lateral_dockwidget -> hide();
-	this -> parent -> set_action_status(true, this -> parent -> selectPointAct);
 
 	this -> parent -> set_actors_visibility(true);
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
@@ -535,7 +534,7 @@ void SelectedPointWidget::close() {
 
 }
 
-float SelectedPointWidget::get_actual_memory_size() {
+float ModifyAreaWidget::get_actual_memory_size() {
 
 	float memory_used = float(
 	                        this -> selected_cells_polydata -> GetActualMemorySize() +
@@ -548,7 +547,7 @@ float SelectedPointWidget::get_actual_memory_size() {
 	return memory_used;
 }
 
-void SelectedPointWidget::compute_selected_cells_normals() {
+void ModifyAreaWidget::compute_selected_cells_normals() {
 
 	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter = vtkPolyDataNormals::New();
 	selected_polydata_normals_filter -> ComputePointNormalsOff();
@@ -585,7 +584,7 @@ void SelectedPointWidget::compute_selected_cells_normals() {
 
 }
 
-void SelectedPointWidget::find_N_neighbors_indices(const int N) {
+void ModifyAreaWidget::find_N_neighbors_indices(const int N) {
 	double center_point[3];
 	center_point[0] = this -> blob_center_position(0);
 	center_point[1] = this -> blob_center_position(1);
@@ -596,7 +595,7 @@ void SelectedPointWidget::find_N_neighbors_indices(const int N) {
 	this -> selected_points_polydata -> GetPoints() -> GetPoints(this -> N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
 }
 
-void SelectedPointWidget::set_transform_direction(const int item_index) {
+void ModifyAreaWidget::set_transform_direction(const int item_index) {
 	switch (item_index) {
 	case 0:
 		transform_direction = TransformDirection::RADIAL;
@@ -616,7 +615,7 @@ void SelectedPointWidget::set_transform_direction(const int item_index) {
 	}
 }
 
-void SelectedPointWidget::set_interpolation_type(const int item_index) {
+void ModifyAreaWidget::set_interpolation_type(const int item_index) {
 	switch (item_index) {
 	case 0:
 		interpolation_type = InterpolationType::UNIFORM;
@@ -636,7 +635,7 @@ void SelectedPointWidget::set_interpolation_type(const int item_index) {
 	}
 }
 
-void SelectedPointWidget::set_transform_selection(const int item_index) {
+void ModifyAreaWidget::set_transform_selection(const int item_index) {
 	switch (item_index) {
 	case 0:
 		transform_selection = TransformSelection::SELECTED;
@@ -660,12 +659,12 @@ void SelectedPointWidget::set_transform_selection(const int item_index) {
 	}
 }
 
-void SelectedPointWidget::update_view_unchanged_slider_magnitude() {
+void ModifyAreaWidget::update_view_unchanged_slider_magnitude() {
 	int pos = this -> slider_magnitude -> value();
 	this -> update_view(pos);
 }
 
-void SelectedPointWidget::find_N_neighbors_indices_and_update_view(const int N) {
+void ModifyAreaWidget::find_N_neighbors_indices_and_update_view(const int N) {
 	this -> find_N_neighbors_indices(N);
 	this -> update_view_unchanged_slider_magnitude();
 }

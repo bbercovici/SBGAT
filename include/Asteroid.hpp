@@ -1,22 +1,35 @@
+
+// Adapted from the original work 
+// of Nicola Baresi, CSML, University of Colorado Boulder (2014)
+
+
 #ifndef ASTEROIDHEADERDEF
 #define ASTEROIDHEADERDEF
 
 #include <fstream>
+#include <iostream>
+
 #include "Matrix.hpp"
 #include "Vect.hpp"
 
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-class Asteroid
-{
+#include <cassert>
+#include <cmath>
+#include <set>
+#include <map>
+#include <fstream>
+#include <armadillo>
+
+class Asteroid{
 private:
 
   double mGs;   // G*dens product
 
-  int mNOV; //No. of vertices
-  int mNOF; //No. of facets
-  int mNOE; //No. of edges
+  unsigned int mNOV; //No. of vertices
+  unsigned int mNOF; //No. of facets
+  unsigned int mNOE; //No. of edges
 
   // Vertex coordinates
   double* mX;
@@ -64,7 +77,13 @@ public:
   Vect GetListE() const;
   Vect GetE() const;
 
-  friend Vect PolyGrav(Vect& Xsc, Asteroid& Body);
+  friend Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed);
+  Vect PolyGrav(Vect& Xsc, bool zero_indexed);
+
+  /**
+  Saves asteroid connectivity (vertices + facets) to an obj file
+  */
+  void write_to_obj(std::string filename);  
 
 };
 

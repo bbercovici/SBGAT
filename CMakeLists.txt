@@ -77,22 +77,28 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir,
 add_executable(${EXE_NAME}
 source/main.cpp
 source/Mainwindow.cpp
-source/SelectedPointWidget.cpp
+source/ModifyAreaWidget.cpp
 source/InteractorStyle.cpp
 source/osxHelper.mm
 source/Asteroid.cpp
 source/Vect.cpp
 source/Matrix.cpp
 source/ComputePGMWidget.cpp
+source/ShapeInfoWidget.cpp
+source/SetInputScalingWidget.cpp
+source/vtkOBJWriter.cpp
 include/Mainwindow.hpp
 include/InteractorStyle.hpp
 include/InheritedPicker.hpp
-include/SelectedPointWidget.hpp
+include/ModifyAreaWidget.hpp
 include/osxHelper.h   
 include/Asteroid.hpp
 include/Vect.hpp
 include/Matrix.hpp   
 include/ComputePGMWidget.hpp
+include/ShapeInfoWidget.hpp
+include/SetInputScalingWidget.hpp
+include/vtkOBJWriter.h
 )
 
 # # Add subdirectories

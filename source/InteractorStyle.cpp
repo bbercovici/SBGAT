@@ -9,8 +9,6 @@
 InteractorStyle::InteractorStyle() {
 	this -> CurrentMode = INTERACTOR_IS_ORIENT;
 	this -> mainwindow = nullptr;
-
-
 }
 
 void InteractorStyle::OnLeftButtonUp() {
@@ -48,10 +46,10 @@ void InteractorStyle::OnLeftButtonUp() {
 			// If at least one vertex was selected, the selection widget will open
 			if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
 
-				// A new SelectedPointWidget is provided with the underlying shape model
+				// A new ModifyAreaWidget is provided with the underlying shape model
 				// by passing a pointer to this, which already owns it
 
-				SelectedPointWidget * selected_point_widget = new SelectedPointWidget(this -> mainwindow,
+				ModifyAreaWidget * selected_point_widget = new ModifyAreaWidget(this -> mainwindow,
 				        this);
 
 				this -> mainwindow ->  lateral_dockwidget -> setWidget(selected_point_widget);

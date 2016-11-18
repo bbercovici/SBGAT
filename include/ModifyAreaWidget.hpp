@@ -1,6 +1,6 @@
 
-#ifndef HEADER_SELECTEDPOINTWIDGET
-#define HEADER_SELECTEDPOINTWIDGET
+#ifndef HEADER_ModifyAreaWidget
+#define HEADER_ModifyAreaWidget
 
 #include <QDialog>
 #include <QString>
@@ -65,14 +65,14 @@ enum class TransformSelection {SELECTED, NCLOSEST};
 
 
 /**
-Declaration of the SelectedPointWidget class. SelectedPointWidget refers to the
+Declaration of the ModifyAreaWidget class. ModifyAreaWidget refers to the
 widget displayed on the screen when the user selects at least one vertex of the
 displayed shape model by means of the rectangular box selector. The widget that is then
 displayed lists the IDs of the selected vertices, as well as a choice of possible geometric
 transforms to be applied to them. A horizontal slider_magnitude enalbes the user to choose
 the magnitude of the transform
 */
-class SelectedPointWidget : public QDialog {
+class ModifyAreaWidget : public QDialog {
 	Q_OBJECT
 
 public:
@@ -82,7 +82,7 @@ public:
 	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
 	*/
 
-	SelectedPointWidget(Mainwindow * parent,
+	ModifyAreaWidget(Mainwindow * parent,
 	InteractorStyle * interactor_style);
 
 	/**
@@ -237,7 +237,6 @@ private:
 	@param N Number of neighbors to identify
 	*/
 	void find_N_neighbors_indices(const int N);
-
 
 	QStringList labels;
 

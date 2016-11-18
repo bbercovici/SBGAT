@@ -31,7 +31,6 @@ public:
 	*/
 	ComputePGMWidget(Mainwindow * parent);
 
-
 	QVBoxLayout * main_layout;
 	QGridLayout * physical_properties_layout;
 

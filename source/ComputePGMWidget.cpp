@@ -3,7 +3,6 @@
 ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this -> setAttribute(Qt::WA_DeleteOnClose);
 	this -> parent = parent;
-	this -> parent -> set_action_status(false, this -> parent -> openComputePGMWidgetAct);
 
 	this -> main_layout = new QVBoxLayout();
 	this -> physical_properties_layout = new QGridLayout();
@@ -14,6 +13,8 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this -> density_title_label = new QLabel("Density: ", this);
 	this -> density_unit_label = new QLabel("kg/m^3", this);
 	this -> density_qlineedit = new QLineEdit(this);
+	this -> density_qlineedit -> setText(QString::number(1e3));
+
 	this -> density_qlineedit -> setValidator( new QDoubleValidator(0, 100, 10, this) );
 
 	this -> gravitational_constant_title_label = new QLabel("Gravitational Constant: ", this);
@@ -66,10 +67,21 @@ void ComputePGMWidget::close() {
 
 void ComputePGMWidget::compute_pgm() {
 
-	// InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
-	//         -> GetInteractorStyle());
-	// vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
+	InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
+	        -> GetInteractorStyle());
+	vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
 
-	// Asteroid asteroid = Asteroid(all_points_polydata,)
+	double G_dens = (this -> density_qlineedit -> text().toDouble())
+	                * (this -> gravitational_constant_qlineedit -> text().toDouble());
+	Asteroid asteroid = Asteroid(all_points_polydata, G_dens);
+	
+	Vect Xsc(3);
+	Xsc[0] = 1000;
+	Xsc[1] = 100;
+	Xsc[2] = 100;
+
+	Vect grav = asteroid.PolyGrav(Xsc, true);
+	std::cout << grav[0] << " " << grav[1] << " " << grav[2] << std::endl;
+
 
 }

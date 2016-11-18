@@ -28,6 +28,8 @@
 #include <vtkXMLPolyDataReader.h>
 #include <vtkOBJReader.h>
 #include <vtkOBJExporter.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkTransform.h>
 
 #include <vtkExtractEdges.h>
 #include <vtkLine.h>
@@ -36,13 +38,17 @@
 #include "osxHelper.h"
 
 
-#include "SelectedPointWidget.hpp"
+#include "ModifyAreaWidget.hpp"
 #include "InteractorStyle.hpp"
 #include "ComputePGMWidget.hpp"
+#include "ShapeInfoWidget.hpp"
+#include "SetInputScalingWidget.hpp"
+
+#include "vtkOBJWriter.h"
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
-class SelectedPointWidget;
+class ModifyAreaWidget;
 
 /**
 Declaration of the Mainwindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
@@ -86,6 +92,12 @@ public:
 	void set_actors_visibility(bool visibility);
 
 	/**
+	Sets the scaling factor applied to the 
+	input data to have it expressed in meters
+	*/
+	void set_scaling_factor(double scaling_factor);
+
+	/**
 		Enable/Disables an action in the GUI
 		@param enabled Status the targeted action will be set to
 		@param action Pointer to action to enable/disable
@@ -94,12 +106,13 @@ public:
 
 	QAction * openAct;
 	QAction * saveAct;
-	QAction * selectPointAct;
+	QAction * modifyShapeAct;
 	QAction * shapeColorAct;
 	QAction * resetAct;
 	QAction * backgroundColorAct;
 	QAction * vertexVisibilityAct;
 	QAction * openComputePGMWidgetAct;
+	QAction * openShapeInfoWidgetAct;
 
 
 	// Slots
@@ -138,6 +151,18 @@ private slots:
 	*/
 	void change_vertex_visibility();
 
+	/**
+	Opens a widget displaying information on the 
+	currently opened shape model
+	*/
+	void open_shape_info_widget();
+
+	
+	/**
+	Opens a widget allowing the user to compute the polyhedron gravity model of the displayed shape model
+	*/
+	void open_compute_pgm_widget();
+
 
 private:
 	/**
@@ -150,12 +175,6 @@ private:
 	Creates and populates the menu bar
 	*/
 	void createMenus();
-
-
-	/**
-	Opens a widget allowing the user to compute the polyhedron gravity model of the displayed shape model
-	*/
-	void open_compute_pgm_widget();
 
 
 	/**
@@ -181,10 +200,17 @@ private:
 	*/
 	void clear_all();
 
+
+	/**
+	Scaling factor applied to the 
+	input data to have it expressed in meters
+	*/
+	double scaling_factor;
+
 	QMenu * fileMenu;
-	QMenu * OperationMenu;
+	QMenu * ShapeModelMenu;
 	QMenu * ViewMenu;
-	
+
 	vtkSmartPointer<vtkRenderer> renderer;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;

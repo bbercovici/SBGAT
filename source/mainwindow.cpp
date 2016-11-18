@@ -46,17 +46,35 @@ void Mainwindow::setupUi() {
 }
 
 void Mainwindow::close_lateral_dockwidget() {
-    SelectedPointWidget * selected_point_widget =
-        dynamic_cast<SelectedPointWidget *>(this -> lateral_dockwidget -> widget());
+    ModifyAreaWidget * selected_point_widget =
+        dynamic_cast<ModifyAreaWidget *>(this -> lateral_dockwidget -> widget());
 
     ComputePGMWidget * compute_PGM_widget =
         dynamic_cast<ComputePGMWidget *>(this -> lateral_dockwidget -> widget());
 
+    ShapeInfoWidget * shape_info_widget =
+        dynamic_cast<ShapeInfoWidget *>(this -> lateral_dockwidget -> widget());
+
+
+    SetInputScalingWidget * set_input_scaling_widget =
+        dynamic_cast<SetInputScalingWidget *>(this -> lateral_dockwidget -> widget());
+
+
+
     if (selected_point_widget != nullptr) {
         selected_point_widget -> close();
     }
+
     else if (compute_PGM_widget != nullptr) {
         compute_PGM_widget -> close();
+    }
+
+    else if (shape_info_widget != nullptr) {
+        shape_info_widget -> close();
+    }
+
+    else if (set_input_scaling_widget != nullptr) {
+        set_input_scaling_widget -> close();
     }
 
 
@@ -73,6 +91,10 @@ void Mainwindow::set_action_status(bool enabled, QAction * action) {
 void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id) {
 
     if (read_polydata_without_id != NULL) {
+
+        // A scaling transform is applied to the input polydata so as to have its vertex
+        // coordinates expressed in meters
+
 
         // The polydata is fed to an IDFilter.
         vtkSmartPointer<vtkIdFilter>  id_filter = vtkSmartPointer<vtkIdFilter>::New();
@@ -111,8 +133,9 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         // The actions that were until now disabled are enabled
         this -> set_action_status(true, shapeColorAct);
         this -> set_action_status(true, vertexVisibilityAct);
-        this -> set_action_status(true, selectPointAct);
+        this -> set_action_status(true, modifyShapeAct);
         this -> set_action_status(true, openComputePGMWidgetAct);
+        this -> set_action_status(true, openShapeInfoWidgetAct);
         this -> set_action_status(true, saveAct);
 
         // The topology of the shape is constructed
@@ -144,12 +167,36 @@ void Mainwindow::open() {
     if (!fileName.isEmpty()) {
         this -> close_lateral_dockwidget();
 
+        // The user indicates which units are used in the read .obj file
+        // This widget sets the scaling_factor member of mainwindow
+        // to the input value
+        SetInputScalingWidget * set_input_scaling_widget = new SetInputScalingWidget(this);
+        this ->  lateral_dockwidget -> setWidget(set_input_scaling_widget);
+        this ->  lateral_dockwidget -> show();
+        set_input_scaling_widget -> exec();
+
         // A .obj reader is created, connected to the file and fetched into a vtkPolyData structure
         vtkSmartPointer<vtkOBJReader> reader =
             vtkSmartPointer<vtkOBJReader>::New();
         reader -> SetFileName(fileName.toStdString().c_str());
         reader -> Update();
-        vtkSmartPointer<vtkPolyData> read_polydata_without_id = reader -> GetOutput();
+
+        // A VTKTransformFilter is created and provided
+        // with an appropriate scaling transform
+        vtkSmartPointer<vtkTransform> transform  =
+            vtkSmartPointer<vtkTransform>::New();
+        transform -> Scale(this -> scaling_factor, this -> scaling_factor, this -> scaling_factor);
+
+        vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+            vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+        transformFilter -> SetInputConnection(reader -> GetOutputPort());
+        transformFilter -> SetTransform(transform);
+        transformFilter -> Update();
+
+
+        vtkSmartPointer<vtkPolyData> read_polydata_without_id = transformFilter -> GetOutput();
+
+        // the content of the obj file is loaded into SBGAT for display
         this -> load_obj(read_polydata_without_id);
 
     }
@@ -189,6 +236,8 @@ void Mainwindow::select() {
                               -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle());
 
     style -> set_current_mode(INTERACTOR_IS_SELECT);
+    this -> close_lateral_dockwidget();
+
 
 }
 
@@ -199,14 +248,34 @@ void Mainwindow::save() {
                        tr("Save File"));
     if (!fileName.isEmpty()) {
 
+
         // the shape model currently displayed in the Rendering window is saved to a .obj file
         // by means of the appropriate writer class
-        vtkSmartPointer<vtkOBJExporter> exporter =
-            vtkSmartPointer<vtkOBJExporter>::New();
-        exporter -> SetFilePrefix(fileName.toStdString().c_str());
-        exporter -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow() );
-        exporter -> Update();
-        exporter -> Write();
+
+        InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> get_render_window_interactor()
+                -> GetInteractorStyle());
+        vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
+
+
+        // A VTKTransformFilter is created and provided
+        // with an appropriate scaling transform
+        vtkSmartPointer<vtkTransform> transform  =
+            vtkSmartPointer<vtkTransform>::New();
+        transform -> Scale(1. / this -> scaling_factor,
+                           1. / this -> scaling_factor,
+                           1. / this -> scaling_factor);
+
+        vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+            vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+        transformFilter -> SetInputData(all_points_polydata);
+        transformFilter -> SetTransform(transform);
+        transformFilter -> Update();
+
+        vtkSmartPointer<vtkOBJWriter> writer =
+            vtkSmartPointer<vtkOBJWriter>::New();
+        writer -> SetInputData(transformFilter -> GetOutput() );
+        writer -> SetFileName(fileName.toStdString().c_str());
+        writer -> Update();
 
     }
 }
@@ -225,10 +294,10 @@ void Mainwindow::createActions() {
     connect(saveAct, &QAction::triggered, this, &Mainwindow::save);
     saveAct -> setDisabled(true);
 
-    selectPointAct = new QAction(tr("Select Points"), this);
-    selectPointAct -> setStatusTip(tr("Select a group of vertices and operates on them"));
-    connect(selectPointAct, &QAction::triggered, this, &Mainwindow::select);
-    selectPointAct -> setDisabled(true);
+    modifyShapeAct = new QAction(tr("Modify Area"), this);
+    modifyShapeAct -> setStatusTip(tr("Select a group of vertices and provides shape modifying options"));
+    connect(modifyShapeAct, &QAction::triggered, this, &Mainwindow::select);
+    modifyShapeAct -> setDisabled(true);
 
     openComputePGMWidgetAct = new QAction(tr("Compute Polyhedron Gravity Model"), this);
     openComputePGMWidgetAct -> setStatusTip(tr("Open widget enabling computation of the Polyhedron Gravity Model of the displayed shape assuming a constant density distribution"));
@@ -236,6 +305,10 @@ void Mainwindow::createActions() {
     openComputePGMWidgetAct -> setDisabled(true);
 
 
+    openShapeInfoWidgetAct = new QAction(tr("Show Shape Model Info"), this);
+    openShapeInfoWidgetAct -> setStatusTip(tr("Open widget showing shape model information"));
+    connect(openShapeInfoWidgetAct, &QAction::triggered, this, &Mainwindow::open_shape_info_widget);
+    openShapeInfoWidgetAct -> setDisabled(true);
 
     shapeColorAct = new QAction(tr("Shape Color"), this);
     shapeColorAct -> setStatusTip(tr("Set the shape actor color"));
@@ -260,7 +333,6 @@ void Mainwindow::createActions() {
     vertexVisibilityAct -> setDisabled(true);
     connect(vertexVisibilityAct, &QAction::triggered, this, &Mainwindow::change_vertex_visibility);
 
-
 }
 
 void Mainwindow::set_actors_visibility(bool visibility) {
@@ -270,7 +342,6 @@ void Mainwindow::set_actors_visibility(bool visibility) {
     }
 }
 
-
 void Mainwindow::remove_actors() {
     for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
             iter != this -> actor_vector.end(); ++iter) {
@@ -278,7 +349,6 @@ void Mainwindow::remove_actors() {
     }
     actor_vector.clear();
 }
-
 
 void Mainwindow::change_vertex_visibility() {
     // The first actor is shown/hiddenr
@@ -294,23 +364,24 @@ void Mainwindow::change_vertex_visibility() {
 }
 
 void Mainwindow::createMenus() {
-    fileMenu = menuBar()->addMenu(tr("&File"));
+    this -> fileMenu = menuBar()->addMenu(tr("&File"));
 
-    fileMenu -> addAction(openAct);
-    fileMenu -> addAction(saveAct);
-    fileMenu -> addSeparator();
-    fileMenu -> addAction(resetAct);
+    this -> fileMenu -> addAction(this -> openAct);
+    this -> fileMenu -> addAction(this -> saveAct);
+    this -> fileMenu -> addSeparator();
+    this -> fileMenu -> addAction(this -> resetAct);
 
+    this -> ShapeModelMenu = menuBar() -> addMenu(tr("&Shape Model"));
+    this -> ShapeModelMenu -> addAction(this -> modifyShapeAct);
+    this -> ShapeModelMenu -> addAction(this -> openComputePGMWidgetAct);
+    this -> ShapeModelMenu -> addSeparator();
+    this -> ShapeModelMenu -> addAction(this -> openShapeInfoWidgetAct);
 
-    OperationMenu = menuBar() -> addMenu(tr("&Operation"));
-    OperationMenu -> addAction(selectPointAct);
-    OperationMenu -> addAction(openComputePGMWidgetAct);
-
-    ViewMenu = menuBar() -> addMenu(tr("&Shape Graphic Properties"));
-    ViewMenu -> addAction(shapeColorAct);
-    ViewMenu -> addAction(backgroundColorAct);
-    ViewMenu -> addSeparator();
-    ViewMenu -> addAction(vertexVisibilityAct);
+    this -> ViewMenu = menuBar() -> addMenu(tr("&Shape Graphic Properties"));
+    this -> ViewMenu -> addAction(this -> shapeColorAct);
+    this -> ViewMenu -> addAction(this -> backgroundColorAct);
+    this -> ViewMenu -> addSeparator();
+    this -> ViewMenu -> addAction(this -> vertexVisibilityAct);
 
 }
 
@@ -328,12 +399,27 @@ void Mainwindow::clear_all() {
 
 void Mainwindow::open_compute_pgm_widget() {
 
+    this -> close_lateral_dockwidget();
     ComputePGMWidget * compute_PGM_widget = new ComputePGMWidget(this);
 
     this ->  lateral_dockwidget -> setWidget(compute_PGM_widget);
     this ->  lateral_dockwidget -> show();
 
+}
 
+
+void Mainwindow::open_shape_info_widget() {
+
+    this -> close_lateral_dockwidget();
+    ShapeInfoWidget * shape_info_widget = new ShapeInfoWidget(this);
+
+    this ->  lateral_dockwidget -> setWidget(shape_info_widget);
+    this ->  lateral_dockwidget -> show();
 
 }
+
+void Mainwindow::set_scaling_factor(double scaling_factor) {
+    this -> scaling_factor = scaling_factor;
+}
+
 
