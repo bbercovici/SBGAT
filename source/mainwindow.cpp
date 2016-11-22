@@ -27,8 +27,12 @@ void Mainwindow::setupUi() {
     this -> resize(990, 583);
     this -> lateral_dockwidget = new QDockWidget(this);
     this -> qvtkWidget = new QVTKWidget(this);
+    this -> status_bar = new QStatusBar(this);
 
-    lateral_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
+    this -> setStatusBar(this -> status_bar);
+    this -> statusBar() -> showMessage("Ready");
+
+    this -> lateral_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
     this -> lateral_dockwidget -> hide();
 
     createActions();
@@ -39,6 +43,7 @@ void Mainwindow::setupUi() {
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> lateral_dockwidget);
 
     disableGLHiDPI(this -> qvtkWidget -> winId());
+
 
 
     this -> show();
@@ -149,12 +154,18 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
             read_polydata -> GetLength() * 1.,
             read_polydata -> GetLength() * 1.,
             read_polydata -> GetLength() * 1.);
-
+        this -> statusBar() -> showMessage("Ready");
+        
+        this -> renderer -> ResetCamera();
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
     }
 
+}
+
+std::vector<vtkSmartPointer<vtkActor> > Mainwindow::get_actor_vector() {
+    return this -> actor_vector;
 }
 
 
@@ -166,6 +177,8 @@ void Mainwindow::open() {
 
 
     if (!fileName.isEmpty()) {
+        this -> statusBar() -> showMessage("Opening .obj");
+
         this -> close_lateral_dockwidget();
 
         // The user indicates which units are used in the read .obj file
@@ -201,6 +214,7 @@ void Mainwindow::open() {
         this -> load_obj(read_polydata_without_id);
 
     }
+
 
 }
 
@@ -300,7 +314,7 @@ void Mainwindow::createActions() {
     connect(modifyShapeAct, &QAction::triggered, this, &Mainwindow::select);
     modifyShapeAct -> setDisabled(true);
 
-    openComputePGMWidgetAct = new QAction(tr("Compute Polyhedron Gravity Model"), this);
+    openComputePGMWidgetAct = new QAction(tr("Polyhedron Gravity Model"), this);
     openComputePGMWidgetAct -> setStatusTip(tr("Open widget enabling computation of the Polyhedron Gravity Model of the displayed shape assuming a constant density distribution"));
     connect(openComputePGMWidgetAct, &QAction::triggered, this, &Mainwindow::open_compute_pgm_widget);
     openComputePGMWidgetAct -> setDisabled(true);

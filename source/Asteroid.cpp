@@ -36,12 +36,15 @@ Asteroid::Asteroid(std::ifstream& GravityFile) {
   this -> mListTri = new int* [this -> mNOF];
   this -> mListN = new double* [this -> mNOF];
   this -> mF = new double* [this -> mNOF];
+  this -> surface_grav = new double * [this -> mNOF];
+
 
   for (int i = 0; i < this -> mNOF; i++) {
 
     this -> mListTri[i] = new int [3];
     this -> mListN[i]   = new double [3];
     this -> mF[i] = new double [9];
+    this -> surface_grav[i]  = new double [3];
 
     GravityFile >> this -> mListTri[i][0] >> this -> mListTri[i][1] >> this -> mListTri[i][2];
     GravityFile >> this -> mListN[i][0] >> this -> mListN[i][1] >> this -> mListN[i][2];
@@ -66,7 +69,7 @@ Asteroid::Asteroid(std::ifstream& GravityFile) {
     GravityFile >> this -> mE[i][0] >> this -> mE[i][1] >> this -> mE[i][2]
                 >> this -> mE[i][3] >> this -> mE[i][4] >> this -> mE[i][5]
                 >> this -> mE[i][6] >> this -> mE[i][7] >> this -> mE[i][8];
-    
+
 
   }
 
@@ -100,12 +103,16 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
   this -> mListTri = new int * [this -> mNOF];
   this -> mListN = new double * [this -> mNOF];
   this -> mF = new double * [this -> mNOF];
+  this -> surface_grav = new double * [this -> mNOF];
 
   for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
 
     this -> mListTri[facet] = new int [3];
     this -> mListN[facet]   = new double [3];
+    this -> surface_grav[facet]  = new double [3];
+
     this -> mF[facet] = new double [9];
+
     input_polydata -> GetCellPoints(facet, facet_vertex_indices);
 
     // Vertex indices in facet
@@ -158,7 +165,7 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
 
     // For each edge, the indices of the two
     // end vertices are extracted
-    // along with the vertices of the two facets the 
+    // along with the vertices of the two facets the
     // edge belongs to
     std::set<unsigned int> edge_1_indices;
     std::set<unsigned int> edge_2_indices;
@@ -354,11 +361,14 @@ Asteroid::~Asteroid() {
     delete[] mListTri[i];
     delete[] mListN[i];
     delete[] mF[i];
+    delete[] surface_grav[i];
+
   }
 
   delete[] mListTri;
   delete[] mListN;
   delete[] mF;
+  delete[] surface_grav;
 
 
   for (int i = 0; i < mNOE; i++) {
@@ -375,6 +385,11 @@ Asteroid::~Asteroid() {
 double Asteroid::GetGs() const
 {
   return mGs;
+}
+
+void Asteroid::setmGs(double mGs) {
+  assert(mGs > 0);
+  this -> mGs = mGs;
 }
 
 // Get No. of Vertices
@@ -468,6 +483,25 @@ Vect Asteroid::GetListN() const
   return ListN;
 }
 
+double ** Asteroid::get_ListN() {
+  return this -> mListN;
+}
+
+int ** Asteroid::get_ListTri() {
+  return this -> mListTri;
+}
+
+double * Asteroid::get_X() {
+  return this -> mX;
+}
+
+double * Asteroid::get_Y() {
+  return this -> mY;
+}
+
+double * Asteroid::get_Z() {
+  return this -> mZ;
+}
 
 Vect Asteroid::GetF() const
 {
@@ -722,8 +756,7 @@ Vect Asteroid::PolyGrav(Vect & Xsc, bool zero_indexed) {
   double Re, Le;
   Matrix E(3, 3);
 
-  for (int i = 0; i < this -> mNOE; i++)
-  {
+  for (int i = 0; i < this -> mNOE; i++) {
 
     e1 = this -> mListE[i][0];
     e2 = this -> mListE[i][1];
@@ -765,6 +798,38 @@ Vect Asteroid::PolyGrav(Vect & Xsc, bool zero_indexed) {
 
 }
 
+void Asteroid::compute_global_pgm() {
+
+
+
+  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+    unsigned int P1_index = this -> mListTri[facet][0];
+    unsigned int P2_index = this -> mListTri[facet][1];
+    unsigned int P3_index = this -> mListTri[facet][2];
+
+    double Px = 1. / 3. * (this -> mX[P1_index] + this -> mX[P2_index]
+                           + this -> mX[P3_index]);
+    double Py = 1. / 3. * (this -> mY[P1_index] + this  -> mY[P2_index]
+                           + this -> mY[P3_index]);
+    double Pz = 1. / 3. * (this -> mZ[P1_index] + this  -> mZ[P2_index]
+                           + this -> mZ[P3_index]);
+
+    Vect Xc(3);
+    Xc[0] = Px;
+    Xc[1] = Py;
+    Xc[2] = Pz;
+
+
+    Vect acc = this -> PolyGrav(Xc, true);
+    this -> surface_grav[facet][0] = acc[0];
+    this -> surface_grav[facet][1] = acc[1];
+    this -> surface_grav[facet][2] = acc[2];
+    std::cout << facet << " /" << this -> mNOF << std::endl;
+
+
+  }
+}
+
 void Asteroid::write_to_obj(std::string filename) {
   std::ofstream output_filestream (filename, std::ofstream::out);
   assert(output_filestream.is_open());
@@ -779,4 +844,8 @@ void Asteroid::write_to_obj(std::string filename) {
 
   output_filestream.close();
 
+}
+
+double ** Asteroid::get_surface_grav() {
+  return this -> surface_grav;
 }

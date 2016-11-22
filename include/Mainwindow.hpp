@@ -17,6 +17,7 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QWidget>
+#include <QStatusBar>
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -64,6 +65,9 @@ public:
 	// Docks
 	QDockWidget * lateral_dockwidget;
 
+	// Status Bar
+	QStatusBar * status_bar;
+
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
 	@return Pointer to the vtkRenderer associated with the window's QVTK widget
@@ -78,6 +82,13 @@ public:
 	Closes any opened lateral dockwidget
 	*/
 	void close_lateral_dockwidget();
+
+	/**
+	Return a copy of the vector storing the pointers to the vtk actors currently displayed
+	@return Vector of vtkActor *
+	*/
+	std::vector<vtkSmartPointer<vtkActor> > get_actor_vector();
+
 
 	/**
 	Returns a pointer to the window interactor

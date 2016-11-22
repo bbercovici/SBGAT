@@ -1,5 +1,5 @@
 
-// Adapted from the original work 
+// Adapted from the original work
 // of Nicola Baresi, CSML, University of Colorado Boulder (2014)
 
 
@@ -22,7 +22,7 @@
 #include <fstream>
 #include <armadillo>
 
-class Asteroid{
+class Asteroid {
 private:
 
   double mGs;   // G*dens product
@@ -42,6 +42,9 @@ private:
 
   // Face Normal Unit Vectors
   double** mListN;
+
+  // Surface Gravity Acceleration Vectors
+  double** surface_grav;
 
   // Face Dyads
   double** mF;
@@ -70,20 +73,31 @@ public:
   Vect GetY() const;
   Vect GetZ() const;
 
+  double * get_X()  ;
+  double * get_Y()  ;
+  double * get_Z()  ;
+
   Vect GetListTri() const;
   Vect GetListN() const;
   Vect GetF() const;
 
+  double ** get_ListN() ;
+  int ** get_ListTri() ;
+
   Vect GetListE() const;
   Vect GetE() const;
 
+  double ** get_surface_grav();
+
+  void setmGs(double mGs);
+
   friend Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed);
   Vect PolyGrav(Vect& Xsc, bool zero_indexed);
-
+  void compute_global_pgm();
   /**
   Saves asteroid connectivity (vertices + facets) to an obj file
   */
-  void write_to_obj(std::string filename);  
+  void write_to_obj(std::string filename);
 
 };
 

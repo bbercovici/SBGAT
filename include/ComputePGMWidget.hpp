@@ -18,6 +18,11 @@
 
 #include <vtkModifiedBSPTree.h>
 #include <vtkSphereSource.h>
+#include <vtkActorCollection.h>
+#include <vtkActor2DCollection.h>
+#include <vtkLookUpTable.h>
+#include <vtkScalarBarActor.h>
+#include <vtkTextProperty.h>
 
 
 #include <armadillo>
@@ -39,6 +44,8 @@ public:
 	QVBoxLayout * main_layout;
 	QGridLayout * physical_properties_layout;
 	QGridLayout * compute_acceleration_layout;
+	QGridLayout * compute_pgm_layout;
+	QGridLayout * visualize_pgm_layout;
 
 	QLabel * density_title_label;
 	QLabel * density_unit_label;
@@ -48,8 +55,6 @@ public:
 	QLabel * gravitational_constant_unit_label;
 	QLineEdit * gravitational_constant_qlineedit;
 
-	QLabel * scaling_factor_title_label;
-	QLineEdit * scaling_factor_qlineedit;
 
 	QLabel * x_coordinate_label;
 	QLabel * y_coordinate_label;
@@ -62,22 +67,53 @@ public:
 	QPlainTextEdit * compute_acceleration_plainedit;
 
 	QDialogButtonBox * button_box;
-	QPushButton * compute_PGM_button;
+	QPushButton * compute_local_acceleration_button;
+	QPushButton * compute_global_acceleration_button;
+
+	QPushButton * show_acceleration_magnitude_button;
+	QPushButton * show_normal_acceleration_angle_button;
+	QPushButton * show_radial_acceleration_angle_button;
+	QPushButton * show_radial_acceleration_component_button;
+	QPushButton * show_normal_acceleration_component_button;
+	QPushButton * show_orthoradial_acceleration_magnitude_button;
+	QPushButton * show_orthonormal_acceleration_magnitude_button;
+
+
+
 	QGroupBox * physical_properties_box;
 	QGroupBox * compute_acceleration_box;
+	QGroupBox * compute_pgm_box;
+	QGroupBox * visualize_pgm_box;
 
 public slots:
 	void close();
 
 private slots:
-	void compute_pgm();
-	void move_specific_point_sphere();
+	void compute_local_pgm();
+	void compute_global_pgm();
+	void move_local_acceleration_sphere();
+
+	void show_acceleration_magnitude();
+	void show_normal_acceleration_angle();
+	void show_radial_acceleration_angle();
+	void show_radial_acceleration_component();
+	void show_normal_acceleration_component();
+	void show_orthoradial_acceleration_magnitude();
+	void show_orthonormal_acceleration_magnitude();
+
 
 
 protected:
 	Mainwindow * parent;
 	vtkSmartPointer<vtkSphereSource> specific_point_sphere;
 	vtkSmartPointer<vtkActor> specific_point_actor;
+	vtkSmartPointer<vtkModifiedBSPTree> shape_mod_obb_tree;
+	Asteroid * asteroid;
+	void cleanup();
+
+
+
+
 
 };
 
