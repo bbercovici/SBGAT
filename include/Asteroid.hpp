@@ -89,15 +89,47 @@ public:
 
   double ** get_surface_grav();
 
+  double get_spin_rate() const;
+  arma::vec get_spin_axis() const;
+
+  void set_spin_rate(double spin_rate);
+  void set_spin_axis(arma::vec & spin_axis);
+  void set_density(double density);
+
+
   void setmGs(double mGs);
 
   friend Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed);
   Vect PolyGrav(Vect& Xsc, bool zero_indexed);
   void compute_global_pgm();
+
   /**
   Saves asteroid connectivity (vertices + facets) to an obj file
+  @param filename Path to file
   */
   void write_to_obj(std::string filename);
+
+  /**
+  Saves the current surface acceleration (from the polyhedron gravity model)
+  to file
+  @param filename Path to file
+  */
+  void write_surface_acceleration(std::string filename);
+
+  /**
+  Loads a previously computed surface acceleration (from the polyhedron gravity model)
+  @param filename Path to file
+  @return - 1 if PGM gravity file was consistent with asteroid shape model
+          - 0 otherwise (no surface acceleration effectively loaded)
+  */
+  int load_surface_acceleration(std::string filename);
+
+
+protected:
+  arma::vec spin_axis;
+  double spin_rate;
+
+
 
 };
 

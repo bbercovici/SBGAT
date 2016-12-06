@@ -15,6 +15,8 @@
 #include <QLineEdit>
 #include <QDoubleValidator>
 #include <QPlainTextEdit>
+#include <QErrorMessage>
+
 
 #include <vtkModifiedBSPTree.h>
 #include <vtkSphereSource.h>
@@ -43,6 +45,8 @@ public:
 
 	QVBoxLayout * main_layout;
 	QGridLayout * physical_properties_layout;
+	QGridLayout * spin_properties_box_layout;
+
 	QGridLayout * compute_acceleration_layout;
 	QGridLayout * compute_pgm_layout;
 	QGridLayout * visualize_pgm_layout;
@@ -51,9 +55,20 @@ public:
 	QLabel * density_unit_label;
 	QLineEdit * density_qlineedit;
 
-	QLabel * gravitational_constant_title_label;
-	QLabel * gravitational_constant_unit_label;
-	QLineEdit * gravitational_constant_qlineedit;
+
+	QLabel * spin_rate_title_label;
+	QLabel * spin_rate_unit_label;
+	QLineEdit * spin_rate_qlineedit;
+
+	QLabel * spin_axis_title_label;
+
+	QLabel * spin_x_coordinate_label;
+	QLabel * spin_y_coordinate_label;
+	QLabel * spin_z_coordinate_label;
+
+	QLineEdit * spin_x_coordinate_qlineedit;
+	QLineEdit * spin_y_coordinate_qlineedit;
+	QLineEdit * spin_z_coordinate_qlineedit;
 
 
 	QLabel * x_coordinate_label;
@@ -69,6 +84,8 @@ public:
 	QDialogButtonBox * button_box;
 	QPushButton * compute_local_acceleration_button;
 	QPushButton * compute_global_acceleration_button;
+	QPushButton * load_global_acceleration_button;
+	QPushButton * save_global_acceleration_button;
 
 	QPushButton * show_acceleration_magnitude_button;
 	QPushButton * show_normal_acceleration_angle_button;
@@ -77,11 +94,12 @@ public:
 	QPushButton * show_normal_acceleration_component_button;
 	QPushButton * show_orthoradial_acceleration_magnitude_button;
 	QPushButton * show_orthonormal_acceleration_magnitude_button;
-
-
+	QPushButton * show_slopes_button;
 
 	QGroupBox * physical_properties_box;
 	QGroupBox * compute_acceleration_box;
+	QGroupBox * spin_properties_box;
+
 	QGroupBox * compute_pgm_box;
 	QGroupBox * visualize_pgm_box;
 
@@ -91,6 +109,8 @@ public slots:
 private slots:
 	void compute_local_pgm();
 	void compute_global_pgm();
+	void load_global_pgm();
+	void save_global_pgm();
 	void move_local_acceleration_sphere();
 
 	void show_acceleration_magnitude();
@@ -100,7 +120,9 @@ private slots:
 	void show_normal_acceleration_component();
 	void show_orthoradial_acceleration_magnitude();
 	void show_orthonormal_acceleration_magnitude();
+	void show_slopes();
 
+	void update_asteroid_state();
 
 
 protected:
@@ -108,6 +130,7 @@ protected:
 	vtkSmartPointer<vtkSphereSource> specific_point_sphere;
 	vtkSmartPointer<vtkActor> specific_point_actor;
 	vtkSmartPointer<vtkModifiedBSPTree> shape_mod_obb_tree;
+
 	Asteroid * asteroid;
 	void cleanup();
 

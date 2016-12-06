@@ -33,7 +33,8 @@
 #include <vtkTransform.h>
 #include <vtkCamera.h>
 #include <vtkLine.h>
-
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkAxesActor.h>
 #include "QVTKWidget.h"
 #include "osxHelper.h"
 
@@ -186,14 +187,12 @@ private:
 	*/
 	void createMenus();
 
-
 	/**
 	Takes in a pointer to a vtkPolyData representing a shape model,
 	generates the convex hull corresponding to this dataset and
 	displays both on the main window.
 	*/
 	void load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id);
-
 
 	/**
 	Creates the GUI elements and places them in the main window
@@ -210,7 +209,6 @@ private:
 	*/
 	void clear_all();
 
-
 	/**
 	Scaling factor applied to the 
 	input data to have it expressed in meters
@@ -222,6 +220,7 @@ private:
 	QMenu * ViewMenu;
 
 	vtkSmartPointer<vtkRenderer> renderer;
+	vtkSmartPointer<vtkOrientationMarkerWidget> widget;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 

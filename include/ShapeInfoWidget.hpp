@@ -10,6 +10,8 @@
 #include <QGroupBox>
 #include <QPlainTextEdit>
 
+#include <vtkMassProperties.h>
+
 #include <armadillo>
 
 // Forward declaration of Mainwindow

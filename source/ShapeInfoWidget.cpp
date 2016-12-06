@@ -24,11 +24,21 @@ ShapeInfoWidget::ShapeInfoWidget(Mainwindow * parent) {
 void ShapeInfoWidget::setupUI() {
 	InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
 	        -> GetInteractorStyle());
-	vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
+
+	vtkSmartPointer<vtkPolyData> all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
+
 	unsigned int facets = all_points_polydata -> GetNumberOfPolys();
 	unsigned int vertices = all_points_polydata -> GetNumberOfPoints();
 	unsigned int edges = (unsigned int)(1.5 * (double)(facets));
 	double length = all_points_polydata -> GetLength();
+
+	vtkSmartPointer<vtkMassProperties> mass_properties = vtkMassProperties::New();
+	mass_properties -> SetInputData(all_points_polydata);
+	mass_properties -> Update();
+
+
+
+
 	std::string message =  "Vertices: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(vertices) ));
 
@@ -38,8 +48,20 @@ void ShapeInfoWidget::setupUI() {
 	message =  "Edges: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(edges) ));
 
+	this -> text_area -> appendPlainText(" ");
+
 	message = "Characteristic length: ";
-	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(length) + " m"));
+	this -> text_area -> appendPlainText(QString::fromStdString(message) + QString::number(length,'e',5) + " m");
+
+	message = "Area: ";
+	this -> text_area -> appendPlainText(QString::fromStdString(message)
+	                                     + QString::number(mass_properties -> GetSurfaceArea ()/1e6,'e',5) + " km^2");
+
+	message = "Volume: ";
+	this -> text_area -> appendPlainText(QString::fromStdString(message)
+	                                     + QString::number(mass_properties -> GetVolume ()/1e9,'e',5) + " km^3");
+
+
 
 }
 

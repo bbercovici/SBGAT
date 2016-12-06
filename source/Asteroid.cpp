@@ -348,6 +348,9 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
     ++edge;
   }
 
+  this -> spin_rate = 0;
+  this -> spin_axis = {0, 0, 1};
+
 
 }
 
@@ -801,7 +804,6 @@ Vect Asteroid::PolyGrav(Vect & Xsc, bool zero_indexed) {
 void Asteroid::compute_global_pgm() {
 
 
-
   for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
     unsigned int P1_index = this -> mListTri[facet][0];
     unsigned int P2_index = this -> mListTri[facet][1];
@@ -846,6 +848,124 @@ void Asteroid::write_to_obj(std::string filename) {
 
 }
 
+int Asteroid::load_surface_acceleration(std::string filename) {
+
+  std::ifstream ifs (filename, std::ifstream::in);
+  std::string line;
+
+  // The number of facets is read
+  std::getline (ifs, line);
+  int nof = std::stoi(line);
+
+  if (nof != this -> mNOF) {
+    ifs.close();
+    return 0;
+  }
+
+  // Density used for the computation of the PGM is read
+  std::getline (ifs, line);
+  double density = std::stod(line);
+  this -> mGs = density * arma::datum::G;
+
+  // Direction of the spin axis in the body frame
+  std::getline (ifs, line);
+
+  std::size_t first_space_loc = line.find_first_of(" ");
+  double spin_x = std::stod(line.substr (0, first_space_loc));
+
+  line.erase (line.begin() , line.begin() + first_space_loc + 1);
+
+  std::size_t second_space_loc = line.find_first_of(" ");
+  double spin_y = std::stod(line.substr (0, second_space_loc));
+
+  line.erase (line.begin() , line.begin() + second_space_loc + 1);
+
+  double spin_z = std::stod(line);
+
+  this -> spin_axis = {spin_x, spin_y, spin_z};
+  this -> spin_axis = this -> spin_axis / arma::norm(this -> spin_axis);
+
+  // Spin rate (assumed constant)
+  std::getline (ifs, line);
+  this -> spin_rate = std::stod(line);
+
+  // The surface gravity is computed
+  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+    std::getline (ifs, line);
+
+    std::size_t first_space_loc = line.find_first_of(" ");
+    double acc_x = std::stod(line.substr (0, first_space_loc));
+
+    line.erase (line.begin() , line.begin() + first_space_loc + 1);
+
+    std::size_t second_space_loc = line.find_first_of(" ");
+    double acc_y = std::stod(line.substr (0, second_space_loc));
+
+    line.erase (line.begin() , line.begin() + second_space_loc + 1);
+
+    double acc_z = std::stod(line);
+
+    this -> surface_grav[facet][0] = acc_x;
+    this -> surface_grav[facet][1] = acc_y;
+    this -> surface_grav[facet][2] = acc_z;
+
+  }
+
+  ifs.close();
+  return 1;
+
+}
+
+void Asteroid::set_density(double density) {
+  this -> mGs = density * arma::datum::G;
+}
+
+
+void Asteroid::set_spin_axis(arma::vec & spin_axis) {
+  this -> spin_axis = spin_axis;
+}
+
+
+void Asteroid::set_spin_rate(double spin_rate) {
+  this -> spin_rate = spin_rate;
+}
+
+
+void Asteroid::write_surface_acceleration(std::string filename) {
+
+  std::ofstream output_filestream (filename, std::ofstream::out);
+  assert(output_filestream.is_open());
+
+  // The number of facets is written first
+  output_filestream  << this -> mNOF << std::endl;
+
+  // The density of the asteroid is written next
+  output_filestream << this -> mGs / arma::datum::G << std::endl;
+
+  // The direction of the spin axis is written next
+  output_filestream << this -> spin_axis[0] << " " << this -> spin_axis[1] << " " << this -> spin_axis[2] << std::endl;
+
+  // The spin rate is written next
+  output_filestream << this -> spin_rate << std::endl;
+
+  // Then, the gravity field is fetched in
+  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+    output_filestream  << this -> surface_grav[facet][0] << " " << this -> surface_grav[facet][1] << " " << this -> surface_grav[facet][2] << std::endl;
+  }
+
+  output_filestream.close();
+
+}
+
 double ** Asteroid::get_surface_grav() {
   return this -> surface_grav;
+}
+
+
+double Asteroid::get_spin_rate() const {
+  return this -> spin_rate;
+}
+
+arma::vec Asteroid::get_spin_axis() const {
+  return this -> spin_axis;
 }

@@ -19,6 +19,18 @@ Mainwindow::Mainwindow() {
     this -> renderWindowInteractor -> SetPicker(areaPicker);
     this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
 
+    vtkSmartPointer<vtkAxesActor> axes =
+        vtkSmartPointer<vtkAxesActor>::New();
+
+    this -> widget =
+        vtkSmartPointer<vtkOrientationMarkerWidget>::New();
+    widget -> SetOrientationMarker( axes );
+    widget -> SetInteractor( this -> renderWindowInteractor );
+    widget -> SetViewport( 0.0, 0.0, 0.2, 0.2 );
+    widget -> SetEnabled( 1 );
+    widget -> InteractiveOff();
+
+
     this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 }
@@ -43,6 +55,7 @@ void Mainwindow::setupUi() {
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> lateral_dockwidget);
 
     disableGLHiDPI(this -> qvtkWidget -> winId());
+
 
 
 
@@ -155,7 +168,7 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
             read_polydata -> GetLength() * 1.,
             read_polydata -> GetLength() * 1.);
         this -> statusBar() -> showMessage("Ready");
-        
+
         this -> renderer -> ResetCamera();
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
@@ -173,8 +186,7 @@ void Mainwindow::open() {
 
     // The file name is retrieved from the output of the QFileDialog window
     QString fileName = QFileDialog::getOpenFileName(this,
-                       tr("Open File"), "", tr("OBJ jile ( *.obj)"));
-
+                       tr("Open File"),"../resources/", tr("OBJ file ( *.obj)"));
 
     if (!fileName.isEmpty()) {
         this -> statusBar() -> showMessage("Opening .obj");
@@ -260,7 +272,7 @@ void Mainwindow::save() {
 
     // The save path is queried
     QString fileName = QFileDialog::getSaveFileName(this,
-                       tr("Save File"));
+                       "Save File","../saved_pgm/",tr("OBJ File(*.obj)"));
     if (!fileName.isEmpty()) {
 
 
