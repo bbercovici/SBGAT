@@ -1,0 +1,3 @@
+*.dox
+resources/
+build/
