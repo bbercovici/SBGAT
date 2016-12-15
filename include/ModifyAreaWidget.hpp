@@ -26,6 +26,7 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkKdTreePointLocator.h>
 #include <vtkPoints.h>
+#include <vtkCenterOfMass.h>
 
 #include "vtkObjectFactory.h"
 

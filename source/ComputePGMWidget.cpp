@@ -247,15 +247,12 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	        this, SLOT(show_slopes()));
 
 
-
-
 	this -> parent -> statusBar() -> showMessage("Constructing PGM");
 
 	double G_dens = (this -> density_qlineedit -> text().toDouble()) * arma::datum::G;
 
 	this -> asteroid = new Asteroid(all_points_polydata, G_dens);
 	this -> parent -> statusBar() -> showMessage("Ready");
-
 
 }
 

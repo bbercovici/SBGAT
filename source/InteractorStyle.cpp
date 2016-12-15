@@ -49,22 +49,22 @@ void InteractorStyle::OnLeftButtonUp() {
 				// A new ModifyAreaWidget is provided with the underlying shape model
 				// by passing a pointer to this, which already owns it
 
-				ModifyAreaWidget * selected_point_widget = new ModifyAreaWidget(this -> mainwindow,
+				ModifyAreaWidget * modify_area_widget = new ModifyAreaWidget(this -> mainwindow,
 				        this);
 
-				this -> mainwindow ->  lateral_dockwidget -> setWidget(selected_point_widget);
+				this -> mainwindow ->  lateral_dockwidget -> setWidget(modify_area_widget);
 				this -> mainwindow ->  lateral_dockwidget -> show();
 
 				// An actor is added to represent the selected cells
 				// Another one is also created to represent the rest of the shape model
 				// that is not selected
-				selected_point_widget -> highlight_selected_cells();
+				modify_area_widget -> highlight_selected_cells();
 
 				// the normals of the selected cells are computed
-				selected_point_widget -> compute_selected_cells_normals();
+				modify_area_widget -> compute_selected_cells_normals();
 
 				// the id of the blob "center" is found
-				selected_point_widget -> find_blob_center();
+				modify_area_widget -> find_blob_center();
 
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.

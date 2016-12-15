@@ -64,7 +64,7 @@ void Mainwindow::setupUi() {
 }
 
 void Mainwindow::close_lateral_dockwidget() {
-    ModifyAreaWidget * selected_point_widget =
+    ModifyAreaWidget * modify_area_widget =
         dynamic_cast<ModifyAreaWidget *>(this -> lateral_dockwidget -> widget());
 
     ComputePGMWidget * compute_PGM_widget =
@@ -79,8 +79,8 @@ void Mainwindow::close_lateral_dockwidget() {
 
 
 
-    if (selected_point_widget != nullptr) {
-        selected_point_widget -> close();
+    if (modify_area_widget != nullptr) {
+        modify_area_widget -> close();
     }
 
     else if (compute_PGM_widget != nullptr) {

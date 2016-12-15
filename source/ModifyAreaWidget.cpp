@@ -2,7 +2,7 @@
 
 
 ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
-        InteractorStyle * interactor_style) : QDialog(parent) {
+                                   InteractorStyle * interactor_style) : QDialog(parent) {
 
 	this -> setAttribute(Qt::WA_DeleteOnClose);
 	this -> parent = parent;
@@ -243,11 +243,11 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	        selected_point_index < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ;
 	        ++selected_point_index ) {
 		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> all_points_polydata -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), cell_ids);
+		this -> all_points_polydata -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), this -> cell_ids);
 
 		// Those IDs are eventually transfered in a set for uniqueness
-		for (unsigned int cell_id_index = 0; cell_id_index < cell_ids -> GetNumberOfIds(); ++cell_id_index) {
-			cells_to_include_indices.insert(cell_ids -> GetId (cell_id_index));
+		for (unsigned int cell_id_index = 0; cell_id_index < this -> cell_ids -> GetNumberOfIds(); ++cell_id_index) {
+			cells_to_include_indices.insert(this -> cell_ids -> GetId (cell_id_index));
 		}
 	}
 	/*************************************************************************/
@@ -348,21 +348,17 @@ void ModifyAreaWidget::populate_vertex_table() {
 
 void ModifyAreaWidget::find_blob_center() {
 
-	// The location of the blob center is found by looping over each selected point
 	double blob_average_position[3]; // selected blob average coordinates
 	double blob_center_position[3]; // coordinates of vertex that's closest to the blob average
-	double point_position[3]; // local variable storing the coordinates of a vertex
 
-	for (int i = 0; i < this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints(); ++i ) {
-		this -> selected_points_polydata -> GetPoint (i, point_position);
-		blob_average_position[0] = blob_average_position[0] + point_position[0];
-		blob_average_position[1] = blob_average_position[1] + point_position[1];
-		blob_average_position[2] = blob_average_position[2] + point_position[2];
-	}
+	vtkSmartPointer<vtkCenterOfMass> centerOfMassFilter =
+	    vtkSmartPointer<vtkCenterOfMass>::New();
+	centerOfMassFilter -> SetInputData(this -> selected_points_polydata);
+	centerOfMassFilter -> SetUseScalarsAsWeights(false);
+	centerOfMassFilter -> Update();
 
-	blob_average_position[0] = blob_average_position[0] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
-	blob_average_position[1] = blob_average_position[1] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
-	blob_average_position[2] = blob_average_position[2] / this -> selected_points_polydata -> GetPoints() -> GetNumberOfPoints();
+	centerOfMassFilter -> GetCenter(blob_average_position);
+
 
 	// blob_average_position now contains the average location of the selected points. Note that this does not correspond to
 	// a point physically present in the blob. The next step thus consists in finding the selected point that is closest to this average.
@@ -372,7 +368,7 @@ void ModifyAreaWidget::find_blob_center() {
 	this -> selected_points_polydata -> GetPoint(this -> blob_center_id,
 	        blob_center_position);
 
-	// The computed locations are stored in arma::vec
+	// The computed locations are stored in arma::vec form
 	this -> blob_center_position = {blob_center_position[0], blob_center_position[1], blob_center_position[2] };
 	this -> blob_average_position = {blob_average_position[0], blob_average_position[1], blob_average_position[2] };
 
@@ -402,7 +398,7 @@ void ModifyAreaWidget::update_view(int pos) {
 		// The i-th visible point is queried
 		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
 
-		// its position is stored in a arma::vec to enable further manipulations
+		// its position is stored in a arma::vec to enable upcoming operations
 		old_p_vec = {p[0], p[1], p[2]};
 
 		switch (this -> transform_direction) {
@@ -444,8 +440,7 @@ void ModifyAreaWidget::update_view(int pos) {
 
 
 		// An interpolation factor is set depending on
-		// the current choice of interpolating type. the 0.3 factor appearing in the denominator
-		// appears to be a good compromise
+		// the current choice of interpolating type.
 		switch (this -> interpolation_type ) {
 		case InterpolationType::UNIFORM:
 			interpolating_factor = 1;
@@ -521,7 +516,7 @@ void ModifyAreaWidget::set_new_slider_magnitude_pos() {
 }
 
 void ModifyAreaWidget::close() {
-	
+
 	this -> remove_selected_points_actor();
 
 	this -> parent -> lateral_dockwidget -> hide();

@@ -22,6 +22,17 @@
 #include <fstream>
 #include <armadillo>
 
+/**
+Declaration of the Asteroid Class. Stores 
+  - the shape model of the asteroid (TBD)
+  - the PGM (raw accelerations evaluated at the center of each facet)
+  - the principal axes/inertias (TBD)
+  - the other physical properties of the asteroid 
+    - density
+    - spin rate
+    - spin axis direction
+*/
+
 class Asteroid {
 private:
 
@@ -35,7 +46,6 @@ private:
   double* mX;
   double* mY;
   double* mZ;
-
 
   // Triangle Vertex List
   int** mListTri;
@@ -120,7 +130,7 @@ public:
   Loads a previously computed surface acceleration (from the polyhedron gravity model)
   @param filename Path to file
   @return - 1 if PGM gravity file was consistent with asteroid shape model
-          - 0 otherwise (no surface acceleration effectively loaded)
+          - 0 otherwise (no surface acceleration will be loaded)
   */
   int load_surface_acceleration(std::string filename);
 
