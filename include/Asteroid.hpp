@@ -138,6 +138,7 @@ public:
 protected:
   arma::vec spin_axis;
   double spin_rate;
+  
 
 
 

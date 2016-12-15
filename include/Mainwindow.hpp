@@ -44,6 +44,7 @@
 #include "ComputePGMWidget.hpp"
 #include "ShapeInfoWidget.hpp"
 #include "SetInputScalingWidget.hpp"
+#include "Asteroid.hpp"
 
 #include "vtkOBJWriter.h"
 
@@ -223,6 +224,8 @@ private:
 	vtkSmartPointer<vtkOrientationMarkerWidget> widget;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
+
+	// Asteroid * asteroid
 
 
 
