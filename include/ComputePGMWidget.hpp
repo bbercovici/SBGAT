@@ -22,7 +22,7 @@
 #include <vtkSphereSource.h>
 #include <vtkActorCollection.h>
 #include <vtkActor2DCollection.h>
-#include <vtkLookUpTable.h>
+#include <vtkLookupTable.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
 
