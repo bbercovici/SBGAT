@@ -24,7 +24,8 @@ cmake_minimum_required(VERSION 3.0.2)
 set (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
+	message( "ENTERING UNIX")
 	set (CMAKE_PREFIX_PATH "~/Qt5.7.1/5.7/gcc_64/lib/cmake/" "~/VTK/VTK_release/")
 elseif(APPLE)
 	set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
@@ -48,7 +49,9 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 
 # Cocoa
-find_library( LIB_COCOA cocoa )
+if(APPLE)
+	find_library( LIB_COCOA cocoa )
+endif()
 
 # The Qt5Widgets_INCLUDES also includes the include directories for dependencies QtCore and QtGui
 include_directories(${Qt5Widgets_INCLUDES})
