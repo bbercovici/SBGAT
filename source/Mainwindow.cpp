@@ -30,7 +30,6 @@ Mainwindow::Mainwindow() {
     widget -> SetEnabled( 1 );
     widget -> InteractiveOff();
 
-
     this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 }
@@ -161,6 +160,8 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         style -> set_mainwindow(this);
         style -> set_all_points_polydata(read_polydata);
 
+        // delete(this -> asteroid);
+        // this -> asteroid = new Asteroid(read_polydata, G_dens);
 
         // Camera position is adjusted
         this -> renderer -> GetActiveCamera () -> SetPosition (
