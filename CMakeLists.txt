@@ -23,7 +23,13 @@ cmake_minimum_required(VERSION 3.0.2)
 
 set (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
+
+if (UNIX)
+	set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
+elseif(APPLE)
+	set (CMAKE_PREFIX_PATH "~/Qt/5.6/clang_64/lib/cmake" "~/VTK/VTK_release/")
+endif()
+
 
 add_definitions(-Wall)
 include_directories(include)
@@ -164,7 +170,6 @@ set(library_dependencies
 ${Qt5Widgets_LIBRARIES}
 ${VTK_LIBRARIES}
 ${ARMADILLO_LIBRARIES})
-
 
 
 
