@@ -271,6 +271,7 @@ void ComputePGMWidget::close() {
 	this -> parent -> lateral_dockwidget -> hide();
 	this -> parent -> set_action_status(true, this -> parent -> open_ComputePGMWidget_action);
 
+
 	this -> cleanup();
 
 	QDialog::close();

@@ -344,7 +344,6 @@ void Mainwindow::createActions() {
     this -> clear_all_action -> setStatusTip(tr("Clear all windows and loaded shape models"));
     connect(this -> clear_all_action, &QAction::triggered, this, &Mainwindow::clear_all);
 
-
 }
 
 void Mainwindow::set_actors_visibility(bool visibility) {
@@ -382,6 +381,7 @@ void Mainwindow::createMenus() {
     this -> ViewMenu -> addAction(this -> set_background_color_action);
     this -> ViewMenu -> addSeparator();
 
+
 }
 
 vtkSmartPointer<vtkRenderer> Mainwindow::get_renderer() {
@@ -409,6 +409,7 @@ void Mainwindow::clear_all() {
     this -> set_action_status(false, this -> open_ComputePGMWidget_action);
     this -> set_action_status(false, this -> open_ShapeInfoWidget_action);
     this -> set_action_status(false, this -> save_action);
+
 
 
 }

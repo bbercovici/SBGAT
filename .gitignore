@@ -2,3 +2,4 @@ build/
 resources/
 saved_pgm/
 doc/
+*.dox

@@ -196,6 +196,14 @@ private slots:
 	void set_background_color();
 
 	/**
+<<<<<<< HEAD
+=======
+	Enables/Disables vertex visibility on the displayed shape model
+	*/
+	void change_vertex_visibility();
+
+	/**
+>>>>>>> f1539c4fb6827fe1937bc46da6ff7863e60c655d
 	Opens a widget displaying information on the 
 	currently opened shape model
 	*/
