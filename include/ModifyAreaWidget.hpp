@@ -244,7 +244,6 @@ private:
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> active_selected_points_polydata;
 
-	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
 	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
 

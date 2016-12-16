@@ -150,29 +150,22 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	// The surface cannot be saved before it is created
 	this -> save_global_acceleration_button -> setDisabled(true);
 
-	InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
-	        -> GetInteractorStyle());
-	vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
-
 	// A OBBTree is constructed in order to check
 	// if a specified point is inside or outside the shape
-
-
 	this -> shape_mod_obb_tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-	this -> shape_mod_obb_tree -> SetDataSet(all_points_polydata);
+	this -> shape_mod_obb_tree -> SetDataSet(this -> parent -> get_asteroid() -> get_polydata());
 	this -> shape_mod_obb_tree -> BuildLocator();
 
 
 	// Creates a sphere to represent specific location
 	// at which the gravity field must be evaluated
-
 	this -> specific_point_sphere =
 	    vtkSmartPointer<vtkSphereSource>::New();
 
 	this -> specific_point_sphere -> SetCenter(0.0, 0.0, 0.0);
 	this -> specific_point_sphere -> SetPhiResolution(100);
 	this -> specific_point_sphere -> SetThetaResolution(100);
-	this -> specific_point_sphere -> SetRadius(all_points_polydata -> GetLength() / 750);
+	this -> specific_point_sphere -> SetRadius(this -> parent -> get_asteroid() -> get_polydata() -> GetLength() / 750);
 
 	vtkSmartPointer<vtkPolyDataMapper> mapper =
 	    vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -247,11 +240,15 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	        this, SLOT(show_slopes()));
 
 
-	this -> parent -> statusBar() -> showMessage("Constructing PGM");
+	// The Physical Properties fields are initialized with
+	// that of the asteroid
+	this -> density_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_density()));
+	this -> spin_rate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_rate()));
+	this -> spin_x_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(0)));
+	this -> spin_y_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(1)));
+	this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(2)));
 
-	double G_dens = (this -> density_qlineedit -> text().toDouble()) * arma::datum::G;
 
-	this -> asteroid = new Asteroid(all_points_polydata, G_dens);
 	this -> parent -> statusBar() -> showMessage("Ready");
 
 }
@@ -273,7 +270,6 @@ void ComputePGMWidget::close() {
 
 	this -> parent -> lateral_dockwidget -> hide();
 	this -> parent -> set_action_status(true, this -> parent -> openComputePGMWidgetAct);
-	delete(asteroid);
 
 	this -> cleanup();
 
@@ -284,10 +280,6 @@ void ComputePGMWidget::compute_local_pgm() {
 	this -> parent -> statusBar() -> showMessage("Computing acceleration");
 
 	this -> compute_acceleration_plainedit -> clear();
-
-	InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
-	        -> GetInteractorStyle());
-	vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
 
 	// A ray is cast in the outward direction to check if the specified
 	// point is inside the polyhedron
@@ -307,7 +299,7 @@ void ComputePGMWidget::compute_local_pgm() {
 		specified_point[2]
 	};
 
-	arma::vec arbitrary_end_point_arma = specified_point_arma * (1 + 2 * all_points_polydata -> GetLength() / (arma::norm(specified_point_arma)));
+	arma::vec arbitrary_end_point_arma = specified_point_arma * (1 + 2 * this -> parent -> get_asteroid() -> get_polydata() -> GetLength() / (arma::norm(specified_point_arma)));
 
 	double arbitrary_end_point[3] = {
 		arbitrary_end_point_arma(0),
@@ -341,9 +333,9 @@ void ComputePGMWidget::compute_local_pgm() {
 
 		double G_dens = (this -> density_qlineedit -> text().toDouble())
 		                * arma::datum::G;
-		this -> asteroid -> setmGs(G_dens);
+		this -> parent -> get_asteroid() -> setmGs(G_dens);
 
-		Vect grav = this -> asteroid -> PolyGrav(Xsc, true);
+		Vect grav = this -> parent -> get_asteroid() -> PolyGrav(Xsc);
 
 		this -> compute_acceleration_plainedit -> appendPlainText(
 		    QString::fromStdString("Acceleration at specified point (m/s^2): "));
@@ -360,8 +352,8 @@ void ComputePGMWidget::compute_global_pgm() {
 
 	double G_dens = (this -> density_qlineedit -> text().toDouble())
 	                * arma::datum::G;
-	this -> asteroid -> setmGs(G_dens);
-	this -> asteroid -> compute_global_pgm();
+	this -> parent -> get_asteroid() -> setmGs(G_dens);
+	this -> parent -> get_asteroid() -> compute_global_pgm();
 	this -> visualize_pgm_box -> setEnabled(1);
 	this -> save_global_acceleration_button -> setEnabled(1);
 
@@ -373,19 +365,19 @@ void ComputePGMWidget::load_global_pgm() {
 	                   "PGM File", "../saved_pgm/", tr("PGM File(*.pgm)"));
 
 	if (!fileName.isEmpty()) {
-		unsigned int loading_sucessful = this -> asteroid -> load_surface_acceleration(fileName.toStdString());
+		unsigned int loading_sucessful = this -> parent -> get_asteroid() -> load_surface_acceleration(fileName.toStdString());
 
 		if (loading_sucessful == 1) {
 			this -> save_global_acceleration_button -> setEnabled(1);
 			this -> visualize_pgm_box -> setEnabled(1);
 
-			this -> density_qlineedit -> setText(QString::number(this -> asteroid -> GetGs() / arma::datum::G));
+			this -> density_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> GetGs() / arma::datum::G));
 
-			this -> spin_rate_qlineedit -> setText(QString::number(this -> asteroid -> get_spin_rate()));
+			this -> spin_rate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_rate()));
 
-			this -> spin_x_coordinate_qlineedit -> setText(QString::number(this -> asteroid -> get_spin_axis()(0)));
-			this -> spin_y_coordinate_qlineedit -> setText(QString::number(this -> asteroid -> get_spin_axis()(1)));
-			this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> asteroid -> get_spin_axis()(2)));
+			this -> spin_x_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(0)));
+			this -> spin_y_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(1)));
+			this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(2)));
 
 		}
 
@@ -407,7 +399,7 @@ void ComputePGMWidget::save_global_pgm() {
 	                   "../saved_pgm/", tr("PGM File(*.pgm)" ));
 	if (!fileName.isEmpty()) {
 
-		this -> asteroid -> write_surface_acceleration(fileName.toStdString());
+		this -> parent -> get_asteroid() -> write_surface_acceleration(fileName.toStdString());
 
 	}
 
@@ -424,12 +416,12 @@ void ComputePGMWidget::show_acceleration_magnitude() {
 
 	double max_mag = - std::numeric_limits<double>::infinity();
 	double min_mag = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
 
 		if (arma::norm(acceleration) > max_mag) {
@@ -496,18 +488,18 @@ void ComputePGMWidget::show_normal_acceleration_angle() {
 
 	double max_angle = - std::numeric_limits<double>::infinity();
 	double min_angle = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
 
 		arma::vec normal = {
-			this -> asteroid -> get_ListN()[i][0],
-			this -> asteroid -> get_ListN()[i][1],
-			this -> asteroid -> get_ListN()[i][2]
+			this -> parent -> get_asteroid() -> get_ListN()[i][0],
+			this -> parent -> get_asteroid() -> get_ListN()[i][1],
+			this -> parent -> get_asteroid() -> get_ListN()[i][2]
 		};
 
 		double angle = 180. / arma::datum::pi * std::acos(arma::dot(acceleration, - normal) / arma::norm(acceleration));
@@ -564,33 +556,33 @@ void ComputePGMWidget::show_radial_acceleration_angle() {
 
 	double max_angle = - std::numeric_limits<double>::infinity();
 	double min_angle = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
-		unsigned int P1_index = this -> asteroid -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> asteroid -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> asteroid -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
 		arma::vec P1 = {
-			this -> asteroid -> get_X()[P1_index],
-			this -> asteroid -> get_Y()[P1_index],
-			this -> asteroid -> get_Z()[P1_index]
+			this -> parent -> get_asteroid() -> get_X()[P1_index],
+			this -> parent -> get_asteroid() -> get_Y()[P1_index],
+			this -> parent -> get_asteroid() -> get_Z()[P1_index]
 		};
 
 		arma::vec P2 = {
-			this -> asteroid -> get_X()[P2_index],
-			this -> asteroid -> get_Y()[P2_index],
-			this -> asteroid -> get_Z()[P2_index]
+			this -> parent -> get_asteroid() -> get_X()[P2_index],
+			this -> parent -> get_asteroid() -> get_Y()[P2_index],
+			this -> parent -> get_asteroid() -> get_Z()[P2_index]
 		};
 
 		arma::vec P3 = {
-			this -> asteroid -> get_X()[P3_index],
-			this -> asteroid -> get_Y()[P3_index],
-			this -> asteroid -> get_Z()[P3_index]
+			this -> parent -> get_asteroid() -> get_X()[P3_index],
+			this -> parent -> get_asteroid() -> get_Y()[P3_index],
+			this -> parent -> get_asteroid() -> get_Z()[P3_index]
 		};
 
 		arma::vec P = 1. / 3. * (P1 + P2 + P3);
@@ -651,33 +643,33 @@ void ComputePGMWidget::show_radial_acceleration_component() {
 
 	double max_component = - std::numeric_limits<double>::infinity();
 	double min_component = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
-		unsigned int P1_index = this -> asteroid -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> asteroid -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> asteroid -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
 		arma::vec P1 = {
-			this -> asteroid -> get_X()[P1_index],
-			this -> asteroid -> get_Y()[P1_index],
-			this -> asteroid -> get_Z()[P1_index]
+			this -> parent -> get_asteroid() -> get_X()[P1_index],
+			this -> parent -> get_asteroid() -> get_Y()[P1_index],
+			this -> parent -> get_asteroid() -> get_Z()[P1_index]
 		};
 
 		arma::vec P2 = {
-			this -> asteroid -> get_X()[P2_index],
-			this -> asteroid -> get_Y()[P2_index],
-			this -> asteroid -> get_Z()[P2_index]
+			this -> parent -> get_asteroid() -> get_X()[P2_index],
+			this -> parent -> get_asteroid() -> get_Y()[P2_index],
+			this -> parent -> get_asteroid() -> get_Z()[P2_index]
 		};
 
 		arma::vec P3 = {
-			this -> asteroid -> get_X()[P3_index],
-			this -> asteroid -> get_Y()[P3_index],
-			this -> asteroid -> get_Z()[P3_index]
+			this -> parent -> get_asteroid() -> get_X()[P3_index],
+			this -> parent -> get_asteroid() -> get_Y()[P3_index],
+			this -> parent -> get_asteroid() -> get_Z()[P3_index]
 		};
 
 		arma::vec P = 1. / 3. * (P1 + P2 + P3);
@@ -740,18 +732,18 @@ void ComputePGMWidget::show_normal_acceleration_component() {
 
 	double max_component = - std::numeric_limits<double>::infinity();
 	double min_component = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
 
 		arma::vec normal = {
-			this -> asteroid -> get_ListN()[i][0],
-			this -> asteroid -> get_ListN()[i][1],
-			this -> asteroid -> get_ListN()[i][2]
+			this -> parent -> get_asteroid() -> get_ListN()[i][0],
+			this -> parent -> get_asteroid() -> get_ListN()[i][1],
+			this -> parent -> get_asteroid() -> get_ListN()[i][2]
 		};
 
 		double component = arma::dot(acceleration, normal) ;
@@ -811,34 +803,34 @@ void ComputePGMWidget::show_orthoradial_acceleration_magnitude() {
 
 	double max_magnitude = - std::numeric_limits<double>::infinity();
 	double min_magnitude = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
 
-		unsigned int P1_index = this -> asteroid -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> asteroid -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> asteroid -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
 		arma::vec P1 = {
-			this -> asteroid -> get_X()[P1_index],
-			this -> asteroid -> get_Y()[P1_index],
-			this -> asteroid -> get_Z()[P1_index]
+			this -> parent -> get_asteroid() -> get_X()[P1_index],
+			this -> parent -> get_asteroid() -> get_Y()[P1_index],
+			this -> parent -> get_asteroid() -> get_Z()[P1_index]
 		};
 
 		arma::vec P2 = {
-			this -> asteroid -> get_X()[P2_index],
-			this -> asteroid -> get_Y()[P2_index],
-			this -> asteroid -> get_Z()[P2_index]
+			this -> parent -> get_asteroid() -> get_X()[P2_index],
+			this -> parent -> get_asteroid() -> get_Y()[P2_index],
+			this -> parent -> get_asteroid() -> get_Z()[P2_index]
 		};
 
 		arma::vec P3 = {
-			this -> asteroid -> get_X()[P3_index],
-			this -> asteroid -> get_Y()[P3_index],
-			this -> asteroid -> get_Z()[P3_index]
+			this -> parent -> get_asteroid() -> get_X()[P3_index],
+			this -> parent -> get_asteroid() -> get_Y()[P3_index],
+			this -> parent -> get_asteroid() -> get_Z()[P3_index]
 		};
 
 		arma::vec P = 1. / 3. * (P1 + P2 + P3);
@@ -892,7 +884,7 @@ void ComputePGMWidget::show_orthoradial_acceleration_magnitude() {
 }
 
 void ComputePGMWidget::update_asteroid_state() {
-	this -> asteroid -> set_spin_rate(this -> spin_rate_qlineedit -> text().toDouble());
+	this -> parent -> get_asteroid() -> set_spin_rate(this -> spin_rate_qlineedit -> text().toDouble());
 
 	arma::vec spin_axis = {
 		this -> spin_x_coordinate_qlineedit -> text().toDouble(),
@@ -900,8 +892,33 @@ void ComputePGMWidget::update_asteroid_state() {
 		this -> spin_z_coordinate_qlineedit -> text().toDouble()
 	};
 
-	this -> asteroid -> set_spin_axis(spin_axis);
-	this -> asteroid -> set_density(this -> density_qlineedit -> text().toDouble());
+	if (arma::norm(spin_axis) != 0) {
+
+		// The spin axis is set (the provided spin_axis vector will be automatically normalized)
+		this -> parent -> get_asteroid() -> set_spin_axis(spin_axis);
+
+		// The qlineedit is updated back to reflect the normalization of the input
+		this -> spin_x_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(0)));
+		this -> spin_y_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(1)));
+		this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(2)));
+
+	}
+	else{
+
+		spin_axis(0) = 1;
+		
+		// The spin axis is set (the provided spin_axis vector will be automatically normalized)
+		this -> parent -> get_asteroid() -> set_spin_axis(spin_axis);
+
+		// The qlineedit is updated back to reflect the normalization of the input
+		this -> spin_x_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(0)));
+		this -> spin_y_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(1)));
+		this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(2)));
+
+	}
+
+
+	this -> parent -> get_asteroid() -> set_density(this -> density_qlineedit -> text().toDouble());
 
 
 }
@@ -917,18 +934,18 @@ void ComputePGMWidget::show_orthonormal_acceleration_magnitude() {
 
 	double max_magnitude = - std::numeric_limits<double>::infinity();
 	double min_magnitude = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
 
 		arma::vec normal = {
-			this -> asteroid -> get_ListN()[i][0],
-			this -> asteroid -> get_ListN()[i][1],
-			this -> asteroid -> get_ListN()[i][2]
+			this -> parent -> get_asteroid() -> get_ListN()[i][0],
+			this -> parent -> get_asteroid() -> get_ListN()[i][1],
+			this -> parent -> get_asteroid() -> get_ListN()[i][2]
 		};
 
 		double magnitude = arma::norm(acceleration
@@ -986,41 +1003,41 @@ void ComputePGMWidget::show_slopes() {
 	double min_angle = std::numeric_limits<double>::infinity();
 	double average_slope = 0;
 
-	arma::vec omega = this -> asteroid -> get_spin_axis() * this -> asteroid -> get_spin_rate();
+	arma::vec omega = this -> parent -> get_asteroid() -> get_spin_axis() * this -> parent -> get_asteroid() -> get_spin_rate();
 
-	for (unsigned int i = 0; i < this -> asteroid -> GetNOF(); i++) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
 
 		arma::vec normal = {
-			this -> asteroid -> get_ListN()[i][0],
-			this -> asteroid -> get_ListN()[i][1],
-			this -> asteroid -> get_ListN()[i][2]
+			this -> parent -> get_asteroid() -> get_ListN()[i][0],
+			this -> parent -> get_asteroid() -> get_ListN()[i][1],
+			this -> parent -> get_asteroid() -> get_ListN()[i][2]
 		};
 
 		arma::vec acceleration = {
-			this -> asteroid -> get_surface_grav()[i][0],
-			this -> asteroid -> get_surface_grav()[i][1],
-			this -> asteroid -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
-		unsigned int P1_index = this -> asteroid -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> asteroid -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> asteroid -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
 		arma::vec P1 = {
-			this -> asteroid -> get_X()[P1_index],
-			this -> asteroid -> get_Y()[P1_index],
-			this -> asteroid -> get_Z()[P1_index]
+			this -> parent -> get_asteroid() -> get_X()[P1_index],
+			this -> parent -> get_asteroid() -> get_Y()[P1_index],
+			this -> parent -> get_asteroid() -> get_Z()[P1_index]
 		};
 
 		arma::vec P2 = {
-			this -> asteroid -> get_X()[P2_index],
-			this -> asteroid -> get_Y()[P2_index],
-			this -> asteroid -> get_Z()[P2_index]
+			this -> parent -> get_asteroid() -> get_X()[P2_index],
+			this -> parent -> get_asteroid() -> get_Y()[P2_index],
+			this -> parent -> get_asteroid() -> get_Z()[P2_index]
 		};
 
 		arma::vec P3 = {
-			this -> asteroid -> get_X()[P3_index],
-			this -> asteroid -> get_Y()[P3_index],
-			this -> asteroid -> get_Z()[P3_index]
+			this -> parent -> get_asteroid() -> get_X()[P3_index],
+			this -> parent -> get_asteroid() -> get_Y()[P3_index],
+			this -> parent -> get_asteroid() -> get_Z()[P3_index]
 		};
 
 		arma::vec P = 1. / 3. * (P1 + P2 + P3);
@@ -1041,7 +1058,7 @@ void ComputePGMWidget::show_slopes() {
 		surface_data -> InsertNextValue(angle);
 	}
 
-	average_slope = average_slope / this -> asteroid -> GetNOF();
+	average_slope = average_slope / this -> parent -> get_asteroid() -> GetNOF();
 
 
 	this -> compute_acceleration_plainedit -> appendPlainText(
@@ -1055,11 +1072,9 @@ void ComputePGMWidget::show_slopes() {
 
 	shape_actor -> GetMapper() -> SetScalarRange(min_angle, max_angle);
 
-
 	vtkSmartPointer<vtkLookupTable> lookup_table = vtkLookupTable::SafeDownCast(shape_actor -> GetMapper() -> GetLookupTable());
 	lookup_table -> SetHueRange(0.667, 0);
 	shape_actor -> GetMapper() -> SetLookupTable(lookup_table);
-
 
 	shape_actor -> GetMapper() -> GetInput() -> GetCellData() -> SetScalars(surface_data);
 	shape_actor -> GetMapper() -> ScalarVisibilityOn();

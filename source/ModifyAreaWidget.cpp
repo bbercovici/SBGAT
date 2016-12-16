@@ -174,12 +174,10 @@ void ModifyAreaWidget::set_data(InteractorStyle * interactor_style) {
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
-	this -> all_points_polydata = interactor_style -> get_all_points_polydata();
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded
-
-	this -> polys_ids  = this -> all_points_polydata -> GetPolys () -> GetData ();
+	this -> polys_ids  = this -> parent -> get_asteroid() -> get_polydata() -> GetPolys () -> GetData ();
 
 	// Likewise, the ids of the selected points are retrieved
 	this -> visible_points_global_ids_from_local_index = vtkIdTypeArray::SafeDownCast(
@@ -234,8 +232,8 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	// The selected facets are highlighted by means of a polydata representing them
 	// The same process is done with the unselected cells
 	// The points stored by those polydatas are all the vertices of the full shape model
-	selected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
-	unselected_cells_polydata -> SetPoints(this -> all_points_polydata -> GetPoints());
+	selected_cells_polydata -> SetPoints(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
+	unselected_cells_polydata -> SetPoints(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
 
 	std::set<unsigned int> cells_to_include_indices;
 
@@ -243,7 +241,7 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	        selected_point_index < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ;
 	        ++selected_point_index ) {
 		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> all_points_polydata -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), this -> cell_ids);
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), this -> cell_ids);
 
 		// Those IDs are eventually transfered in a set for uniqueness
 		for (unsigned int cell_id_index = 0; cell_id_index < this -> cell_ids -> GetNumberOfIds(); ++cell_id_index) {
@@ -268,7 +266,7 @@ void ModifyAreaWidget::compute_cell_blobs() {
 	std::set<unsigned int> all_cells_indices;
 
 
-	for (unsigned int i = 0; i < this -> all_points_polydata -> GetNumberOfCells(); ++i) {
+	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfCells(); ++i) {
 		all_cells_indices.insert(i);
 
 	}
@@ -377,7 +375,7 @@ void ModifyAreaWidget::find_blob_center() {
 void ModifyAreaWidget::update_view(int pos) {
 
 	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
-	this -> selected_points -> DeepCopy(this -> all_points_polydata -> GetPoints());
+	this -> selected_points -> DeepCopy(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
 
 	// Each selected point is looped over and transformed accordingly
 	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
@@ -458,7 +456,7 @@ void ModifyAreaWidget::update_view(int pos) {
 		}
 
 		// The position of the transform vertex is computed
-		double length = this -> all_points_polydata -> GetLength();
+		double length = this -> parent -> get_asteroid() -> get_polydata() -> GetLength();
 		new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor * length;
 
 		new_p[0] = new_p_vec(0);
@@ -477,8 +475,8 @@ void ModifyAreaWidget::update_view(int pos) {
 
 void ModifyAreaWidget::accept() {
 	this -> new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
-	this -> all_points_polydata -> SetPoints(this -> new_selected_points_coordinates);
-	this -> all_points_polydata -> Modified();
+	this -> parent -> get_asteroid() -> get_polydata() -> SetPoints(this -> new_selected_points_coordinates);
+	this -> parent -> get_asteroid() -> get_polydata() -> Modified();
 	this -> close();
 }
 
@@ -495,7 +493,6 @@ void ModifyAreaWidget::remove_selected_points_actor() {
 
 	this ->  actor_vector.clear();
 }
-
 
 void ModifyAreaWidget::show_new_slider_neighbors_pos(int pos) {
 	this -> slider_neighbors_value -> setText( QString::number(pos));
@@ -574,8 +571,6 @@ void ModifyAreaWidget::compute_selected_cells_normals() {
 
 	// The averaged normal is stored for later reuse
 	this -> averaged_normal_array -> SetTuple(0, average_normal_direction);
-
-
 
 }
 

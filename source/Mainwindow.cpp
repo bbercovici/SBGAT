@@ -30,8 +30,12 @@ Mainwindow::Mainwindow() {
     widget -> SetEnabled( 1 );
     widget -> InteractiveOff();
 
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
+    // Setting this -> asteroid to nullptr here prevents the
+    // program from crashing when delete is called on this -> asteroid
+    // before the first asteroid is loaded
+    this -> asteroid = nullptr;
 
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
 }
 
 void Mainwindow::setupUi() {
@@ -54,9 +58,6 @@ void Mainwindow::setupUi() {
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> lateral_dockwidget);
 
     disableGLHiDPI(this -> qvtkWidget -> winId());
-
-
-
 
     this -> show();
 
@@ -109,9 +110,6 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
 
     if (read_polydata_without_id != NULL) {
 
-        // A scaling transform is applied to the input polydata so as to have its vertex
-        // coordinates expressed in meters
-
         // The polydata is fed to an IDFilter.
         vtkSmartPointer<vtkIdFilter>  id_filter = vtkSmartPointer<vtkIdFilter>::New();
         id_filter -> SetIdsArrayName("ids");
@@ -124,9 +122,7 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         // Create a mapper and actor to represent the shape model
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         mapper -> SetInputData(read_polydata);
-
         vtkSmartPointer<vtkActor> shape_actor = vtkSmartPointer<vtkActor>::New();
-
         shape_actor -> SetMapper(mapper);
         shape_actor -> GetMapper() -> ScalarVisibilityOff();
         shape_actor -> GetProperty() -> SetColor(1, 1, 1);
@@ -156,14 +152,15 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
             vtkSmartPointer<InteractorStyle>::New();
 
         this -> renderWindowInteractor -> SetInteractorStyle( style );
-
         style -> set_mainwindow(this);
-        style -> set_all_points_polydata(read_polydata);
 
-        // delete(this -> asteroid);
-        // this -> asteroid = new Asteroid(read_polydata, G_dens);
+        // Any previously loaded asteroid is deleted 
+        // and replaced by a new one of shape model defined by 
+        // the polydata just read in
+        delete(this -> asteroid);
+        this -> asteroid = new Asteroid(read_polydata, 1000);
 
-        // Camera position is adjusted
+        // The camera position is adjusted
         this -> renderer -> GetActiveCamera () -> SetPosition (
             read_polydata -> GetLength() * 1.,
             read_polydata -> GetLength() * 1.,
@@ -173,7 +170,6 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> renderer -> ResetCamera();
         this -> qvtkWidget -> GetRenderWindow() -> Render();
 
-
     }
 
 }
@@ -182,12 +178,15 @@ std::vector<vtkSmartPointer<vtkActor> > Mainwindow::get_actor_vector() {
     return this -> actor_vector;
 }
 
+Asteroid * Mainwindow::get_asteroid() {
+    return this -> asteroid;
+}
 
 void Mainwindow::open() {
 
     // The file name is retrieved from the output of the QFileDialog window
     QString fileName = QFileDialog::getOpenFileName(this,
-                       tr("Open File"),"../resources/", tr("OBJ file ( *.obj)"));
+                       tr("Open File"), "../resources/", tr("OBJ file ( *.obj)"));
 
     if (!fileName.isEmpty()) {
         this -> statusBar() -> showMessage("Opening .obj");
@@ -212,18 +211,20 @@ void Mainwindow::open() {
         // with an appropriate scaling transform
         vtkSmartPointer<vtkTransform> transform  =
             vtkSmartPointer<vtkTransform>::New();
-        transform -> Scale(this -> scaling_factor, this -> scaling_factor, this -> scaling_factor);
+        transform -> Scale(this -> scaling_factor, 
+            this -> scaling_factor, 
+            this -> scaling_factor);
 
+        // A scaling transform is applied to the input polydata so as to have its vertex
+        // coordinates expressed in meters
         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
             vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         transformFilter -> SetInputConnection(reader -> GetOutputPort());
         transformFilter -> SetTransform(transform);
         transformFilter -> Update();
-
-
         vtkSmartPointer<vtkPolyData> read_polydata_without_id = transformFilter -> GetOutput();
-
-        // the content of the obj file is loaded into SBGAT for display
+        
+        // The content of the obj file is loaded into SBGAT 
         this -> load_obj(read_polydata_without_id);
 
     }
@@ -273,16 +274,8 @@ void Mainwindow::save() {
 
     // The save path is queried
     QString fileName = QFileDialog::getSaveFileName(this,
-                       "Save File","../saved_pgm/",tr("OBJ File(*.obj)"));
+                       "Save File", "../saved_pgm/", tr("OBJ File(*.obj)"));
     if (!fileName.isEmpty()) {
-
-
-        // the shape model currently displayed in the Rendering window is saved to a .obj file
-        // by means of the appropriate writer class
-
-        InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> get_render_window_interactor()
-                -> GetInteractorStyle());
-        vtkPolyData * all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
 
 
         // A VTKTransformFilter is created and provided
@@ -295,7 +288,7 @@ void Mainwindow::save() {
 
         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
             vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-        transformFilter -> SetInputData(all_points_polydata);
+        transformFilter -> SetInputData(this -> asteroid -> get_polydata());
         transformFilter -> SetTransform(transform);
         transformFilter -> Update();
 
@@ -420,7 +413,16 @@ vtkSmartPointer<vtkRenderer> Mainwindow::get_renderer() {
 void Mainwindow::clear_all() {
     this -> remove_actors();
     this -> close_lateral_dockwidget();
+    delete(this -> asteroid);
     this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+    // The actions that were until now enabled are disabled
+    this -> set_action_status(false, shapeColorAct);
+    this -> set_action_status(false, vertexVisibilityAct);
+    this -> set_action_status(false, modifyShapeAct);
+    this -> set_action_status(false, openComputePGMWidgetAct);
+    this -> set_action_status(false, openShapeInfoWidgetAct);
+    this -> set_action_status(false, saveAct);
 
 
 }

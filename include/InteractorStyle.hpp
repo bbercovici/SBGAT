@@ -30,6 +30,7 @@
 
 #include "vtkObjectFactory.h"
 #include "Mainwindow.hpp"
+#include "InheritedPicker.hpp"
 
 // forward declaration of the Mainwindow class
 class Mainwindow;
@@ -46,12 +47,6 @@ public:
 	
 	InteractorStyle();
 	virtual void OnLeftButtonUp();
-
-	/**
-	Enables the interactor to get access to the vtkPolyData storing the shape's vertices
-	@param all_points_polydata Pointer to the vtkPolyData storing the vertices/facets of the shape model
-	*/
-	void set_all_points_polydata(vtkSmartPointer<vtkPolyData> all_points_polydata);
 
 	/**
 	Enables the interactor to get access to the GUI's mainwindow
@@ -71,12 +66,9 @@ public:
 	void set_current_mode(const int mode);
 
 	vtkSmartPointer<vtkPolyData> get_selected_points_polydata();
-	vtkSmartPointer<vtkPolyData> get_all_points_polydata();
-
 
 
 private:
-	vtkSmartPointer<vtkPolyData> all_points_polydata;
 	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	Mainwindow * mainwindow ;
 

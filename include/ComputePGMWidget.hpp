@@ -131,7 +131,6 @@ protected:
 	vtkSmartPointer<vtkActor> specific_point_actor;
 	vtkSmartPointer<vtkModifiedBSPTree> shape_mod_obb_tree;
 
-	Asteroid * asteroid;
 	void cleanup();
 
 

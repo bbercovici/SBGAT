@@ -3,109 +3,37 @@
 
 #include "Asteroid.hpp"
 
-Asteroid::Asteroid(std::ifstream& GravityFile) {
 
-  assert(GravityFile.is_open());
+Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
 
-  double Gs;
+  this -> mGs = arma::datum::G * density;
+  this -> polydata = polydata;
 
-  GravityFile >> Gs;
-
-  this -> mGs = Gs;
-
-  int NOV, NOF, NOE;
-
-  GravityFile >> NOV >> NOF >> NOE;
-
-  this -> mNOV = NOV;
-  this -> mNOF = NOF;
-  this -> mNOE = NOE;
-
-  assert(mNOF == 2 * mNOV - 4);
-  assert(mNOE == 3 * (mNOV - 2));
-
-
-  this -> mX = new double [mNOV];
-  this -> mY = new double [mNOV];
-  this -> mZ = new double [mNOV];
-
-  for (int i = 0; i < this -> mNOV; i++) {
-    GravityFile >> this -> mX[i] >> this -> mY[i] >> this -> mZ[i];
-  }
-
-  this -> mListTri = new int* [this -> mNOF];
-  this -> mListN = new double* [this -> mNOF];
-  this -> mF = new double* [this -> mNOF];
-  this -> surface_grav = new double * [this -> mNOF];
-
-
-  for (int i = 0; i < this -> mNOF; i++) {
-
-    this -> mListTri[i] = new int [3];
-    this -> mListN[i]   = new double [3];
-    this -> mF[i] = new double [9];
-    this -> surface_grav[i]  = new double [3];
-
-    GravityFile >> this -> mListTri[i][0] >> this -> mListTri[i][1] >> this -> mListTri[i][2];
-    GravityFile >> this -> mListN[i][0] >> this -> mListN[i][1] >> this -> mListN[i][2];
-    GravityFile >> this -> mF[i][0] >> this -> mF[i][1] >> this -> mF[i][2]
-                >> this -> mF[i][3] >> this -> mF[i][4] >> this -> mF[i][5]
-                >> this -> mF[i][6] >> this -> mF[i][7] >> this -> mF[i][8];
-
-
-  }
-
-
-  this -> mListE = new int* [this -> mNOE];
-
-  this -> mE = new double* [this -> mNOE];
-
-  for (int i = 0; i < this -> mNOE; i++) {
-    this -> mListE[i] = new int [2];
-
-    this -> mE[i] = new double [9];
-
-    GravityFile >> this -> mListE[i][0] >> this -> mListE[i][1];
-    GravityFile >> this -> mE[i][0] >> this -> mE[i][1] >> this -> mE[i][2]
-                >> this -> mE[i][3] >> this -> mE[i][4] >> this -> mE[i][5]
-                >> this -> mE[i][6] >> this -> mE[i][7] >> this -> mE[i][8];
-
-
-  }
-
-}
-
-Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
-
-  this -> mGs = Gs;
-  this -> mNOV = input_polydata -> GetNumberOfPoints();
-  this -> mNOF = input_polydata -> GetNumberOfPolys();
-
-  assert(mNOF == 2 * mNOV - 4);
+  assert(this -> polydata -> GetNumberOfPolys() == 2 * this -> polydata -> GetNumberOfPoints() - 4);
 
   std::map<std::set<unsigned int>, std::pair<int, int> > edge_info;
   vtkSmartPointer<vtkIdList> facet_vertex_indices = vtkSmartPointer<vtkIdList>::New();
 
-  this -> mX = new double [this -> mNOV];
-  this -> mY = new double [this -> mNOV];
-  this -> mZ = new double [this -> mNOV];
+  this -> mX = new double [this -> polydata -> GetNumberOfPoints()];
+  this -> mY = new double [this -> polydata -> GetNumberOfPoints()];
+  this -> mZ = new double [this -> polydata -> GetNumberOfPoints()];
 
   // Vertex coordinates are fetched in
-  for (vtkIdType vertex = 0; vertex < this -> mNOV; ++vertex) {
+  for (vtkIdType vertex = 0; vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
     double p[3];
-    input_polydata -> GetPoint(vertex, p);
+    this -> polydata -> GetPoint(vertex, p);
     this -> mX[vertex] = p[0];
     this -> mY[vertex] = p[1];
     this -> mZ[vertex] = p[2];
   }
 
   // Facet indices are fetched in
-  this -> mListTri = new int * [this -> mNOF];
-  this -> mListN = new double * [this -> mNOF];
-  this -> mF = new double * [this -> mNOF];
-  this -> surface_grav = new double * [this -> mNOF];
+  this -> mListTri = new int * [this -> polydata -> GetNumberOfPolys()];
+  this -> mListN = new double * [this -> polydata -> GetNumberOfPolys()];
+  this -> mF = new double * [this -> polydata -> GetNumberOfPolys()];
+  this -> surface_grav = new double * [this -> polydata -> GetNumberOfPolys()];
 
-  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
 
     this -> mListTri[facet] = new int [3];
     this -> mListN[facet]   = new double [3];
@@ -113,7 +41,7 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
 
     this -> mF[facet] = new double [9];
 
-    input_polydata -> GetCellPoints(facet, facet_vertex_indices);
+    this -> polydata -> GetCellPoints(facet, facet_vertex_indices);
 
     // Vertex indices in facet
     unsigned int P1_index = facet_vertex_indices -> GetId(0);
@@ -126,21 +54,21 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
 
     // Facet normal coordinates
     arma::vec P1 = {
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 0),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 1),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 2)
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 0),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 1),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 2)
     };
 
     arma::vec P2 = {
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 0),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 1),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 2)
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 0),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 1),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 2)
     };
 
     arma::vec P3 = {
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 0),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 1),
-      input_polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 2)
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 0),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 1),
+      this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 2)
     };
 
     arma::vec n = arma::cross(P3 - P2, P1 - P2);
@@ -212,7 +140,7 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs) {
 
 
   this -> mNOE = edge_info.size();
-  assert(mNOE == 3 * (mNOV - 2));
+  assert(this -> mNOE == 3 * (this -> polydata -> GetNumberOfPoints() - 2));
 
   this -> mListE = new int * [this -> mNOE];
 
@@ -360,7 +288,7 @@ Asteroid::~Asteroid() {
   delete[] mY;
   delete[] mZ;
 
-  for (int i = 0; i < mNOF; i++) {
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
     delete[] mListTri[i];
     delete[] mListN[i];
     delete[] mF[i];
@@ -385,8 +313,7 @@ Asteroid::~Asteroid() {
 }
 
 // Get G*sigma value
-double Asteroid::GetGs() const
-{
+double Asteroid::GetGs() const {
   return mGs;
 }
 
@@ -396,72 +323,28 @@ void Asteroid::setmGs(double mGs) {
 }
 
 // Get No. of Vertices
-int Asteroid::GetNOV() const
-{
-  return mNOV;
+unsigned int Asteroid::GetNOV() const {
+  return this -> polydata -> GetNumberOfPoints();
 }
 
 // Get No. of Facets
-int Asteroid::GetNOF() const
-{
-  return mNOF;
+unsigned int Asteroid::GetNOF() const {
+  return this -> polydata -> GetNumberOfPolys();
 }
 
 // Get No. of Edges
-int Asteroid::GetNOE() const
-{
+unsigned int Asteroid::GetNOE() const {
   return mNOE;
 }
 
-// Get Vertex X coordinates
-Vect Asteroid::GetX() const
-{
-  Vect x(mNOV);
-
-  for (int i = 0; i < mNOV; i++)
-  {
-    x[i] = mX[i];
-  }
-
-  return x;
-}
-
-// Get Vertex Y coordinates
-Vect Asteroid::GetY() const
-{
-  Vect y(mNOV);
-
-  for (int i = 0; i < mNOV; i++)
-  {
-    y[i] = mY[i];
-  }
-
-  return y;
-}
-
-// Get Vertex Z coordinates
-Vect Asteroid::GetZ() const
-{
-  Vect z(mNOV);
-
-  for (int i = 0; i < mNOV; i++)
-  {
-    z[i] = mZ[i];
-  }
-
-  return z;
-}
 
 
-Vect Asteroid::GetListTri() const
-{
+Vect Asteroid::GetListTri() const{
 
-  Vect ListTri(mNOF * 3);
+  Vect ListTri(this -> polydata -> GetNumberOfPolys() * 3);
 
-  for (int i = 0; i < mNOF; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
+    for (int j = 0; j < 3; j++) {
       ListTri[3 * i + j] = (double) mListTri[i][j];
     }
   }
@@ -470,15 +353,12 @@ Vect Asteroid::GetListTri() const
 }
 
 
-Vect Asteroid::GetListN() const
-{
+Vect Asteroid::GetListN() const {
 
-  Vect ListN(mNOF * 3);
+  Vect ListN(this -> polydata -> GetNumberOfPolys() * 3);
 
-  for (int i = 0; i < mNOF; i++)
-  {
-    for (int j = 0; j < 3; j++)
-    {
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
+    for (int j = 0; j < 3; j++) {
       ListN[3 * i + j] = mListN[i][j];
     }
   }
@@ -506,15 +386,12 @@ double * Asteroid::get_Z() {
   return this -> mZ;
 }
 
-Vect Asteroid::GetF() const
-{
+Vect Asteroid::GetF() const{
 
-  Vect F(mNOF * 9);
+  Vect F(this -> polydata -> GetNumberOfPolys() * 9);
 
-  for (int i = 0; i < mNOF; i++)
-  {
-    for (int j = 0; j < 9; j++)
-    {
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
+    for (int j = 0; j < 9; j++) {
       F[9 * i + j] = mF[i][j];
     }
   }
@@ -523,15 +400,12 @@ Vect Asteroid::GetF() const
 }
 
 
-Vect Asteroid::GetListE() const
-{
+Vect Asteroid::GetListE() const {
 
-  Vect ListE(mNOE * 2);
+  Vect ListE(this -> mNOE * 2);
 
-  for (int i = 0; i < mNOE; i++)
-  {
-    for (int j = 0; j < 2; j++)
-    {
+  for (int i = 0; i < this -> mNOE; i++) {
+    for (int j = 0; j < 2; j++) {
       ListE[2 * i + j] = mListE[i][j];
     }
   }
@@ -540,15 +414,12 @@ Vect Asteroid::GetListE() const
 }
 
 
-Vect Asteroid::GetE() const
-{
+Vect Asteroid::GetE() const {
 
   Vect E(mNOE * 9);
 
-  for (int i = 0; i < mNOE; i++)
-  {
-    for (int j = 0; j < 9; j++)
-    {
+  for (int i = 0; i < mNOE; i++) {
+    for (int j = 0; j < 9; j++) {
       E[9 * i + j] = mE[i][j];
     }
   }
@@ -557,16 +428,9 @@ Vect Asteroid::GetE() const
 }
 
 
-Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed) {
 
-  int start_index;
-  if (zero_indexed == true) {
-    start_index = 0;
-
-  }
-  else {
-    start_index = 1;
-  }
+Vect Asteroid::PolyGrav(Vect & Xsc) {
+  unsigned int start_index = 0;
   Vect a_grav(3);
 
 
@@ -579,131 +443,7 @@ Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed) {
   double wf;
 
   //Sum over Polyhedron Facets
-  for (int i = 0; i < Body.mNOF; i++) {
-
-    // Vertex no. 1
-    v1 = Body.mListTri[i][0];
-    r1[0] = Body.mX[v1 - start_index];
-    r1[1] = Body.mY[v1 - start_index];
-    r1[2] = Body.mZ[v1 - start_index];
-
-    // Vertex no. 2
-    v2 = Body.mListTri[i][1];
-    r2[0] = Body.mX[v2 - start_index];
-    r2[1] = Body.mY[v2 - start_index];
-    r2[2] = Body.mZ[v2 - start_index];
-
-    // Vertex no. 3
-    v3 = Body.mListTri[i][2];
-    r3[0] = Body.mX[v3 - start_index];
-    r3[1] = Body.mY[v3 - start_index];
-    r3[2] = Body.mZ[v3 - start_index];
-
-    // Normal Unit Vector
-    nf[0] = Body.mListN[i][0];
-    nf[1] = Body.mListN[i][1];
-    nf[2] = Body.mListN[i][2];
-
-    // Face Dyad
-    l = 0;
-    for (int j = 0; j < 3; j++) {
-      for (int k = 0; k < 3; k++) {
-        F(j, k) = Body.mF[i][l];
-        l++;
-      }
-    }
-
-
-    //Pos vector wrt S/C
-    r1 = r1 - Xsc;
-    r2 = r2 - Xsc;
-    r3 = r3 - Xsc;
-
-    R1 = norm(r1);
-    R2 = norm(r2);
-    R3 = norm(r3);
-
-    wf = 2 * atan2(dot(r1, cross(r2, r3)), R1 * R2 * R3 + R1 * dot(r2, r3) + R2 * dot(r3, r1) + R3 * dot(r1, r2));
-
-    a_grav = a_grav + F * r1 * wf;
-
-  }
-
-
-  // Sum over the polyhedron edges
-  int e1, e2;
-  double Re, Le;
-  Matrix E(3, 3);
-
-  for (int i = 0; i < Body.mNOE; i++)
-  {
-
-    e1 = Body.mListE[i][0];
-    e2 = Body.mListE[i][1];
-
-    //Vertex 1 pos vector from spacecraft
-    r1[0] = Body.mX[e1 - start_index];
-    r1[1] = Body.mY[e1 - start_index];
-    r1[2] = Body.mZ[e1 - start_index];
-    r1 = r1 - Xsc;
-
-    R1 = norm(r1);
-
-    //Vertex 2 pos vector from s/c
-    r2[0] = Body.mX[e2 - start_index];
-    r2[1] = Body.mY[e2 - start_index];
-    r2[2] = Body.mZ[e2 - start_index];
-    r2 = r2 - Xsc;
-
-    R2 = norm(r2);
-
-    Re = norm(r2 - r1);
-
-    Le = log((R1 + R2 + Re) / (R1 + R2 - Re));
-
-    // Edge dyad
-    l = 0;
-    for (int j = 0; j < 3; j++)
-    {
-      for (int k = 0; k < 3; k++)
-      {
-        E(j, k) = Body.mE[i][l];
-        l++;
-      }
-    }
-
-    // Gravitational Acceleration
-    a_grav = a_grav - E * r1 * Le;
-  }
-
-  return Body.mGs * a_grav;
-
-}
-
-
-Vect Asteroid::PolyGrav(Vect & Xsc, bool zero_indexed) {
-
-  int start_index;
-  if (zero_indexed == true) {
-    start_index = 0;
-
-  }
-  else {
-    start_index = 1;
-  }
-  Vect a_grav(3);
-
-
-  int v1, v2, v3;
-  Vect r1(3), r2(3), r3(3);
-  double R1, R2, R3;
-  Vect  nf(3);
-  Matrix F(3, 3);
-  int l;
-  double wf;
-
-  //Sum over Polyhedron Facets
-  for (int i = 0; i < this -> mNOF; i++) {
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
 
     // Vertex no. 1
     v1 = this -> mListTri[i][0];
@@ -804,7 +544,7 @@ Vect Asteroid::PolyGrav(Vect & Xsc, bool zero_indexed) {
 void Asteroid::compute_global_pgm() {
 
 
-  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
     unsigned int P1_index = this -> mListTri[facet][0];
     unsigned int P2_index = this -> mListTri[facet][1];
     unsigned int P3_index = this -> mListTri[facet][2];
@@ -822,11 +562,11 @@ void Asteroid::compute_global_pgm() {
     Xc[2] = Pz;
 
 
-    Vect acc = this -> PolyGrav(Xc, true);
+    Vect acc = this -> PolyGrav(Xc);
     this -> surface_grav[facet][0] = acc[0];
     this -> surface_grav[facet][1] = acc[1];
     this -> surface_grav[facet][2] = acc[2];
-    std::cout << facet << " /" << this -> mNOF << std::endl;
+    std::cout << facet << " /" << this -> polydata -> GetNumberOfPolys() << std::endl;
 
 
   }
@@ -836,11 +576,11 @@ void Asteroid::write_to_obj(std::string filename) {
   std::ofstream output_filestream (filename, std::ofstream::out);
   assert(output_filestream.is_open());
 
-  for (unsigned int vertex = 0; vertex < this -> mNOV; ++vertex) {
+  for (unsigned int vertex = 0; vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
     output_filestream << "v" << " " << this -> mX[vertex] << " " << this -> mY[vertex] << " " << this -> mZ[vertex] << std::endl;
   }
 
-  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
     output_filestream << "f" << " " << this -> mListTri[facet][0] << " " << this -> mListTri[facet][1] << " " << this -> mListTri[facet][2] << std::endl;
   }
 
@@ -857,7 +597,7 @@ int Asteroid::load_surface_acceleration(std::string filename) {
   std::getline (ifs, line);
   int nof = std::stoi(line);
 
-  if (nof != this -> mNOF) {
+  if (nof != this -> polydata -> GetNumberOfPolys()) {
     ifs.close();
     return 0;
   }
@@ -883,6 +623,8 @@ int Asteroid::load_surface_acceleration(std::string filename) {
   double spin_z = std::stod(line);
 
   this -> spin_axis = {spin_x, spin_y, spin_z};
+  assert(arma::norm(this -> spin_axis) > 0);
+
   this -> spin_axis = this -> spin_axis / arma::norm(this -> spin_axis);
 
   // Spin rate (assumed constant)
@@ -890,7 +632,7 @@ int Asteroid::load_surface_acceleration(std::string filename) {
   this -> spin_rate = std::stod(line);
 
   // The surface gravity is computed
-  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
     std::getline (ifs, line);
 
     std::size_t first_space_loc = line.find_first_of(" ");
@@ -920,9 +662,13 @@ void Asteroid::set_density(double density) {
   this -> mGs = density * arma::datum::G;
 }
 
+double Asteroid::get_density(){
+  return this -> mGs / arma::datum::G;
+}
 
 void Asteroid::set_spin_axis(arma::vec & spin_axis) {
-  this -> spin_axis = spin_axis;
+  assert(arma::norm(spin_axis) > 0);
+  this -> spin_axis = spin_axis / arma::norm(spin_axis);
 }
 
 
@@ -930,6 +676,9 @@ void Asteroid::set_spin_rate(double spin_rate) {
   this -> spin_rate = spin_rate;
 }
 
+vtkSmartPointer<vtkPolyData> Asteroid::get_polydata() {
+  return this -> polydata;
+}
 
 void Asteroid::write_surface_acceleration(std::string filename) {
 
@@ -937,7 +686,7 @@ void Asteroid::write_surface_acceleration(std::string filename) {
   assert(output_filestream.is_open());
 
   // The number of facets is written first
-  output_filestream  << this -> mNOF << std::endl;
+  output_filestream  << this -> polydata -> GetNumberOfPolys() << std::endl;
 
   // The density of the asteroid is written next
   output_filestream << this -> mGs / arma::datum::G << std::endl;
@@ -949,7 +698,7 @@ void Asteroid::write_surface_acceleration(std::string filename) {
   output_filestream << this -> spin_rate << std::endl;
 
   // Then, the gravity field is fetched in
-  for (unsigned int facet = 0; facet < this -> mNOF; ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
     output_filestream  << this -> surface_grav[facet][0] << " " << this -> surface_grav[facet][1] << " " << this -> surface_grav[facet][2] << std::endl;
   }
 

@@ -1,5 +1,4 @@
 #include "InteractorStyle.hpp"
-#include "InheritedPicker.hpp"
 
 // shortcut to interactor modes
 #define INTERACTOR_IS_ORIENT 0
@@ -32,7 +31,7 @@ void InteractorStyle::OnLeftButtonUp() {
 			// The filter in charge of effectively extracting the points is
 			// fed with the data.
 			// The filter is provided with a pointer to the vtkPolyData of interest
-			select_visible_points -> SetInputDataObject(this -> all_points_polydata);
+			select_visible_points -> SetInputDataObject(this -> mainwindow -> get_asteroid() -> get_polydata());
 
 			// The dimension of the selection area is set
 			// The seemingly akward operation within brackets is simply a
@@ -87,10 +86,6 @@ void InteractorStyle::OnLeftButtonUp() {
 vtkStandardNewMacro(InteractorStyle);
 
 
-void InteractorStyle::set_all_points_polydata(vtkSmartPointer<vtkPolyData> all_points_polydata) {
-	this -> all_points_polydata = all_points_polydata;
-}
-
 
 void InteractorStyle::set_mainwindow(Mainwindow * mainwindow) {
 	this -> mainwindow = mainwindow;
@@ -109,7 +104,4 @@ Mainwindow * InteractorStyle::get_mainwindow() {
 
 vtkSmartPointer<vtkPolyData> InteractorStyle::get_selected_points_polydata() {
 	return this -> selected_points_polydata;
-}
-vtkSmartPointer<vtkPolyData> InteractorStyle::get_all_points_polydata() {
-	return this -> all_points_polydata;
 }

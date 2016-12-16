@@ -23,11 +23,11 @@
 #include <armadillo>
 
 /**
-Declaration of the Asteroid Class. Stores 
-  - the shape model of the asteroid (TBD)
+Declaration of the Asteroid Class. Stores
+  - the shape model of the asteroid in the form of a vtkSmartPointer<vtkPolydata>
   - the PGM (raw accelerations evaluated at the center of each facet)
   - the principal axes/inertias (TBD)
-  - the other physical properties of the asteroid 
+  - the other physical properties of the asteroid
     - density
     - spin rate
     - spin axis direction
@@ -38,8 +38,6 @@ private:
 
   double mGs;   // G*dens product
 
-  unsigned int mNOV; //No. of vertices
-  unsigned int mNOF; //No. of facets
   unsigned int mNOE; //No. of edges
 
   // Vertex coordinates
@@ -68,23 +66,47 @@ private:
 
 public:
 
-  Asteroid(std::ifstream& GravityFile);
-  Asteroid(vtkSmartPointer<vtkPolyData> input_polydata, double Gs);
+  Asteroid(vtkSmartPointer<vtkPolyData> polydata, double Gs);
 
   ~Asteroid();
 
+  /**
+  Returns the G * density product
+  @return G * density product
+  */
   double GetGs() const;
 
-  int GetNOV() const;
-  int GetNOF() const;
-  int GetNOE() const;
+  /**
+  Returns the number of vertices
+  @return Number of vertices
+  */
+  unsigned int GetNOV() const;
+  /**
+  Returns the number of facets
+  @return Number of facets
+  */
+  unsigned int GetNOF() const;
+  /**
+  Returns the number of edges
+  @return Number of edges
+  */
+  unsigned int GetNOE() const;
 
-  Vect GetX() const;
-  Vect GetY() const;
-  Vect GetZ() const;
 
+  /**
+  Returns pointer to X coordinates
+  @return Pointer to array of X coordinates
+  */
   double * get_X()  ;
+  /**
+  Returns pointer to Y coordinates
+  @return Pointer to array of Y coordinates
+  */
   double * get_Y()  ;
+  /**
+  Returns pointer to Z coordinates
+  @return Pointer to array of Z coordinates
+  */
   double * get_Z()  ;
 
   Vect GetListTri() const;
@@ -99,19 +121,71 @@ public:
 
   double ** get_surface_grav();
 
+  /**
+  Returns the current spin rate of the asteroid
+  @return Spin rate (rad/s)
+  */
   double get_spin_rate() const;
+
+  /**
+  Returns the coordinates of the spin axis expressed in the 
+  asteroid's bodyframe.
+  @return Spin axis unit direction
+  */
   arma::vec get_spin_axis() const;
 
+
+  /** 
+  Sets the asteroid's spin rate
+  @param spin_rate Asteroid's spin rate (rad/s)
+  */
   void set_spin_rate(double spin_rate);
+
+  /**
+  Sets the asteroid's spin axis coordinates. The provided
+  vector is automatically normalized
+  @param spin_axis Spin axis direction. Must have a non-zero norm
+  */
   void set_spin_axis(arma::vec & spin_axis);
+
+  /**
+  Sets the asteroid's constant density
+  @param density Density of asteroid (kg/m^3)
+  */
   void set_density(double density);
 
+  /**
+  Returns the asteroid's density
+  @return Asteroid's density (kg/m^3)
+  */
+  double get_density();
 
+  /**
+  Legacy method. Sets the G * density method by effectively changing the 
+  density of the asteroid
+  @param mGs G * density product of the asteroid
+  */
   void setmGs(double mGs);
 
-  friend Vect PolyGrav(Vect& Xsc, Asteroid& Body, bool zero_indexed);
-  Vect PolyGrav(Vect& Xsc, bool zero_indexed);
+
+  /**
+  Computes the acceleration of gravity created by the asteroid 
+  at the provided location
+  @param Xsc Coordinates at which the pgm acceleration must be evaluated (m)
+  */
+  Vect PolyGrav(Vect& Xsc);
+
+  /**
+  Evaluates the PGM gravity acceleration at the center of each facet on the 
+  asteroid
+  */
   void compute_global_pgm();
+
+  /**
+  Returns a pointer to the polydata
+  @return Pointer to polydata
+  */
+  vtkSmartPointer<vtkPolyData> get_polydata();
 
   /**
   Saves asteroid connectivity (vertices + facets) to an obj file
@@ -138,8 +212,7 @@ public:
 protected:
   arma::vec spin_axis;
   double spin_rate;
-  
-
+  vtkSmartPointer<vtkPolyData> polydata;
 
 
 };

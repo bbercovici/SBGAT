@@ -22,22 +22,15 @@ ShapeInfoWidget::ShapeInfoWidget(Mainwindow * parent) {
 }
 
 void ShapeInfoWidget::setupUI() {
-	InteractorStyle * mainwindow_interactor = static_cast< InteractorStyle * > (this -> parent -> get_render_window_interactor()
-	        -> GetInteractorStyle());
-
-	vtkSmartPointer<vtkPolyData> all_points_polydata = mainwindow_interactor -> get_all_points_polydata();
-
-	unsigned int facets = all_points_polydata -> GetNumberOfPolys();
-	unsigned int vertices = all_points_polydata -> GetNumberOfPoints();
+	
+	unsigned int facets = this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys();
+	unsigned int vertices = this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPoints();
 	unsigned int edges = (unsigned int)(1.5 * (double)(facets));
-	double length = all_points_polydata -> GetLength();
+	double length = this -> parent -> get_asteroid() -> get_polydata() -> GetLength();
 
 	vtkSmartPointer<vtkMassProperties> mass_properties = vtkMassProperties::New();
-	mass_properties -> SetInputData(all_points_polydata);
+	mass_properties -> SetInputData(this -> parent -> get_asteroid() -> get_polydata());
 	mass_properties -> Update();
-
-
-
 
 	std::string message =  "Vertices: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(vertices) ));

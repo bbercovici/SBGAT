@@ -104,6 +104,12 @@ public:
 	void set_actors_visibility(bool visibility);
 
 	/**
+	Returns a pointer to the asteroid currently loaded
+	@return Pointer to the asteroid 
+	*/
+	Asteroid * get_asteroid();
+
+	/**
 	Sets the scaling factor applied to the 
 	input data to have it expressed in meters
 	*/
@@ -225,7 +231,7 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 
-	// Asteroid * asteroid
+	Asteroid * asteroid;
 
 
 
