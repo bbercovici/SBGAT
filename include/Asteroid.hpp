@@ -92,12 +92,12 @@ public:
   */
   unsigned int GetNOE() const;
 
-
   /**
   Returns pointer to X coordinates
   @return Pointer to array of X coordinates
   */
   double * get_X()  ;
+  
   /**
   Returns pointer to Y coordinates
   @return Pointer to array of Y coordinates
@@ -133,7 +133,6 @@ public:
   @return Spin axis unit direction
   */
   arma::vec get_spin_axis() const;
-
 
   /** 
   Sets the asteroid's spin rate
@@ -187,11 +186,6 @@ public:
   */
   vtkSmartPointer<vtkPolyData> get_polydata();
 
-  /**
-  Saves asteroid connectivity (vertices + facets) to an obj file
-  @param filename Path to file
-  */
-  void write_to_obj(std::string filename);
 
   /**
   Saves the current surface acceleration (from the polyhedron gravity model)
@@ -203,8 +197,7 @@ public:
   /**
   Loads a previously computed surface acceleration (from the polyhedron gravity model)
   @param filename Path to file
-  @return - 1 if PGM gravity file was consistent with asteroid shape model
-          - 0 otherwise (no surface acceleration will be loaded)
+  @return 1 if PGM gravity file was consistent with asteroid shape model, 0 otherwise (no surface acceleration will be loaded)
   */
   int load_surface_acceleration(std::string filename);
 

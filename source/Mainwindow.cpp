@@ -297,7 +297,6 @@ void Mainwindow::save() {
         writer -> SetInputData(transformFilter -> GetOutput() );
         writer -> SetFileName(fileName.toStdString().c_str());
         writer -> Update();
-
     }
 }
 

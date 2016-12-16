@@ -572,21 +572,6 @@ void Asteroid::compute_global_pgm() {
   }
 }
 
-void Asteroid::write_to_obj(std::string filename) {
-  std::ofstream output_filestream (filename, std::ofstream::out);
-  assert(output_filestream.is_open());
-
-  for (unsigned int vertex = 0; vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
-    output_filestream << "v" << " " << this -> mX[vertex] << " " << this -> mY[vertex] << " " << this -> mZ[vertex] << std::endl;
-  }
-
-  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
-    output_filestream << "f" << " " << this -> mListTri[facet][0] << " " << this -> mListTri[facet][1] << " " << this -> mListTri[facet][2] << std::endl;
-  }
-
-  output_filestream.close();
-
-}
 
 int Asteroid::load_surface_acceleration(std::string filename) {
 
