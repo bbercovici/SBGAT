@@ -3,3 +3,4 @@ resources/
 saved_pgm/
 doc/
 *.dox
+Doxyfile
