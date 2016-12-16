@@ -1,0 +1,24 @@
+/**
+\mainpage SBGAT 
+
+This GitHub Page website stores the documentation of the current version of SBGAT, the implementation of the Small Bodies Geophysical Analysis Tool.
+
+SBGAT relies on QT and VTK to enable easy interaction and analysis on small body shape models.
+
+Link to the SBGAT's Github repo: https://github.com/bbercovici/SBGAT
+Link to SBGAT User's Wiki : https://github.com/bbercovici/SBGAT/wiki
+
+The mindset behind SBGAT is to facilitate sequential modification and analysis of small body shape models by providing users with an intuitive interface allowing them to 
+	- Apply geometrical transforms to the shape models
+	- Run science algorithms (such as gravity field generation, synthetic lightcurve generation,...) 
+	- Visualize results and export them
+
+SBGAT takes in *.obj shape files restricted to vertex/facets information with standard vertex numbering (CCW indicates outward normal). There is no need to provide supplemental information such as surface normals since those will be recomputed internally, ensuring data consistency when surface alteration are introduced.
+
+As of now, dependencies include
+   - The Visualization Toolkit (VTK), an open-source, freely available software system for 3D computer graphics, image processing, and visualization. It consists of a C++ class library and several interpreted interface layers including Tcl/Tk, Java, and Python (http://www.vtk.org/)
+   - Qt (/kjuːt/ "cute"), a cross-platform application framework (https://www.qt.io/)
+   - Armadillo, a high quality linear algebra library (matrix maths) for the C++ language, aiming towards a good balance between speed and ease of use (http://arma.sourceforge.net/)
+   
+
+*/
