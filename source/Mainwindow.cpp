@@ -410,9 +410,18 @@ vtkSmartPointer<vtkRenderer> Mainwindow::get_renderer() {
 }
 
 void Mainwindow::clear_all() {
+    // All the actors currently displayed are removed
     this -> remove_actors();
+
+    // The lateral dockwidget that was opened (if any) is closed 
+    // and its close() method called
     this -> close_lateral_dockwidget();
+
+    // The current asteroid is destroyed 
     delete(this -> asteroid);
+    this -> asteroid = nullptr;
+
+    // The render window is updated
     this -> qvtkWidget -> GetRenderWindow() -> Render();
 
     // The actions that were until now enabled are disabled
