@@ -1,9 +1,10 @@
 # SBGAT
 Small Bodies Geophysical Analysis Tool implementation
 
-Private repository storing the source code of the implementation of the Small Bodies Geophysical Analysis Tool. 
+Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
 
 The SBGAT User's Wiki can be found here https://github.com/bbercovici/SBGAT/wiki
+
 
 The SBGAT code documentation can be accessed at https://bbercovici.github.io/sbgat-doc/index.html (public link). 
 

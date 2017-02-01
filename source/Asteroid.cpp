@@ -19,7 +19,8 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   this -> mZ = new double [this -> polydata -> GetNumberOfPoints()];
 
   // Vertex coordinates are fetched in
-  for (vtkIdType vertex = 0; vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
+  for (vtkIdType vertex = 0; 
+    vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
     double p[3];
     this -> polydata -> GetPoint(vertex, p);
     this -> mX[vertex] = p[0];
@@ -430,7 +431,6 @@ Vect Asteroid::GetE() const {
 
 
 Vect Asteroid::PolyGrav(Vect & Xsc) {
-  unsigned int start_index = 0;
   Vect a_grav(3);
 
 
@@ -447,21 +447,21 @@ Vect Asteroid::PolyGrav(Vect & Xsc) {
 
     // Vertex no. 1
     v1 = this -> mListTri[i][0];
-    r1[0] = this -> mX[v1 - start_index];
-    r1[1] = this -> mY[v1 - start_index];
-    r1[2] = this -> mZ[v1 - start_index];
+    r1[0] = this -> mX[v1];
+    r1[1] = this -> mY[v1];
+    r1[2] = this -> mZ[v1];
 
     // Vertex no. 2
     v2 = this -> mListTri[i][1];
-    r2[0] = this -> mX[v2 - start_index];
-    r2[1] = this -> mY[v2 - start_index];
-    r2[2] = this -> mZ[v2 - start_index];
+    r2[0] = this -> mX[v2];
+    r2[1] = this -> mY[v2];
+    r2[2] = this -> mZ[v2];
 
     // Vertex no. 3
     v3 = this -> mListTri[i][2];
-    r3[0] = this -> mX[v3 - start_index];
-    r3[1] = this -> mY[v3 - start_index];
-    r3[2] = this -> mZ[v3 - start_index];
+    r3[0] = this -> mX[v3];
+    r3[1] = this -> mY[v3];
+    r3[2] = this -> mZ[v3];
 
     // Normal Unit Vector
     nf[0] = this -> mListN[i][0];
@@ -505,17 +505,17 @@ Vect Asteroid::PolyGrav(Vect & Xsc) {
     e2 = this -> mListE[i][1];
 
     //Vertex 1 pos vector from spacecraft
-    r1[0] = this -> mX[e1 - start_index];
-    r1[1] = this -> mY[e1 - start_index];
-    r1[2] = this -> mZ[e1 - start_index];
+    r1[0] = this -> mX[e1];
+    r1[1] = this -> mY[e1];
+    r1[2] = this -> mZ[e1];
     r1 = r1 - Xsc;
 
     R1 = norm(r1);
 
     //Vertex 2 pos vector from s/c
-    r2[0] = this -> mX[e2 - start_index];
-    r2[1] = this -> mY[e2 - start_index];
-    r2[2] = this -> mZ[e2 - start_index];
+    r2[0] = this -> mX[e2];
+    r2[1] = this -> mY[e2];
+    r2[2] = this -> mZ[e2];
     r2 = r2 - Xsc;
 
     R2 = norm(r2);
@@ -561,12 +561,11 @@ void Asteroid::compute_global_pgm() {
     Xc[1] = Py;
     Xc[2] = Pz;
 
-
     Vect acc = this -> PolyGrav(Xc);
     this -> surface_grav[facet][0] = acc[0];
     this -> surface_grav[facet][1] = acc[1];
     this -> surface_grav[facet][2] = acc[2];
-    std::cout << facet << " /" << this -> polydata -> GetNumberOfPolys() << std::endl;
+    std::cout << std::to_string(facet + 1) << " /" << this -> polydata -> GetNumberOfPolys() << std::endl;
 
 
   }
