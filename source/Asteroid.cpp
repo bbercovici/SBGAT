@@ -19,8 +19,8 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   this -> mZ = new double [this -> polydata -> GetNumberOfPoints()];
 
   // Vertex coordinates are fetched in
-  for (vtkIdType vertex = 0; 
-    vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
+  for (vtkIdType vertex = 0;
+       vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
     double p[3];
     this -> polydata -> GetPoint(vertex, p);
     this -> mX[vertex] = p[0];
@@ -165,7 +165,6 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
       ++edge_end_index;
     }
 
-
     // Vertices on edge
     arma::vec P1 = {
       this -> mX[mListE[edge][0]],
@@ -280,7 +279,6 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   this -> spin_rate = 0;
   this -> spin_axis = {0, 0, 1};
 
-
 }
 
 Asteroid::~Asteroid() {
@@ -340,7 +338,7 @@ unsigned int Asteroid::GetNOE() const {
 
 
 
-Vect Asteroid::GetListTri() const{
+Vect Asteroid::GetListTri() const {
 
   Vect ListTri(this -> polydata -> GetNumberOfPolys() * 3);
 
@@ -387,7 +385,7 @@ double * Asteroid::get_Z() {
   return this -> mZ;
 }
 
-Vect Asteroid::GetF() const{
+Vect Asteroid::GetF() const {
 
   Vect F(this -> polydata -> GetNumberOfPolys() * 9);
 
@@ -541,6 +539,131 @@ Vect Asteroid::PolyGrav(Vect & Xsc) {
 
 }
 
+
+Vect Asteroid::polygrab_vtk(arma::vec & Xsc) {
+  arma::vec a_grav = {0, 0, 0};
+
+
+  int v1, v2, v3;
+
+  arma::vec r1 ;
+  arma::vec r2 ;
+  arma::vec r3 ;
+
+  // Vect r1(3), r2(3), r3(3);
+  double R1, R2, R3;
+
+  arma::vec nf = {0, 0, 0};
+  arma::mat F(3, 3);
+  F.fill(0);
+  // Matrix F(3, 3);
+
+  int l;
+  double wf;
+
+  vtkSmartPointer<vtkIdTypeArray> polys_ids = this -> polydata -> GetPolys () -> GetData ();
+
+
+  // Sum over Polyhedron Facets
+  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
+
+    // Global indices of the three vertices in the facet
+    unsigned int facet_vertices_ids[3];
+    facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * i + 1));
+    facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * i + 2));
+    facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * i + 3));
+
+    double p[3];
+
+    this -> polydata -> GetPoint(facet_vertices_ids[0], p);
+    r1 = {p[0], p[1], p[2]};
+
+    this -> polydata -> GetPoint(facet_vertices_ids[1], p);
+    r2 = {p[0], p[1], p[2]};
+
+    this -> polydata -> GetPoint(facet_vertices_ids[2], p);
+    r3 = {p[0], p[1], p[2]};
+    
+  }
+
+  // Normal Unit Vector
+  //   nf[0] = this -> mListN[i][0];
+  //   nf[1] = this -> mListN[i][1];
+  //   nf[2] = this -> mListN[i][2];
+
+  //   // Face Dyad
+  //   l = 0;
+  //   for (int j = 0; j < 3; j++) {
+  //     for (int k = 0; k < 3; k++) {
+  //       F(j, k) = this -> mF[i][l];
+  //       l++;
+  //     }
+  //   }
+
+
+  //   //Pos vector wrt S/C
+  //   r1 = r1 - Xsc;
+  //   r2 = r2 - Xsc;
+  //   r3 = r3 - Xsc;
+
+  //   R1 = norm(r1);
+  //   R2 = norm(r2);
+  //   R3 = norm(r3);
+
+  //   wf = 2 * atan2(dot(r1, cross(r2, r3)), R1 * R2 * R3 + R1 * dot(r2, r3) + R2 * dot(r3, r1) + R3 * dot(r1, r2));
+
+  //   a_grav = a_grav + F * r1 * wf;
+
+  // }
+
+
+  // // Sum over the polyhedron edges
+  // int e1, e2;
+  // double Re, Le;
+  // Matrix E(3, 3);
+
+  // for (int i = 0; i < this -> mNOE; i++) {
+
+  //   e1 = this -> mListE[i][0];
+  //   e2 = this -> mListE[i][1];
+
+  //   //Vertex 1 pos vector from spacecraft
+  //   r1[0] = this -> mX[e1];
+  //   r1[1] = this -> mY[e1];
+  //   r1[2] = this -> mZ[e1];
+  //   r1 = r1 - Xsc;
+
+  //   R1 = norm(r1);
+
+  //   //Vertex 2 pos vector from s/c
+  //   r2[0] = this -> mX[e2];
+  //   r2[1] = this -> mY[e2];
+  //   r2[2] = this -> mZ[e2];
+  //   r2 = r2 - Xsc;
+
+  //   R2 = norm(r2);
+
+  //   Re = norm(r2 - r1);
+
+  //   Le = log((R1 + R2 + Re) / (R1 + R2 - Re));
+
+  //   // Edge dyad
+  //   l = 0;
+  //   for (int j = 0; j < 3; j++) {
+  //     for (int k = 0; k < 3; k++) {
+  //       E(j, k) = this -> mE[i][l];
+  //       l++;
+  //     }
+  //   }
+
+  //   // Gravitational Acceleration
+  //   a_grav = a_grav - E * r1 * Le;
+  // }
+
+  // return this -> mGs * a_grav;
+
+}
+
 void Asteroid::compute_global_pgm() {
 
 
@@ -646,7 +769,7 @@ void Asteroid::set_density(double density) {
   this -> mGs = density * arma::datum::G;
 }
 
-double Asteroid::get_density(){
+double Asteroid::get_density() {
   return this -> mGs / arma::datum::G;
 }
 

@@ -97,7 +97,7 @@ public:
   @return Pointer to array of X coordinates
   */
   double * get_X()  ;
-  
+
   /**
   Returns pointer to Y coordinates
   @return Pointer to array of Y coordinates
@@ -128,13 +128,13 @@ public:
   double get_spin_rate() const;
 
   /**
-  Returns the coordinates of the spin axis expressed in the 
+  Returns the coordinates of the spin axis expressed in the
   asteroid's bodyframe.
   @return Spin axis unit direction
   */
   arma::vec get_spin_axis() const;
 
-  /** 
+  /**
   Sets the asteroid's spin rate
   @param spin_rate Asteroid's spin rate (rad/s)
   */
@@ -160,7 +160,7 @@ public:
   double get_density();
 
   /**
-  Legacy method. Sets the G * density method by effectively changing the 
+  Legacy method. Sets the G * density method by effectively changing the
   density of the asteroid
   @param mGs G * density product of the asteroid
   */
@@ -168,14 +168,14 @@ public:
 
 
   /**
-  Computes the acceleration of gravity created by the asteroid 
+  Computes the acceleration of gravity created by the asteroid
   at the provided location
   @param Xsc Coordinates at which the pgm acceleration must be evaluated (m)
   */
   Vect PolyGrav(Vect& Xsc);
 
   /**
-  Evaluates the PGM gravity acceleration at the center of each facet on the 
+  Evaluates the PGM gravity acceleration at the center of each facet on the
   asteroid
   */
   void compute_global_pgm();
@@ -185,6 +185,14 @@ public:
   @return Pointer to polydata
   */
   vtkSmartPointer<vtkPolyData> get_polydata();
+
+  /**
+  Computes the acceleration of gravity created by the asteroid
+  at the provided location
+  @param Xsc Coordinates at which the pgm acceleration must be evaluated (m)
+  */
+  Vect polygrab_vtk(arma::vec & Xsc);
+
 
 
   /**

@@ -16,6 +16,7 @@
 #include <QDoubleValidator>
 #include <QPlainTextEdit>
 #include <QErrorMessage>
+#include <QComboBox>
 
 
 #include <vtkModifiedBSPTree.h>
@@ -87,14 +88,9 @@ public:
 	QPushButton * load_global_acceleration_button;
 	QPushButton * save_global_acceleration_button;
 
-	QPushButton * show_acceleration_magnitude_button;
-	QPushButton * show_normal_acceleration_angle_button;
-	QPushButton * show_radial_acceleration_angle_button;
-	QPushButton * show_radial_acceleration_component_button;
-	QPushButton * show_normal_acceleration_component_button;
-	QPushButton * show_orthoradial_acceleration_magnitude_button;
-	QPushButton * show_orthonormal_acceleration_magnitude_button;
-	QPushButton * show_slopes_button;
+	QComboBox * visualization_combobox;
+
+	QPushButton * show_visualization_button;
 
 	QGroupBox * physical_properties_box;
 	QGroupBox * compute_acceleration_box;
@@ -113,14 +109,7 @@ private slots:
 	void save_global_pgm();
 	void move_local_acceleration_sphere();
 
-	void show_acceleration_magnitude();
-	void show_normal_acceleration_angle();
-	void show_radial_acceleration_angle();
-	void show_radial_acceleration_component();
-	void show_normal_acceleration_component();
-	void show_orthoradial_acceleration_magnitude();
-	void show_orthonormal_acceleration_magnitude();
-	void show_slopes();
+	void clicked_visualization_button();
 
 	void update_asteroid_state();
 
@@ -132,10 +121,14 @@ protected:
 	vtkSmartPointer<vtkModifiedBSPTree> shape_mod_obb_tree;
 
 	void cleanup();
-
-
-
-
+	void show_acceleration_magnitude();
+	void show_normal_acceleration_angle();
+	void show_radial_acceleration_angle();
+	void show_radial_acceleration_component();
+	void show_normal_acceleration_component();
+	void show_orthoradial_acceleration_magnitude();
+	void show_orthonormal_acceleration_magnitude();
+	void show_slopes();
 
 };
 

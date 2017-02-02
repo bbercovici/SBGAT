@@ -18,16 +18,7 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this ->	load_global_acceleration_button = new QPushButton("Load Existing", this);
 	this ->	save_global_acceleration_button = new QPushButton("Save", this);
 
-	this -> show_acceleration_magnitude_button = new QPushButton("Acceleration magnitude", this);
-	this -> show_normal_acceleration_angle_button = new QPushButton("Normal/acceleration angle", this);
-	this -> show_radial_acceleration_angle_button = new QPushButton("Radial/acceleration angle", this);
-	this -> show_radial_acceleration_component_button = new QPushButton("Radial acceleration component", this);
-	this -> show_normal_acceleration_component_button = new QPushButton("Normal acceleration component", this);;
-	this -> show_orthonormal_acceleration_magnitude_button = new QPushButton("Orthonormal acceleration magnitude", this);
-	this -> show_orthoradial_acceleration_magnitude_button = new QPushButton("Orthoradial acceleration magnitude", this);
-	this -> show_slopes_button = new QPushButton("Slopes", this);
-
-
+	
 	this -> physical_properties_box = new QGroupBox("Physical Properties", this);
 	this -> spin_properties_box = new QGroupBox("Spin Properties", this);
 
@@ -74,13 +65,13 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this -> spin_rate_qlineedit -> setText(QString::number(0));
 	this -> spin_rate_qlineedit -> setValidator( new QDoubleValidator(0, 100, 10, this) );
 
+	this -> visualization_combobox = new QComboBox(this);
+	this -> show_visualization_button = new QPushButton("Show", this);
 
 	this -> physical_properties_box -> setLayout(this -> physical_properties_layout);
 	this -> physical_properties_layout -> addWidget(this -> density_title_label, 0, 0, 1, 1);
 	this -> physical_properties_layout -> addWidget(this -> density_qlineedit, 0, 1, 1, 1);
 	this -> physical_properties_layout -> addWidget(this -> density_unit_label, 0, 2, 1, 1);
-
-
 
 	this -> spin_properties_box -> setLayout(this -> spin_properties_box_layout);
 
@@ -126,14 +117,18 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this -> compute_pgm_layout -> addWidget(this -> visualize_pgm_box, 1, 0, 1, 3);
 
 	this -> visualize_pgm_box -> setLayout(this -> visualize_pgm_layout);
-	this -> visualize_pgm_layout -> addWidget(this -> show_acceleration_magnitude_button, 0, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_normal_acceleration_angle_button, 1, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_radial_acceleration_angle_button, 2, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_radial_acceleration_component_button, 3, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_normal_acceleration_component_button, 4, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_orthoradial_acceleration_magnitude_button, 5, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_orthonormal_acceleration_magnitude_button, 6, 0, 1, 1);
-	this -> visualize_pgm_layout -> addWidget(this -> show_slopes_button, 7, 0, 1, 1);
+	
+	this -> visualize_pgm_layout -> addWidget( this -> visualization_combobox, 0, 0, 1, 1);
+	this -> visualize_pgm_layout -> addWidget( this -> show_visualization_button, 0, 1, 1, 1);
+
+	this -> visualization_combobox -> addItem("Acceleration magnitude");
+	this -> visualization_combobox -> addItem("Normal/acceleration angle");
+	this -> visualization_combobox -> addItem("Radial/acceleration angle");
+	this -> visualization_combobox -> addItem("Radial acceleration component");
+	this -> visualization_combobox -> addItem("Normal acceleration component");
+	this -> visualization_combobox -> addItem("Orthoradial acceleration magnitude");
+	this -> visualization_combobox -> addItem("Orthonormal acceleration magnitude");
+	this -> visualization_combobox -> addItem("Slopes");
 
 	this -> visualize_pgm_box -> setDisabled(1);
 
@@ -211,34 +206,8 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	connect(this -> density_qlineedit, SIGNAL(textEdited(QString)),
 	        this, SLOT(update_asteroid_state()));
 
-
-
-
-	connect(this -> show_acceleration_magnitude_button, SIGNAL(clicked()),
-	        this, SLOT(show_acceleration_magnitude()));
-
-	connect(this -> show_normal_acceleration_angle_button, SIGNAL(clicked()),
-	        this, SLOT(show_normal_acceleration_angle()));
-
-	connect(this -> show_radial_acceleration_angle_button, SIGNAL(clicked()),
-	        this, SLOT(show_radial_acceleration_angle()));
-
-	connect(this -> show_radial_acceleration_component_button, SIGNAL(clicked()),
-	        this, SLOT(show_radial_acceleration_component()));
-
-	connect(this -> show_normal_acceleration_component_button, SIGNAL(clicked()),
-	        this, SLOT(show_normal_acceleration_component()));
-
-	connect(this -> show_orthoradial_acceleration_magnitude_button, SIGNAL(clicked()),
-	        this, SLOT(show_orthoradial_acceleration_magnitude()));
-
-	connect(this -> show_orthonormal_acceleration_magnitude_button, SIGNAL(clicked()),
-	        this, SLOT(show_orthonormal_acceleration_magnitude()));
-
-
-	connect(this -> show_slopes_button, SIGNAL(clicked()),
-	        this, SLOT(show_slopes()));
-
+	connect(this -> show_visualization_button, SIGNAL(clicked()),
+	        this, SLOT(clicked_visualization_button()));
 
 	// The Physical Properties fields are initialized with
 	// that of the asteroid
@@ -345,7 +314,6 @@ void ComputePGMWidget::compute_local_pgm() {
 		this -> compute_acceleration_plainedit -> appendPlainText("z:  " + QString::number(grav[2]));
 	}
 	this -> parent -> statusBar() -> showMessage("Ready");
-
 
 }
 
@@ -904,10 +872,10 @@ void ComputePGMWidget::update_asteroid_state() {
 		this -> spin_z_coordinate_qlineedit -> setText(QString::number(this -> parent -> get_asteroid() -> get_spin_axis()(2)));
 
 	}
-	else{
+	else {
 
 		spin_axis(0) = 1;
-		
+
 		// The spin axis is set (the provided spin_axis vector will be automatically normalized)
 		this -> parent -> get_asteroid() -> set_spin_axis(spin_axis);
 
@@ -988,7 +956,6 @@ void ComputePGMWidget::show_orthonormal_acceleration_magnitude() {
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
-
 }
 
 
@@ -1019,6 +986,7 @@ void ComputePGMWidget::show_slopes() {
 			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
 			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
 		};
+
 		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
 		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
 		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
@@ -1094,7 +1062,43 @@ void ComputePGMWidget::show_slopes() {
 	this -> parent -> get_renderer() -> AddActor2D(scalarBar);
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
+}
 
+void ComputePGMWidget::clicked_visualization_button() {
+
+	switch (this -> visualization_combobox -> currentIndex() ) {
+	case 0:
+		this -> show_acceleration_magnitude();
+		break;
+
+	case 1:
+		this -> show_normal_acceleration_angle();
+		break;
+
+	case 2:
+		this -> show_radial_acceleration_angle();
+		break;
+
+	case 3:
+		this -> show_radial_acceleration_component();
+		break;
+
+	case 4:
+		this -> show_normal_acceleration_component();
+		break;
+
+	case 5:
+		this -> show_orthoradial_acceleration_magnitude();
+		break;
+
+	case 6:
+		this -> show_orthonormal_acceleration_magnitude();
+		break;
+
+	case 7:
+		this -> show_slopes();
+		break;
+	}
 
 }
 
