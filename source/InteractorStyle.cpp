@@ -22,8 +22,20 @@ void InteractorStyle::OnLeftButtonUp() {
 		        &&  this -> mainwindow -> lateral_dockwidget -> widget() == nullptr) {
 
 			InheritedPicker * picker = static_cast< InheritedPicker * >(this -> Interactor -> GetPicker());
+
 			vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points =
 			    vtkSmartPointer<vtkSelectVisiblePoints>::New();
+
+			vtkSmartPointer<vtkHardwareSelector> selector = vtkSmartPointer<vtkHardwareSelector>::New();
+			selector -> SetRenderer(this -> mainwindow -> get_renderer());
+
+
+			selector -> SetArea(&picker -> get_dimensions_uint()[0]);
+			selector -> SetFieldAssociation(vtkDataObject::FIELD_ASSOCIATION_CELLS);
+			vtkSelection* selection = selector->Select();
+			std::cout << "Selection has " << selection->GetNumberOfNodes() << " nodes." << std::endl;
+
+
 			// The filter renderer is set to the current renderer
 			select_visible_points -> SetRenderer(this -> mainwindow -> get_renderer());
 			select_visible_points -> SelectionWindowOn();;
@@ -36,7 +48,7 @@ void InteractorStyle::OnLeftButtonUp() {
 			// The dimension of the selection area is set
 			// The seemingly akward operation within brackets is simply a
 			// conversion from a std::vector<int> containing 4 items to int[4]
-			select_visible_points -> SetSelection(&picker -> get_dimensions()[0]);
+			select_visible_points -> SetSelection(&picker -> get_dimensions_int()[0]);
 			select_visible_points -> Update();
 
 			// The selected points are finally obtained in the form of a vtkPolyData

@@ -168,12 +168,39 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> setLayout(this -> main_layout);
 
 	this -> set_data(interactor_style);
+
+
+	vtkSmartPointer<vtkPolyDataNormals> filter = vtkPolyDataNormals::New();
+	filter -> ComputePointNormalsOff();
+	filter -> ComputeCellNormalsOn();
+	filter -> SetInputData(this -> parent -> get_asteroid() -> get_polydata());
+	filter -> Update ();
+
+	// Cell normals. There should be as many cell normals as cells in selected_cells_polydata
+	this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> SetNormals (filter -> GetOutput()
+	        -> GetCellData() -> GetNormals());
+
+
+
+
 }
 
 void ModifyAreaWidget::set_data(InteractorStyle * interactor_style) {
 
 	// The selected points and the full point facet/vertex shape model are made accessible to the widget
 	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
+
+
+	// TEST
+	if (this -> selected_points_polydata -> GetCellData()->GetNormals()) {
+		std::cout << "selected polydata has normals " << std::endl;
+	}
+	else {
+		std::cout << "selected polydata does not have normals " << std::endl;
+	}
+
+
+
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded

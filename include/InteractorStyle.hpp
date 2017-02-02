@@ -26,6 +26,7 @@
 #include <vtkExtractSelection.h>
 #include <vtkSelectVisiblePoints.h>
 #include <vtkPointSource.h>
+#include <vtkHardwareSelector.h>
 
 
 #include "vtkObjectFactory.h"

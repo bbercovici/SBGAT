@@ -17,12 +17,25 @@ public:
 	}
 	int get_Y0() {
 		return this -> Y0;
-	} 
+	}
 	int get_Y1() {
 		return this -> Y1;
 	}
 
-	std::vector<int> get_dimensions(){
+	std::vector<unsigned int> get_dimensions_uint() {
+
+		// WARNING: check order of dimensions
+		std::vector<unsigned int> dimensions;
+		dimensions.push_back(this -> get_X0());
+		dimensions.push_back(this -> get_Y1());
+		dimensions.push_back(this -> get_X1());
+		dimensions.push_back(this -> get_Y1());
+		return dimensions;
+	}
+
+	std::vector<int> get_dimensions_int() {
+		
+		// WARNING: check order of dimensions
 		std::vector<int> dimensions;
 		dimensions.push_back(this -> get_X0());
 		dimensions.push_back(this -> get_X1());
