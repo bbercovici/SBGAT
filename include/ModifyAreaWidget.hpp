@@ -88,7 +88,7 @@ public:
 	                 vtkSmartPointer<vtkPolyData> unselected_polydata,
 	                 vtkSmartPointer<vtkActor> selected_actor,
 	                 vtkSmartPointer<vtkActor> unselected_actor,
-	                 vtkSmartPointer<vtkIdList> boundary_vertex_ids_list);
+	                 vtkSmartPointer<vtkIdList> unselected_vertex_ids_list);
 
 	/**
 	Data Setter

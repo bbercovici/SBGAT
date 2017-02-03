@@ -326,11 +326,11 @@ void ModifyAreaWidget::update_view(int pos) {
 				double normalizing_constant;
 				switch (this -> transform_selection) {
 				case TransformSelection::SELECTED:
-					normalizing_constant =  this -> selected_polydata -> GetLength() * 0.3;
+					normalizing_constant =  this -> selected_polydata -> GetLength();
 					break;
 
 				case TransformSelection::NCLOSEST:
-					normalizing_constant =  this -> active_selected_points_polydata -> GetLength() * 0.3;
+					normalizing_constant =  this -> active_selected_points_polydata -> GetLength();
 					break;
 				}
 
@@ -339,17 +339,20 @@ void ModifyAreaWidget::update_view(int pos) {
 				// the current choice of interpolating type.
 				switch (this -> interpolation_type ) {
 				case InterpolationType::UNIFORM:
-					interpolating_factor = 1;
+					interpolating_factor = 0.1 * this -> parent -> get_asteroid()
+					                       -> get_polydata() -> GetLength();
 					break;
 
 				case InterpolationType::LINEAR:
 					interpolating_factor = std::max(0., 1 - arma::norm(this -> blob_center_position - old_p_vec)
-					                                / normalizing_constant  );
+					                                / normalizing_constant  ) * 0.1 * this -> parent -> get_asteroid()
+					                       -> get_polydata() -> GetLength();
 
 					break;
 				case InterpolationType::PARABOLIC:
 					interpolating_factor = std::max(0., 1 - std::pow(arma::norm(this -> blob_center_position - old_p_vec)
-					                                / normalizing_constant , 2));
+					                                / normalizing_constant , 2)) * 0.1 * this -> parent -> get_asteroid()
+					                       -> get_polydata() -> GetLength();
 					break;
 				}
 
@@ -361,8 +364,7 @@ void ModifyAreaWidget::update_view(int pos) {
 				}
 
 				// The position of the transform vertex is computed
-				double length = this -> parent -> get_asteroid() -> get_polydata() -> GetLength();
-				new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor * length;
+				new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor ;
 
 				new_p[0] = new_p_vec(0);
 				new_p[1] = new_p_vec(1);

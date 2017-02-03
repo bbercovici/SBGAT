@@ -49,25 +49,7 @@ void InteractorStyle::OnLeftButtonUp() {
 
 				vtkSmartPointer<vtkPolyData> selected_polydata = selected_geometry -> GetOutput();
 
-				// The boundary edges are found
-				vtkSmartPointer<vtkFeatureEdges> featureEdges =
-				    vtkSmartPointer<vtkFeatureEdges>::New();
-				featureEdges -> SetInputData(selected_polydata);
-				featureEdges -> BoundaryEdgesOn();
-				featureEdges -> FeatureEdgesOff();
-				featureEdges -> ManifoldEdgesOff();
-				featureEdges -> NonManifoldEdgesOff();
-				featureEdges -> Update();
 
-				vtkSmartPointer<vtkDataArray> ids = featureEdges -> GetOutput() -> GetPointData() -> GetArray("ids");
-
-				// The vertices located on the boundary of the polydata are located
-				vtkSmartPointer<vtkIdList> boundary_vertex_ids_list = vtkSmartPointer<vtkIdList>::New();
-				for (unsigned int i = 0; i < featureEdges -> GetOutput() -> GetNumberOfPoints(); ++i) {
-					boundary_vertex_ids_list -> InsertNextId(*(ids -> GetTuple(i)));
-					std::cout << *(ids -> GetTuple(i)) << std::endl;
-				}
-				std::cout << std::endl;
 
 				// The selection is inverted to find the cells that were not selected
 				vtkSmartPointer<vtkSelectionNode> selectionNode = selection -> GetNode(0);
@@ -86,6 +68,69 @@ void InteractorStyle::OnLeftButtonUp() {
 
 
 				vtkSmartPointer<vtkPolyData> unselected_polydata = unselected_geometry -> GetOutput();
+
+				// I'm not happy with the output of vtkFeatureEdges. For now,
+				// it is possible to detect the edge by looking for vertices present in
+				// both sets and constructing a boundary list this way
+
+				// The boundary edges are found
+				// vtkSmartPointer<vtkFeatureEdges> featureEdges =
+				//     vtkSmartPointer<vtkFeatureEdges>::New();
+				// featureEdges -> SetInputData(selected_polydata);
+				// featureEdges -> BoundaryEdgesOn();
+				// featureEdges -> FeatureEdgesOff();
+				// featureEdges -> ManifoldEdgesOff();
+				// featureEdges -> NonManifoldEdgesOff();
+				// featureEdges -> Update();
+
+
+				// The global indices of the unselected points are
+				// stored in a vtkIdList
+				vtkSmartPointer<vtkDataArray> unselected_ids = unselected_polydata -> GetPointData() -> GetArray("ids");
+
+				vtkSmartPointer<vtkIdList> unselected_vertex_ids_list = vtkSmartPointer<vtkIdList>::New();
+				for (unsigned int i = 0; i < unselected_polydata -> GetNumberOfPoints(); ++i) {
+					unselected_vertex_ids_list -> InsertNextId(*(unselected_ids -> GetTuple(i)));
+				}
+
+
+				// The same is done with the indices of the selected points
+				vtkSmartPointer<vtkDataArray> selected_ids = selected_polydata -> GetPointData() -> GetArray("ids");
+				vtkSmartPointer<vtkIdList> selected_vertex_ids_list = vtkSmartPointer<vtkIdList>::New();
+				for (unsigned int i = 0; i < selected_polydata -> GetNumberOfPoints(); ++i) {
+					selected_vertex_ids_list -> InsertNextId(*(selected_ids -> GetTuple(i)));
+				}
+
+				// A third list is created to store the boundary vertices.
+				vtkSmartPointer<vtkIdList> boundary_vertex_ids_list = vtkSmartPointer<vtkIdList>::New();
+
+				// This list is constructed by browsing through the shortest of the two lists
+				if (selected_polydata -> GetNumberOfPoints() < unselected_polydata -> GetNumberOfPoints()) {
+					for (unsigned int i = 0; i < selected_polydata -> GetNumberOfPoints(); ++i) {
+
+						if (unselected_vertex_ids_list -> IsId (selected_vertex_ids_list
+						                                        -> GetId(i) ) != -1) {
+							boundary_vertex_ids_list -> InsertNextId(selected_vertex_ids_list
+							        -> GetId(i) );
+
+						}
+					}
+
+				}
+				else {
+
+					for (unsigned int i = 0; i < unselected_polydata -> GetNumberOfPoints(); ++i) {
+
+						if (selected_vertex_ids_list -> IsId (unselected_vertex_ids_list
+						                                      -> GetId(i) ) != -1) {
+							boundary_vertex_ids_list -> InsertNextId(unselected_vertex_ids_list
+							        -> GetId(i) );
+
+						}
+					}
+
+				}
+
 				vtkSmartPointer<vtkPolyDataMapper> sel_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				sel_mapper -> SetInputData(selected_polydata);
 				sel_mapper -> ScalarVisibilityOff();
@@ -103,7 +148,6 @@ void InteractorStyle::OnLeftButtonUp() {
 
 				this -> mainwindow -> get_renderer() -> AddActor(selected_actor);
 				this -> mainwindow -> get_renderer() -> AddActor(unselected_actor);
-
 				this -> mainwindow -> get_renderer() -> GetRenderWindow() -> Render();
 
 				ModifyAreaWidget * modify_area_widget = new ModifyAreaWidget(
@@ -118,7 +162,6 @@ void InteractorStyle::OnLeftButtonUp() {
 				this -> mainwindow ->  lateral_dockwidget -> show();
 
 
-
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.
 				// hiding them after highlighting the cells
@@ -131,87 +174,7 @@ void InteractorStyle::OnLeftButtonUp() {
 			}
 
 
-			// vtkSmartPointer<vtkSelectVisiblePoints> select_visible_points =
-			//     vtkSmartPointer<vtkSelectVisiblePoints>::New();
 
-			// vtkSmartPointer<vtkHardwareSelector> selector = vtkSmartPointer<vtkHardwareSelector>::New();
-			// selector -> SetRenderer(this -> mainwindow -> get_renderer());
-
-			// selector -> SetArea(&picker -> get_dimensions_uint()[0]);
-			// selector -> SetFieldAssociation(vtkDataObject::FIELD_ASSOCIATION_CELLS);
-			// vtkSmartPointer<vtkSelection> selection = selector -> Select();
-
-
-			// 	vtkSmartPointer<vtkExtractSelectedPolyDataIds> extractSelection =
-			// 	    vtkSmartPointer<vtkExtractSelectedPolyDataIds>::New();
-
-			// 	extractSelection -> SetInputData(0, this -> mainwindow -> get_asteroid() -> get_polydata());
-			// 	extractSelection -> SetInputData(1, selection);
-			// 	extractSelection -> Update();
-
-			// 	vtkSmartPointer<vtkPolyData> selected_polydata_test = vtkPolyData::SafeDownCast(extractSelection -> GetOutput());
-			// 	std::cout << selected_polydata_test -> GetNumberOfCells() << std::endl;
-			// 	selection -> GetNode(0) -> Print(std::cout);
-			// 	selection -> GetNode(0) -> GetProperties() -> Set(vtkSelectionNode::INVERSE(), 1); //invert the selection
-			// 	selection -> GetNode(0) -> Print(std::cout);
-
-			// 	extractSelection -> Update();
-
-			// 	vtkSmartPointer<vtkPolyData> unselected_polydata_test = vtkPolyData::SafeDownCast(extractSelection -> GetOutput());
-			// 	std::cout << unselected_polydata_test -> GetNumberOfCells() << std::endl;
-
-			// 	// The filter renderer is set to the current renderer
-			// 	select_visible_points -> SetRenderer(this -> mainwindow -> get_renderer());
-			// 	select_visible_points -> SelectionWindowOn();;
-
-			// 	// The filter in charge of effectively extracting the points is
-			// 	// fed with the data.
-			// 	// The filter is provided with a pointer to the vtkPolyData of interest
-			// 	select_visible_points -> SetInputDataObject(this -> mainwindow -> get_asteroid() -> get_polydata());
-
-			// 	// The dimension of the selection area is set
-			// 	// The seemingly akward operation within brackets is simply a
-			// 	// conversion from a std::vector<int> containing 4 items to int[4]
-			// 	select_visible_points -> SetSelection(&picker -> get_dimensions_int()[0]);
-			// 	select_visible_points -> Update();
-
-			// 	// The selected points are finally obtained in the form of a vtkPolyData
-			// 	this -> selected_points_polydata = select_visible_points -> GetOutput();
-
-			// 	// If at least one vertex was selected, the selection widget will open
-			// 	if (this -> selected_points_polydata -> GetNumberOfPoints() > 0) {
-
-			// 		// A new ModifyAreaWidget is provided with the underlying shape model
-			// 		// by passing a pointer to this, which already owns it
-
-			// 		ModifyAreaWidget * modify_area_widget = new ModifyAreaWidget(this -> mainwindow,
-			// 		        this);
-
-			// 		this -> mainwindow ->  lateral_dockwidget -> setWidget(modify_area_widget);
-			// 		this -> mainwindow ->  lateral_dockwidget -> show();
-
-			// 		// An actor is added to represent the selected cells
-			// 		// Another one is also created to represent the rest of the shape model
-			// 		// that is not selected
-			// 		modify_area_widget -> highlight_selected_cells();
-
-			// 		// the normals of the selected cells are computed
-			// 		modify_area_widget -> compute_selected_cells_average_normals();
-
-			// 		// the id of the blob "center" is found
-			// 		modify_area_widget -> find_blob_center();
-
-			// 		// the actors owned by the mainwindow are hidden. They will be
-			// 		// shown again once pc_editing widget is closed.
-			// 		// hiding them after highlighting the cells
-			// 		// prevents flickering
-			// 		this -> mainwindow -> set_actors_visibility(false);
-
-
-			// 		// Back to orient mode
-			// 		this -> CurrentMode = INTERACTOR_IS_ORIENT;
-
-			// 	}
 
 		}
 
