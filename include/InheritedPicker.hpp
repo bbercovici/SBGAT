@@ -27,7 +27,7 @@ public:
 		// WARNING: check order of dimensions
 		std::vector<unsigned int> dimensions;
 		dimensions.push_back(this -> get_X0());
-		dimensions.push_back(this -> get_Y1());
+		dimensions.push_back(this -> get_Y0());
 		dimensions.push_back(this -> get_X1());
 		dimensions.push_back(this -> get_Y1());
 		return dimensions;

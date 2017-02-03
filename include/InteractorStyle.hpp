@@ -27,7 +27,11 @@
 #include <vtkSelectVisiblePoints.h>
 #include <vtkPointSource.h>
 #include <vtkHardwareSelector.h>
-
+#include <vtkExtractSelectedPolyDataIds.h>
+#include <vtkSelectionNode.h>
+#include <vtkInformation.h>
+#include <vtkGeometryFilter.h>
+#include <vtkFeatureEdges.h>
 
 #include "vtkObjectFactory.h"
 #include "Mainwindow.hpp"

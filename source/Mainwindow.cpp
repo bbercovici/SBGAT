@@ -115,9 +115,18 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         id_filter -> SetIdsArrayName("ids");
         id_filter -> SetInputData(read_polydata_without_id);
         id_filter -> PointIdsOn();
+        id_filter -> CellIdsOn();
+
         id_filter -> Update();
 
-        vtkSmartPointer<vtkPolyData> read_polydata = id_filter -> GetPolyDataOutput();
+        // The normals are added to the polydata
+        vtkSmartPointer<vtkPolyDataNormals> filter = vtkPolyDataNormals::New();
+        filter -> ComputePointNormalsOff();
+        filter -> ComputeCellNormalsOn();
+        filter -> SetInputConnection(id_filter -> GetOutputPort());
+        filter -> Update ();
+
+        vtkSmartPointer<vtkPolyData> read_polydata = filter -> GetOutput();
 
         // Create a mapper and actor to represent the shape model
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -153,8 +162,8 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> renderWindowInteractor -> SetInteractorStyle( style );
         style -> set_mainwindow(this);
 
-        // Any previously loaded asteroid is deleted 
-        // and replaced by a new one of shape model defined by 
+        // Any previously loaded asteroid is deleted
+        // and replaced by a new one of shape model defined by
         // the polydata just read in
         delete(this -> asteroid);
         this -> asteroid = new Asteroid(read_polydata, 1000);
@@ -210,9 +219,9 @@ void Mainwindow::open() {
         // with an appropriate scaling transform
         vtkSmartPointer<vtkTransform> transform  =
             vtkSmartPointer<vtkTransform>::New();
-        transform -> Scale(this -> scaling_factor, 
-            this -> scaling_factor, 
-            this -> scaling_factor);
+        transform -> Scale(this -> scaling_factor,
+                           this -> scaling_factor,
+                           this -> scaling_factor);
 
         // A scaling transform is applied to the input polydata so as to have its vertex
         // coordinates expressed in meters
@@ -222,8 +231,8 @@ void Mainwindow::open() {
         transformFilter -> SetTransform(transform);
         transformFilter -> Update();
         vtkSmartPointer<vtkPolyData> read_polydata_without_id = transformFilter -> GetOutput();
-        
-        // The content of the obj file is loaded into SBGAT 
+
+        // The content of the obj file is loaded into SBGAT
         this -> load_obj(read_polydata_without_id);
 
     }
@@ -392,11 +401,11 @@ void Mainwindow::clear_all() {
     // All the actors currently displayed are removed
     this -> remove_actors();
 
-    // The lateral dockwidget that was opened (if any) is closed 
+    // The lateral dockwidget that was opened (if any) is closed
     // and its close() method called
     this -> close_lateral_dockwidget();
 
-    // The current asteroid is destroyed 
+    // The current asteroid is destroyed
     delete(this -> asteroid);
     this -> asteroid = nullptr;
 

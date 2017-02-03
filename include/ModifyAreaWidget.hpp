@@ -27,6 +27,7 @@
 #include <vtkKdTreePointLocator.h>
 #include <vtkPoints.h>
 #include <vtkCenterOfMass.h>
+#include <vtkAppendPolyData.h>
 
 #include "vtkObjectFactory.h"
 
@@ -48,7 +49,7 @@ class Mainwindow;
 /**
 Enum defining the state "transform direction" drop down list
 */
-enum class TransformDirection {RADIAL, NORMAL_POINT,NORMAL_AVERAGED};
+enum class TransformDirection {RADIAL, NORMAL_AVERAGED};
 
 
 /**
@@ -80,31 +81,27 @@ public:
 	/**
 	Constructor.
 	@param parent Pointer to parent widget (here, pointer to instance of Mainwindow )
-	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
 	*/
 
 	ModifyAreaWidget(Mainwindow * parent,
-	InteractorStyle * interactor_style);
+	                 vtkSmartPointer<vtkPolyData> selected_polydata,
+	                 vtkSmartPointer<vtkPolyData> unselected_polydata,
+	                 vtkSmartPointer<vtkActor> selected_actor,
+	                 vtkSmartPointer<vtkActor> unselected_actor,
+	                 vtkSmartPointer<vtkIdList> boundary_vertex_ids_list);
 
 	/**
-	Data Setter The pointer passed as arguments allow the widget to have access to the
-	point properties
-	@param interactor_style Pointer to the interactor accessing the shape model currently displayed
+	Data Setter
 	*/
-	void set_data(InteractorStyle * interactor_style);
-
-	/**
-	Highlights the cells corresponding to the selected points
-	*/
-	void highlight_selected_cells();
+	void set_data();
 
 	/**
 	Computes the normals of the selected cells
 	*/
-	void compute_selected_cells_normals();
+	void compute_selected_cells_average_normals();
 
 	/**
-	Finds the position of the average of the selected vertices and 
+	Finds the position of the average of the selected vertices and
 	the coordinates of the vertex that is closest to this average
 	*/
 	void find_blob_center();
@@ -163,14 +160,14 @@ private slots:
 	void update_view(int pos);
 
 	/**
-	Conveniency slot called when the view must be updated 
+	Conveniency slot called when the view must be updated
 	without changing the slider_magnitude position
 	*/
 	void update_view_unchanged_slider_magnitude();
 
 	/**
 	Finds the indices of the N closest neighboring vertices to the selected blob center
-	and uses this piece of information to update the view accordingly (using the 
+	and uses this piece of information to update the view accordingly (using the
 	N-closest neighbor selection)
 	@param N Number of neighboring vertices to identify
 	*/
@@ -219,19 +216,6 @@ private:
 	*/
 	void populate_vertex_table();
 
-	/**
-	Constructs the vtkPolyData corresponding to 1) the selected cells 2) the rest of the cells in the
-	currently displayed shape model. This allows the rendering window to represent both sets of cells
-	separately
-	*/
-	void compute_cell_blobs();
-
-	/**
-	Computes the memory space used by all the class members derived from vtkAbstractArray
-	@return size Int representing the memory used by class members derived from
-	vtkAbstractArray in MbiBytes
-	*/
-	float get_actual_memory_size();
 
 	/**
 	Finds the indice of the N closest neighbors to the blob center
@@ -241,23 +225,16 @@ private:
 
 	QStringList labels;
 
-	vtkSmartPointer<vtkPolyData> selected_points_polydata;
 	vtkSmartPointer<vtkPolyData> active_selected_points_polydata;
 
-	vtkSmartPointer<vtkPolyData> selected_cells_polydata;
-	vtkSmartPointer<vtkPolyData> unselected_cells_polydata;
-
 	vtkSmartPointer<vtkPoints> selected_points;
-	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
-	
+
 	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids;
 	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids;
-	vtkSmartPointer<vtkPoints> new_selected_points_coordinates;
 
 	vtkSmartPointer<vtkIdTypeArray> polys_ids;
-	vtkSmartPointer<vtkIdTypeArray> visible_points_global_ids_from_local_index;
+	vtkSmartPointer<vtkIdTypeArray> selected_vertices_global_ids_from_local_ids;
 
-	vtkSmartPointer<vtkIdList> cell_ids;
 	vtkDataArray * selected_cells_normals;
 	vtkSmartPointer<vtkDoubleArray > averaged_normal_array;
 
@@ -267,10 +244,21 @@ private:
 
 	arma::vec blob_center_position;
 	arma::vec blob_average_position;
+
 	int blob_center_id;
 
 	vtkSmartPointer<vtkIdList> N_closest_vertices_indices;
+	vtkSmartPointer<vtkIdList> boundary_vertex_ids_list;
+
 	vtkSmartPointer<vtkKdTreePointLocator> point_locator;
+
+	vtkSmartPointer<vtkPolyData> selected_polydata;
+	vtkSmartPointer<vtkPolyData> selected_polydata_original;
+
+	vtkSmartPointer<vtkPolyData> unselected_polydata;
+
+	vtkSmartPointer<vtkActor> selected_actor;
+	vtkSmartPointer<vtkActor> unselected_actor;
 
 	Mainwindow * parent;
 };

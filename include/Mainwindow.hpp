@@ -35,6 +35,8 @@
 #include <vtkLine.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkAxesActor.h>
+#include <vtkPolyDataNormals.h>
+
 #include "QVTKWidget.h"
 #include "osxHelper.h"
 

@@ -2,11 +2,14 @@
 
 
 ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
-                                   InteractorStyle * interactor_style) : QDialog(parent) {
+                                   vtkSmartPointer<vtkPolyData> selected_polydata,
+                                   vtkSmartPointer<vtkPolyData> unselected_polydata,
+                                   vtkSmartPointer<vtkActor> selected_actor,
+                                   vtkSmartPointer<vtkActor> unselected_actor,
+                                   vtkSmartPointer<vtkIdList> boundary_vertex_ids_list) : QDialog(parent) {
 
 	this -> setAttribute(Qt::WA_DeleteOnClose);
 	this -> parent = parent;
-
 
 	// The different GUI elements are created
 	this -> slider_magnitude = new QSlider(Qt::Horizontal, this);
@@ -39,22 +42,14 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> active_selected_points_polydata = vtkPolyData::New();
 	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
 
-	this -> selected_cells_polydata = vtkPolyData::New();
-	this -> unselected_cells_polydata = vtkPolyData::New();
 
 	this -> selected_points = vtkPoints::New();
-	this -> new_selected_points_coordinates = vtkPoints::New();
 
 	this -> selected_polys_ids =
 	    vtkSmartPointer<vtkIdTypeArray>::New();
 	this -> selected_polys_ids -> SetNumberOfComponents(1);
 
 
-	this -> unselected_polys_ids =
-	    vtkSmartPointer<vtkIdTypeArray>::New();
-	this -> unselected_polys_ids -> SetNumberOfComponents(1);
-
-	this -> cell_ids = vtkIdList::New() ;
 	this -> N_closest_vertices_indices = vtkIdList::New() ;
 
 	this -> averaged_normal_array = vtkDoubleArray::New();
@@ -133,7 +128,6 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	// The two drop-down lists are filled
 	this -> transform_direction_list -> insertItem(0, "Radial");
 	this -> transform_direction_list -> insertItem(1, "Average normal");
-	this -> transform_direction_list -> insertItem(2, "Point normals");
 	this -> interpolation_type_list -> insertItem(0, "Uniform (0th order)");
 	this -> interpolation_type_list -> insertItem(1, "Linear (1st order)");
 	this -> interpolation_type_list -> insertItem(2, "Parabolic (2nd order)");
@@ -167,190 +161,55 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 
 	this -> setLayout(this -> main_layout);
 
-	this -> set_data(interactor_style);
+	this -> boundary_vertex_ids_list = boundary_vertex_ids_list;
+	this -> selected_polydata = selected_polydata;
+	this -> unselected_polydata = unselected_polydata;
 
+	this -> selected_polydata_original = vtkSmartPointer<vtkPolyData>::New();
+	this -> selected_polydata_original -> DeepCopy(this -> selected_polydata);
 
-	vtkSmartPointer<vtkPolyDataNormals> filter = vtkPolyDataNormals::New();
-	filter -> ComputePointNormalsOff();
-	filter -> ComputeCellNormalsOn();
-	filter -> SetInputData(this -> parent -> get_asteroid() -> get_polydata());
-	filter -> Update ();
+	this -> selected_actor = selected_actor;
+	this -> unselected_actor = unselected_actor;
 
-	// Cell normals. There should be as many cell normals as cells in selected_cells_polydata
-	this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> SetNormals (filter -> GetOutput()
-	        -> GetCellData() -> GetNormals());
+	// The table containing the global ids of the selected vertices is populated
+	this -> set_data();
 
+	// The average normal of the selected blob is computed
+	this -> compute_selected_cells_average_normals();
 
-
+	// the id of the blob "center" is found
+	this -> find_blob_center();
 
 }
 
-void ModifyAreaWidget::set_data(InteractorStyle * interactor_style) {
 
-	// The selected points and the full point facet/vertex shape model are made accessible to the widget
-	this -> selected_points_polydata = interactor_style -> get_selected_points_polydata();
-
-
-	// TEST
-	if (this -> selected_points_polydata -> GetCellData()->GetNormals()) {
-		std::cout << "selected polydata has normals " << std::endl;
-	}
-	else {
-		std::cout << "selected polydata does not have normals " << std::endl;
-	}
-
-
-
+void ModifyAreaWidget::set_data() {
 
 	// Get the polys connectivity of the full shape model. Those are not changing,
 	// and can hence be set when the new shape data is loaded
 	this -> polys_ids  = this -> parent -> get_asteroid() -> get_polydata() -> GetPolys () -> GetData ();
 
 	// Likewise, the ids of the selected points are retrieved
-	this -> visible_points_global_ids_from_local_index = vtkIdTypeArray::SafeDownCast(
-	            this -> selected_points_polydata -> GetPointData() -> GetArray("ids"));
+	this -> selected_vertices_global_ids_from_local_ids = vtkIdTypeArray::SafeDownCast(
+	            this -> selected_polydata -> GetPointData() -> GetArray("ids"));
 
 	// The table showing the vertex info is populated and shown
-	this -> table -> setRowCount(this -> selected_points_polydata -> GetNumberOfPoints());
+	this -> table -> setRowCount(this -> selected_polydata -> GetNumberOfPoints());
 	this -> populate_vertex_table();
 	this -> table -> show();
 	this -> slider_magnitude -> setValue(0);
 
 	// The point locator is cleaned up and provided with the selected blob
-	this -> point_locator -> SetDataSet(this -> selected_points_polydata);
+	this -> point_locator -> SetDataSet(this -> selected_polydata);
 	this -> point_locator -> BuildLocator();
 
 }
 
-void ModifyAreaWidget::highlight_selected_cells() {
-
-	// the blobs representing the selected and unselected cells are created
-	this -> compute_cell_blobs();
-
-	// The selected facets/vertices are highlighted
-	vtkSmartPointer<vtkPolyDataMapper> selected_cell_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	selected_cell_mapper -> SetInputData(this -> selected_cells_polydata );
-	vtkSmartPointer<vtkActor> selected_cells_actor = vtkSmartPointer<vtkActor>::New();
-	selected_cells_actor -> SetMapper(selected_cell_mapper);
-	selected_cells_actor -> GetMapper() -> ScalarVisibilityOff();
-	selected_cells_actor -> GetProperty() -> SetColor(1, 0 , 0);
-	this -> parent -> get_renderer() -> AddActor(selected_cells_actor);
-
-	// The pointer to the newly created actor is saved for future use
-	this -> actor_vector.push_back(selected_cells_actor);
-
-	// The unselected facets/vertices are also added
-	vtkSmartPointer<vtkPolyDataMapper> unselected_cell_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	unselected_cell_mapper -> SetInputData(this -> unselected_cells_polydata );
-	vtkSmartPointer<vtkActor> unselected_cells_actor = vtkSmartPointer<vtkActor>::New();
-	unselected_cells_actor -> SetMapper(unselected_cell_mapper);
-	unselected_cells_actor -> GetMapper() -> ScalarVisibilityOff();
-	unselected_cells_actor -> GetProperty() -> SetColor(1, 1 , 1);
-	this -> parent -> get_renderer() -> AddActor(unselected_cells_actor);
-	this -> actor_vector.push_back(unselected_cells_actor);
-	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
-
-}
-
-
-void ModifyAreaWidget::compute_cell_blobs() {
-
-	/*************************************************************************/
-	// The selected facets are highlighted by means of a polydata representing them
-	// The same process is done with the unselected cells
-	// The points stored by those polydatas are all the vertices of the full shape model
-	selected_cells_polydata -> SetPoints(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
-	unselected_cells_polydata -> SetPoints(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
-
-	std::set<unsigned int> cells_to_include_indices;
-
-	for (unsigned int selected_point_index = 0;
-	        selected_point_index < visible_points_global_ids_from_local_index -> GetNumberOfTuples () ;
-	        ++selected_point_index ) {
-		// For each visible vertex, the ids of the cells it belongs to are stored
-		this -> parent -> get_asteroid() -> get_polydata() -> GetPointCells(* visible_points_global_ids_from_local_index -> GetTuple(selected_point_index), this -> cell_ids);
-
-		// Those IDs are eventually transfered in a set for uniqueness
-		for (unsigned int cell_id_index = 0; cell_id_index < this -> cell_ids -> GetNumberOfIds(); ++cell_id_index) {
-			cells_to_include_indices.insert(this -> cell_ids -> GetId (cell_id_index));
-		}
-	}
-	/*************************************************************************/
-
-	// Those two containers must be re-created everytime compute_cell_blobs is called. Calling Initialize on them
-	// somehow prevents them to be reused. Not calling Initialize will make compute_normals crash, probably
-	// because of an indexing discrepancy
-	vtkSmartPointer<vtkCellArray> selected_polys_cell_array = vtkCellArray::New();
-	vtkSmartPointer<vtkCellArray> unselected_polys_cell_array = vtkCellArray::New();
-
-	/*************************************************************************/
-	//The following constructs the set of cells that are not included in the selection
-	// This is done by simply taking the difference between two sets:
-	// - all_cells_indices: set containing the indices of all cells (all integers from zero to
-	// points_polydata -> GetNumberOfCells() - 1 )
-	// - cells_to_include_indices: set containing the indices of the selected cells
-	std::set<unsigned int> cells_not_included_indices;
-	std::set<unsigned int> all_cells_indices;
-
-
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfCells(); ++i) {
-		all_cells_indices.insert(i);
-
-	}
-
-	// cells_not_included_indices contains the indices of the cells that were not included in the selection
-	std::set_difference(all_cells_indices.begin(), all_cells_indices.end(),
-	                    cells_to_include_indices.begin(), cells_to_include_indices.end(),
-	                    std::inserter(cells_not_included_indices, cells_not_included_indices.end()));
-	/*************************************************************************/
-
-
-	for (std::set<unsigned int>::iterator iter = cells_to_include_indices.begin();
-	        iter != cells_to_include_indices.end(); ++iter ) {
-		// indices of the poly's vertices that were selected
-		unsigned int facet_vertices_ids[3];
-		facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * (*iter) + 1));
-		facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * (*iter) + 2));
-		facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * (*iter) + 3));
-		selected_polys_ids -> InsertNextValue(3);
-		selected_polys_ids -> InsertNextValue(facet_vertices_ids[0]);
-		selected_polys_ids -> InsertNextValue(facet_vertices_ids[1]);
-		selected_polys_ids -> InsertNextValue(facet_vertices_ids[2]);
-	}
-
-	selected_polys_cell_array -> SetCells(cells_to_include_indices.size(), selected_polys_ids);
-
-
-	for (std::set<unsigned int>::iterator iter = cells_not_included_indices.begin();
-	        iter != cells_not_included_indices.end(); ++iter ) {
-		// indices of the poly's vertices that were not selected
-		unsigned int facet_vertices_ids[3];
-		facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * (*iter) + 1));
-		facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * (*iter) + 2));
-		facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * (*iter) + 3));
-		unselected_polys_ids -> InsertNextValue(3);
-		unselected_polys_ids -> InsertNextValue(facet_vertices_ids[0]);
-		unselected_polys_ids -> InsertNextValue(facet_vertices_ids[1]);
-		unselected_polys_ids -> InsertNextValue(facet_vertices_ids[2]);
-	}
-
-	unselected_polys_cell_array -> SetCells(cells_not_included_indices.size(), unselected_polys_ids);
-
-	// The structured polydata of the selected cells is finally constructed
-	this -> selected_cells_polydata -> SetPolys(selected_polys_cell_array);
-
-	// same for the unselected cells
-	this -> unselected_cells_polydata -> SetPolys(unselected_polys_cell_array);
-
-}
-
-
-
 void ModifyAreaWidget::populate_vertex_table() {
 
 	// Ids of selected points
-	vtkSmartPointer<vtkDataArray> ids = this -> selected_points_polydata -> GetPointData() -> GetArray("ids");
-	for (int row = 0; row < this -> selected_points_polydata -> GetNumberOfPoints(); ++row) {
+	vtkSmartPointer<vtkDataArray> ids = this -> selected_polydata -> GetPointData() -> GetArray("ids");
+	for (int row = 0; row < this -> selected_polydata -> GetNumberOfPoints(); ++row) {
 
 		// The ids of each selected point is added in the first column
 		QTableWidgetItem * id_item = new QTableWidgetItem(tr("%1").arg(* (ids -> GetTuple (row))));
@@ -359,7 +218,7 @@ void ModifyAreaWidget::populate_vertex_table() {
 
 		// The coordinates of each selected point are added to the other columns
 		double p[3];
-		this -> selected_points_polydata -> GetPoint(row, p);
+		this -> selected_polydata -> GetPoint(row, p);
 
 		QTableWidgetItem * x_item = new QTableWidgetItem(tr("%1").arg(p[0]));
 		QTableWidgetItem * y_item = new QTableWidgetItem(tr("%1").arg(p[1]));
@@ -378,7 +237,7 @@ void ModifyAreaWidget::find_blob_center() {
 
 	vtkSmartPointer<vtkCenterOfMass> centerOfMassFilter =
 	    vtkSmartPointer<vtkCenterOfMass>::New();
-	centerOfMassFilter -> SetInputData(this -> selected_points_polydata);
+	centerOfMassFilter -> SetInputData(this -> selected_polydata);
 	centerOfMassFilter -> SetUseScalarsAsWeights(false);
 	centerOfMassFilter -> Update();
 
@@ -389,9 +248,9 @@ void ModifyAreaWidget::find_blob_center() {
 	// a point physically present in the blob. The next step thus consists in finding the selected point that is closest to this average.
 	// this point physically present in the blob is thus called the "blob center"
 
-	this -> blob_center_id = this -> selected_points_polydata -> FindPoint(blob_average_position);
-	this -> selected_points_polydata -> GetPoint(this -> blob_center_id,
-	        blob_center_position);
+	this -> blob_center_id = this -> selected_polydata -> FindPoint(blob_average_position);
+	this -> selected_polydata -> GetPoint(this -> blob_center_id,
+	                                      blob_center_position);
 
 	// The computed locations are stored in arma::vec form
 	this -> blob_center_position = {blob_center_position[0], blob_center_position[1], blob_center_position[2] };
@@ -404,106 +263,150 @@ void ModifyAreaWidget::update_view(int pos) {
 	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
 	this -> selected_points -> DeepCopy(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
 
-	// Each selected point is looped over and transformed accordingly
-	for (int i = 0; i < this -> visible_points_global_ids_from_local_index -> GetNumberOfTuples () ; ++i ) {
+	this -> selected_polydata -> GetPolys() -> InitTraversal();
 
-		// local variables used to communicate with VTK routines
-		double p[3];
-		double new_p[3];
-		double normal_direction[3];
+	std::set<unsigned int> visited_vertex_indices;
 
-		// interpolating factor used to locally smooth the transform
-		double interpolating_factor;
+	for (unsigned int selected_facet_index = 0;
+	        selected_facet_index < this -> selected_polydata -> GetNumberOfPolys();
+	        ++selected_facet_index) {
 
-		// Arma::vecs
-		arma::vec u; // normalized transform direction
-		arma::vec new_p_vec; // new point location
-		arma::vec old_p_vec; // old point location
+		vtkSmartPointer<vtkIdList> vertices_indices = vtkSmartPointer<vtkIdList>::New();
 
-		// The i-th visible point is queried
-		this -> selected_points -> GetPoint (* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), p);
+		// Current cell
+		this -> selected_polydata -> GetPolys() -> GetNextCell(vertices_indices);
 
-		// its position is stored in a arma::vec to enable upcoming operations
-		old_p_vec = {p[0], p[1], p[2]};
+		// For earch vertex in the cell
+		for (unsigned int local_vertex_index = 0; local_vertex_index < 3; ++ local_vertex_index) {
+			unsigned int v_index = vertices_indices -> GetId(local_vertex_index);
 
-		switch (this -> transform_direction) {
-		case TransformDirection::RADIAL :
-			u = arma::normalise(old_p_vec);
-			break;
 
-		case TransformDirection::NORMAL_POINT :
-			this -> selected_cells_normals -> GetTuple(i,
-			        normal_direction);
+			// If this vertex has not been previously visited
+			if (visited_vertex_indices.find(v_index) == visited_vertex_indices.end()) {
+				visited_vertex_indices.insert(v_index);
 
-			u = {normal_direction[0], normal_direction[1], normal_direction[2] };
-			u = arma::normalise(u);
-			break;
+				// local variables used to communicate with VTK routines
+				double p[3];
+				double new_p[3];
+				double normal_direction[3];
 
-		case TransformDirection::NORMAL_AVERAGED :
-			normal_direction[0] = this -> averaged_normal_array -> GetValue(0);
-			normal_direction[1] = this -> averaged_normal_array -> GetValue(1);
-			normal_direction[2] = this -> averaged_normal_array -> GetValue(2);
+				// interpolating factor used to locally smooth the transform
+				double interpolating_factor;
 
-			u = {normal_direction[0], normal_direction[1], normal_direction[2] };
-			u = arma::normalise(u);
 
-			break;
+				// Arma::vecs
+				arma::vec u; // normalized transform direction
+				arma::vec new_p_vec; // new point location
+				arma::vec old_p_vec; // old point location
+
+				// This point is queried
+				this -> selected_polydata_original -> GetPoint(v_index, p);
+
+				// its position is stored in a arma::vec to enable upcoming operations
+				old_p_vec = {p[0], p[1], p[2]};
+
+				switch (this -> transform_direction) {
+				case TransformDirection::RADIAL :
+					u = arma::normalise(old_p_vec);
+					break;
+
+				case TransformDirection::NORMAL_AVERAGED :
+					normal_direction[0] = this -> averaged_normal_array -> GetValue(0);
+					normal_direction[1] = this -> averaged_normal_array -> GetValue(1);
+					normal_direction[2] = this -> averaged_normal_array -> GetValue(2);
+
+					u = {normal_direction[0], normal_direction[1], normal_direction[2] };
+					u = arma::normalise(u);
+
+					break;
+
+				}
+
+				// A characteristic length is extracted from the polydata's dimensions
+				double normalizing_constant;
+				switch (this -> transform_selection) {
+				case TransformSelection::SELECTED:
+					normalizing_constant =  this -> selected_polydata -> GetLength() * 0.3;
+					break;
+
+				case TransformSelection::NCLOSEST:
+					normalizing_constant =  this -> active_selected_points_polydata -> GetLength() * 0.3;
+					break;
+				}
+
+
+				// An interpolation factor is set depending on
+				// the current choice of interpolating type.
+				switch (this -> interpolation_type ) {
+				case InterpolationType::UNIFORM:
+					interpolating_factor = 1;
+					break;
+
+				case InterpolationType::LINEAR:
+					interpolating_factor = std::max(0., 1 - arma::norm(this -> blob_center_position - old_p_vec)
+					                                / normalizing_constant  );
+
+					break;
+				case InterpolationType::PARABOLIC:
+					interpolating_factor = std::max(0., 1 - std::pow(arma::norm(this -> blob_center_position - old_p_vec)
+					                                / normalizing_constant , 2));
+					break;
+				}
+
+				// If the vertex is on the boundary of the selected polydata, it is clamped
+				if (this -> boundary_vertex_ids_list
+				        -> IsId (* this -> selected_vertices_global_ids_from_local_ids
+				                 -> GetTuple(v_index) ) != -1) {
+					interpolating_factor = 0;
+				}
+
+				// The position of the transform vertex is computed
+				double length = this -> parent -> get_asteroid() -> get_polydata() -> GetLength();
+				new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor * length;
+
+				new_p[0] = new_p_vec(0);
+				new_p[1] = new_p_vec(1);
+				new_p[2] = new_p_vec(2);
+				this -> selected_polydata -> GetPoints() -> SetPoint(v_index, new_p);
+
+			}
 
 		}
-
-		// A characteristic length is extracted from the polydata's dimensions
-		double normalizing_constant;
-		switch (this -> transform_selection) {
-		case TransformSelection::SELECTED:
-			normalizing_constant =  this -> selected_points_polydata -> GetLength() * 0.3;
-			break;
-
-		case TransformSelection::NCLOSEST:
-			normalizing_constant =  this -> active_selected_points_polydata -> GetLength() * 0.3;
-			break;
-		}
-
-
-		// An interpolation factor is set depending on
-		// the current choice of interpolating type.
-		switch (this -> interpolation_type ) {
-		case InterpolationType::UNIFORM:
-			interpolating_factor = 1;
-			break;
-
-		case InterpolationType::LINEAR:
-			interpolating_factor = std::max(0., 1 - arma::norm(this -> blob_center_position - old_p_vec)
-			                                / normalizing_constant  );
-
-			break;
-		case InterpolationType::PARABOLIC:
-			interpolating_factor = std::max(0., 1 - std::pow(arma::norm(this -> blob_center_position - old_p_vec)
-			                                / normalizing_constant , 2));
-			break;
-		}
-
-		// The position of the transform vertex is computed
-		double length = this -> parent -> get_asteroid() -> get_polydata() -> GetLength();
-		new_p_vec = old_p_vec + u * float(pos) / 100 *  interpolating_factor * length;
-
-		new_p[0] = new_p_vec(0);
-		new_p[1] = new_p_vec(1);
-		new_p[2] = new_p_vec(2);
-
-		this -> selected_points -> SetPoint(* (this -> visible_points_global_ids_from_local_index -> GetTuple (i)), new_p);
 
 	}
 
-
-	this -> selected_cells_polydata -> SetPoints(this -> selected_points  );
-	this -> selected_cells_polydata -> Modified();
+	// this -> selected_polydata -> SetPoints(this -> selected_points  );
+	this -> selected_polydata -> Modified();
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
+
 }
 
 void ModifyAreaWidget::accept() {
-	this -> new_selected_points_coordinates -> DeepCopy(this -> selected_cells_polydata -> GetPoints());
-	this -> parent -> get_asteroid() -> get_polydata() -> SetPoints(this -> new_selected_points_coordinates);
-	this -> parent -> get_asteroid() -> get_polydata() -> Modified();
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter =
+	    vtkSmartPointer<vtkAppendPolyData>::New();
+
+	// The normals of the selected polydata are recomputed
+	vtkSmartPointer<vtkPolyDataNormals> filter = vtkPolyDataNormals::New();
+	filter -> ComputePointNormalsOff();
+	filter -> ComputeCellNormalsOn();
+	filter -> SetInputData(this -> selected_polydata);
+	filter -> Update ();
+	appendFilter -> AddInputData(filter -> GetOutput());
+	appendFilter -> AddInputData(this -> unselected_polydata);
+	appendFilter -> Update();
+
+	// An IDFilter is used, so as to renumber all the features
+	// in a consistent way
+	vtkSmartPointer<vtkIdFilter>  id_filter = vtkSmartPointer<vtkIdFilter>::New();
+	id_filter -> SetIdsArrayName("ids");
+	id_filter -> SetInputConnection(appendFilter -> GetOutputPort());
+	id_filter -> PointIdsOn();
+	id_filter -> CellIdsOn();
+
+	id_filter -> Update();
+
+	this -> parent -> get_asteroid() -> get_polydata() -> DeepCopy(id_filter -> GetOutput());
 	this -> close();
 }
 
@@ -511,15 +414,6 @@ void ModifyAreaWidget::reject() {
 	this -> close();
 }
 
-void ModifyAreaWidget::remove_selected_points_actor() {
-
-	for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> actor_vector.begin();
-	        iter != this -> actor_vector.end(); ++iter) {
-		this -> parent -> get_renderer() -> RemoveActor(*iter);
-	}
-
-	this ->  actor_vector.clear();
-}
 
 void ModifyAreaWidget::show_new_slider_neighbors_pos(int pos) {
 	this -> slider_neighbors_value -> setText( QString::number(pos));
@@ -536,12 +430,12 @@ void ModifyAreaWidget::show_new_slider_magnitude_pos(int pos) {
 
 void ModifyAreaWidget::set_new_slider_magnitude_pos() {
 	this -> slider_magnitude -> setValue(this -> slider_magnitude_value -> text().toInt());
-
 }
 
 void ModifyAreaWidget::close() {
 
-	this -> remove_selected_points_actor();
+	this -> parent -> get_renderer() -> RemoveActor(selected_actor);
+	this -> parent -> get_renderer() -> RemoveActor(unselected_actor);
 
 	this -> parent -> lateral_dockwidget -> hide();
 
@@ -553,38 +447,16 @@ void ModifyAreaWidget::close() {
 
 }
 
-float ModifyAreaWidget::get_actual_memory_size() {
+void ModifyAreaWidget::compute_selected_cells_average_normals() {
 
-	float memory_used = float(
-	                        this -> selected_cells_polydata -> GetActualMemorySize() +
-	                        this -> unselected_cells_polydata -> GetActualMemorySize() +
-	                        this -> selected_polys_ids -> GetActualMemorySize() +
-	                        this -> unselected_polys_ids  -> GetActualMemorySize() +
-	                        this -> selected_points -> GetActualMemorySize()
-	                    ) / 1024 ;
-
-	return memory_used;
-}
-
-void ModifyAreaWidget::compute_selected_cells_normals() {
-
-	vtkSmartPointer<vtkPolyDataNormals> selected_polydata_normals_filter = vtkPolyDataNormals::New();
-	selected_polydata_normals_filter -> ComputePointNormalsOff();
-	selected_polydata_normals_filter -> ComputeCellNormalsOn();
-	selected_polydata_normals_filter -> SetInputData(this -> selected_cells_polydata);
-	selected_polydata_normals_filter -> Update ();
-
-
-	// Cell normals. There should be as many cell normals as cells in selected_cells_polydata
-	this -> selected_cells_normals = selected_polydata_normals_filter -> GetOutput()
-	                                 -> GetCellData() -> GetNormals();
 
 	// The direction of the normals is averaged
 	double average_normal_direction[3];
-	for (int i = 0; i < this -> selected_cells_normals -> GetNumberOfTuples(); ++i) {
+	for (int i = 0; i < this -> selected_polydata
+	        -> GetCellData() -> GetNormals() -> GetNumberOfTuples(); ++i) {
 		double average_normal_direction_buffer[3];
 
-		this -> selected_cells_normals -> GetTuple(i,
+		this -> selected_polydata -> GetCellData() -> GetNormals() -> GetTuple(i,
 		        average_normal_direction_buffer);
 
 		average_normal_direction[0] = average_normal_direction[0] + average_normal_direction_buffer[0];
@@ -592,9 +464,12 @@ void ModifyAreaWidget::compute_selected_cells_normals() {
 		average_normal_direction[2] = average_normal_direction[2] + average_normal_direction_buffer[2];
 	}
 
-	average_normal_direction[0] = average_normal_direction[0] /  this -> selected_cells_normals -> GetNumberOfTuples();
-	average_normal_direction[1] = average_normal_direction[1] /  this -> selected_cells_normals -> GetNumberOfTuples();
-	average_normal_direction[2] = average_normal_direction[2] /  this -> selected_cells_normals -> GetNumberOfTuples();
+	average_normal_direction[0] = average_normal_direction[0] / this -> selected_polydata
+	                              -> GetCellData() -> GetNormals() -> GetNumberOfTuples();
+	average_normal_direction[1] = average_normal_direction[1] / this -> selected_polydata
+	                              -> GetCellData() -> GetNormals() -> GetNumberOfTuples();
+	average_normal_direction[2] = average_normal_direction[2] / this -> selected_polydata
+	                              -> GetCellData() -> GetNormals() -> GetNumberOfTuples();
 
 	// The averaged normal is stored for later reuse
 	this -> averaged_normal_array -> SetTuple(0, average_normal_direction);
@@ -609,7 +484,7 @@ void ModifyAreaWidget::find_N_neighbors_indices(const int N) {
 
 	this -> point_locator -> FindClosestNPoints(N, center_point, this -> N_closest_vertices_indices);
 	this -> active_selected_points_polydata -> GetPoints() -> Initialize();
-	this -> selected_points_polydata -> GetPoints() -> GetPoints(this -> N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
+	this -> selected_polydata -> GetPoints() -> GetPoints(this -> N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
 }
 
 void ModifyAreaWidget::set_transform_direction(const int item_index) {
@@ -620,11 +495,7 @@ void ModifyAreaWidget::set_transform_direction(const int item_index) {
 	case 1:
 		transform_direction = TransformDirection::NORMAL_AVERAGED;
 		break;
-	case 2:
 
-		transform_direction = TransformDirection::NORMAL_POINT;
-
-		break;
 	default:
 		std::cout << " Case not implemented in set_transform_direction. Got item_index== " << item_index << std::endl;
 		break;
@@ -658,7 +529,7 @@ void ModifyAreaWidget::set_transform_selection(const int item_index) {
 		transform_selection = TransformSelection::SELECTED;
 		this -> slider_neighbors_title -> setVisible(false);
 		this -> slider_neighbors_holder_widget -> setVisible(false);
-		this -> slider_neighbors -> setValue(this -> selected_points_polydata -> GetNumberOfPoints());
+		this -> slider_neighbors -> setValue(this -> selected_polydata -> GetNumberOfPoints());
 		// The line above is necessary because it will call the slot updating the view
 
 		break;
@@ -666,8 +537,8 @@ void ModifyAreaWidget::set_transform_selection(const int item_index) {
 		transform_selection = TransformSelection::NCLOSEST;
 		this -> slider_neighbors_title -> setVisible(true);
 		this -> slider_neighbors_holder_widget -> setVisible(true);
-		this -> slider_neighbors -> setMaximum(this -> selected_points_polydata -> GetNumberOfPoints());
-		this -> slider_neighbors -> setValue(this -> selected_points_polydata -> GetNumberOfPoints());
+		this -> slider_neighbors -> setMaximum(this -> selected_polydata -> GetNumberOfPoints());
+		this -> slider_neighbors -> setValue(this -> selected_polydata -> GetNumberOfPoints());
 		break;
 	default:
 		std::cout << " Case not implemented in set_transform_selection. Got item_index== " << item_index << std::endl;
