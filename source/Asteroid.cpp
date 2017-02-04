@@ -9,136 +9,69 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   this -> mGs = arma::datum::G * density;
   this -> polydata = polydata;
 
-  // The following assertion fails now
-  // assert(this -> polydata -> GetNumberOfPolys() == 2 * this -> polydata -> GetNumberOfPoints() - 4);
 
-  // std::map<std::set<unsigned int>, std::pair<int, int> > edge_info;
-  // vtkSmartPointer<vtkIdList> facet_vertex_indices = vtkSmartPointer<vtkIdList>::New();
-
-  // this -> mX = new double [this -> polydata -> GetNumberOfPoints()];
-  // this -> mY = new double [this -> polydata -> GetNumberOfPoints()];
-  // this -> mZ = new double [this -> polydata -> GetNumberOfPoints()];
-
-  // // Vertex coordinates are fetched in
-  // for (vtkIdType vertex = 0;
-  //      vertex < this -> polydata -> GetNumberOfPoints(); ++vertex) {
-  //   double p[3];
-  //   this -> polydata -> GetPoint(vertex, p);
-  //   this -> mX[vertex] = p[0];
-  //   this -> mY[vertex] = p[1];
-  //   this -> mZ[vertex] = p[2];
-  // }
-
-  // // Facet indices are fetched in
-  // this -> mListTri = new int * [this -> polydata -> GetNumberOfPolys()];
-  // this -> mListN = new double * [this -> polydata -> GetNumberOfPolys()];
-  // this -> mF = new double * [this -> polydata -> GetNumberOfPolys()];
   // this -> surface_grav = new double * [this -> polydata -> GetNumberOfPolys()];
 
-  // for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
+  for (unsigned int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); ++facet) {
 
-  //   this -> mListTri[facet] = new int [3];
-  //   this -> mListN[facet]   = new double [3];
-  //   this -> surface_grav[facet]  = new double [3];
+    // Facet Dyad
+    double n_array[3];
 
-  //   this -> mF[facet] = new double [9];
+    this -> polydata -> GetCellData() -> GetNormals() -> GetTuple(facet,
+        n_array);
 
-  //   this -> polydata -> GetCellPoints(facet, facet_vertex_indices);
+    arma::vec n = {n_array[0], n_array[1], n_array[2]};
 
-  //   // Vertex indices in facet
-  //   unsigned int P1_index = facet_vertex_indices -> GetId(0);
-  //   unsigned int P2_index = facet_vertex_indices -> GetId(1);
-  //   unsigned int P3_index = facet_vertex_indices -> GetId(2);
+    arma::mat F = n * n.t();
+    this -> F_vector.push_back(F);
 
-  //   this -> mListTri[facet][0] = P1_index;
-  //   this -> mListTri[facet][1] = P2_index;
-  //   this -> mListTri[facet][2] = P3_index;
 
-  //   // Facet normal coordinates
-  //   arma::vec P1 = {
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 0),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 1),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P1_index, 2)
-  //   };
+    //   // For each edge, the indices of the two
+    //   // end vertices are extracted
+    //   // along with the vertices of the two facets the
+    //   // edge belongs to
+    //   std::set<unsigned int> edge_1_indices;
+    //   std::set<unsigned int> edge_2_indices;
+    //   std::set<unsigned int> edge_3_indices;
 
-  //   arma::vec P2 = {
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 0),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 1),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P2_index, 2)
-  //   };
+    //   edge_1_indices.insert(P1_index);
+    //   edge_1_indices.insert(P2_index);
 
-  //   arma::vec P3 = {
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 0),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 1),
-  //     this -> polydata -> GetPoints() -> GetData() -> GetComponent(P3_index, 2)
-  //   };
+    //   edge_2_indices.insert(P2_index);
+    //   edge_2_indices.insert(P3_index);
 
-  //   arma::vec n = arma::cross(P3 - P2, P1 - P2);
-  //   n = n / arma::norm(n);
+    //   edge_3_indices.insert(P3_index);
+    //   edge_3_indices.insert(P1_index);
 
-  //   this -> mListN[facet][0] = n(0);
-  //   this -> mListN[facet][1] = n(1);
-  //   this -> mListN[facet][2] = n(2);
+    //   // First insertion: if the edge has not been inserted yet
+    //   if (edge_info.find(edge_1_indices) ==  edge_info.end()) {
+    //     edge_info.insert(std::make_pair(edge_1_indices, std::make_pair(facet , -1)));
+    //   }
 
-  //   // Facet Dyad
-  //   arma::mat F = n * n.t();
+    //   // Edge has already been inserted: index of other facet is set
+    //   else {
+    //     edge_info[edge_1_indices].second = facet;
+    //   }
 
-  //   this -> mF[facet][0] = F.row(0)(0);
-  //   this -> mF[facet][1] = F.row(0)(1);
-  //   this -> mF[facet][2] = F.row(0)(2);
-  //   this -> mF[facet][3] = F.row(1)(0);
-  //   this -> mF[facet][4] = F.row(1)(1);
-  //   this -> mF[facet][5] = F.row(1)(2);
-  //   this -> mF[facet][6] = F.row(2)(0);
-  //   this -> mF[facet][7] = F.row(2)(1);
-  //   this -> mF[facet][8] = F.row(2)(2);
+    //   // First insertion: if the edge has not been inserted yet
+    //   if (edge_info.find(edge_2_indices) ==  edge_info.end()) {
+    //     edge_info.insert(std::make_pair(edge_2_indices, std::make_pair(facet , -1)));
+    //   }
+    //   // Edge has already been inserted: index of other facet is set
+    //   else {
+    //     edge_info[edge_2_indices].second = facet ;
+    //   }
 
-  //   // For each edge, the indices of the two
-  //   // end vertices are extracted
-  //   // along with the vertices of the two facets the
-  //   // edge belongs to
-  //   std::set<unsigned int> edge_1_indices;
-  //   std::set<unsigned int> edge_2_indices;
-  //   std::set<unsigned int> edge_3_indices;
+    //   // First insertion: if the edge has not been inserted yet
+    //   if (edge_info.find(edge_3_indices) ==  edge_info.end()) {
+    //     edge_info.insert(std::make_pair(edge_3_indices, std::make_pair(facet , -1)));
+    //   }
+    //   // Edge has already been inserted: index of other facet is set
+    //   else {
+    //     edge_info[edge_3_indices].second = facet ;
+    //   }
 
-  //   edge_1_indices.insert(P1_index);
-  //   edge_1_indices.insert(P2_index);
-
-  //   edge_2_indices.insert(P2_index);
-  //   edge_2_indices.insert(P3_index);
-
-  //   edge_3_indices.insert(P3_index);
-  //   edge_3_indices.insert(P1_index);
-
-  //   // First insertion: if the edge has not been inserted yet
-  //   if (edge_info.find(edge_1_indices) ==  edge_info.end()) {
-  //     edge_info.insert(std::make_pair(edge_1_indices, std::make_pair(facet , -1)));
-  //   }
-
-  //   // Edge has already been inserted: index of other facet is set
-  //   else {
-  //     edge_info[edge_1_indices].second = facet;
-  //   }
-
-  //   // First insertion: if the edge has not been inserted yet
-  //   if (edge_info.find(edge_2_indices) ==  edge_info.end()) {
-  //     edge_info.insert(std::make_pair(edge_2_indices, std::make_pair(facet , -1)));
-  //   }
-  //   // Edge has already been inserted: index of other facet is set
-  //   else {
-  //     edge_info[edge_2_indices].second = facet ;
-  //   }
-
-  //   // First insertion: if the edge has not been inserted yet
-  //   if (edge_info.find(edge_3_indices) ==  edge_info.end()) {
-  //     edge_info.insert(std::make_pair(edge_3_indices, std::make_pair(facet , -1)));
-  //   }
-  //   // Edge has already been inserted: index of other facet is set
-  //   else {
-  //     edge_info[edge_3_indices].second = facet ;
-  //   }
-
-  // }
+  }
 
 
   // this -> mNOE = edge_info.size();
@@ -277,8 +210,8 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   //   ++edge;
   // }
 
-  // this -> spin_rate = 0;
-  // this -> spin_axis = {0, 0, 1};
+  this -> spin_rate = 0;
+  this -> spin_axis = {0, 0, 1};
 
 }
 
@@ -541,40 +474,27 @@ Vect Asteroid::PolyGrav(Vect & Xsc) {
 }
 
 
-Vect Asteroid::polygrab_vtk(arma::vec & Xsc) {
+arma::vec Asteroid::polygrav_vtk(arma::vec & Xsc) {
   arma::vec a_grav = {0, 0, 0};
 
 
-  int v1, v2, v3;
-
-  arma::vec r1 ;
-  arma::vec r2 ;
-  arma::vec r3 ;
-
-  // Vect r1(3), r2(3), r3(3);
-  double R1, R2, R3;
-
-  arma::vec nf = {0, 0, 0};
-  arma::mat F(3, 3);
-  F.fill(0);
-  // Matrix F(3, 3);
-
-  int l;
-  double wf;
 
   vtkSmartPointer<vtkIdTypeArray> polys_ids = this -> polydata -> GetPolys () -> GetData ();
 
-
   // Sum over Polyhedron Facets
-  for (int i = 0; i < this -> polydata -> GetNumberOfPolys(); i++) {
+  for (int facet = 0; facet < this -> polydata -> GetNumberOfPolys(); facet++) {
+    
+    double p[3];
+    arma::vec r1 ;
+    arma::vec r2 ;
+    arma::vec r3 ;
 
     // Global indices of the three vertices in the facet
     unsigned int facet_vertices_ids[3];
-    facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * i + 1));
-    facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * i + 2));
-    facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * i + 3));
+    facet_vertices_ids[0] = * (polys_ids -> GetTuple (4 * facet + 1));
+    facet_vertices_ids[1] = * (polys_ids -> GetTuple (4 * facet + 2));
+    facet_vertices_ids[2] = * (polys_ids -> GetTuple (4 * facet + 3));
 
-    double p[3];
 
     this -> polydata -> GetPoint(facet_vertices_ids[0], p);
     r1 = {p[0], p[1], p[2]};
@@ -585,37 +505,24 @@ Vect Asteroid::polygrab_vtk(arma::vec & Xsc) {
     this -> polydata -> GetPoint(facet_vertices_ids[2], p);
     r3 = {p[0], p[1], p[2]};
 
+    //Pos vector wrt S/C
+    r1 = r1 - Xsc;
+    r2 = r2 - Xsc;
+    r3 = r3 - Xsc;
+
+    double R1 = arma::norm(r1);
+    double R2 = arma::norm(r2);
+    double R3 = arma::norm(r3);
+
+    double wf = 2 * std::atan2(arma::dot(r1, arma::cross(r2, r3)),
+                          R1 * R2 * R3 + R1 * arma::dot(r2, r3)
+                          + R2 * arma::dot(r3, r1)
+                          + R3 * arma::dot(r1, r2));
+
+    a_grav = a_grav + this -> F_vector[facet] * r1 * wf;
+
+
   }
-
-  // Normal Unit Vector
-  //   nf[0] = this -> mListN[i][0];
-  //   nf[1] = this -> mListN[i][1];
-  //   nf[2] = this -> mListN[i][2];
-
-  //   // Face Dyad
-  //   l = 0;
-  //   for (int j = 0; j < 3; j++) {
-  //     for (int k = 0; k < 3; k++) {
-  //       F(j, k) = this -> mF[i][l];
-  //       l++;
-  //     }
-  //   }
-
-
-  //   //Pos vector wrt S/C
-  //   r1 = r1 - Xsc;
-  //   r2 = r2 - Xsc;
-  //   r3 = r3 - Xsc;
-
-  //   R1 = norm(r1);
-  //   R2 = norm(r2);
-  //   R3 = norm(r3);
-
-  //   wf = 2 * atan2(dot(r1, cross(r2, r3)), R1 * R2 * R3 + R1 * dot(r2, r3) + R2 * dot(r3, r1) + R3 * dot(r1, r2));
-
-  //   a_grav = a_grav + F * r1 * wf;
-
-  // }
 
 
   // // Sum over the polyhedron edges
@@ -661,7 +568,7 @@ Vect Asteroid::polygrab_vtk(arma::vec & Xsc) {
   //   a_grav = a_grav - E * r1 * Le;
   // }
 
-  // return this -> mGs * a_grav;
+  return this -> mGs * a_grav;
 
 }
 

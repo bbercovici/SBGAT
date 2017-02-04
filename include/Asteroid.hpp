@@ -14,6 +14,7 @@
 
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
+#include <vtkCellData.h>
 
 #include <cassert>
 #include <cmath>
@@ -189,9 +190,10 @@ public:
   /**
   Computes the acceleration of gravity created by the asteroid
   at the provided location
-  @param Xsc Coordinates at which the pgm acceleration must be evaluated (m)
+  @param Xsc Barycentric Coordinates at which the pgm acceleration must be evaluated (m)
+  @return Acceleration expressed in barycentric coordinates (m/s^2)
   */
-  Vect polygrab_vtk(arma::vec & Xsc);
+  arma::vec polygrav_vtk(arma::vec & Xsc);
 
 
 
@@ -214,6 +216,8 @@ protected:
   arma::vec spin_axis;
   double spin_rate;
   vtkSmartPointer<vtkPolyData> polydata;
+  std::vector<arma::mat> F_vector;
+
 
 
 };
