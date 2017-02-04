@@ -51,20 +51,15 @@ Enum defining the state "transform direction" drop down list
 */
 enum class TransformDirection {RADIAL, NORMAL_AVERAGED};
 
-
 /**
 Enum defining the state "interpolation type" drop down list
 */
 enum class InterpolationType {UNIFORM, LINEAR, PARABOLIC};
 
-
 /**
 Enum defining the state "transform selection" drop down list
 */
 enum class TransformSelection {SELECTED, NCLOSEST};
-
-
-
 
 /**
 Declaration of the ModifyAreaWidget class. ModifyAreaWidget refers to the
@@ -82,7 +77,6 @@ public:
 	Constructor.
 	@param parent Pointer to parent widget (here, pointer to instance of Mainwindow )
 	*/
-
 	ModifyAreaWidget(Mainwindow * parent,
 	                 vtkSmartPointer<vtkPolyData> selected_polydata,
 	                 vtkSmartPointer<vtkPolyData> unselected_polydata,
@@ -96,7 +90,7 @@ public:
 	void set_data();
 
 	/**
-	Computes the normals of the selected cells
+	Computes the average normal of the selected cells
 	*/
 	void compute_selected_cells_average_normals();
 
@@ -105,7 +99,6 @@ public:
 	the coordinates of the vertex that is closest to this average
 	*/
 	void find_blob_center();
-
 
 	void close();
 
@@ -151,7 +144,6 @@ private slots:
 	@param pos Slider position
 	*/
 	void show_new_slider_neighbors_pos(int pos);
-
 
 	/**
 	Redraw the shape model based on the slider_magnitude position
@@ -208,14 +200,9 @@ private:
 	void createMenus();
 
 	/**
-	Loops over the list of all actors created by this and remove each of those from the rendering window
-	*/
-	void remove_selected_points_actor();
-	/**
-	Populates the QTableWidget table with the relevant data
+	Populates the QTableWidget table with relevant data
 	*/
 	void populate_vertex_table();
-
 
 	/**
 	Finds the indice of the N closest neighbors to the blob center
@@ -226,26 +213,15 @@ private:
 	QStringList labels;
 
 	vtkSmartPointer<vtkPolyData> active_selected_points_polydata;
-
-	vtkSmartPointer<vtkPoints> selected_points;
-
-	vtkSmartPointer<vtkIdTypeArray> selected_polys_ids;
-	vtkSmartPointer<vtkIdTypeArray> unselected_polys_ids;
-
-	vtkSmartPointer<vtkIdTypeArray> polys_ids;
 	vtkSmartPointer<vtkIdTypeArray> selected_vertices_global_ids_from_local_ids;
 
-	vtkDataArray * selected_cells_normals;
-	vtkSmartPointer<vtkDoubleArray > averaged_normal_array;
+	vtkSmartPointer<vtkDoubleArray> averaged_normal_array;
 
 	TransformDirection transform_direction;
 	InterpolationType interpolation_type;
 	TransformSelection transform_selection;
 
 	arma::vec blob_center_position;
-	arma::vec blob_average_position;
-
-	int blob_center_id;
 
 	vtkSmartPointer<vtkIdList> N_closest_vertices_indices;
 	vtkSmartPointer<vtkIdList> boundary_vertex_ids_list;
@@ -254,7 +230,6 @@ private:
 
 	vtkSmartPointer<vtkPolyData> selected_polydata;
 	vtkSmartPointer<vtkPolyData> selected_polydata_original;
-
 	vtkSmartPointer<vtkPolyData> unselected_polydata;
 
 	vtkSmartPointer<vtkActor> selected_actor;

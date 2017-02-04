@@ -105,6 +105,7 @@ void InteractorStyle::OnLeftButtonUp() {
 				vtkSmartPointer<vtkIdList> boundary_vertex_ids_list = vtkSmartPointer<vtkIdList>::New();
 
 				// This list is constructed by browsing through the shortest of the two lists
+				// Vertices found in both the selected and unselectee polydata are on the boundary
 				if (selected_polydata -> GetNumberOfPoints() < unselected_polydata -> GetNumberOfPoints()) {
 					for (unsigned int i = 0; i < selected_polydata -> GetNumberOfPoints(); ++i) {
 
@@ -160,7 +161,6 @@ void InteractorStyle::OnLeftButtonUp() {
 
 				this -> mainwindow ->  lateral_dockwidget -> setWidget(modify_area_widget);
 				this -> mainwindow ->  lateral_dockwidget -> show();
-
 
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.

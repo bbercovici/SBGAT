@@ -120,13 +120,46 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         id_filter -> Update();
 
         // The normals are added to the polydata
-        vtkSmartPointer<vtkPolyDataNormals> filter = vtkPolyDataNormals::New();
-        filter -> ComputePointNormalsOff();
-        filter -> ComputeCellNormalsOn();
-        filter -> SetInputConnection(id_filter -> GetOutputPort());
-        filter -> Update ();
+        vtkSmartPointer<vtkPolyDataNormals> normal_filter = vtkPolyDataNormals::New();
+        normal_filter -> ComputePointNormalsOff();
+        normal_filter -> ComputeCellNormalsOn();
+        normal_filter -> SetInputConnection(id_filter -> GetOutputPort());
+        normal_filter -> Update ();
 
-        vtkSmartPointer<vtkPolyData> read_polydata = filter -> GetOutput();
+
+        // The polydata is translated so as to have its coordinates
+        // expressed with respect to its barycenter (constant density
+        // is assumed here)
+
+        vtkSmartPointer<vtkCenterOfMass> center_of_mass_filter =
+            vtkSmartPointer<vtkCenterOfMass>::New();
+
+        center_of_mass_filter -> SetInputConnection(normal_filter -> GetOutputPort());
+        center_of_mass_filter -> SetUseScalarsAsWeights(false);
+        center_of_mass_filter -> Update();
+
+        double center[3];
+        center_of_mass_filter -> GetCenter(center);
+
+        // the location of the original center could be 
+        // stored, in case the user wants to restore the coordinates 
+        // in the origin reference frame
+
+        vtkSmartPointer<vtkTransform> translation =
+            vtkSmartPointer<vtkTransform>::New();
+        translation -> Translate( - center[0],  - center[1],  - center[2]);
+
+        vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
+            vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+        translation_filter -> SetInputConnection(normal_filter -> GetOutputPort());
+        translation_filter -> SetTransform(translation);
+        translation_filter -> Update();
+
+        vtkSmartPointer<vtkPolyData> read_polydata = translation_filter -> GetOutput();
+
+
+
+
 
         // Create a mapper and actor to represent the shape model
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();

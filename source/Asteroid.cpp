@@ -9,6 +9,7 @@ Asteroid::Asteroid(vtkSmartPointer<vtkPolyData> polydata, double density) {
   this -> mGs = arma::datum::G * density;
   this -> polydata = polydata;
 
+  // The following assertion fails now
   // assert(this -> polydata -> GetNumberOfPolys() == 2 * this -> polydata -> GetNumberOfPoints() - 4);
 
   // std::map<std::set<unsigned int>, std::pair<int, int> > edge_info;

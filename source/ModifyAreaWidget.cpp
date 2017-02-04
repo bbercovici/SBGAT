@@ -42,14 +42,6 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> active_selected_points_polydata = vtkPolyData::New();
 	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
 
-
-	this -> selected_points = vtkPoints::New();
-
-	this -> selected_polys_ids =
-	    vtkSmartPointer<vtkIdTypeArray>::New();
-	this -> selected_polys_ids -> SetNumberOfComponents(1);
-
-
 	this -> N_closest_vertices_indices = vtkIdList::New() ;
 
 	this -> averaged_normal_array = vtkDoubleArray::New();
@@ -182,12 +174,7 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 
 }
 
-
 void ModifyAreaWidget::set_data() {
-
-	// Get the polys connectivity of the full shape model. Those are not changing,
-	// and can hence be set when the new shape data is loaded
-	this -> polys_ids  = this -> parent -> get_asteroid() -> get_polydata() -> GetPolys () -> GetData ();
 
 	// Likewise, the ids of the selected points are retrieved
 	this -> selected_vertices_global_ids_from_local_ids = vtkIdTypeArray::SafeDownCast(
@@ -240,7 +227,6 @@ void ModifyAreaWidget::find_blob_center() {
 	centerOfMassFilter -> SetInputData(this -> selected_polydata);
 	centerOfMassFilter -> SetUseScalarsAsWeights(false);
 	centerOfMassFilter -> Update();
-
 	centerOfMassFilter -> GetCenter(blob_average_position);
 
 
@@ -248,20 +234,21 @@ void ModifyAreaWidget::find_blob_center() {
 	// a point physically present in the blob. The next step thus consists in finding the selected point that is closest to this average.
 	// this point physically present in the blob is thus called the "blob center"
 
-	this -> blob_center_id = this -> selected_polydata -> FindPoint(blob_average_position);
-	this -> selected_polydata -> GetPoint(this -> blob_center_id,
+	unsigned int blob_center_id = this -> selected_polydata -> FindPoint(blob_average_position);
+	this -> selected_polydata -> GetPoint(blob_center_id,
 	                                      blob_center_position);
 
 	// The computed locations are stored in arma::vec form
-	this -> blob_center_position = {blob_center_position[0], blob_center_position[1], blob_center_position[2] };
-	this -> blob_average_position = {blob_average_position[0], blob_average_position[1], blob_average_position[2] };
+	this -> blob_center_position = {
+		blob_center_position[0],
+		blob_center_position[1],
+		blob_center_position[2]
+	};
+
 
 }
 
 void ModifyAreaWidget::update_view(int pos) {
-
-	// This copy ensures that the user can modify a copy of the shape model and not the shape model itself.
-	this -> selected_points -> DeepCopy(this -> parent -> get_asteroid() -> get_polydata() -> GetPoints());
 
 	this -> selected_polydata -> GetPolys() -> InitTraversal();
 
@@ -377,7 +364,6 @@ void ModifyAreaWidget::update_view(int pos) {
 
 	}
 
-	// this -> selected_polydata -> SetPoints(this -> selected_points  );
 	this -> selected_polydata -> Modified();
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
@@ -408,7 +394,33 @@ void ModifyAreaWidget::accept() {
 
 	id_filter -> Update();
 
-	this -> parent -> get_asteroid() -> get_polydata() -> DeepCopy(id_filter -> GetOutput());
+
+	// The polydata is translated so as to have its coordinates
+	// expressed with respect to its barycenter (constant density
+	// is assumed here)
+
+	vtkSmartPointer<vtkCenterOfMass> center_of_mass_filter =
+	    vtkSmartPointer<vtkCenterOfMass>::New();
+
+	center_of_mass_filter -> SetInputConnection(id_filter -> GetOutputPort());
+	center_of_mass_filter -> SetUseScalarsAsWeights(false);
+	center_of_mass_filter -> Update();
+
+	double center[3];
+	center_of_mass_filter -> GetCenter(center);
+
+	vtkSmartPointer<vtkTransform> translation =
+	    vtkSmartPointer<vtkTransform>::New();
+	translation -> Translate( - center[0],  - center[1],  - center[2]);
+
+	vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
+	    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	translation_filter -> SetInputConnection(id_filter -> GetOutputPort());
+	translation_filter -> SetTransform(translation);
+	translation_filter -> Update();
+
+
+	this -> parent -> get_asteroid() -> get_polydata() -> DeepCopy(translation_filter -> GetOutput());
 	this -> close();
 }
 
