@@ -15,6 +15,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellData.h>
+#include <vtkTriangle.h>
 
 #include <cassert>
 #include <cmath>
@@ -216,8 +217,8 @@ protected:
   arma::vec spin_axis;
   double spin_rate;
   vtkSmartPointer<vtkPolyData> polydata;
-  std::vector<arma::mat> F_vector;
-
+  std::vector < std::set< std::set <unsigned int> > > facet_edge_point_ids;
+  std::map < std::set <unsigned int> , std::set< unsigned int> > edge_point_facet_ids;
 
 
 };

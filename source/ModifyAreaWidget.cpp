@@ -282,7 +282,7 @@ void ModifyAreaWidget::update_view(int pos) {
 
 
 				// Arma::vecs
-				arma::vec u; // normalized transform direction
+				arma::vec u; // normalised transform direction
 				arma::vec new_p_vec; // new point location
 				arma::vec old_p_vec; // old point location
 
