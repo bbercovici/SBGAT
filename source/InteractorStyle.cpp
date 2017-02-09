@@ -69,21 +69,6 @@ void InteractorStyle::OnLeftButtonUp() {
 
 				vtkSmartPointer<vtkPolyData> unselected_polydata = unselected_geometry -> GetOutput();
 
-				// I'm not happy with the output of vtkFeatureEdges. For now,
-				// it is possible to detect the edge by looking for vertices present in
-				// both sets and constructing a boundary list this way
-
-				// The boundary edges are found
-				// vtkSmartPointer<vtkFeatureEdges> featureEdges =
-				//     vtkSmartPointer<vtkFeatureEdges>::New();
-				// featureEdges -> SetInputData(selected_polydata);
-				// featureEdges -> BoundaryEdgesOn();
-				// featureEdges -> FeatureEdgesOff();
-				// featureEdges -> ManifoldEdgesOff();
-				// featureEdges -> NonManifoldEdgesOff();
-				// featureEdges -> Update();
-
-
 				// The global indices of the unselected points are
 				// stored in a vtkIdList
 				vtkSmartPointer<vtkDataArray> unselected_ids = unselected_polydata -> GetPointData() -> GetArray("ids");
@@ -159,8 +144,8 @@ void InteractorStyle::OnLeftButtonUp() {
 				    unselected_actor,
 				    boundary_vertex_ids_list);
 
-				this -> mainwindow ->  lateral_dockwidget -> setWidget(modify_area_widget);
-				this -> mainwindow ->  lateral_dockwidget -> show();
+				this -> mainwindow -> lateral_dockwidget -> setWidget(modify_area_widget);
+				this -> mainwindow -> lateral_dockwidget -> show();
 
 				// the actors owned by the mainwindow are hidden. They will be
 				// shown again once pc_editing widget is closed.

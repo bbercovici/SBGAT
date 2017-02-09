@@ -76,6 +76,12 @@ public:
 	/**
 	Constructor.
 	@param parent Pointer to parent widget (here, pointer to instance of Mainwindow )
+	@param selected_polydata Pointer to selected polydata
+	@param unselected_polydata Pointer to unselected polydata
+	@param selected_actor Pointer to selected actor
+	@param unselected_actor Pointer to unselected actor
+	@param unselected_vertex_ids_list Pointer to list of unselected vertex ids
+	
 	*/
 	ModifyAreaWidget(Mainwindow * parent,
 	                 vtkSmartPointer<vtkPolyData> selected_polydata,
@@ -83,6 +89,13 @@ public:
 	                 vtkSmartPointer<vtkActor> selected_actor,
 	                 vtkSmartPointer<vtkActor> unselected_actor,
 	                 vtkSmartPointer<vtkIdList> unselected_vertex_ids_list);
+
+	/**
+	Constructor.
+	@param parent Pointer to parent widget (here, pointer to instance of Mainwindow )
+	*/
+	ModifyAreaWidget(Mainwindow * parent);
+
 
 	/**
 	Data Setter
@@ -223,7 +236,6 @@ private:
 
 	arma::vec blob_center_position;
 
-	vtkSmartPointer<vtkIdList> N_closest_vertices_indices;
 	vtkSmartPointer<vtkIdList> boundary_vertex_ids_list;
 
 	vtkSmartPointer<vtkKdTreePointLocator> point_locator;

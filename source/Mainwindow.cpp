@@ -301,6 +301,7 @@ void Mainwindow::set_shape_color() {
 }
 
 
+
 void Mainwindow::select() {
     // Allows the interactor to grab props by
     // setting its style mode to selection
@@ -309,11 +310,13 @@ void Mainwindow::select() {
     InteractorStyle * style = static_cast< InteractorStyle * >(this -> qvtkWidget
                               -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle());
 
+    
+
     style -> set_current_mode(INTERACTOR_IS_SELECT);
     this -> close_lateral_dockwidget();
 
-
 }
+
 
 void Mainwindow::save() {
 

@@ -42,6 +42,164 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> active_selected_points_polydata = vtkPolyData::New();
 	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
 
+	this -> averaged_normal_array = vtkDoubleArray::New();
+	this -> averaged_normal_array -> SetNumberOfComponents(3);
+	this -> averaged_normal_array -> SetNumberOfTuples(1);
+
+	// The slider_magnitude position and range are set
+	this -> slider_magnitude -> setMinimum(-100);
+	this -> slider_magnitude -> setMaximum(100);
+	this -> slider_magnitude -> setValue(0);
+
+	// The slider_neighbors position and range are set
+	this -> slider_neighbors -> setMinimum(1);
+	this -> slider_neighbors -> setMaximum(10);
+	this -> slider_neighbors -> setValue(10);
+
+
+	// The QLine edit allowing one to read/set the slider_magnitude position is set
+	this -> slider_magnitude_value -> setFixedWidth(30);
+	this -> slider_magnitude_value -> setText(QString::number(0));
+	this -> slider_magnitude_holder_widget -> setLayout(slider_magnitude_layout);
+	this -> slider_magnitude_layout -> addWidget(slider_magnitude);
+	this -> slider_magnitude_layout -> addWidget(slider_magnitude_value);
+
+	// The QLine edit allowing one to read/set the slider_neighbors position is set
+	this -> slider_neighbors_value -> setFixedWidth(30);
+	this -> slider_neighbors_value -> setText(QString::number(1));
+	this -> slider_neighbors_holder_widget -> setLayout(slider_neighbors_layout);
+	this -> slider_neighbors_layout -> addWidget(slider_neighbors);
+	this -> slider_neighbors_layout -> addWidget(slider_neighbors_value);
+
+	// Forces the QLine Edits widget to only accept integer values between the specified bounds
+	this -> slider_magnitude_value -> setValidator( new QIntValidator(-100, 100, this) );
+	this -> slider_neighbors_value -> setValidator( new QIntValidator(1, 100, this) );
+
+	// The slider_magnitude is connected to the QLineEdit
+	connect(this -> slider_magnitude, SIGNAL(valueChanged(int)), this, SLOT(show_new_slider_magnitude_pos(int)) );
+	connect(this -> slider_magnitude, SIGNAL(valueChanged(int)), this, SLOT(update_view(int)) );
+
+	connect(this -> slider_neighbors, SIGNAL(valueChanged(int)), this, SLOT(show_new_slider_neighbors_pos(int)) );
+	connect(this -> slider_neighbors, SIGNAL(valueChanged(int)), this, SLOT(find_N_neighbors_indices_and_update_view(int)) );
+
+	// Conversly, the QLineEdit is connected to the slider_magnitude
+	connect(this -> slider_magnitude_value, SIGNAL(textEdited(QString)), this, SLOT(set_new_slider_magnitude_pos()) );
+	connect(this -> slider_neighbors_value, SIGNAL(textEdited(QString)), this, SLOT(set_new_slider_neighbors_pos()) );
+
+	// The table showing the selected vertex info is set up
+	this -> table -> setShowGrid(true);
+	//  prevents the user from editing the items
+	this -> table -> setEditTriggers(QAbstractItemView::NoEditTriggers);
+	this -> table -> setColumnCount(4);
+	this -> labels << "ID" << "x" << "y" << "z";
+	this -> table -> setHorizontalHeaderLabels(labels);
+
+	// The main layout is set and filled up
+	this -> main_layout -> setSpacing(0);
+	this -> main_layout -> setMargin(0);
+	this -> main_layout -> addWidget(this -> transform_direction_title);
+	this -> main_layout -> addWidget(this -> transform_direction_list);
+	this -> main_layout -> addWidget(this -> interpolation_type_title);
+	this -> main_layout -> addWidget(this -> interpolation_type_list);
+	this -> main_layout -> addWidget(this -> transform_selection_title);
+	this -> main_layout -> addWidget(this -> transform_selection_list);
+	this -> main_layout -> addWidget(this -> slider_magnitude_title);
+	this -> main_layout -> addWidget(this -> slider_magnitude_holder_widget);
+	this -> main_layout -> addWidget(this -> slider_neighbors_title);
+	this -> main_layout -> addWidget(this -> slider_neighbors_holder_widget);
+
+	// The neighbors level widgets are hidden
+	this -> slider_neighbors_title -> setVisible(false);
+	this -> slider_neighbors_holder_widget -> setVisible(false);
+
+	this -> main_layout -> addWidget(this -> table);
+	this -> main_layout -> addWidget(button_box, Qt::AlignCenter);
+
+	// The two drop-down lists are filled
+	this -> transform_direction_list -> insertItem(0, "Radial");
+	this -> transform_direction_list -> insertItem(1, "Average normal");
+	this -> interpolation_type_list -> insertItem(0, "Uniform (0th order)");
+	this -> interpolation_type_list -> insertItem(1, "Linear (1st order)");
+	this -> interpolation_type_list -> insertItem(2, "Parabolic (2nd order)");
+	this -> transform_selection_list -> insertItem(0, "Selected blob");
+	this -> transform_selection_list -> insertItem(1, "N closest neighbors from center");
+
+	// The state of those drop-down lists are set
+	this -> transform_direction = TransformDirection::RADIAL;
+	this -> interpolation_type = InterpolationType::UNIFORM;
+	this -> transform_selection = TransformSelection::SELECTED;
+
+	// Each drop down lists generates a signal notyfing the program that it was changed
+	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &ModifyAreaWidget::set_transform_direction);
+
+	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &ModifyAreaWidget::set_interpolation_type);
+
+	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &ModifyAreaWidget::set_transform_selection);
+
+	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
+
+	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
+
+	// The different buttons are connected to the corresponding slots
+	connect(this -> button_box, SIGNAL(accepted()), this, SLOT(accept()));
+	connect(this -> button_box, SIGNAL(rejected()), this, SLOT(reject()));
+
+	this -> setLayout(this -> main_layout);
+
+	this -> table -> show();
+
+	this -> slider_magnitude -> setValue(0);
+
+	this -> set_data(boundary_vertex_ids_list,
+	                 selected_polydata,
+	                 unselected_polydata,
+	                 selected_actor,
+	                 unselected_actor);
+
+}
+
+
+ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent) : QDialog(parent) {
+
+	this -> setAttribute(Qt::WA_DeleteOnClose);
+	this -> parent = parent;
+
+	// The different GUI elements are created
+	this -> slider_magnitude = new QSlider(Qt::Horizontal, this);
+	this -> slider_magnitude_value = new QLineEdit(this);
+	this -> slider_magnitude_layout = new QHBoxLayout();
+
+	this -> slider_neighbors = new QSlider(Qt::Horizontal, this);
+	this -> slider_neighbors_value = new QLineEdit(this);
+	this -> slider_neighbors_layout = new QHBoxLayout();
+
+
+	this -> main_layout = new QVBoxLayout();
+
+	this -> slider_magnitude_holder_widget = new QWidget(this);
+	this -> slider_neighbors_holder_widget = new QWidget(this);
+
+	this -> transform_direction_list = new QComboBox(this);
+	this -> interpolation_type_list = new QComboBox(this);
+	this -> transform_selection_list = new QComboBox(this);
+	this -> table = new QTableWidget(this);
+	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+	this -> transform_direction_title = new QLabel("Transform direction:", this);
+	this -> interpolation_type_title = new QLabel("Interpolation type:", this);
+	this -> transform_selection_title = new QLabel("Transform selection:", this);
+	this -> slider_magnitude_title = new QLabel("Transform magnitude:", this);
+	this -> slider_neighbors_title = new QLabel("Number of neighbors:", this);
+
+	this -> point_locator = vtkSmartPointer<vtkKdTreePointLocator>::New();
+
+	this -> active_selected_points_polydata = vtkPolyData::New();
+	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
+
 	this -> N_closest_vertices_indices = vtkIdList::New() ;
 
 	this -> averaged_normal_array = vtkDoubleArray::New();
@@ -153,6 +311,20 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 
 	this -> setLayout(this -> main_layout);
 
+
+	// The table containing the global ids of the selected vertices is populated
+	this -> table -> show();
+
+	this -> slider_magnitude -> setValue(0);
+
+}
+
+void ModifyAreaWidget::set_data(vtkSmartPointer<vtkIdList> boundary_vertex_ids_list,
+                                vtkSmartPointer<vtkPolyData> selected_polydata,
+                                vtkSmartPointer<vtkPolyData> unselected_polydata,
+                                vtkSmartPointer<vtkActor> selected_actor,
+                                vtkSmartPointer<vtkActor> unselected_actor) {
+
 	this -> boundary_vertex_ids_list = boundary_vertex_ids_list;
 	this -> selected_polydata = selected_polydata;
 	this -> unselected_polydata = unselected_polydata;
@@ -163,18 +335,11 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> selected_actor = selected_actor;
 	this -> unselected_actor = unselected_actor;
 
-	// The table containing the global ids of the selected vertices is populated
-	this -> set_data();
-
 	// The average normal of the selected blob is computed
 	this -> compute_selected_cells_average_normals();
 
 	// the id of the blob "center" is found
 	this -> find_blob_center();
-
-}
-
-void ModifyAreaWidget::set_data() {
 
 	// Likewise, the ids of the selected points are retrieved
 	this -> selected_vertices_global_ids_from_local_ids = vtkIdTypeArray::SafeDownCast(
@@ -183,8 +348,6 @@ void ModifyAreaWidget::set_data() {
 	// The table showing the vertex info is populated and shown
 	this -> table -> setRowCount(this -> selected_polydata -> GetNumberOfPoints());
 	this -> populate_vertex_table();
-	this -> table -> show();
-	this -> slider_magnitude -> setValue(0);
 
 	// The point locator is cleaned up and provided with the selected blob
 	this -> point_locator -> SetDataSet(this -> selected_polydata);
@@ -495,10 +658,11 @@ void ModifyAreaWidget::find_N_neighbors_indices(const int N) {
 	center_point[0] = this -> blob_center_position(0);
 	center_point[1] = this -> blob_center_position(1);
 	center_point[2] = this -> blob_center_position(2);
+	vtkSmartPointer<vtkIdList> N_closest_vertices_indices = vtkSmartPointer<vtkIdList>::New();
 
-	this -> point_locator -> FindClosestNPoints(N, center_point, this -> N_closest_vertices_indices);
+	this -> point_locator -> FindClosestNPoints(N, center_point, N_closest_vertices_indices);
 	this -> active_selected_points_polydata -> GetPoints() -> Initialize();
-	this -> selected_polydata -> GetPoints() -> GetPoints(this -> N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
+	this -> selected_polydata -> GetPoints() -> GetPoints(N_closest_vertices_indices, this -> active_selected_points_polydata -> GetPoints());
 }
 
 void ModifyAreaWidget::set_transform_direction(const int item_index) {
