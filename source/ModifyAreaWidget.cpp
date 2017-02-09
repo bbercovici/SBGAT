@@ -9,6 +9,7 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
                                    vtkSmartPointer<vtkIdList> boundary_vertex_ids_list) : QDialog(parent) {
 
 	this -> setAttribute(Qt::WA_DeleteOnClose);
+
 	this -> parent = parent;
 
 	// The different GUI elements are created
@@ -130,19 +131,19 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	this -> transform_selection = TransformSelection::SELECTED;
 
 	// Each drop down lists generates a signal notyfing the program that it was changed
-	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	connect( this -> transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &ModifyAreaWidget::set_transform_direction);
 
-	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	connect( this -> interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &ModifyAreaWidget::set_interpolation_type);
 
-	connect( transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	connect( this -> transform_selection_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &ModifyAreaWidget::set_transform_selection);
 
-	connect( transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	connect( this -> transform_direction_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
 
-	connect( interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+	connect( this -> interpolation_type_list, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
 	         this, &ModifyAreaWidget::update_view_unchanged_slider_magnitude);
 
 	// The different buttons are connected to the corresponding slots
@@ -150,16 +151,21 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent,
 	connect(this -> button_box, SIGNAL(rejected()), this, SLOT(reject()));
 
 	this -> setLayout(this -> main_layout);
+	this -> set_widget_status(true);
 
 	this -> table -> show();
 
 	this -> slider_magnitude -> setValue(0);
 
-	this -> set_data(boundary_vertex_ids_list,
-	                 selected_polydata,
-	                 unselected_polydata,
-	                 selected_actor,
-	                 unselected_actor);
+	this -> selected_actor = nullptr;
+	this -> unselected_actor = nullptr;
+
+	this -> set_data(
+	    selected_polydata,
+	    unselected_polydata,
+	    selected_actor,
+	    unselected_actor,
+	    boundary_vertex_ids_list);
 
 }
 
@@ -200,8 +206,6 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent) : QDialog(parent) {
 	this -> active_selected_points_polydata = vtkPolyData::New();
 	this -> active_selected_points_polydata -> SetPoints(vtkPoints::New());
 
-	this -> N_closest_vertices_indices = vtkIdList::New() ;
-
 	this -> averaged_normal_array = vtkDoubleArray::New();
 	this -> averaged_normal_array -> SetNumberOfComponents(3);
 	this -> averaged_normal_array -> SetNumberOfTuples(1);
@@ -257,6 +261,7 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent) : QDialog(parent) {
 	// The main layout is set and filled up
 	this -> main_layout -> setSpacing(0);
 	this -> main_layout -> setMargin(0);
+
 	this -> main_layout -> addWidget(this -> transform_direction_title);
 	this -> main_layout -> addWidget(this -> transform_direction_list);
 	this -> main_layout -> addWidget(this -> interpolation_type_title);
@@ -311,19 +316,61 @@ ModifyAreaWidget::ModifyAreaWidget(Mainwindow * parent) : QDialog(parent) {
 
 	this -> setLayout(this -> main_layout);
 
-
-	// The table containing the global ids of the selected vertices is populated
+	this -> set_widget_status(false);
+	this -> button_box -> button(QDialogButtonBox::Ok) -> setDisabled(true);
 	this -> table -> show();
-
 	this -> slider_magnitude -> setValue(0);
 
 }
 
-void ModifyAreaWidget::set_data(vtkSmartPointer<vtkIdList> boundary_vertex_ids_list,
-                                vtkSmartPointer<vtkPolyData> selected_polydata,
-                                vtkSmartPointer<vtkPolyData> unselected_polydata,
-                                vtkSmartPointer<vtkActor> selected_actor,
-                                vtkSmartPointer<vtkActor> unselected_actor) {
+
+bool ModifyAreaWidget::is_set() {
+	return this -> set_status;
+}
+
+void ModifyAreaWidget::set_widget_status(bool enabled) {
+	if (enabled == true) {
+		this -> transform_direction_title -> setEnabled(true);
+		this -> transform_direction_list -> setEnabled(true);
+		this -> interpolation_type_title -> setEnabled(true);
+		this -> interpolation_type_list -> setEnabled(true);
+		this -> transform_selection_title -> setEnabled(true);
+		this -> transform_selection_list -> setEnabled(true);
+		this -> slider_magnitude_title -> setEnabled(true);
+		this -> slider_magnitude_holder_widget -> setEnabled(true);
+		this -> slider_neighbors_title -> setEnabled(true);
+		this -> slider_neighbors_holder_widget -> setEnabled(true);
+
+		this -> set_status = true;
+		this -> button_box -> button(QDialogButtonBox::Ok) -> setEnabled(true);
+
+	}
+	else {
+		this -> transform_direction_title -> setDisabled(true);
+		this -> transform_direction_list -> setDisabled(true);
+		this -> interpolation_type_title -> setDisabled(true);
+		this -> interpolation_type_list -> setDisabled(true);
+		this -> transform_selection_title -> setDisabled(true);
+		this -> transform_selection_list -> setDisabled(true);
+		this -> slider_magnitude_title -> setDisabled(true);
+		this -> slider_magnitude_holder_widget -> setDisabled(true);
+		this -> slider_neighbors_title -> setDisabled(true);
+		this -> slider_neighbors_holder_widget -> setDisabled(true);
+
+		this -> set_status = false;
+		this -> button_box -> button(QDialogButtonBox::Ok) -> setEnabled(false);
+
+	}
+
+
+}
+
+void ModifyAreaWidget::set_data(
+    vtkSmartPointer<vtkPolyData> selected_polydata,
+    vtkSmartPointer<vtkPolyData> unselected_polydata,
+    vtkSmartPointer<vtkActor> selected_actor,
+    vtkSmartPointer<vtkActor> unselected_actor,
+    vtkSmartPointer<vtkIdList> boundary_vertex_ids_list) {
 
 	this -> boundary_vertex_ids_list = boundary_vertex_ids_list;
 	this -> selected_polydata = selected_polydata;
@@ -353,7 +400,10 @@ void ModifyAreaWidget::set_data(vtkSmartPointer<vtkIdList> boundary_vertex_ids_l
 	this -> point_locator -> SetDataSet(this -> selected_polydata);
 	this -> point_locator -> BuildLocator();
 
+	this -> set_widget_status(true);
+
 }
+
 
 void ModifyAreaWidget::populate_vertex_table() {
 
@@ -611,8 +661,8 @@ void ModifyAreaWidget::set_new_slider_magnitude_pos() {
 
 void ModifyAreaWidget::close() {
 
-	this -> parent -> get_renderer() -> RemoveActor(selected_actor);
-	this -> parent -> get_renderer() -> RemoveActor(unselected_actor);
+	this -> parent -> get_renderer() -> RemoveActor(this -> selected_actor);
+	this -> parent -> get_renderer() -> RemoveActor(this -> unselected_actor);
 
 	this -> parent -> lateral_dockwidget -> hide();
 

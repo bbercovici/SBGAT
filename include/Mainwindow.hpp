@@ -83,6 +83,7 @@ public:
 	*/
 	Mainwindow();
 
+
 	/**
 	Closes any opened lateral dockwidget
 	*/
@@ -272,7 +273,6 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 	std::vector<vtkSmartPointer<vtkActor> > normal_actors;
-
 	Asteroid * asteroid;
 
 

@@ -227,6 +227,7 @@ Asteroid * Mainwindow::get_asteroid() {
     return this -> asteroid;
 }
 
+
 void Mainwindow::open() {
 
     // The file name is retrieved from the output of the QFileDialog window
@@ -234,6 +235,7 @@ void Mainwindow::open() {
                        tr("Open File"), "../resources/", tr("OBJ file ( *.obj)"));
 
     if (!fileName.isEmpty()) {
+        
         this -> statusBar() -> showMessage("Opening .obj");
 
         this -> close_lateral_dockwidget();
@@ -310,10 +312,14 @@ void Mainwindow::select() {
     InteractorStyle * style = static_cast< InteractorStyle * >(this -> qvtkWidget
                               -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle());
 
-    
 
     style -> set_current_mode(INTERACTOR_IS_SELECT);
     this -> close_lateral_dockwidget();
+    ModifyAreaWidget * modify_area_widget = new ModifyAreaWidget(
+        this);
+
+    this -> lateral_dockwidget -> setWidget(modify_area_widget);
+    this -> lateral_dockwidget -> show();
 
 }
 

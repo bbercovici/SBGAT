@@ -80,15 +80,15 @@ public:
 	@param unselected_polydata Pointer to unselected polydata
 	@param selected_actor Pointer to selected actor
 	@param unselected_actor Pointer to unselected actor
-	@param unselected_vertex_ids_list Pointer to list of unselected vertex ids
-	
+	@param boundary_vertex_ids_list Pointer to list of boundary vertex ids
+
 	*/
 	ModifyAreaWidget(Mainwindow * parent,
 	                 vtkSmartPointer<vtkPolyData> selected_polydata,
 	                 vtkSmartPointer<vtkPolyData> unselected_polydata,
 	                 vtkSmartPointer<vtkActor> selected_actor,
 	                 vtkSmartPointer<vtkActor> unselected_actor,
-	                 vtkSmartPointer<vtkIdList> unselected_vertex_ids_list);
+	                 vtkSmartPointer<vtkIdList> boundary_vertex_ids_list);
 
 	/**
 	Constructor.
@@ -99,13 +99,33 @@ public:
 
 	/**
 	Data Setter
+	@param selected_polydata Pointer to selected polydata
+	@param unselected_polydata Pointer to unselected polydata
+	@param selected_actor Pointer to selected actor
+	@param unselected_actor Pointer to unselected actor
+	@param boundary_vertex_ids_list Pointer to list of boundary vertex ids
 	*/
-	void set_data();
+	void set_data( vtkSmartPointer<vtkPolyData> selected_polydata,
+	               vtkSmartPointer<vtkPolyData> unselected_polydata,
+	               vtkSmartPointer<vtkActor> selected_actor,
+	               vtkSmartPointer<vtkActor> unselected_actor,
+	               vtkSmartPointer<vtkIdList> boundary_vertex_ids_list);
+
+	/**
+	Returns True if widget has already been set with some input data
+	*/
+	bool is_set();
 
 	/**
 	Computes the average normal of the selected cells
 	*/
 	void compute_selected_cells_average_normals();
+
+	/**
+	Enables/Disables the widget's elements
+	@paral enabled True if the widget's elements should be enabled
+	*/
+	void set_widget_status(bool enabled) ;
 
 	/**
 	Finds the position of the average of the selected vertices and
@@ -246,6 +266,7 @@ private:
 
 	vtkSmartPointer<vtkActor> selected_actor;
 	vtkSmartPointer<vtkActor> unselected_actor;
+	bool set_status = false;
 
 	Mainwindow * parent;
 };

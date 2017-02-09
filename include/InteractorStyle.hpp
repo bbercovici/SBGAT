@@ -49,7 +49,7 @@ class InteractorStyle : public vtkInteractorStyleRubberBandPick {
 public:
 	static InteractorStyle * New();
 	vtkTypeMacro(InteractorStyle, vtkInteractorStyleRubberBandPick);
-	
+
 	InteractorStyle();
 	virtual void OnLeftButtonUp();
 
@@ -58,6 +58,13 @@ public:
 	@param points_polydata Pointer to the GUI's mainwindow
 	*/
 	void set_mainwindow(Mainwindow * mainwindow);
+
+	/**
+	Selects facets by grabbing the connected vertices
+	inside a rectangular selection
+	*/
+	void grab_area() ;
+
 
 	/**
 	Returns a pointer to the GUI's mainwindow (i.e the highest-level QT Widget)
