@@ -36,6 +36,7 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkAxesActor.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkArrowSource.h>
 
 #include "QVTKWidget.h"
 #include "osxHelper.h"
@@ -107,12 +108,12 @@ public:
 
 	/**
 	Returns a pointer to the asteroid currently loaded
-	@return Pointer to the asteroid 
+	@return Pointer to the asteroid
 	*/
 	Asteroid * get_asteroid();
 
 	/**
-	Sets the scaling factor applied to the 
+	Sets the scaling factor applied to the
 	input data to have it expressed in meters
 	*/
 	void set_scaling_factor(double scaling_factor);
@@ -125,24 +126,24 @@ public:
 	void set_action_status(bool enabled, QAction * action);
 
 	/**
-	Open load model 
+	Open load model
 	*/
 	QAction * load_action;
 
 	/**
-	Save shape model 
+	Save shape model
 	*/
 
 	QAction * save_action;
 
 	/**
-	Modify shape model 
+	Modify shape model
 	*/
 	QAction * modify_shape_action;
 
 	/**
-	Change shape color 
-	*/	
+	Change shape color
+	*/
 	QAction * set_shape_color_action;
 
 	/**
@@ -151,7 +152,7 @@ public:
 	QAction * clear_all_action;
 
 	/**
-	Set background color 
+	Set background color
 	*/
 	QAction * set_background_color_action;
 
@@ -164,6 +165,12 @@ public:
 	Open ShapeInfoWidget
 	*/
 	QAction * open_ShapeInfoWidget_action;
+
+	/**
+	Shows/hides facet normals
+	*/
+
+	QAction * show_facet_normals_action;
 
 
 	// Slots
@@ -198,16 +205,21 @@ private slots:
 	void set_background_color();
 
 	/**
-	Opens a widget displaying information on the 
+	Opens a widget displaying information on the
 	currently opened shape model
 	*/
 	void open_shape_info_widget();
 
-	
+
 	/**
 	Opens a widget allowing the user to compute the polyhedron gravity model of the displayed shape model
 	*/
 	void open_compute_pgm_widget();
+
+	/**
+	Displays arrows representing the facets normals
+	*/
+	void show_facet_normals();
 
 
 private:
@@ -244,8 +256,9 @@ private:
 	*/
 	void clear_all();
 
+
 	/**
-	Scaling factor applied to the 
+	Scaling factor applied to the
 	input data to have it expressed in meters
 	*/
 	double scaling_factor;
@@ -258,6 +271,7 @@ private:
 	vtkSmartPointer<vtkOrientationMarkerWidget> widget;
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
+	std::vector<vtkSmartPointer<vtkActor> > normal_actors;
 
 	Asteroid * asteroid;
 

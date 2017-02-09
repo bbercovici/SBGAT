@@ -108,7 +108,13 @@ void Mainwindow::set_action_status(bool enabled, QAction * action) {
 
 void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id) {
 
+
+
+
+
     if (read_polydata_without_id != NULL) {
+
+        this -> clear_all();
 
         // The polydata is fed to an IDFilter.
         vtkSmartPointer<vtkIdFilter>  id_filter = vtkSmartPointer<vtkIdFilter>::New();
@@ -123,9 +129,9 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         vtkSmartPointer<vtkPolyDataNormals> normal_filter = vtkPolyDataNormals::New();
         normal_filter -> ComputePointNormalsOff();
         normal_filter -> ComputeCellNormalsOn();
+        normal_filter -> SplittingOff();
         normal_filter -> SetInputConnection(id_filter -> GetOutputPort());
         normal_filter -> Update ();
-
 
         // The polydata is translated so as to have its coordinates
         // expressed with respect to its barycenter (constant density
@@ -141,8 +147,8 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         double center[3];
         center_of_mass_filter -> GetCenter(center);
 
-        // the location of the original center could be 
-        // stored, in case the user wants to restore the coordinates 
+        // the location of the original center could be
+        // stored, in case the user wants to restore the coordinates
         // in the origin reference frame
 
         vtkSmartPointer<vtkTransform> translation =
@@ -156,9 +162,6 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         translation_filter -> Update();
 
         vtkSmartPointer<vtkPolyData> read_polydata = translation_filter -> GetOutput();
-
-
-
 
 
         // Create a mapper and actor to represent the shape model
@@ -184,6 +187,7 @@ void Mainwindow::load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id)
         this -> set_action_status(true, this -> open_ComputePGMWidget_action);
         this -> set_action_status(true, this -> open_ShapeInfoWidget_action);
         this -> set_action_status(true, this -> save_action);
+        this -> set_action_status(true, this -> show_facet_normals_action);
 
         // The topology of the shape is constructed
         read_polydata -> BuildLinks();
@@ -365,6 +369,10 @@ void Mainwindow::createActions() {
     connect(this -> open_ComputePGMWidget_action, &QAction::triggered, this, &Mainwindow::open_compute_pgm_widget);
     this -> open_ComputePGMWidget_action -> setDisabled(true);
 
+    this -> show_facet_normals_action = new QAction(tr("Show facet normals"), this);
+    this -> show_facet_normals_action -> setCheckable(true);
+    connect(this -> show_facet_normals_action, &QAction::toggled, this, &Mainwindow::show_facet_normals);
+    this -> show_facet_normals_action -> setDisabled(true);
 
     this -> open_ShapeInfoWidget_action = new QAction(tr("Show Shape Model Info"), this);
     this -> open_ShapeInfoWidget_action -> setStatusTip(tr("Open widget showing shape model information"));
@@ -372,6 +380,7 @@ void Mainwindow::createActions() {
     this -> open_ShapeInfoWidget_action -> setDisabled(true);
 
     this -> set_shape_color_action = new QAction(tr("Shape Color"), this);
+    this -> set_shape_color_action -> setCheckable(true);
     this -> set_shape_color_action -> setStatusTip(tr("Set the shape actor color"));
     connect(this -> set_shape_color_action, &QAction::triggered, this, &Mainwindow::set_shape_color);
     this -> set_shape_color_action -> setDisabled(true);
@@ -421,6 +430,7 @@ void Mainwindow::createMenus() {
     this -> ViewMenu = menuBar() -> addMenu(tr("&Shape Graphic Properties"));
     this -> ViewMenu -> addAction(this -> set_shape_color_action);
     this -> ViewMenu -> addAction(this -> set_background_color_action);
+    this -> ViewMenu -> addAction(this -> show_facet_normals_action);
     this -> ViewMenu -> addSeparator();
 
 
@@ -438,9 +448,15 @@ void Mainwindow::clear_all() {
     // and its close() method called
     this -> close_lateral_dockwidget();
 
+    // The facet normals are hidden
+    // This should call the appropriate slot
+    this -> show_facet_normals_action -> setChecked(false);
+
     // The current asteroid is destroyed
     delete(this -> asteroid);
     this -> asteroid = nullptr;
+
+
 
     // The render window is updated
     this -> qvtkWidget -> GetRenderWindow() -> Render();
@@ -453,6 +469,150 @@ void Mainwindow::clear_all() {
     this -> set_action_status(false, this -> save_action);
 
 
+
+}
+
+void Mainwindow::show_facet_normals() {
+
+    unsigned int N = std::round(0.1 * this -> asteroid -> get_polydata() -> GetNumberOfPolys());
+    int plotted_normals = 0;
+    if (this -> show_facet_normals_action -> isChecked() == true) {
+
+        for (unsigned int facet = 0;
+                facet < this -> asteroid -> get_polydata() -> GetNumberOfPolys();
+                ++facet) {
+
+            if (plotted_normals < N) {
+
+                ++plotted_normals;
+
+                vtkSmartPointer<vtkArrowSource> arrowSource =
+                    vtkSmartPointer<vtkArrowSource>::New();
+
+                arrowSource -> SetTipResolution(2);
+                arrowSource -> SetShaftResolution(2);
+
+
+                double  p [3];
+                this -> asteroid -> get_polydata() -> GetPoint( this ->
+                        asteroid ->  facet_vertices_ids[facet][0], p);
+                arma::vec P0 = {p[0], p[1], p[2]};
+
+                this -> asteroid -> get_polydata() -> GetPoint( this ->
+                        asteroid ->  facet_vertices_ids[facet][1], p);
+                arma::vec P1 = {p[0], p[1], p[2]};
+
+                this -> asteroid -> get_polydata() -> GetPoint( this ->
+                        asteroid ->  facet_vertices_ids[facet][2], p);
+                arma::vec P2 = {p[0], p[1], p[2]};
+
+
+                arma::vec Xc = (P0 + P1 + P2) / 3;
+
+                // Generate a random start and end point
+                double startPoint[3], endPoint[3];
+                vtkMath::RandomSeed(time(NULL));
+                startPoint[0] = Xc(0);
+                startPoint[1] = Xc(1);
+                startPoint[2] = Xc(2);
+
+                double n_array[3];
+
+                this -> asteroid -> get_polydata() -> GetCellData() -> GetNormals() -> GetTuple(facet,
+                        n_array);
+
+                arma::vec n = {
+                    n_array[0],
+                    n_array[1],
+                    n_array[2]
+                };
+
+                arma::vec endpoint_arma = Xc + n;
+
+                endPoint[0] = endpoint_arma(0);
+                endPoint[1] = endpoint_arma(1);
+                endPoint[2] = endpoint_arma(2);
+
+                // Compute a basis
+                double normalizedX[3];
+                double normalizedY[3];
+                double normalizedZ[3];
+
+                // The X axis is a vector from start to end
+                vtkMath::Subtract(endPoint, startPoint, normalizedX);
+                double length = 0.1 * this -> asteroid -> get_polydata() -> GetLength();
+                vtkMath::Normalize(normalizedX);
+
+                // The Z axis is an arbitrary vector cross X
+                double arbitrary[3];
+                arbitrary[0] = vtkMath::Random(-10, 10);
+                arbitrary[1] = vtkMath::Random(-10, 10);
+                arbitrary[2] = vtkMath::Random(-10, 10);
+                vtkMath::Cross(normalizedX, arbitrary, normalizedZ);
+                vtkMath::Normalize(normalizedZ);
+
+                // The Y axis is Z cross X
+                vtkMath::Cross(normalizedZ, normalizedX, normalizedY);
+                vtkSmartPointer<vtkMatrix4x4> matrix =
+                    vtkSmartPointer<vtkMatrix4x4>::New();
+
+                // Create the direction cosine matrix
+                matrix -> Identity();
+                for (unsigned int i = 0; i < 3; i++) {
+                    matrix -> SetElement(i, 0, normalizedX[i]);
+                    matrix -> SetElement(i, 1, normalizedY[i]);
+                    matrix -> SetElement(i, 2, normalizedZ[i]);
+                }
+
+
+                // Apply the transforms
+                vtkSmartPointer<vtkTransform> transform =
+                    vtkSmartPointer<vtkTransform>::New();
+                transform -> Translate(startPoint);
+                transform -> Concatenate(matrix);
+                transform -> Scale(length, length, length);
+
+                // Transform the polydata
+                vtkSmartPointer<vtkTransformPolyDataFilter> transformPD =
+                    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+                transformPD -> SetTransform(transform);
+                transformPD -> SetInputConnection(arrowSource->GetOutputPort());
+
+                //Create a mapper and actor for the arrow
+                vtkSmartPointer<vtkPolyDataMapper> mapper =
+                    vtkSmartPointer<vtkPolyDataMapper>::New();
+                vtkSmartPointer<vtkActor> actor =
+                    vtkSmartPointer<vtkActor>::New();
+                // actor -> SetUserMatrix(transform -> GetMatrix());
+                mapper -> SetInputConnection(transformPD -> GetOutputPort());
+                actor -> SetMapper(mapper);
+
+                //Create a renderer, render window, and interactor
+                vtkSmartPointer<vtkRenderer> renderer =
+                    vtkSmartPointer<vtkRenderer>::New();
+
+                //Add the actor to the scene
+                this -> renderer -> AddActor(actor);
+                this -> normal_actors.push_back(actor);
+            }
+            else {
+                break;
+            }
+        }
+
+        this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+
+    }
+    else {
+        for (std::vector<vtkSmartPointer<vtkActor> >::iterator iter = this -> normal_actors.begin();
+                iter != this -> normal_actors.end();
+                ++iter) {
+            this -> renderer -> RemoveActor(*iter);
+        }
+        this -> normal_actors.clear();
+        this -> qvtkWidget -> GetRenderWindow() -> Render();
+    }
 
 }
 

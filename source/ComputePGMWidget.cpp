@@ -18,7 +18,7 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this ->	load_global_acceleration_button = new QPushButton("Load Existing", this);
 	this ->	save_global_acceleration_button = new QPushButton("Save", this);
 
-	
+
 	this -> physical_properties_box = new QGroupBox("Physical Properties", this);
 	this -> spin_properties_box = new QGroupBox("Spin Properties", this);
 
@@ -117,7 +117,7 @@ ComputePGMWidget::ComputePGMWidget(Mainwindow * parent) {
 	this -> compute_pgm_layout -> addWidget(this -> visualize_pgm_box, 1, 0, 1, 3);
 
 	this -> visualize_pgm_box -> setLayout(this -> visualize_pgm_layout);
-	
+
 	this -> visualize_pgm_layout -> addWidget( this -> visualization_combobox, 0, 0, 1, 1);
 	this -> visualize_pgm_layout -> addWidget( this -> show_visualization_button, 0, 1, 1, 1);
 
@@ -256,7 +256,6 @@ void ComputePGMWidget::compute_local_pgm() {
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
 
-
 	double specified_point[3] = {
 		x_coordinate_qlineedit -> text().toDouble(),
 		y_coordinate_qlineedit -> text().toDouble(),
@@ -294,24 +293,38 @@ void ComputePGMWidget::compute_local_pgm() {
 
 	else {
 
-		Vect Xsc(3);
+		arma::vec Xsc = {specified_point[0],
+		                 specified_point[1],
+		                 specified_point[2]
+		                } ;
 
-		Xsc[0] = specified_point[0];
-		Xsc[1] = specified_point[1];
-		Xsc[2] = specified_point[2];
 
 
 		double G_dens = (this -> density_qlineedit -> text().toDouble())
 		                * arma::datum::G;
 		this -> parent -> get_asteroid() -> setmGs(G_dens);
 
-		Vect grav = this -> parent -> get_asteroid() -> PolyGrav(Xsc);
+		arma::vec grav = this -> parent -> get_asteroid() -> polygrav_vtk(Xsc);
 
 		this -> compute_acceleration_plainedit -> appendPlainText(
 		    QString::fromStdString("Acceleration at specified point (m/s^2): "));
 		this -> compute_acceleration_plainedit -> appendPlainText("x:  " + QString::number(grav[0]));
 		this -> compute_acceleration_plainedit -> appendPlainText("y:  " + QString::number(grav[1]));
 		this -> compute_acceleration_plainedit -> appendPlainText("z:  " + QString::number(grav[2]));
+
+		arma::vec omega = this -> parent -> get_asteroid() -> get_spin_axis() * this ->parent ->  get_asteroid() -> get_spin_rate();
+
+		arma::vec total_acceleration = grav - arma::cross(omega, arma::cross(omega, Xsc));
+
+		this -> compute_acceleration_plainedit -> appendPlainText(
+		    QString::fromStdString(" "));
+		this -> compute_acceleration_plainedit -> appendPlainText(
+		    QString::fromStdString("Total acceleration at specified point (m/s^2): "));
+		this -> compute_acceleration_plainedit -> appendPlainText("x:  " + QString::number(total_acceleration[0]));
+		this -> compute_acceleration_plainedit -> appendPlainText("y:  " + QString::number(total_acceleration[1]));
+		this -> compute_acceleration_plainedit -> appendPlainText("z:  " + QString::number(total_acceleration[2]));
+
+
 	}
 	this -> parent -> statusBar() -> showMessage("Ready");
 
@@ -385,12 +398,12 @@ void ComputePGMWidget::show_acceleration_magnitude() {
 
 	double max_mag = - std::numeric_limits<double>::infinity();
 	double min_mag = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
 
 		if (arma::norm(acceleration) > max_mag) {
@@ -454,22 +467,28 @@ void ComputePGMWidget::show_normal_acceleration_angle() {
 	vtkSmartPointer<vtkDoubleArray> surface_data =
 	    vtkSmartPointer<vtkDoubleArray>::New();
 
-
 	double max_angle = - std::numeric_limits<double>::infinity();
 	double min_angle = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
 
+		double n_array[3];
+
+		this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> GetNormals() -> GetTuple(facet,
+		        n_array);
+
 		arma::vec normal = {
-			this -> parent -> get_asteroid() -> get_ListN()[i][0],
-			this -> parent -> get_asteroid() -> get_ListN()[i][1],
-			this -> parent -> get_asteroid() -> get_ListN()[i][2]
+			n_array[0],
+			n_array[1],
+			n_array[2]
 		};
+
 
 		double angle = 180. / arma::datum::pi * std::acos(arma::dot(acceleration, - normal) / arma::norm(acceleration));
 
@@ -489,7 +508,6 @@ void ComputePGMWidget::show_normal_acceleration_angle() {
 	vtkActor * shape_actor = this -> parent -> get_actor_vector()[0];
 
 	shape_actor -> GetMapper() -> SetScalarRange(min_angle, max_angle);
-
 
 	vtkSmartPointer<vtkLookupTable> lookup_table = vtkLookupTable::SafeDownCast(shape_actor -> GetMapper() -> GetLookupTable());
 	lookup_table -> SetHueRange(0.667, 0);
@@ -525,36 +543,43 @@ void ComputePGMWidget::show_radial_acceleration_angle() {
 
 	double max_angle = - std::numeric_limits<double>::infinity();
 	double min_angle = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
-		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
+
+		unsigned int P1_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][2];
+		double p[3];
+
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P1_index, p);
 		arma::vec P1 = {
-			this -> parent -> get_asteroid() -> get_X()[P1_index],
-			this -> parent -> get_asteroid() -> get_Y()[P1_index],
-			this -> parent -> get_asteroid() -> get_Z()[P1_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P2_index, p);
 		arma::vec P2 = {
-			this -> parent -> get_asteroid() -> get_X()[P2_index],
-			this -> parent -> get_asteroid() -> get_Y()[P2_index],
-			this -> parent -> get_asteroid() -> get_Z()[P2_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P3_index, p);
 		arma::vec P3 = {
-			this -> parent -> get_asteroid() -> get_X()[P3_index],
-			this -> parent -> get_asteroid() -> get_Y()[P3_index],
-			this -> parent -> get_asteroid() -> get_Z()[P3_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
-		arma::vec P = 1. / 3. * (P1 + P2 + P3);
+
+		arma::vec P = (P1 + P2 + P3) / 3;
 		arma::vec radial = P / arma::norm(P);
 
 		double angle = 180. / arma::datum::pi * std::acos(arma::dot(acceleration, - radial) / arma::norm(acceleration));
@@ -612,36 +637,41 @@ void ComputePGMWidget::show_radial_acceleration_component() {
 
 	double max_component = - std::numeric_limits<double>::infinity();
 	double min_component = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
-		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
 
+		unsigned int P1_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][2];
+		double p[3];
+
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P1_index, p);
 		arma::vec P1 = {
-			this -> parent -> get_asteroid() -> get_X()[P1_index],
-			this -> parent -> get_asteroid() -> get_Y()[P1_index],
-			this -> parent -> get_asteroid() -> get_Z()[P1_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P2_index, p);
 		arma::vec P2 = {
-			this -> parent -> get_asteroid() -> get_X()[P2_index],
-			this -> parent -> get_asteroid() -> get_Y()[P2_index],
-			this -> parent -> get_asteroid() -> get_Z()[P2_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P3_index, p);
 		arma::vec P3 = {
-			this -> parent -> get_asteroid() -> get_X()[P3_index],
-			this -> parent -> get_asteroid() -> get_Y()[P3_index],
-			this -> parent -> get_asteroid() -> get_Z()[P3_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
-		arma::vec P = 1. / 3. * (P1 + P2 + P3);
+		arma::vec P = (P1 + P2 + P3) / 3;
 		arma::vec radial = P / arma::norm(P);
 
 		double component = arma::dot(acceleration, radial) ;
@@ -701,18 +731,22 @@ void ComputePGMWidget::show_normal_acceleration_component() {
 
 	double max_component = - std::numeric_limits<double>::infinity();
 	double min_component = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
 
+		double n_array[3];
+		this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> GetNormals() -> GetTuple(facet,
+		        n_array);
+
 		arma::vec normal = {
-			this -> parent -> get_asteroid() -> get_ListN()[i][0],
-			this -> parent -> get_asteroid() -> get_ListN()[i][1],
-			this -> parent -> get_asteroid() -> get_ListN()[i][2]
+			n_array[0],
+			n_array[1],
+			n_array[2]
 		};
 
 		double component = arma::dot(acceleration, normal) ;
@@ -772,37 +806,41 @@ void ComputePGMWidget::show_orthoradial_acceleration_magnitude() {
 
 	double max_magnitude = - std::numeric_limits<double>::infinity();
 	double min_magnitude = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
 
-		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][2];
+		double p[3];
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P1_index, p);
 		arma::vec P1 = {
-			this -> parent -> get_asteroid() -> get_X()[P1_index],
-			this -> parent -> get_asteroid() -> get_Y()[P1_index],
-			this -> parent -> get_asteroid() -> get_Z()[P1_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P2_index, p);
 		arma::vec P2 = {
-			this -> parent -> get_asteroid() -> get_X()[P2_index],
-			this -> parent -> get_asteroid() -> get_Y()[P2_index],
-			this -> parent -> get_asteroid() -> get_Z()[P2_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P3_index, p);
 		arma::vec P3 = {
-			this -> parent -> get_asteroid() -> get_X()[P3_index],
-			this -> parent -> get_asteroid() -> get_Y()[P3_index],
-			this -> parent -> get_asteroid() -> get_Z()[P3_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
-		arma::vec P = 1. / 3. * (P1 + P2 + P3);
+		arma::vec P = (P1 + P2 + P3) / 3;
 		arma::vec radial = P / arma::norm(P);
 
 		double magnitude = arma::norm(acceleration
@@ -903,20 +941,25 @@ void ComputePGMWidget::show_orthonormal_acceleration_magnitude() {
 
 	double max_magnitude = - std::numeric_limits<double>::infinity();
 	double min_magnitude = std::numeric_limits<double>::infinity();
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
+
+		double n_array[3];
+
+		this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> GetNormals() -> GetTuple(facet,
+		        n_array);
+
 
 		arma::vec normal = {
-			this -> parent -> get_asteroid() -> get_ListN()[i][0],
-			this -> parent -> get_asteroid() -> get_ListN()[i][1],
-			this -> parent -> get_asteroid() -> get_ListN()[i][2]
+			n_array[0],
+			n_array[1],
+			n_array[2]
 		};
-
 		double magnitude = arma::norm(acceleration
 		                              - arma::dot(acceleration, normal) * normal) ;
 
@@ -973,65 +1016,85 @@ void ComputePGMWidget::show_slopes() {
 
 	arma::vec omega = this -> parent -> get_asteroid() -> get_spin_axis() * this -> parent -> get_asteroid() -> get_spin_rate();
 
-	for (unsigned int i = 0; i < this -> parent -> get_asteroid() -> GetNOF(); i++) {
+	for (unsigned int facet = 0; facet < this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys(); facet++) {
+
+		double n_array[3];
+		this -> parent -> get_asteroid() -> get_polydata() -> GetCellData() -> GetNormals() -> GetTuple(facet,
+		        n_array);
 
 		arma::vec normal = {
-			this -> parent -> get_asteroid() -> get_ListN()[i][0],
-			this -> parent -> get_asteroid() -> get_ListN()[i][1],
-			this -> parent -> get_asteroid() -> get_ListN()[i][2]
+			n_array[0],
+			n_array[1],
+			n_array[2]
 		};
 
 		arma::vec acceleration = {
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][0],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][1],
-			this -> parent -> get_asteroid() -> get_surface_grav()[i][2]
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][0],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][1],
+			this -> parent -> get_asteroid() -> get_surface_grav()[facet][2]
 		};
 
-		unsigned int P1_index = this -> parent -> get_asteroid() -> get_ListTri()[i][0];
-		unsigned int P2_index = this -> parent -> get_asteroid() -> get_ListTri()[i][1];
-		unsigned int P3_index = this -> parent -> get_asteroid() -> get_ListTri()[i][2];
+		unsigned int P1_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][0];
+		unsigned int P2_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][1];
+		unsigned int P3_index = this -> parent -> get_asteroid() -> facet_vertices_ids[facet][2];
+		double p[3];
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P1_index, p);
 		arma::vec P1 = {
-			this -> parent -> get_asteroid() -> get_X()[P1_index],
-			this -> parent -> get_asteroid() -> get_Y()[P1_index],
-			this -> parent -> get_asteroid() -> get_Z()[P1_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P2_index, p);
 		arma::vec P2 = {
-			this -> parent -> get_asteroid() -> get_X()[P2_index],
-			this -> parent -> get_asteroid() -> get_Y()[P2_index],
-			this -> parent -> get_asteroid() -> get_Z()[P2_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
+		this -> parent -> get_asteroid() -> get_polydata() -> GetPoint(P3_index, p);
 		arma::vec P3 = {
-			this -> parent -> get_asteroid() -> get_X()[P3_index],
-			this -> parent -> get_asteroid() -> get_Y()[P3_index],
-			this -> parent -> get_asteroid() -> get_Z()[P3_index]
+			p[0],
+			p[1],
+			p[2]
 		};
 
-		arma::vec P = 1. / 3. * (P1 + P2 + P3);
+		arma::vec P = (P1 + P2 + P3) / 3;
 
-		arma::vec total_acceleration = acceleration + arma::cross(omega, arma::cross(omega, P));
+		arma::vec total_acceleration = acceleration - arma::cross(omega, arma::cross(omega, P));
 
 		double angle = 180. / arma::datum::pi * std::acos(arma::dot(total_acceleration, - normal) / arma::norm(total_acceleration));
-		average_slope += angle;
 
-		if (angle > max_angle) {
-			max_angle = angle ;
-		}
+		if (std::isnan(angle) == false) {
+			average_slope += angle;
 
-		if (angle < min_angle) {
-			min_angle = angle ;
+			if (angle > max_angle) {
+				max_angle = angle ;
+			}
+
+			if (angle < min_angle) {
+				min_angle = angle ;
+			}
 		}
 
 		surface_data -> InsertNextValue(angle);
 	}
 
-	average_slope = average_slope / this -> parent -> get_asteroid() -> GetNOF();
+	average_slope = average_slope / this -> parent
+	                -> get_asteroid() -> get_polydata() -> GetNumberOfPolys();
 
 
 	this -> compute_acceleration_plainedit -> appendPlainText(
-	    QString::fromStdString("Average Slope: " + std::to_string(average_slope) + " deg"));
+	    QString::fromStdString("Average slope: " + std::to_string(average_slope) + " deg"));
+
+
+	this -> compute_acceleration_plainedit -> appendPlainText(
+	    QString::fromStdString("Minimum slope: " + std::to_string(min_angle) + " deg"));
+
+
+	this -> compute_acceleration_plainedit -> appendPlainText(
+	    QString::fromStdString("Maximum slope: " + std::to_string(max_angle) + " deg"));
 
 
 

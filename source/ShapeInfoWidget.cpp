@@ -22,7 +22,7 @@ ShapeInfoWidget::ShapeInfoWidget(Mainwindow * parent) {
 }
 
 void ShapeInfoWidget::setupUI() {
-	
+
 	unsigned int facets = this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPolys();
 	unsigned int vertices = this -> parent -> get_asteroid() -> get_polydata() -> GetNumberOfPoints();
 	unsigned int edges = (unsigned int)(1.5 * (double)(facets));
@@ -31,6 +31,10 @@ void ShapeInfoWidget::setupUI() {
 	vtkSmartPointer<vtkMassProperties> mass_properties = vtkMassProperties::New();
 	mass_properties -> SetInputData(this -> parent -> get_asteroid() -> get_polydata());
 	mass_properties -> Update();
+
+	this -> parent -> get_asteroid() -> get_polydata() -> ComputeBounds();
+	double * bounds  = this -> parent -> get_asteroid() -> get_polydata() -> GetBounds();
+
 
 	std::string message =  "Vertices: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(vertices) ));
@@ -43,16 +47,25 @@ void ShapeInfoWidget::setupUI() {
 
 	this -> text_area -> appendPlainText(" ");
 
-	message = "Characteristic length: ";
-	this -> text_area -> appendPlainText(QString::fromStdString(message) + QString::number(length,'e',5) + " m");
+	message =  "xmin/xmax: ";
+	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(bounds[0]) + " / " + std::to_string(bounds[1]) + " m"));
+
+	message =  "ymin/ymax: ";
+	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(bounds[2]) + " / " + std::to_string(bounds[3]) + " m"));
+
+	message =  "zmin/zmax: ";
+	this -> text_area -> appendPlainText(QString::fromStdString(message + std::to_string(bounds[4]) + " / " + std::to_string(bounds[5]) + " m"));
+
+	this -> text_area -> appendPlainText(" ");
+
 
 	message = "Area: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message)
-	                                     + QString::number(mass_properties -> GetSurfaceArea ()/1e6,'e',5) + " km^2");
+	                                     + QString::number(mass_properties -> GetSurfaceArea () / 1e6, 'e', 5) + " km^2");
 
 	message = "Volume: ";
 	this -> text_area -> appendPlainText(QString::fromStdString(message)
-	                                     + QString::number(mass_properties -> GetVolume ()/1e9,'e',5) + " km^3");
+	                                     + QString::number(mass_properties -> GetVolume () / 1e9, 'e', 5) + " km^3");
 
 
 

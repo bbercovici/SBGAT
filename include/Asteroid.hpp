@@ -23,6 +23,12 @@
 #include <map>
 #include <fstream>
 #include <armadillo>
+#include <array>
+
+#include <ctime>
+#include <cstdio>
+#include <chrono>
+#include <sys/time.h>
 
 /**
 Declaration of the Asteroid Class. Stores
@@ -37,33 +43,14 @@ Declaration of the Asteroid Class. Stores
 
 class Asteroid {
 private:
-
-  double mGs;   // G*dens product
-
-  unsigned int mNOE; //No. of edges
-
-  // Vertex coordinates
-  double* mX;
-  double* mY;
-  double* mZ;
-
-  // Triangle Vertex List
-  int** mListTri;
-
-  // Face Normal Unit Vectors
-  double** mListN;
+// G*dens product
+  double mGs;
 
   // Surface Gravity Acceleration Vectors
   double** surface_grav;
 
-  // Face Dyads
-  double** mF;
 
-  // Edge Vertex List
-  int** mListE;
 
-  // Edge Dyads
-  double** mE;
 
 
 public:
@@ -77,49 +64,6 @@ public:
   @return G * density product
   */
   double GetGs() const;
-
-  /**
-  Returns the number of vertices
-  @return Number of vertices
-  */
-  unsigned int GetNOV() const;
-  /**
-  Returns the number of facets
-  @return Number of facets
-  */
-  unsigned int GetNOF() const;
-  /**
-  Returns the number of edges
-  @return Number of edges
-  */
-  unsigned int GetNOE() const;
-
-  /**
-  Returns pointer to X coordinates
-  @return Pointer to array of X coordinates
-  */
-  double * get_X()  ;
-
-  /**
-  Returns pointer to Y coordinates
-  @return Pointer to array of Y coordinates
-  */
-  double * get_Y()  ;
-  /**
-  Returns pointer to Z coordinates
-  @return Pointer to array of Z coordinates
-  */
-  double * get_Z()  ;
-
-  Vect GetListTri() const;
-  Vect GetListN() const;
-  Vect GetF() const;
-
-  double ** get_ListN() ;
-  int ** get_ListTri() ;
-
-  Vect GetListE() const;
-  Vect GetE() const;
 
   double ** get_surface_grav();
 
@@ -212,6 +156,7 @@ public:
   */
   int load_surface_acceleration(std::string filename);
 
+  std::vector<std::array<unsigned int, 3> > facet_vertices_ids;
 
 protected:
   arma::vec spin_axis;
@@ -219,8 +164,8 @@ protected:
   vtkSmartPointer<vtkPolyData> polydata;
   std::vector < std::set< std::set <unsigned int> > > facet_edge_point_ids;
   std::map < std::set <unsigned int> , std::set< unsigned int> > edge_point_facet_ids;
-
-
+  std::vector<arma::mat> F_vector;
+  std::map<std::set<unsigned int>, arma::mat> edge_dyads;
 };
 
 
