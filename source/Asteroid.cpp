@@ -221,6 +221,7 @@ arma::vec Asteroid::polygrav_vtk(arma::vec & Xsc) {
     this -> polydata -> GetPoint(this -> facet_vertices_ids[facet][2], p);
     r3 = {p[0], p[1], p[2]};
 
+    
     //Pos vector wrt S/C
     r1 = r1 - Xsc;
     r2 = r2 - Xsc;

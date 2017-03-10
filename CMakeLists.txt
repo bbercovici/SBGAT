@@ -45,9 +45,26 @@ find_package(Qt5Widgets REQUIRED)
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
+# Find Boost
+set(Boost_USE_STATIC_LIBS OFF) 
+set(Boost_USE_MULTITHREADED ON)  
+set(Boost_USE_STATIC_RUNTIME OFF) 
+find_package(Boost COMPONENTS Filesystem) 
+include_directories(${Boost_INCLUDE_DIRS}) 
+
+
 # Find armadillo package
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
+
+
+# Assimp
+include_directories(/Users/bbercovici/assimp_3_3_1/include)
+set(assimp_dependencies  
+	"/usr/local/lib/libassimp.3.3.1.dylib"
+	"/usr/local/lib/libassimp.3.dylib"
+	"/usr/local/lib/libassimp.dylib")
+
 
 
 # Cocoa
@@ -98,6 +115,8 @@ source/ComputePGMWidget.cpp
 source/ShapeInfoWidget.cpp
 source/SetInputScalingWidget.cpp
 source/vtkOBJWriter.cpp
+source/ShapeModel.cpp
+source/DynamicAnalyses.cpp
 include/Mainwindow.hpp
 include/InteractorStyle.hpp
 include/InheritedPicker.hpp
@@ -110,212 +129,17 @@ include/ComputePGMWidget.hpp
 include/ShapeInfoWidget.hpp
 include/SetInputScalingWidget.hpp
 include/vtkOBJWriter.h
+include/ShapeModel.hpp
+include/DynamicAnalyses.hpp
 )
-
-# # Add subdirectories
-# add_subdirectory(dialogs)
-# add_subdirectory(displays)
-# add_subdirectory(doc)
-# add_subdirectory(external/qdarkstyle)
-# add_subdirectory(geometries)
-# add_subdirectory(shaders)
-# add_subdirectory(utilities)
-# add_subdirectory(communication)
-
-# # Setup include directories
-# include_directories(dialogs)
-# include_directories(displays)
-# include_directories(external/assimp_3_1_1/include)
-# include_directories(external/boost_1_60_0)
-# include_directories(external/cspice/include)
-# include_directories(external/qdarkstyle)
-# include_directories(geometries)
-# include_directories(utilities)
-# include_directories(communication)
-# include_directories(external/WMM)
-
-#------------------------------------------------------------------------------
-# Add in necessary simulation code
-# When modifying to use alternate code should only have to modify this section
-# Note that since the ADCS simulation already includes the avslabtoolbox files
-#   they should not be included a second time, but will ordinarily be required
-#add_subdirectory(external/avslabtoolbox)
-#include_directories(external/avslabtoolbox)
-# Note that since the ADCS simulation already includes the communication files
-#   they should not be included a second time, but will ordinarily be required
-#add_subdirectory(communication)
-#include_directories(communication)
-
-#file(RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}")
-
-# add_subdirectory("${_relPath}/FSW" "${CMAKE_CURRENT_BINARY_DIR}/simulation/FSW")
-# add_subdirectory("${_relPath}/Simulation" "${CMAKE_CURRENT_BINARY_DIR}/simulation/Simulation")
-#add_subdirectory("${_relPath}/Simulation/communication" "${CMAKE_CURRENT_BINARY_DIR}/simulation/Simulation/communication")
-#add_subdirectory("${_relPath}/External/WMM" "${CMAKE_CURRENT_BINARY_DIR}/simulation/External/WMM")
-
-#include_directories("${_relPath}/External/WMM")
-# include_directories("${_relPath}/Simulation")
-#include_directories("${_relPath}/Simulation/communication")
-# include_directories("${_relPath}/FSW")
-#------------------------------------------------------------------------------
-
-# # Generate Visual Studio file filters
-# foreach(item ${SRCS})
-#     get_filename_component(dir ${item} PATH)
-#     list(APPEND dirs ${dir})
-#     list(APPEND ${dir}_FILES ${item})
-# endforeach()
-# list(REMOVE_DUPLICATES dirs)
-# foreach(item ${dirs})
-#     source_group(${item} FILES ${${item}_FILES})
-# endforeach()
-# source_group("" FILES ${_FILES})
 
 set(library_dependencies
 ${Qt5Widgets_LIBRARIES}
 ${VTK_LIBRARIES}
-${ARMADILLO_LIBRARIES})
+${ARMADILLO_LIBRARIES}
+${assimp_dependencies}
+${Boost_LIBRARIES})
 
 
-
-# Create list of libraries depending on system
-# if(WIN32)
-#     if(MSVC_VERSION EQUAL 1800) # VS2013
-#         set(library_dependencies
-#             ${Qt5Widgets_LIBRARIES}
-#             ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/assimp.lib
-#             ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice-vc120-mt.lib
-#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_filesystem-vc120-mt-1_58.lib
-#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_system-vc120-mt-1_58.lib
-#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_serialization-vc120-mt-gd-1_58.lib
-#             ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_thread-vc120-mt-1_58.lib
-#         )
-
-#     else()
-#         message(FATAL_ERROR "Only Visual Studio 2013 is currently supported")
-#     endif()
-
-# elseif(APPLE)
-#     set(library_dependencies
-#             ${Qt5Widgets_LIBRARIES}
-#             ${VTK_LIBRARIES}
-#             ${ARMADILLO_LIBRARIES}
-            
-#             # ${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib
-#             # ${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice.a
-#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib
-#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_system.dylib
-#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_serialization.dylib
-#             # ${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_thread.dylib
-#     )
-# else()
-#     message(FATAL_ERROR "Only WIN32 and APPLE systems are currently supported")
-# endif()
-
-# Add compiler flags 
-# if(MSVC)
-#     add_definitions(/D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
-#     add_definitions(/D BOOST_MPL_LIMIT_LIST_SIZE=50)
-#     add_definitions(/D _CRT_SECURE_NO_WARNINGS)
-#     add_definitions(/D _WIN32_WINNT=0x0501) # Targets Windows xp
-#     add_definitions(/D _WINSOCK_DEPRECATED_NO_WARNINGS)
-#     add_definitions(/D BOOST_ALL_NO_LIB)
-#     add_definitions(/D WIN32_LEAN_AND_MEAN)
-# #    add_definitions(/W3)
-# #    add_definitions(/wd"4913")
-#     foreach(flag 
-#         CMAKE_C_FLAGS
-#         CMAKE_C_FLAGS_DEBUG
-#         CMAKE_C_FLAGS_RELEASE
-#         CMAKE_CXX_FLAGS
-#         CMAKE_CXX_FLAGS_DEBUGwd
-#         CMAKE_CXX_FLAGS_RELEASE)
-#         set("${flag}" "${${flag}} /EHsc ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-#     endforeach()
-# elseif(APPLE)
-#     # add_definitions(-D BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS)
-#     # add_definitions(-D BOOST_MPL_LIMIT_LIST_SIZE=50)
-# 	# add_definitions(-D QT_DEBUG_PLUGINS=1)
-#     set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-# endif()
-
-# Generate executable
-# if(WIN32)
-#     add_executable(${EXE_NAME} WIN32 ${SRCS})
-# else()
-#     add_executable(${EXE_NAME} MACOSX_BUNDLE ${SRCS})
-#     # add_executable(${EXE_NAME} ${SRCS})
-# endif()
-
-# Set up library dependencies
-# target_link_libraries(${EXE_NAME} debug ${library_dependencies})
-# target_link_libraries(${EXE_NAME} optimized ${library_dependencies})
 target_link_libraries(${EXE_NAME} ${library_dependencies})
 
-# Add the dynamic libraries to the build folder
-# if(WIN32)
-#     add_custom_command(TARGET ${EXE_NAME} POST_BUILD
-#         DEPENDS ${EXE_NAME}
-#         # Debug version
-#         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Widgetsd.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Guid.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Cored.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/icuin53.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/icuuc53.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/assimp.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_filesystem-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_system-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_serialization-vc120-mt-gd-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_thread-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_chrono-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_date_time-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice-vc120-mt.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/cspice.dll"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/images" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/images"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/models" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/models"
-#         # Release version
-#         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Widgets.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Gui.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/Qt5Core.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/icuin53.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${Qt5Core_DIR}/../../../bin/icuuc53.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/assimp.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_filesystem-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_system-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_serialization-vc120-mt-gd-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_thread-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_chrono-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/boost_date_time-vc120-mt-1_58.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/cspice/lib/cspice-vc120-mt.dll" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/cspice.dll"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/images" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/images"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/models" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/models"
-#     )
-# elseif(APPLE)
-#     add_custom_command(TARGET ${EXE_NAME} POST_BUILD
-#         DEPENDS ${EXE_NAME}
-#         # Debug version
-#         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_system.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_serialization.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_thread.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/images" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/images"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/models" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG}/models"
-#         # Release version
-#         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.1.1.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.3.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/assimp_3_1_1/lib/libassimp.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_filesystem.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_system.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_serialization.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/external/boost_1_60_0/lib/libboost_thread.dylib" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/images" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/images"
-#         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/models" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE}/models"
-#     )
-# endif()
