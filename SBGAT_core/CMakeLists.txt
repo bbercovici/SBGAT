@@ -1,17 +1,30 @@
+# CMakeLists.txt for SBGAT_core
+# Benjamin Bercovici, 03/10/2017
+# ORCCA
+# University of Colorado 
+
+
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
 # Specify the version used
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.7.2)
 
 
-set (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
-
-add_definitions(-Wall)
+# add_definitions(-Wall)
 include_directories(include)
 
+
+if (UNIX AND NOT APPLE)
+	set(CMAKE_CXX_FLAGS "-std=c++11 ")
+elseif(APPLE)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
+	set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
+	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
+endif()
 
 
 # Find Boost
@@ -22,9 +35,17 @@ find_package(Boost COMPONENTS Filesystem)
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 
-# Find armadillo package
+# Find Armadillo package
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
+message(${ARMADILLO_INCLUDE_DIRS})
+
+# Find OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 # Assimp
 include_directories(/Users/bbercovici/assimp_3_3_1/include)
@@ -34,8 +55,6 @@ set(assimp_dependencies
 	"/usr/local/lib/libassimp.dylib")
 
 
-
-
 # Add source files in root directory
 add_executable(${EXE_NAME}
 source/main.cpp
@@ -43,6 +62,7 @@ source/ShapeModel.cpp
 source/DynamicAnalyses.cpp
 include/ShapeModel.hpp
 include/DynamicAnalyses.hpp
+include/Densities.hpp
 )
 
 set(library_dependencies

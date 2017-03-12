@@ -52,7 +52,7 @@ public:
 	arma::vec get_vertex(unsigned int vertex_index) const;
 
 
-	void check_normals_consistency(double tol = 1e-9) const;
+	void check_normals_consistency(double tol = 1e-3) const;
 
 
 protected:

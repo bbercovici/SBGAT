@@ -1,4 +1,5 @@
 #include "ShapeModel.hpp"
+#include <chrono>
 
 void ShapeModel::load(const std::string & filename) {
 
@@ -13,9 +14,9 @@ void ShapeModel::load(const std::string & filename) {
 		if (scene -> mMeshes > 0) {
 
 			// For now, only the first mesh is used
-			this -> vertices = arma::mat(scene -> mMeshes[0] -> mNumVertices, 3);
-			this -> facet_vertices = arma::umat(scene -> mMeshes[0] -> mNumFaces, 3);
-			this -> facet_normals = arma::mat(scene -> mMeshes[0] -> mNumFaces, 3);
+			this -> vertices = arma::mat(3,scene -> mMeshes[0] -> mNumVertices);
+			this -> facet_vertices = arma::umat(3,scene -> mMeshes[0] -> mNumFaces);
+			this -> facet_normals = arma::mat(3,scene -> mMeshes[0] -> mNumFaces);
 			this -> F_dyads = arma::cube(scene -> mMeshes[0] -> mNumFaces, 3, 3);
 
 			this -> NFacets = scene -> mMeshes[0] -> mNumFaces;
@@ -25,29 +26,35 @@ void ShapeModel::load(const std::string & filename) {
 			std::set<std::set<unsigned int> > edges;
 
 			// Vertex coordinates
+			
+
+			
 			for (unsigned int vertex = 0; vertex < scene -> mMeshes[0] -> mNumVertices; ++vertex) {
 
-				this -> vertices.row(vertex)(0) = scene -> mMeshes[0] -> mVertices[vertex].x;
-				this -> vertices.row(vertex)(1) = scene -> mMeshes[0] -> mVertices[vertex].y;
-				this -> vertices.row(vertex)(2) = scene -> mMeshes[0] -> mVertices[vertex].z;
-
+				arma::vec vertex_coords = {scene -> mMeshes[0] -> mVertices[vertex].x,
+				                              scene -> mMeshes[0] -> mVertices[vertex].y,
+				                              scene -> mMeshes[0] -> mVertices[vertex].z
+				                             };
+				this -> vertices.col(vertex) = vertex_coords;
 			}
+
 
 			// Connectivity Table
 			for (unsigned int facet = 0; facet < this -> NFacets ; ++facet) {
 
 				if (scene -> mMeshes[0] -> mFaces[facet].mNumIndices != 3) {
+					std::cout << " More than three vertices belong to this facet " << std::endl;
 					throw " More than three vertices belong to this facet ";
 				}
 
-				this -> facet_vertices.row(facet)(0) = scene -> mMeshes[0] -> mFaces[facet].mIndices[0];
-				this -> facet_vertices.row(facet)(1) = scene -> mMeshes[0] -> mFaces[facet].mIndices[1];
-				this -> facet_vertices.row(facet)(2) = scene -> mMeshes[0] -> mFaces[facet].mIndices[2];
+				this -> facet_vertices.col(facet)(0) = scene -> mMeshes[0] -> mFaces[facet].mIndices[0];
+				this -> facet_vertices.col(facet)(1) = scene -> mMeshes[0] -> mFaces[facet].mIndices[1];
+				this -> facet_vertices.col(facet)(2) = scene -> mMeshes[0] -> mFaces[facet].mIndices[2];
 
 
-				vertex_index_to_facet[this -> facet_vertices.row(facet)(0)].insert(facet);
-				vertex_index_to_facet[this -> facet_vertices.row(facet)(1)].insert(facet);
-				vertex_index_to_facet[this -> facet_vertices.row(facet)(2)].insert(facet);
+				vertex_index_to_facet[this -> facet_vertices.col(facet)(0)].insert(facet);
+				vertex_index_to_facet[this -> facet_vertices.col(facet)(1)].insert(facet);
+				vertex_index_to_facet[this -> facet_vertices.col(facet)(2)].insert(facet);
 
 				std::set<unsigned int> edge_0;
 				edge_0.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[0]);
@@ -96,6 +103,7 @@ void ShapeModel::load(const std::string & filename) {
 			this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
 			unsigned int edge_index = 0;
 
+
 			for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
 				this -> edges_to_edges_index[*iter] = edge_index;
 				this -> edges_indices_to_edge[edge_index] = *iter;
@@ -103,20 +111,21 @@ void ShapeModel::load(const std::string & filename) {
 			}
 
 			// Normals
+			#pragma omp parallel for
 			for (unsigned int facet = 0; facet < this -> NFacets; ++facet) {
+				unsigned int P0_index = this -> facet_vertices.col(facet)(0);
+				unsigned int P1_index = this -> facet_vertices.col(facet)(1);
+				unsigned int P2_index = this -> facet_vertices.col(facet)(2);
 
-				unsigned int P0_index = this -> facet_vertices.row(facet)(0);
-				unsigned int P1_index = this -> facet_vertices.row(facet)(1);
-				unsigned int P2_index = this -> facet_vertices.row(facet)(2);
-
-				arma::vec P0 = this -> vertices.row(P0_index).t();
-				arma::vec P1 = this -> vertices.row(P1_index).t();
-				arma::vec P2 = this -> vertices.row(P2_index).t();
+				arma::vec P0 = this -> vertices.col(P0_index);
+				arma::vec P1 = this -> vertices.col(P1_index);
+				arma::vec P2 = this -> vertices.col(P2_index);
 				arma::vec facet_normal = arma::cross(P1 - P0, P2 - P0) / arma::norm(arma::cross(P1 - P0, P2 - P0));
-				this -> facet_normals.row(facet) = facet_normal.t();
-
-
+				this -> facet_normals.col(facet) = facet_normal;
 			}
+
+
+			this -> check_normals_consistency();
 
 			this -> compute_dyads();
 
@@ -126,6 +135,7 @@ void ShapeModel::load(const std::string & filename) {
 	}
 
 	else {
+		std::cout << " There was an error opening the shape model file " << std::endl;
 		throw " There was an error opening the shape model file ";
 	}
 
@@ -171,8 +181,8 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 	unsigned int facet_A_index = *edge.second.begin();
 	unsigned int facet_B_index = *std::next(edge.second.begin());
 
-	arma::vec facet_normal_A = this -> facet_normals.row(facet_A_index).t();
-	arma::vec facet_normal_B = this -> facet_normals.row(facet_B_index).t();
+	arma::vec facet_normal_A = this -> facet_normals.col(facet_A_index);
+	arma::vec facet_normal_B = this -> facet_normals.col(facet_B_index);
 
 	arma::vec edge_direction_vector = arma::normalise(arma::cross(facet_normal_A, facet_normal_B));
 	arma::vec edge_normal_A_to_B = arma::normalise(arma::cross(edge_direction_vector, facet_normal_A));
@@ -188,10 +198,10 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 
 	for (unsigned int vertex_in_A_local = 0; vertex_in_A_local < 3; ++vertex_in_A_local) {
 
-		unsigned int vertex_in_A_global = this -> facet_vertices.row(facet_A_index)(vertex_in_A_local);
+		unsigned int vertex_in_A_global = this -> facet_vertices.col(facet_A_index)(vertex_in_A_local);
 
 		for (unsigned int vertex_in_B_local = 0; vertex_in_B_local < 3; ++vertex_in_B_local) {
-			unsigned int vertex_in_B_global = this -> facet_vertices.row(facet_B_index)(vertex_in_B_local);
+			unsigned int vertex_in_B_global = this -> facet_vertices.col(facet_B_index)(vertex_in_B_local);
 
 			if (vertex_in_A_global == vertex_in_B_global) {
 				vertices_on_edge.insert(vertex_in_A_global);
@@ -202,7 +212,7 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 	}
 
 	for (unsigned int vertex_in_A_local = 0; vertex_in_A_local < 3; ++vertex_in_A_local) {
-		unsigned int vertex_in_A_global = this -> facet_vertices.row(facet_A_index)(vertex_in_A_local);
+		unsigned int vertex_in_A_global = this -> facet_vertices.col(facet_A_index)(vertex_in_A_local);
 		if (vertices_on_edge.find(vertex_in_A_global) == vertices_on_edge.end()) {
 			vertex_in_A_global_not_on_edge = vertex_in_A_global;
 			break;
@@ -211,7 +221,7 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 
 
 	for (unsigned int vertex_in_B_local = 0; vertex_in_B_local < 3; ++vertex_in_B_local) {
-		unsigned int vertex_in_B_global = this -> facet_vertices.row(facet_B_index)(vertex_in_B_local);
+		unsigned int vertex_in_B_global = this -> facet_vertices.col(facet_B_index)(vertex_in_B_local);
 		if (vertices_on_edge.find(vertex_in_B_global) == vertices_on_edge.end()) {
 			vertex_in_B_global_not_on_edge = vertex_in_B_global;
 			break;
@@ -219,13 +229,13 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 	}
 
 	if (arma::dot(edge_normal_A_to_B,
-	              this -> vertices.row(*vertices_on_edge.begin()) - this -> vertices.row(vertex_in_A_global_not_on_edge)) < 0) {
+	              this -> vertices.col(*vertices_on_edge.begin()) - this -> vertices.col(vertex_in_A_global_not_on_edge)) < 0) {
 		edge_normal_A_to_B = - edge_normal_A_to_B;
 	}
 
 
 	if (arma::dot(edge_normal_B_to_A,
-	              this -> vertices.row(*vertices_on_edge.begin()) - this -> vertices.row(vertex_in_B_global_not_on_edge)) < 0) {
+	              this -> vertices.col(*vertices_on_edge.begin()) - this -> vertices.col(vertex_in_B_global_not_on_edge)) < 0) {
 		edge_normal_B_to_A = - edge_normal_B_to_A;
 	}
 
@@ -238,23 +248,37 @@ void ShapeModel::compute_E_dyad(const std::pair < std::set<unsigned int> ,
 }
 
 void ShapeModel::check_normals_consistency(double tol) const {
-	arma::vec surface_sum = {0, 0, 0};
+	double facet_area_average = 0;
 
+	double sx = 0;
+	double sy = 0;
+	double sz = 0;
+
+	#pragma omp parallel for reduction(+:facet_area_average,sx,sy,sz)
 	for (unsigned int facet = 0; facet < this -> NFacets; ++facet) {
 
-		unsigned int P0_index = this -> facet_vertices.row(facet)(0);
-		unsigned int P1_index = this -> facet_vertices.row(facet)(1);
-		unsigned int P2_index = this -> facet_vertices.row(facet)(2);
+		unsigned int P0_index = this -> facet_vertices.col(facet)(0);
+		unsigned int P1_index = this -> facet_vertices.col(facet)(1);
+		unsigned int P2_index = this -> facet_vertices.col(facet)(2);
 
-		arma::vec P0 = this -> vertices.row(P0_index).t();
-		arma::vec P1 = this -> vertices.row(P1_index).t();
-		arma::vec P2 = this -> vertices.row(P2_index).t();
+		arma::vec P0 = this -> vertices.col(P0_index);
+		arma::vec P1 = this -> vertices.col(P1_index);
+		arma::vec P2 = this -> vertices.col(P2_index);
 		double facet_area = arma::norm( arma::cross(P1 - P0, P2 - P0)) / 2;
 
-		surface_sum += facet_area * this -> facet_normals.row(facet).t();
+		sx += facet_area * this -> facet_normals.col(facet)(0);
+		sy += facet_area * this -> facet_normals.col(facet)(1);
+		sz += facet_area * this -> facet_normals.col(facet)(2);
+		facet_area_average += facet_area;
 	}
 
-	if (arma::norm(surface_sum) > tol) {
+
+	arma::vec surface_sum = {sx, sy, sz};
+
+	facet_area_average = facet_area_average / this -> NFacets;
+
+	if (arma::norm(surface_sum) / facet_area_average > tol) {
+		std::cout << "Sum of oriented normals: " << arma::norm(surface_sum) / facet_area_average << std::endl;
 		throw "Normals were incorrectly oriented";
 	}
 
@@ -262,7 +286,7 @@ void ShapeModel::check_normals_consistency(double tol) const {
 
 void ShapeModel::compute_F_dyad(unsigned int facet) {
 
-	arma::vec normal = this -> facet_normals.row(facet).t();
+	arma::vec normal = this -> facet_normals.col(facet);
 	arma::mat facet_dyad = normal * normal.t();
 
 	this -> F_dyads(
@@ -308,11 +332,11 @@ void ShapeModel::set_E_dyad(unsigned int edge_index, arma::mat & dyad) {
 
 
 arma::uvec ShapeModel::get_vertex_indices_in_facet(unsigned int facet) const {
-	return this -> facet_vertices.row(facet).t();
+	return this -> facet_vertices.col(facet);
 }
 
 arma::vec ShapeModel::get_vertex(unsigned int vertex_index) const {
-	return this -> vertices.row(vertex_index).t();
+	return this -> vertices.col(vertex_index);
 }
 
 
