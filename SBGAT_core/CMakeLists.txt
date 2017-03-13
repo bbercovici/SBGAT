@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
-# add_definitions(-Wall)
+add_definitions(-Wall)
 include_directories(include)
 
 if (UNIX AND NOT APPLE)
@@ -30,14 +30,13 @@ endif()
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost COMPONENTS Filesystem) 
+find_package(Boost COMPONENTS filesystem REQUIRED) 
 include_directories(${Boost_INCLUDE_DIRS}) 
-
 
 # Find Armadillo package
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
-message(${ARMADILLO_INCLUDE_DIRS})
+
 
 # Find OpenMP
 find_package(OpenMP)
@@ -47,11 +46,23 @@ if(OPENMP_FOUND)
 endif()
 
 # Assimp
-include_directories(/Users/bbercovici/assimp_3_3_1/include)
-set(assimp_dependencies  
-	"/usr/local/lib/libassimp.3.3.1.dylib"
-	"/usr/local/lib/libassimp.3.dylib"
-	"/usr/local/lib/libassimp.dylib")
+include_directories(/usr/local/include/assimp)
+if (Apple)
+	set(ASSIMP_LIBRARY  
+		"/usr/local/lib/libassimp.3.3.1.dylib"
+		"/usr/local/lib/libassimp.3.dylib"
+		"/usr/local/lib/libassimp.dylib")
+elseif(UNIX)
+set(ASSIMP_LIBRARY  
+		"/usr/local/lib/libassimp.so.3.3.1"
+		"/usr/local/lib/libassimp.so.3"
+		"/usr/local/lib/libassimp.so")
+
+
+find_library(GFORTRAN_LIBRARY gfortran
+    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/)
+list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
+endif()
 
 
 # Add source files in root directory
@@ -64,9 +75,10 @@ include/DynamicAnalyses.hpp
 include/Densities.hpp
 )
 
+
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
-${assimp_dependencies}
+${ASSIMP_LIBRARY}
 ${Boost_LIBRARIES})
 
 
