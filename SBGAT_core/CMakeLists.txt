@@ -17,7 +17,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 # add_definitions(-Wall)
 include_directories(include)
 
-
 if (UNIX AND NOT APPLE)
 	set(CMAKE_CXX_FLAGS "-std=c++11 ")
 elseif(APPLE)
