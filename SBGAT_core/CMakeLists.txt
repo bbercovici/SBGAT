@@ -46,22 +46,25 @@ if(OPENMP_FOUND)
 endif()
 
 # Assimp
-include_directories(/usr/local/include/assimp)
-if (Apple)
+
+include_directories(~/include/assimp)
+if (APPLE)
 	set(ASSIMP_LIBRARY  
 		"/usr/local/lib/libassimp.3.3.1.dylib"
 		"/usr/local/lib/libassimp.3.dylib"
 		"/usr/local/lib/libassimp.dylib")
-elseif(UNIX)
-set(ASSIMP_LIBRARY  
-		"/usr/local/lib/libassimp.so.3.3.1"
-		"/usr/local/lib/libassimp.so.3"
-		"/usr/local/lib/libassimp.so")
 
 
-find_library(GFORTRAN_LIBRARY gfortran
-    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/)
-list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
+elseif(UNIX AND NOT APPLE)
+
+	set(ASSIMP_LIBRARY  
+			"/usr/local/lib/libassimp.so.3.3.1"
+			"/usr/local/lib/libassimp.so.3"
+			"/usr/local/lib/libassimp.so")
+
+	find_library(GFORTRAN_LIBRARY gfortran
+	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/)
+	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
 endif()
 
 
