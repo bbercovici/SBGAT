@@ -1,6 +1,10 @@
+
 build/
 resources/
 saved_pgm/
 doc/
 *.dox
 Doxyfile
+*.mdj
+*.pdf
+
