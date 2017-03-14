@@ -36,7 +36,7 @@ if (Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS}) 
 else()
 	message("Retrying find_boost")
-	set(BOOST_ROOT "~/Libraries/boost/")
+	set(BOOST_ROOT "~/Libraries/boost/*")
 	set(BOOST_INCLUDEDIR "~/Libraries/boost/boost/")
 	set(BOOST_LIBRARYDIR "~/Libraries/boost/libs/")
 
