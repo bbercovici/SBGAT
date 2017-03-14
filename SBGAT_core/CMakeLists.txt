@@ -41,7 +41,7 @@ else()
 	set(BOOST_INCLUDEDIR "~/Libraries/boost/boost/*")
 	set(BOOST_LIBRARYDIR "~/Libraries/boost/libs/*")
 
-	find_package(Boost COMPONENTS filesystem REQUIRED) 
+	find_package(Boost COMPONENTS filesystem REQUIRED "~/Libraries/boost/*") 
 	include_directories(${Boost_INCLUDE_DIRS}) 
 endif()
 
