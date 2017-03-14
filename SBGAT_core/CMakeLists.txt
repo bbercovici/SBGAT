@@ -9,11 +9,12 @@ set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
 # Specify the version used
-cmake_minimum_required(VERSION 3.7.2)
 
+
+# cmake_minimum_required(VERSION 3.7.2)
+message(CMAKE_VERSION)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
-
 add_definitions(-Wall)
 include_directories(include)
 
@@ -33,10 +34,10 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS filesystem REQUIRED) 
 include_directories(${Boost_INCLUDE_DIRS}) 
 
-# Find Armadillo package
+
+# Find Armadillo 
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
-
 
 # Find OpenMP
 find_package(OpenMP)
@@ -46,27 +47,25 @@ if(OPENMP_FOUND)
 endif()
 
 # Assimp
-
 include_directories(~/include/assimp)
 if (APPLE)
 	set(ASSIMP_LIBRARY  
 		"/usr/local/lib/libassimp.3.3.1.dylib"
 		"/usr/local/lib/libassimp.3.dylib"
 		"/usr/local/lib/libassimp.dylib")
-
-
 elseif(UNIX AND NOT APPLE)
-
 	set(ASSIMP_LIBRARY  
 			"/usr/local/lib/libassimp.so.3.3.1"
 			"/usr/local/lib/libassimp.so.3"
 			"/usr/local/lib/libassimp.so")
+endif()
 
+# Fortran compiler, needed on Linux/Ubuntu by Armadillo
+if(UNIX AND NOT APPLE)
 	find_library(GFORTRAN_LIBRARY gfortran
 	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/)
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
 endif()
-
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
@@ -78,12 +77,10 @@ include/DynamicAnalyses.hpp
 include/Densities.hpp
 )
 
-
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
 ${ASSIMP_LIBRARY}
 ${Boost_LIBRARIES})
-
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
 
