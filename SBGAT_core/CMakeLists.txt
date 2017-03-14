@@ -37,6 +37,8 @@ if (Boost_FOUND)
 else()
 	message("Retrying find_boost")
 	set(BOOST_ROOT "~/Libraries/boost/")
+	set(BOOST_INCLUDEDIR "~/Libraries/boost/boost/")
+
 	find_package(Boost COMPONENTS filesystem REQUIRED) 
 	include_directories(${Boost_INCLUDE_DIRS}) 
 endif()
