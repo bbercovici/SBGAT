@@ -36,9 +36,20 @@ if (Boost_FOUND)
 	include_directories(${Boost_INCLUDE_DIRS}) 
 else()
 	message("Retrying find_boost")
-	set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "~/Libraries/boost/")
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "~/Libraries/boost/libs/")
-	find_package(Boost COMPONENTS filesystem REQUIRED PATHS "~/Libraries/boost/") 
+	set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ~/Libraries/boost/)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ~/Libraries/boost/libs/)
+	find_package(Boost COMPONENTS filesystem REQUIRED PATHS ~/Libraries/boost/) 
+
+
+
+# 	set(Boost_INCLUDE_DIR /usr/local/src/boost_1_46_1)
+# set(Boost_LIBRARY_DIR /usr/local/src/boost_1_46_1/stage/lib)
+# find_package(Boost COMPONENTS system filesystem REQUIRED)
+# include_directories(${Boost_INCLUDE_DIR})
+# link_directories(${Boost_LIBRARY_DIR})
+
+
+
 	include_directories(${Boost_INCLUDE_DIRS}) 
 endif()
 
