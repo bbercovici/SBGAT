@@ -12,7 +12,7 @@ project(${EXE_NAME})
 
 
 # cmake_minimum_required(VERSION 3.7.2)
-message(CMAKE_VERSION)
+message(${CMAKE_VERSION})
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall)
@@ -37,8 +37,8 @@ if (Boost_FOUND)
 else()
 	message("Retrying find_boost")
 	set(BOOST_ROOT "~/Libraries/boost/*")
-	set(BOOST_INCLUDEDIR "~/Libraries/boost/boost/")
-	set(BOOST_LIBRARYDIR "~/Libraries/boost/libs/")
+	set(BOOST_INCLUDEDIR "~/Libraries/boost/boost/*")
+	set(BOOST_LIBRARYDIR "~/Libraries/boost/libs/*")
 
 
 	find_package(Boost COMPONENTS filesystem REQUIRED) 
