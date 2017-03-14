@@ -38,7 +38,7 @@ else()
 	message("Retrying find_boost")
 	set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "~/Libraries/boost/")
 	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "~/Libraries/boost/libs/")
-	find_package(Boost COMPONENTS filesystem REQUIRED) 
+	find_package(Boost COMPONENTS filesystem REQUIRED PATHS "~/Libraries/boost/"") 
 	include_directories(${Boost_INCLUDE_DIRS}) 
 endif()
 
