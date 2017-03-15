@@ -3,13 +3,11 @@
 # ORCCA
 # University of Colorado 
 
-
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
 # Specify the version used
-
 cmake_minimum_required(VERSION 3.7.2)
 message(${CMAKE_VERSION})
 
