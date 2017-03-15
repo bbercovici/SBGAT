@@ -10,8 +10,7 @@ project(${EXE_NAME})
 
 # Specify the version used
 
-
-# cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.7.2)
 message(${CMAKE_VERSION})
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
@@ -69,18 +68,22 @@ if(OPENMP_FOUND)
 endif()
 
 # Assimp
-include_directories(~/include/assimp)
-if (APPLE)
-	set(ASSIMP_LIBRARY  
-		"/usr/local/lib/libassimp.3.3.1.dylib"
-		"/usr/local/lib/libassimp.3.dylib"
-		"/usr/local/lib/libassimp.dylib")
-elseif(UNIX AND NOT APPLE)
-	set(ASSIMP_LIBRARY  
-			"/usr/local/lib/libassimp.so.3.3.1"
-			"/usr/local/lib/libassimp.so.3"
-			"/usr/local/lib/libassimp.so")
-endif()
+find_package(assimp)
+include_directories(${ASSIMP_INCLUDE_DIRS})
+
+
+# include_directories(~/include/assimp)
+# if (APPLE)
+# 	set(ASSIMP_LIBRARY  
+# 		"/usr/local/lib/libassimp.3.3.1.dylib"
+# 		"/usr/local/lib/libassimp.3.dylib"
+# 		"/usr/local/lib/libassimp.dylib")
+# elseif(UNIX AND NOT APPLE)
+# 	set(ASSIMP_LIBRARY  
+# 			"/usr/local/lib/libassimp.so.3.3.1"
+# 			"/usr/local/lib/libassimp.so.3"
+# 			"/usr/local/lib/libassimp.so")
+# endif()
 
 # Fortran compiler, needed on Linux/Ubuntu by Armadillo
 if(UNIX AND NOT APPLE)
@@ -101,7 +104,7 @@ include/Densities.hpp
 
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
-${ASSIMP_LIBRARY}
+${ASSIMP_LIBRARIES}
 ${Boost_LIBRARIES})
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
