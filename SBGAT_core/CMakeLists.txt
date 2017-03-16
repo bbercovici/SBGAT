@@ -5,7 +5,7 @@
 
 set (EXECUTE_COMMAND id -u -n)
 execute_process(COMMAND ${EXECUTE_COMMAND} OUTPUT_VARIABLE user_name)
-message("${user_name}")
+message(${user_name})
 
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
