@@ -95,7 +95,7 @@ endif()
 # Fortran compiler, needed on Linux/Ubuntu by Armadillo
 if(UNIX AND NOT APPLE)
 	find_library(GFORTRAN_LIBRARY gfortran
-	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/)
+	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux)
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
 endif()
 
