@@ -2,6 +2,15 @@
 # Benjamin Bercovici, 03/10/2017
 # ORCCA
 # University of Colorado 
+
+if (${CMAKE_SYSTEM} EQUAL Linux-2.6.32-642.11.1.el6.x86_64)
+
+	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
+
+endif()
+
+
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
