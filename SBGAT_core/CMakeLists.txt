@@ -29,11 +29,11 @@ elseif(APPLE)
 endif()
 
 # Check what version of the compiler is installed
-execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
-                OUTPUT_VARIABLE GCC_VERSION)
-if (GCC_VERSION VERSION_LESS 4.7)
-        set(CMAKE_CXX_FLAGS "-std=c++0x")
-endif()
+# execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+#                 OUTPUT_VARIABLE GCC_VERSION)
+# if (GCC_VERSION VERSION_LESS 4.7)
+#         set(CMAKE_CXX_FLAGS "-std=c++0x")
+# endif()
 
 
 
