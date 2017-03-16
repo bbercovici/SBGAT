@@ -3,15 +3,14 @@
 # ORCCA
 # University of Colorado 
 
+execute_process(user_name = "id -u -n")
 
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-
-set(GOLEVKA_NAME Linux-2.6.32-642.11.1.el6.x86_64)
 message("${CMAKE_SYSTEM}")
 
-if ("${CMAKE_SYSTEM}" STREQUAL "${GOLEVKA_NAME}")
+if ("${user_name}" STREQUAL "bebe0705")
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
 else()
