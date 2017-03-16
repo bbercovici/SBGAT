@@ -28,12 +28,13 @@ elseif(APPLE)
 	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
 endif()
 
-# Check what version of the compiler is installed
-# execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
-#                 OUTPUT_VARIABLE GCC_VERSION)
-# if (GCC_VERSION VERSION_LESS 4.7)
-#         set(CMAKE_CXX_FLAGS "-std=c++0x")
-# endif()
+Check what version of the compiler is installed
+execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                OUTPUT_VARIABLE GCC_VERSION)
+message(${GCC_VERSION})
+if (GCC_VERSION VERSION_LESS 4.7)
+        set(CMAKE_CXX_FLAGS "-std=c++0x")
+endif()
 
 
 
