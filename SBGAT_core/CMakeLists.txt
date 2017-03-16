@@ -7,8 +7,6 @@
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-message(user_name STREQUAL GOLEVKA_NAME)
-
 
 if (${CMAKE_MINOR_VERSION} EQUAL 0)
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
@@ -24,7 +22,6 @@ project(${EXE_NAME})
 
 
 # Specify the version used
-
 if (${CMAKE_MAJOR_VERSION} LESS 3)
 	message(FATAL_ERROR " You are running an outdated version of CMake")
 endif()
@@ -59,30 +56,7 @@ set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
 find_package(Boost COMPONENTS filesystem REQUIRED) 
-if (Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIRS}) 
-else()
-	message("Retrying find_boost")
-	set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /homes/bebe0705/Libraries/boost)
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /homes/bebe0705/Libraries/boost/libs/)
-	message( ${CMAKE_LIBRARY_PATH})
-	message( ${CMAKE_INCLUDE_PATH})
-	
-	find_package(Boost COMPONENTS filesystem REQUIRED PATHS ~/Libraries/boost/) 
-
-
-
-# 	set(Boost_INCLUDE_DIR /usr/local/src/boost_1_46_1)
-# set(Boost_LIBRARY_DIR /usr/local/src/boost_1_46_1/stage/lib)
-# find_package(Boost COMPONENTS system filesystem REQUIRED)
-# include_directories(${Boost_INCLUDE_DIR})
-# link_directories(${Boost_LIBRARY_DIR})
-
-
-
-	include_directories(${Boost_INCLUDE_DIRS}) 
-endif()
-
+include_directories(${Boost_INCLUDE_DIRS}) 
 
 # Find Armadillo 
 find_package(Armadillo REQUIRED)
@@ -115,9 +89,15 @@ endif()
 
 # Fortran compiler, needed on Linux/Ubuntu by Armadillo
 if(UNIX AND NOT APPLE)
-	find_library(GFORTRAN_LIBRARY gfortran
-	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
+	# find_library(GFORTRAN_LIBRARY gfortran
+	#     PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
+	find_library(GFORTRAN_LIBRARY NAMES gfortran)
+	
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
+
+
+
+
 endif()
 
 # Add source files in root directory
