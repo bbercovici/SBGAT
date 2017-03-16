@@ -3,12 +3,6 @@
 # ORCCA
 # University of Colorado 
 
-set (EXECUTE_COMMAND id -u -n)
-execute_process(COMMAND ${EXECUTE_COMMAND} OUTPUT_VARIABLE user_name)
-message(${user_name})
-message(${CMAKE_MINOR_VERSION})
-
-set(GOLEVKA_NAME "bebe0705")
 
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
@@ -16,12 +10,10 @@ set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 message(user_name STREQUAL GOLEVKA_NAME)
 
 
-if (user_name STREQUAL GOLEVKA_NAME)
+if (${CMAKE_MINOR_VERSION} EQUAL 0)
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
 else()
-	message(${GOLEVKA_NAME})
-	message(${user_name})
 
 	message("This is not Golevka")
 endif()
@@ -29,7 +21,6 @@ endif()
 
 project(${EXE_NAME})
 
-message(${CMAKE_SYSTEM})
 
 
 # Specify the version used
