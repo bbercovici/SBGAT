@@ -1,145 +1,235 @@
 #include "ShapeModel.hpp"
 #include <chrono>
 
-void ShapeModel::load(const std::string & filename) {
+// void ShapeModel::load(const std::string & filename) {
 
-	Assimp::Importer importer;
+// 	Assimp::Importer importer;
 
-	const aiScene * scene = importer.ReadFile( filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices  );
+// 	const aiScene * scene = importer.ReadFile( filename, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices  );
 
-	// If the import succeeded:
-	if (scene != NULL) {
+// 	// If the import succeeded:
+// 	if (scene != NULL) {
 
-		// If the imported shape model had at least one mesh in it
-		if (scene -> mMeshes > 0) {
+// 		// If the imported shape model had at least one mesh in it
+// 		if (scene -> mMeshes > 0) {
 
-			// For now, only the first mesh is used
-			this -> vertices = arma::mat(3,scene -> mMeshes[0] -> mNumVertices);
-			this -> facet_vertices = arma::umat(3,scene -> mMeshes[0] -> mNumFaces);
-			this -> facet_normals = arma::mat(3,scene -> mMeshes[0] -> mNumFaces);
-			this -> F_dyads = arma::cube(scene -> mMeshes[0] -> mNumFaces, 3, 3);
+// 			// For now, only the first mesh is used
+// 			this -> vertices = arma::mat(3, scene -> mMeshes[0] -> mNumVertices);
+// 			this -> facet_vertices = arma::umat(3, scene -> mMeshes[0] -> mNumFaces);
+// 			this -> facet_normals = arma::mat(3, scene -> mMeshes[0] -> mNumFaces);
+// 			this -> F_dyads = arma::cube(scene -> mMeshes[0] -> mNumFaces, 3, 3);
 
-			this -> NFacets = scene -> mMeshes[0] -> mNumFaces;
-			this -> NVertices = scene -> mMeshes[0] -> mNumVertices;
+// 			this -> NFacets = scene -> mMeshes[0] -> mNumFaces;
+// 			this -> NVertices = scene -> mMeshes[0] -> mNumVertices;
 
-			std::map<unsigned int , std::set<unsigned int> > vertex_index_to_facet;
-			std::set<std::set<unsigned int> > edges;
+// 			std::map<unsigned int , std::set<unsigned int> > vertex_index_to_facet;
+// 			std::set<std::set<unsigned int> > edges;
 
-			// Vertex coordinates
-			
-
-			
-			for (unsigned int vertex = 0; vertex < scene -> mMeshes[0] -> mNumVertices; ++vertex) {
-
-				arma::vec vertex_coords = {scene -> mMeshes[0] -> mVertices[vertex].x,
-				                              scene -> mMeshes[0] -> mVertices[vertex].y,
-				                              scene -> mMeshes[0] -> mVertices[vertex].z
-				                             };
-				this -> vertices.col(vertex) = vertex_coords;
-			}
+// 			// Vertex coordinates
 
 
-			// Connectivity Table
-			for (unsigned int facet = 0; facet < this -> NFacets ; ++facet) {
 
-				if (scene -> mMeshes[0] -> mFaces[facet].mNumIndices != 3) {
-					std::cout << " More than three vertices belong to this facet " << std::endl;
-					throw " More than three vertices belong to this facet ";
-				}
+// 			for (unsigned int vertex = 0; vertex < scene -> mMeshes[0] -> mNumVertices; ++vertex) {
 
-				this -> facet_vertices.col(facet)(0) = scene -> mMeshes[0] -> mFaces[facet].mIndices[0];
-				this -> facet_vertices.col(facet)(1) = scene -> mMeshes[0] -> mFaces[facet].mIndices[1];
-				this -> facet_vertices.col(facet)(2) = scene -> mMeshes[0] -> mFaces[facet].mIndices[2];
+// 				arma::vec vertex_coords = {scene -> mMeshes[0] -> mVertices[vertex].x,
+// 				                           scene -> mMeshes[0] -> mVertices[vertex].y,
+// 				                           scene -> mMeshes[0] -> mVertices[vertex].z
+// 				                          };
+// 				this -> vertices.col(vertex) = vertex_coords;
+// 			}
 
 
-				vertex_index_to_facet[this -> facet_vertices.col(facet)(0)].insert(facet);
-				vertex_index_to_facet[this -> facet_vertices.col(facet)(1)].insert(facet);
-				vertex_index_to_facet[this -> facet_vertices.col(facet)(2)].insert(facet);
+// 			// Connectivity Table
+// 			for (unsigned int facet = 0; facet < this -> NFacets ; ++facet) {
 
-				std::set<unsigned int> edge_0;
-				edge_0.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[0]);
-				edge_0.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[1]);
+// 				if (scene -> mMeshes[0] -> mFaces[facet].mNumIndices != 3) {
+// 					std::cout << " More than three vertices belong to this facet " << std::endl;
+// 					throw " More than three vertices belong to this facet ";
+// 				}
 
-				std::set<unsigned int> edge_1;
-				edge_1.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[0]);
-				edge_1.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[2]);
-
-				std::set<unsigned int> edge_2;
-				edge_2.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[1]);
-				edge_2.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[2]);
-
-				if (this -> edges_to_facets.find(edge_0) == this -> edges_to_facets.end()) {
-					this -> edges_to_facets[edge_0].insert(facet);
-				}
-
-				else if (this -> edges_to_facets[edge_0].size() < 2) {
-					this -> edges_to_facets[edge_0].insert(facet);
-				}
-
-				if (this -> edges_to_facets.find(edge_1) == this -> edges_to_facets.end()) {
-					this -> edges_to_facets[edge_1].insert(facet);
-				}
-
-				else if (this -> edges_to_facets[edge_1].size() < 2) {
-					this -> edges_to_facets[edge_1].insert(facet);
-				}
+// 				this -> facet_vertices.col(facet)(0) = scene -> mMeshes[0] -> mFaces[facet].mIndices[0];
+// 				this -> facet_vertices.col(facet)(1) = scene -> mMeshes[0] -> mFaces[facet].mIndices[1];
+// 				this -> facet_vertices.col(facet)(2) = scene -> mMeshes[0] -> mFaces[facet].mIndices[2];
 
 
-				if (this -> edges_to_facets.find(edge_2) == this -> edges_to_facets.end()) {
-					this -> edges_to_facets[edge_2].insert(facet);
-				}
+// 				vertex_index_to_facet[this -> facet_vertices.col(facet)(0)].insert(facet);
+// 				vertex_index_to_facet[this -> facet_vertices.col(facet)(1)].insert(facet);
+// 				vertex_index_to_facet[this -> facet_vertices.col(facet)(2)].insert(facet);
 
-				else if (this -> edges_to_facets[edge_2].size() < 2) {
-					this -> edges_to_facets[edge_2].insert(facet);
-				}
+// 				std::set<unsigned int> edge_0;
+// 				edge_0.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[0]);
+// 				edge_0.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[1]);
 
-				edges.insert(edge_0);
-				edges.insert(edge_1);
-				edges.insert(edge_2);
+// 				std::set<unsigned int> edge_1;
+// 				edge_1.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[0]);
+// 				edge_1.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[2]);
 
-			}
+// 				std::set<unsigned int> edge_2;
+// 				edge_2.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[1]);
+// 				edge_2.insert(scene -> mMeshes[0] -> mFaces[facet].mIndices[2]);
 
-			this -> NEdges = edges.size();
-			this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
-			unsigned int edge_index = 0;
+// 				if (this -> edges_to_facets.find(edge_0) == this -> edges_to_facets.end()) {
+// 					this -> edges_to_facets[edge_0].insert(facet);
+// 				}
 
+// 				else if (this -> edges_to_facets[edge_0].size() < 2) {
+// 					this -> edges_to_facets[edge_0].insert(facet);
+// 				}
 
-			for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
-				this -> edges_to_edges_index[*iter] = edge_index;
-				this -> edges_indices_to_edge[edge_index] = *iter;
-				++edge_index;
-			}
+// 				if (this -> edges_to_facets.find(edge_1) == this -> edges_to_facets.end()) {
+// 					this -> edges_to_facets[edge_1].insert(facet);
+// 				}
 
-			// Normals
-			#pragma omp parallel for
-			for (unsigned int facet = 0; facet < this -> NFacets; ++facet) {
-				unsigned int P0_index = this -> facet_vertices.col(facet)(0);
-				unsigned int P1_index = this -> facet_vertices.col(facet)(1);
-				unsigned int P2_index = this -> facet_vertices.col(facet)(2);
-
-				arma::vec P0 = this -> vertices.col(P0_index);
-				arma::vec P1 = this -> vertices.col(P1_index);
-				arma::vec P2 = this -> vertices.col(P2_index);
-				arma::vec facet_normal = arma::cross(P1 - P0, P2 - P0) / arma::norm(arma::cross(P1 - P0, P2 - P0));
-				this -> facet_normals.col(facet) = facet_normal;
-			}
+// 				else if (this -> edges_to_facets[edge_1].size() < 2) {
+// 					this -> edges_to_facets[edge_1].insert(facet);
+// 				}
 
 
-			this -> check_normals_consistency();
+// 				if (this -> edges_to_facets.find(edge_2) == this -> edges_to_facets.end()) {
+// 					this -> edges_to_facets[edge_2].insert(facet);
+// 				}
 
-			this -> compute_dyads();
+// 				else if (this -> edges_to_facets[edge_2].size() < 2) {
+// 					this -> edges_to_facets[edge_2].insert(facet);
+// 				}
 
+// 				edges.insert(edge_0);
+// 				edges.insert(edge_1);
+// 				edges.insert(edge_2);
+
+// 			}
+
+// 			this -> NEdges = edges.size();
+// 			this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
+// 			unsigned int edge_index = 0;
+
+
+// 			for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
+// 				this -> edges_to_edges_index[*iter] = edge_index;
+// 				this -> edges_indices_to_edge[edge_index] = *iter;
+// 				++edge_index;
+// 			}
+
+// 			// Normals
+// 			#pragma omp parallel for
+// 			for (unsigned int facet = 0; facet < this -> NFacets; ++facet) {
+// 				unsigned int P0_index = this -> facet_vertices.col(facet)(0);
+// 				unsigned int P1_index = this -> facet_vertices.col(facet)(1);
+// 				unsigned int P2_index = this -> facet_vertices.col(facet)(2);
+
+// 				arma::vec P0 = this -> vertices.col(P0_index);
+// 				arma::vec P1 = this -> vertices.col(P1_index);
+// 				arma::vec P2 = this -> vertices.col(P2_index);
+// 				arma::vec facet_normal = arma::cross(P1 - P0, P2 - P0) / arma::norm(arma::cross(P1 - P0, P2 - P0));
+// 				this -> facet_normals.col(facet) = facet_normal;
+// 			}
+
+
+// 			this -> check_normals_consistency();
+
+// 			this -> compute_dyads();
+
+// 		}
+
+
+// 	}
+
+// 	else {
+// 		std::cout << " There was an error opening the shape model file " << std::endl;
+// 		throw " There was an error opening the shape model file ";
+// 	}
+
+// }
+
+void ShapeModel::compute_normals() {
+
+	// Normals
+	#pragma omp parallel for
+	for (unsigned int facet = 0; facet < this -> NFacets; ++facet) {
+		unsigned int P0_index = this -> facet_vertices.col(facet)(0);
+		unsigned int P1_index = this -> facet_vertices.col(facet)(1);
+		unsigned int P2_index = this -> facet_vertices.col(facet)(2);
+		arma::vec P0 = this -> vertices.col(P0_index);
+		arma::vec P1 = this -> vertices.col(P1_index);
+		arma::vec P2 = this -> vertices.col(P2_index);
+		arma::vec facet_normal = arma::cross(P1 - P0, P2 - P0) / arma::norm(arma::cross(P1 - P0, P2 - P0));
+
+		this -> facet_normals.col(facet) = facet_normal;
+	}
+
+	this -> check_normals_consistency();
+
+}
+
+void ShapeModel::construct_edges() {
+
+	std::map<unsigned int , std::set<unsigned int> > vertex_index_to_facet;
+	std::set<std::set<unsigned int> > edges;
+
+	for (unsigned int facet = 0; facet < this -> NFacets ; ++facet) {
+
+		vertex_index_to_facet[this -> facet_vertices.col(facet)(0)].insert(facet);
+		vertex_index_to_facet[this -> facet_vertices.col(facet)(1)].insert(facet);
+		vertex_index_to_facet[this -> facet_vertices.col(facet)(2)].insert(facet);
+
+		std::set<unsigned int> edge_0;
+		edge_0.insert(this -> facet_vertices.col(facet)(0));
+		edge_0.insert(this -> facet_vertices.col(facet)(1));
+
+		std::set<unsigned int> edge_1;
+		edge_1.insert(this -> facet_vertices.col(facet)(0));
+		edge_1.insert(this -> facet_vertices.col(facet)(2));
+
+		std::set<unsigned int> edge_2;
+		edge_2.insert(this -> facet_vertices.col(facet)(1));
+		edge_2.insert(this -> facet_vertices.col(facet)(2));
+
+		if (this -> edges_to_facets.find(edge_0) == this -> edges_to_facets.end()) {
+			this -> edges_to_facets[edge_0].insert(facet);
+		}
+
+		else if (this -> edges_to_facets[edge_0].size() < 2) {
+			this -> edges_to_facets[edge_0].insert(facet);
+		}
+
+		if (this -> edges_to_facets.find(edge_1) == this -> edges_to_facets.end()) {
+			this -> edges_to_facets[edge_1].insert(facet);
+		}
+
+		else if (this -> edges_to_facets[edge_1].size() < 2) {
+			this -> edges_to_facets[edge_1].insert(facet);
 		}
 
 
+		if (this -> edges_to_facets.find(edge_2) == this -> edges_to_facets.end()) {
+			this -> edges_to_facets[edge_2].insert(facet);
+		}
+
+		else if (this -> edges_to_facets[edge_2].size() < 2) {
+			this -> edges_to_facets[edge_2].insert(facet);
+		}
+
+		edges.insert(edge_0);
+		edges.insert(edge_1);
+		edges.insert(edge_2);
+
 	}
 
-	else {
-		std::cout << " There was an error opening the shape model file " << std::endl;
-		throw " There was an error opening the shape model file ";
+	this -> NEdges = edges.size();
+	this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
+	unsigned int edge_index = 0;
+
+
+	for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
+		this -> edges_to_edges_index[*iter] = edge_index;
+		this -> edges_indices_to_edge[edge_index] = *iter;
+		++edge_index;
 	}
 
 }
+
+
+
 
 std::set<unsigned int> ShapeModel::get_edge_from_edge_index(unsigned int edge_index)  {
 	return this -> edges_indices_to_edge[edge_index];
@@ -272,7 +362,6 @@ void ShapeModel::check_normals_consistency(double tol) const {
 		facet_area_average += facet_area;
 	}
 
-
 	arma::vec surface_sum = {sx, sy, sz};
 
 	facet_area_average = facet_area_average / this -> NFacets;
@@ -283,6 +372,21 @@ void ShapeModel::check_normals_consistency(double tol) const {
 	}
 
 }
+
+void ShapeModel::set_NFacets(unsigned int nfacet)  {
+	this -> NFacets = nfacet;
+}
+
+
+void ShapeModel::set_NVertices(unsigned int nvertices)  {
+	this -> NVertices = nvertices;
+}
+
+
+void ShapeModel::set_NEdges(unsigned int nedges)  {
+	this -> NEdges = nedges;
+}
+
 
 void ShapeModel::compute_F_dyad(unsigned int facet) {
 
@@ -307,6 +411,18 @@ arma::mat ShapeModel::get_F_dyad(unsigned int facet) const {
 	           arma::span(facet),
 	           arma::span(),
 	           arma::span());
+}
+
+
+void ShapeModel::set_vertices(arma::mat vertices) {
+	this -> vertices = vertices;
+};
+
+void ShapeModel::set_facet_vertices(arma::umat facet_vertices) {
+	this -> facet_vertices = facet_vertices;
+	this -> facet_normals = arma::mat(3, this -> NFacets);
+	this -> F_dyads = arma::cube(this -> NFacets, 3, 3);
+
 }
 
 void ShapeModel::set_F_dyad(unsigned int facet, arma::mat dyad) {

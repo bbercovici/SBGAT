@@ -104,9 +104,11 @@ add_executable(${EXE_NAME}
 source/main.cpp
 source/ShapeModel.cpp
 source/DynamicAnalyses.cpp
+source/ShapeModelImporter.cpp
 include/ShapeModel.hpp
 include/DynamicAnalyses.hpp
 include/Densities.hpp
+include/ShapeModelImporter.hpp
 )
 
 set(library_dependencies

@@ -5,9 +5,9 @@
 #include <string>
 #include <iostream>
 #include <armadillo>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+// #include <assimp/Importer.hpp>
+// #include <assimp/scene.h>
+// #include <assimp/postprocess.h>
 #include <set>
 #include <map>
 
@@ -15,10 +15,12 @@ class ShapeModel {
 
 public:
 
-	void compute_normals();
 	void compute_dyads();
 	void compute_F_dyads();
 	void compute_F_dyad(unsigned int facet);
+	void construct_edges();
+
+	void compute_normals() ;
 
 	void compute_E_dyad(const std::pair < std::set<unsigned int> ,
 	                    std::set< unsigned int > > & edge);
@@ -48,11 +50,18 @@ public:
 	unsigned int get_NVertices() const ;
 	unsigned int get_NEdges() const ;
 
+
+	void set_NFacets(unsigned int nfacet)  ;
+	void set_NVertices(unsigned int nvertices)  ;
+	void set_NEdges(unsigned int nedges)  ;
+
 	arma::uvec get_vertex_indices_in_facet(unsigned int facet) const;
 	arma::vec get_vertex(unsigned int vertex_index) const;
 
-
 	void check_normals_consistency(double tol = 1e-3) const;
+
+	void set_vertices(arma::mat vertices);
+	void set_facet_vertices(arma::umat facet_vertices);
 
 
 protected:
