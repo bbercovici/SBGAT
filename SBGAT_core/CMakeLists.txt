@@ -3,7 +3,7 @@
 # ORCCA
 # University of Colorado 
 
-if (${CMAKE_SYSTEM} EQUAL Linux-2.6.32-642.11.1.el6.x86_64)
+if (${CMAKE_SYSTEM} STREQUAL "Linux-2.6.32-642.11.1.el6.x86_64")
 
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
