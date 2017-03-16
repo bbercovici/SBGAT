@@ -5,18 +5,16 @@
 
 set (EXECUTE_COMMAND id -u -n)
 execute_process(COMMAND ${EXECUTE_COMMAND} OUTPUT_VARIABLE user_name)
+message("${user_name}")
 
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-message("${CMAKE_SYSTEM}")
 
 if ("${user_name}" STREQUAL "bebe0705")
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
 else()
-	message("${user_name}")
-	message("${GOLEVKA_NAME}")
 	message("This is not Golevka")
 endif()
 
