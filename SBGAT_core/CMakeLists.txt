@@ -113,7 +113,6 @@ include/ShapeModelImporter.hpp
 
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
-${ASSIMP_LIBRARIES}
 ${Boost_LIBRARIES})
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
