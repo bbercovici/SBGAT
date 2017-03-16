@@ -3,7 +3,7 @@
 # ORCCA
 # University of Colorado 
 
-set(GOLEVKA_NAME "Linux-2.6.32-642.11.1.el6.x86_64")
+set(GOLEVKA_NAME Linux-2.6.32-642.11.1.el6.x86_64)
 
 if (${CMAKE_SYSTEM} STREQUAL ${GOLEVKA_NAME})
 
