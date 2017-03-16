@@ -8,20 +8,29 @@ set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
 # Specify the version used
-cmake_minimum_required(VERSION 3.7.2)
-message(${CMAKE_VERSION})
+
+
+if (${CMAKE_MAJOR_VERSION} LESS 3)
+	message(FATAL_ERROR " You are running an outdated version of CMake")
+endif()
+
+cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall)
 include_directories(include)
 
-if (UNIX AND NOT APPLE)
-	set(CMAKE_CXX_FLAGS "-std=c++11 ")
-elseif(APPLE)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
-	set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
-	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
-endif()
+# if (${CMAKE_MINOR_VERSION} GREATER 6)
+	if (UNIX AND NOT APPLE)
+		set(CMAKE_CXX_FLAGS "-std=c++11 ")
+	elseif(APPLE)
+		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
+		set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
+		set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
+	endif()
+# else()
+
+# endif()
 
 
 # Find Boost
