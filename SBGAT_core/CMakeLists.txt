@@ -20,17 +20,21 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall)
 include_directories(include)
 
-# if (${CMAKE_MINOR_VERSION} GREATER 6)
-	if (UNIX AND NOT APPLE)
-		set(CMAKE_CXX_FLAGS "-std=c++11 ")
-	elseif(APPLE)
-		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
-		set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
-		set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
-	endif()
-# else()
+if (UNIX AND NOT APPLE)
+	set(CMAKE_CXX_FLAGS "-std=c++11 ")
+elseif(APPLE)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
+	set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
+	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
+endif()
 
-# endif()
+# Check what version of the compiler is installed
+execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                OUTPUT_VARIABLE GCC_VERSION)
+if (GCC_VERSION VERSION_LESS 4.7)
+        set(CMAKE_CXX_FLAGS "-std=c++0x")
+endif()
+
 
 
 # Find Boost
