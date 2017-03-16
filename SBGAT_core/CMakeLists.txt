@@ -75,8 +75,8 @@ if(OPENMP_FOUND)
 endif()
 
 # Assimp
-find_package(assimp)
-include_directories(${ASSIMP_INCLUDE_DIRS})
+# find_package(assimp)
+# include_directories(${ASSIMP_INCLUDE_DIRS})
 
 
 # include_directories(~/include/assimp)
