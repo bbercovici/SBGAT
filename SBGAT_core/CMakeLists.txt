@@ -3,7 +3,7 @@
 # ORCCA
 # University of Colorado 
 
-execute_process(user_name = "id -u -n")
+execute_process(COMMAND ${CMAKE_COMMAND} id -u -n OUTPUT_VARIABLE user_name)
 
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
