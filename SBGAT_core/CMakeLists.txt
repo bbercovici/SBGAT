@@ -9,15 +9,13 @@ project(${EXE_NAME})
 
 # Specify the version used
 
-
 if (${CMAKE_MAJOR_VERSION} LESS 3)
 	message(FATAL_ERROR " You are running an outdated version of CMake")
 endif()
 
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
-add_definitions(-Wall)
+# add_definitions(-Wall)
 include_directories(include)
 
 if (UNIX AND NOT APPLE)
@@ -27,6 +25,8 @@ elseif(APPLE)
 	set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
 	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
 endif()
+
+
 
 # Check what version of the compiler is installed
 execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
