@@ -2,10 +2,12 @@
 # Benjamin Bercovici, 03/10/2017
 # ORCCA
 # University of Colorado 
-message(${CMAKE_SYSTEM})
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
+
+message(${CMAKE_SYSTEM})
+
 
 # Specify the version used
 
