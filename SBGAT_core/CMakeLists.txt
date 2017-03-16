@@ -3,6 +3,11 @@
 # ORCCA
 # University of Colorado 
 
+
+get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
+
+
 set(GOLEVKA_NAME Linux-2.6.32-642.11.1.el6.x86_64)
 message("${CMAKE_SYSTEM}")
 
@@ -16,8 +21,6 @@ else()
 endif()
 
 
-get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
 
 message(${CMAKE_SYSTEM})
