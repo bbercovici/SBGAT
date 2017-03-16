@@ -3,13 +3,15 @@
 # ORCCA
 # University of Colorado 
 
-if (${CMAKE_SYSTEM} STREQUAL "Linux-2.6.32-642.11.1.el6.x86_64")
+set(GOLEVKA_NAME "Linux-2.6.32-642.11.1.el6.x86_64")
+
+if (${CMAKE_SYSTEM} STREQUAL ${GOLEVKA_NAME})
 
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
 else()
 	message(${CMAKE_SYSTEM})
-	message("Linux-2.6.32-642.11.1.el6.x86_64")
+	message(${GOLEVKA_NAME})
 	message("This is not Golevka")
 endif()
 
