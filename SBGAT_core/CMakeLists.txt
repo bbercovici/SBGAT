@@ -2,7 +2,7 @@
 # Benjamin Bercovici, 03/10/2017
 # ORCCA
 # University of Colorado 
-
+message(${CMAKE_SYSTEM})
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
@@ -15,7 +15,7 @@ endif()
 
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
-# add_definitions(-Wall)
+add_definitions(-Wall)
 include_directories(include)
 
 if (UNIX AND NOT APPLE)
