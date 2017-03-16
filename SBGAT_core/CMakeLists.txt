@@ -11,7 +11,7 @@ set(GOLEVKA_NAME "bebe0705")
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-message($user_name STREQUAL $GOLEVKA_NAME)
+message(user_name STREQUAL GOLEVKA_NAME)
 
 if ($user_name STREQUAL $GOLEVKA_NAME)
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
