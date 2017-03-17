@@ -102,16 +102,16 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 	#pragma omp parallel for reduction(-:ax,ay,az)
 	for (unsigned int edge_index = 0; edge_index < this -> shape_model -> get_NEdges(); ++ edge_index) {
 
-		std::set<unsigned int> edge = this -> shape_model -> get_edge_from_edge_index(edge_index);
+		// std::set<unsigned int> edge = this -> shape_model -> get_edge_from_edge_index(edge_index);
 
-		// unsigned int v0_index = this -> shape_model -> get_vertex_global_index_from_edge_index(edge_index,0);
-		// unsigned int v1_index = this -> shape_model -> get_vertex_global_index_from_edge_index(edge_index,1);
+		unsigned int v0_index = this -> shape_model -> get_vertex_global_index_from_edge_index(edge_index,0);
+		unsigned int v1_index = this -> shape_model -> get_vertex_global_index_from_edge_index(edge_index,1);
 
-		// arma::vec r1 = this -> shape_model -> get_vertex(v0_index) - point;
-		// arma::vec r2 = this -> shape_model -> get_vertex(v1_index) - point;
+		arma::vec r1 = this -> shape_model -> get_vertex(v0_index) - point;
+		arma::vec r2 = this -> shape_model -> get_vertex(v1_index) - point;
 
-		arma::vec r1 = this -> shape_model -> get_vertex(*edge.begin()) - point;
-		arma::vec r2 = this -> shape_model -> get_vertex(*std::next(edge.begin())) - point;
+		// arma::vec r1 = this -> shape_model -> get_vertex(*edge.begin()) - point;
+		// arma::vec r2 = this -> shape_model -> get_vertex(*std::next(edge.begin())) - point;
 
 		double R1 = arma::norm(r1);
 		double R2 = arma::norm(r2);
