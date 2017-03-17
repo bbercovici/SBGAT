@@ -227,6 +227,7 @@ void ShapeModel::construct_edges() {
 		this -> edges_vertices_indices.col(std::distance(edges.begin(), iter)) = edge_vertices_indices;
 	}
 
+
 }
 
 
