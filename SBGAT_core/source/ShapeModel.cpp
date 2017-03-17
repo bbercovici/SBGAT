@@ -222,13 +222,11 @@ void ShapeModel::construct_edges() {
 
 	for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
 		this -> edges_to_edges_index[*iter] = edge_index;
-		this -> edges_indices_to_edge[edge_index] = *iter;
+		this -> edges_indices_to_edge.push_back(*iter);
 		++edge_index;
 	}
 
 }
-
-
 
 
 std::set<unsigned int> ShapeModel::get_edge_from_edge_index(unsigned int edge_index)  {

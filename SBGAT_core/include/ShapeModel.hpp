@@ -78,7 +78,7 @@ protected:
 
 	std::map<std::set<unsigned int> , std::set<unsigned int> > edges_to_facets;
 	std::map< std::set<unsigned int> , unsigned int> edges_to_edges_index;
-	std::map< unsigned int, std::set<unsigned int> > edges_indices_to_edge;
+	std::vector<std::set<unsigned int> > edges_indices_to_edge;
 
 
 

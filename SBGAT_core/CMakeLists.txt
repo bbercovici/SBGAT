@@ -91,7 +91,6 @@ endif()
 if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0)
 	find_library(GFORTRAN_LIBRARY gfortran
 	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
-	
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
 endif()
 
