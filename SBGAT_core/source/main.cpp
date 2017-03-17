@@ -15,8 +15,9 @@ int main( int argc, char** argv ) {
     
 
 	ShapeModel shape_model;
-	// ShapeModelImporter shape_io("../../resources/earth_spherical.obj");
-	ShapeModelImporter shape_io("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/resources/itokawa_16.obj");
+
+	ShapeModelImporter shape_io("../../resources/KW4Alpha.obj");
+	// ShapeModelImporter shape_io("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/resources/itokawa_16.obj");
 
 
 	shape_io.load_shape_model(&shape_model);
