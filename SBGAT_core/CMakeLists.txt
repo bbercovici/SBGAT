@@ -28,7 +28,7 @@ endif()
 
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
-add_definitions(-Wall)
+add_definitions(-Wall )
 include_directories(include)
 
 if (UNIX AND NOT APPLE)

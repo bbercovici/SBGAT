@@ -235,10 +235,8 @@ void ShapeModel::construct_edges() {
 
 }
 
-
-
 unsigned int ShapeModel::get_vertex_global_index_from_edge_index(unsigned int vertex_local_index,unsigned int edge_index) const {
-	return this -> edges_vertices_indices.col(edge_index)(vertex_local_index);
+	return this -> edges_vertices_indices.unsafe_col(edge_index)(vertex_local_index);
 }
 
 
@@ -412,6 +410,27 @@ void ShapeModel::compute_dyads() {
 	this -> compute_E_dyads();
 
 }
+
+
+unsigned int * ShapeModel::get_vertex_indices_in_facet_pointer(unsigned int facet){
+	
+
+	// return this -> facet_vertices.colptr(facet);
+
+}
+
+
+
+arma::mat * ShapeModel::get_vertices_pointer() {
+	return &this -> vertices;
+}
+
+
+arma::umat * ShapeModel::get_facet_vertices_pointer() {
+	return &this -> facet_vertices;
+}
+
+
 
 arma::mat ShapeModel::get_F_dyad(unsigned int facet) const {
 	return this -> F_dyads(
