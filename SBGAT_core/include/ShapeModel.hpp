@@ -58,6 +58,8 @@ public:
 
 	arma::uvec get_vertex_indices_in_facet(unsigned int facet) const;
 	arma::vec get_vertex(unsigned int vertex_index) const;
+	arma::mat get_vertex_bloc(arma::uvec & cols_to_extract) const ;
+
 
 	void check_normals_consistency(double tol = 1e-3) const;
 

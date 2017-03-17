@@ -462,6 +462,11 @@ arma::vec ShapeModel::get_vertex(unsigned int vertex_index) const {
 	return this -> vertices.col(vertex_index);
 }
 
+arma::mat ShapeModel::get_vertex_bloc(arma::uvec & cols_to_extract) const {
+	return this -> vertices.cols(cols_to_extract);
+}
+
+
 
 void ShapeModel::save(const std::string & filename) const {
 

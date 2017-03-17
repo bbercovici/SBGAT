@@ -72,12 +72,14 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 	// Facet loop
 	#pragma omp parallel for reduction(+:ax,ay,az)
 	for (unsigned int facet = 0; facet < this -> shape_model -> get_NFacets(); ++ facet) {
-		arma::uvec vertices_in_facet = this -> shape_model -> get_vertex_indices_in_facet(facet);
+		
+		arma::uvec vertices_in_facet_indices = this -> shape_model -> get_vertex_indices_in_facet(facet);
 
-		arma::vec r1 = this -> shape_model -> get_vertex(vertices_in_facet(0) ) - point;
-		arma::vec r2 = this -> shape_model -> get_vertex(vertices_in_facet(1) ) - point;
-		arma::vec r3 = this -> shape_model -> get_vertex(vertices_in_facet(2) ) - point;
+		arma::mat vertices_in_facet =  this -> shape_model -> get_vertex_bloc(vertices_in_facet_indices);
 
+		arma::vec r1 = vertices_in_facet.col(0) - point;
+		arma::vec r2 = vertices_in_facet.col(1) - point;
+		arma::vec r3 = vertices_in_facet.col(2) - point;
 
 		double R1 = arma::norm(r1);
 		double R2 = arma::norm(r2);
@@ -105,8 +107,11 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 		unsigned int v0_index = this -> shape_model -> get_vertex_global_index_from_edge_index(0,edge_index);
 		unsigned int v1_index = this -> shape_model -> get_vertex_global_index_from_edge_index(1,edge_index);
 
-		arma::vec r1 = this -> shape_model -> get_vertex(v0_index) - point;
-		arma::vec r2 = this -> shape_model -> get_vertex(v1_index) - point;
+		arma::uvec vertices_in_edge_indices = {v0_index,v1_index};
+		arma::mat vertices_in_edge =  this -> shape_model -> get_vertex_bloc(vertices_in_edge_indices);
+
+		arma::vec r1 = vertices_in_edge.col(0) - point;
+		arma::vec r2 = vertices_in_edge.col(1) - point;
 
 		double R1 = arma::norm(r1);
 		double R2 = arma::norm(r2);
