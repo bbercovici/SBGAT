@@ -73,7 +73,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 	// Facet loop
 	#pragma omp parallel for reduction(+:ax,ay,az)
 	for (unsigned int facet = 0; facet < this -> shape_model -> get_NFacets(); ++ facet) {
-
+		std::cout << omp_get_num_threads()() << std::endl;
 		arma::uvec vertices_in_facet = this -> shape_model -> get_vertex_indices_in_facet(facet);
 
 
