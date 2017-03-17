@@ -75,7 +75,6 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 	for (unsigned int facet = 0; facet < this -> shape_model -> get_NFacets(); ++ facet) {
 		arma::uvec vertices_in_facet = this -> shape_model -> get_vertex_indices_in_facet(facet);
 
-
 		arma::vec r1 = this -> shape_model -> get_vertex(vertices_in_facet(0) ) - point;
 		arma::vec r2 = this -> shape_model -> get_vertex(vertices_in_facet(1) ) - point;
 		arma::vec r3 = this -> shape_model -> get_vertex(vertices_in_facet(2) ) - point;
