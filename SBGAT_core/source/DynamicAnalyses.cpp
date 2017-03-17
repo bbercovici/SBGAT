@@ -30,7 +30,7 @@ bool DynamicAnalyses::is_inside(arma::vec point, double tol) const {
 	double lagrangian = 0;
 
 	// Facet loop
-	// #pragma omp parallel for reduction(+:lagrangian)
+	#pragma omp parallel for reduction(+:lagrangian)
 	for (unsigned int facet = 0; facet < this -> shape_model -> get_NFacets(); ++ facet) {
 
 		arma::uvec vertices_in_facet = this -> shape_model -> get_vertex_indices_in_facet(facet);
@@ -60,7 +60,6 @@ bool DynamicAnalyses::is_inside(arma::vec point, double tol) const {
 	else {
 		return true;
 	}
-
 
 }
 
@@ -100,6 +99,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(arma::vec & point , double density) 
 
 	// Edge loop
 	#pragma omp parallel for reduction(-:ax,ay,az)
+
 	for (unsigned int edge_index = 0; edge_index < this -> shape_model -> get_NEdges(); ++ edge_index) {
 
 		unsigned int v0_index = this -> shape_model -> get_vertex_global_index_from_edge_index(0,edge_index);
