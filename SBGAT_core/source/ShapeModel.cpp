@@ -212,28 +212,29 @@ void ShapeModel::construct_edges() {
 		edges.insert(edge_0);
 		edges.insert(edge_1);
 		edges.insert(edge_2);
-
 	}
+
 
 	this -> NEdges = edges.size();
 	this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
 
 	this -> edges_vertices_indices = arma::umat(2, this -> NEdges);
 
+	unsigned int edge_index = 0;
+	
 	for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
-		this -> edges_to_edges_index[*iter] = std::distance(edges.begin(), iter);
-		this -> edges_indices_to_edge.push_back(*iter);
+		
+		this -> edges_to_edges_index[*iter] = edge_index;
+
 		arma::uvec edge_vertices_indices = {*(iter -> begin()), *std::next(iter -> begin())};
-		this -> edges_vertices_indices.col(std::distance(edges.begin(), iter)) = edge_vertices_indices;
+		this -> edges_vertices_indices.col(edge_index) = edge_vertices_indices;
+		edge_index = edge_index + 1;
+	
 	}
 
 
 }
 
-
-std::set<unsigned int> ShapeModel::get_edge_from_edge_index(unsigned int edge_index) const {
-	return this -> edges_indices_to_edge[edge_index];
-}
 
 
 unsigned int ShapeModel::get_vertex_global_index_from_edge_index(unsigned int vertex_local_index,unsigned int edge_index) const {
