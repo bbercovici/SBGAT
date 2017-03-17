@@ -217,21 +217,28 @@ void ShapeModel::construct_edges() {
 
 	this -> NEdges = edges.size();
 	this -> E_dyads = arma::cube(this -> NEdges, 3, 3);
-	unsigned int edge_index = 0;
 
+	this -> edges_vertices_indices = arma::umat(2, this -> NEdges);
 
 	for (std::set<std::set<unsigned int> >::iterator iter = edges.begin(); iter != edges.end(); ++iter) {
-		this -> edges_to_edges_index[*iter] = edge_index;
+		this -> edges_to_edges_index[*iter] = std::distance(edges.begin(), iter);
 		this -> edges_indices_to_edge.push_back(*iter);
-		++edge_index;
+		arma::uvec edge_vertices_indices = {*(iter -> begin()), *std::next(iter -> begin())};
+		this -> edges_vertices_indices.col(std::distance(edges.begin(), iter)) = edge_vertices_indices;
 	}
 
 }
 
 
-std::set<unsigned int> ShapeModel::get_edge_from_edge_index(unsigned int edge_index)  {
+std::set<unsigned int> ShapeModel::get_edge_from_edge_index(unsigned int edge_index) const {
 	return this -> edges_indices_to_edge[edge_index];
 }
+
+
+unsigned int ShapeModel::get_vertex_global_index_from_edge_index(unsigned int vertex_local_index,unsigned int edge_index) const {
+	return this -> edges_vertices_indices.col(edge_index)(vertex_local_index);
+}
+
 
 unsigned int ShapeModel::get_NFacets() const {
 	return this -> NFacets;

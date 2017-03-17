@@ -44,7 +44,8 @@ public:
 	arma::mat get_E_dyad(unsigned int edge_index) const ;
 	void set_E_dyad(unsigned int edge_index, arma::mat & dyad) ;
 
-	std::set<unsigned int> get_edge_from_edge_index(unsigned int edge_index) ;
+	std::set<unsigned int> get_edge_from_edge_index(unsigned int edge_index) const ;
+	unsigned int get_vertex_global_index_from_edge_index(unsigned int vertex_local_index, unsigned int edge_index) const ;
 
 	unsigned int get_NFacets() const ;
 	unsigned int get_NVertices() const ;
@@ -72,6 +73,8 @@ protected:
 	arma::cube E_dyads;
 	arma::cube F_dyads;
 
+	arma::umat edges_vertices_indices;
+
 	unsigned int NFacets;
 	unsigned int NVertices;
 	unsigned int NEdges;
@@ -79,6 +82,7 @@ protected:
 	std::map<std::set<unsigned int> , std::set<unsigned int> > edges_to_facets;
 	std::map< std::set<unsigned int> , unsigned int> edges_to_edges_index;
 	std::vector<std::set<unsigned int> > edges_indices_to_edge;
+
 
 
 
