@@ -1,5 +1,7 @@
 #include "ShapeModel.hpp"
 #include <chrono>
+#define USE_OMP_SHAPE_MODEL 1
+
 
 // void ShapeModel::load(const std::string & filename) {
 
@@ -194,7 +196,7 @@ void ShapeModel::check_normals_consistency(double tol) const {
 	double sy = 0;
 	double sz = 0;
 
-	#pragma omp parallel for reduction(+:facet_area_average,sx,sy,sz)
+	#pragma omp parallel for reduction(+:facet_area_average,sx,sy,sz) if (USE_OMP_SHAPE_MODEL)
 	for (unsigned int facet_index = 0; facet_index < this -> facets.size(); ++facet_index) {
 
 		Facet * facet = this -> facets[facet_index];

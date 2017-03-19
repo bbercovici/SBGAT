@@ -1,4 +1,5 @@
 #include "DynamicAnalyses.hpp"
+#define USE_OMP_DYNAMIC_ANALYSIS 1
 
 DynamicAnalyses::DynamicAnalyses(ShapeModel * shape_model) {
 	this -> shape_model = shape_model;
@@ -32,7 +33,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 	// arma::mat * vertices_pointer = this -> shape_model -> get_vertices_pointer();
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:ax,ay,az)
+	#pragma omp parallel for reduction(+:ax,ay,az) if (USE_OMP_DYNAMIC_ANALYSIS)
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++ facet_index) {
 
 		std::vector<std::shared_ptr<Vertex > > * vertices = this -> shape_model -> get_facets() -> at(facet_index) -> get_vertices();
@@ -100,7 +101,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 
 	// Edge loop
-	#pragma omp parallel for reduction(-:ax,ay,az)
+	#pragma omp parallel for reduction(-:ax,ay,az) if (USE_OMP_DYNAMIC_ANALYSIS)
 	for (unsigned int edge_index = 0; edge_index < this -> shape_model -> get_NEdges(); ++ edge_index) {
 
 
