@@ -17,6 +17,10 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 	std::vector<arma::vec> vertices;
 	std::vector<arma::uvec> facet_vertices;
 
+	std::set<std::set<unsigned int> > edge_vertices_indices;
+
+
+	std::cout << " Reading " << this -> filename << std::endl;
 	while (std::getline(ifs, line)) {
 
 		std::stringstream linestream(line);
@@ -26,7 +30,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 		char type;
 		linestream >> type;
 
-		if (type == '#') {
+		if (type == '#' || type == 's') {
 			continue;
 		}
 
@@ -41,8 +45,25 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 		else if (type == 'f') {
 			unsigned int v0, v1, v2;
 			linestream >> v0 >> v1 >> v2;
+
 			arma::uvec vertices_in_facet = {v0 - 1, v1 - 1, v2 - 1};
 			facet_vertices.push_back(vertices_in_facet);
+
+			std::set<unsigned int> edge_0_vertex_indices;
+			edge_0_vertex_indices.insert(v0 - 1);
+			edge_0_vertex_indices.insert(v1 - 1);
+
+			std::set<unsigned int> edge_1_vertex_indices;
+			edge_1_vertex_indices.insert(v0 - 1);
+			edge_1_vertex_indices.insert(v2 - 1);
+
+			std::set<unsigned int> edge_2_vertex_indices;
+			edge_2_vertex_indices.insert(v1 - 1);
+			edge_2_vertex_indices.insert(v2 - 1);
+
+			edge_vertices_indices.insert(edge_0_vertex_indices);
+			edge_vertices_indices.insert(edge_1_vertex_indices);
+			edge_vertices_indices.insert(edge_2_vertex_indices);
 
 		}
 
@@ -55,50 +76,71 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 
 	std::cout << " Number of vertices: " << vertices.size() << std::endl;
 	std::cout << " Number of facets: " << facet_vertices.size() << std::endl;
+	std::cout << " Number of edges: " << edge_vertices_indices.size() << std::endl;
 
-	// The std vectors are turned into proper Armadillo types
-	arma::mat vertices_arma = arma::mat(3, vertices.size());
-	arma::umat facet_vertices_arma = arma::umat(3, facet_vertices.size());
 
-	#pragma omp parallel for
-	for (unsigned int vertex = 0; vertex < vertices.size(); ++vertex) {
+	// Vertices are added to the shape model
+	std::vector<std::shared_ptr<Vertex>> vertex_index_to_ptr(vertices.size(), nullptr);
 
-		arma::vec vertex_coord = {
-			vertices[vertex](0),
-			vertices[vertex](1),
-			vertices[vertex](2)
-		};
-		vertices_arma.col(vertex) = vertex_coord;
+	std::cout << std::endl << " Constructing Vertices " << std::endl  ;
+	boost::progress_display progress_vertices(vertices.size()) ;
 
-	}
+	for (unsigned int vertex_index = 0; vertex_index < vertices.size(); ++vertex_index) {
 
-	#pragma omp parallel for
-	for (unsigned int facet = 0; facet < facet_vertices.size(); ++facet) {
+		std::shared_ptr<arma::vec> coordinates = std::make_shared<arma::vec>(vertices[vertex_index]);
 
-		arma::uvec facet_vertices_vec = {
-			facet_vertices[facet](0),
-			facet_vertices[facet](1),
-			facet_vertices[facet](2)
-		};
+		std::shared_ptr<Vertex> vertex = std::make_shared<Vertex>(Vertex());
+		vertex -> set_coordinates(coordinates);
 
-		facet_vertices_arma.col(facet) = facet_vertices_vec;
+		vertex_index_to_ptr[vertex_index] = vertex;
+		shape_model -> add_vertex(vertex);
+		++progress_vertices;
 
 	}
 
-	shape_model -> set_NFacets(facet_vertices.size());
-	shape_model -> set_NVertices(vertices.size());
-	shape_model -> set_vertices(vertices_arma);
-	shape_model -> set_facet_vertices(facet_vertices_arma);
+	std::cout<< std::endl << " Constructing Facets " << std::endl ;
 
-	shape_model -> compute_normals();
+	boost::progress_display progress_facets(facet_vertices.size()) ;
+	// Facets are added to the shape model
+	for (unsigned int facet_index = 0; facet_index < facet_vertices.size(); ++facet_index) {
+
+		// The vertices stored in this facet are pulled. 
+		std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[facet_vertices[facet_index][0]];
+		std::shared_ptr<Vertex> v1 = vertex_index_to_ptr[facet_vertices[facet_index][1]];
+		std::shared_ptr<Vertex> v2 = vertex_index_to_ptr[facet_vertices[facet_index][2]];
+
+		std::vector<std::shared_ptr<Vertex>> vertices;
+		vertices.push_back(v0);
+		vertices.push_back(v1);
+		vertices.push_back(v2);
+
+		Facet * facet = new Facet(std::make_shared<std::vector<std::shared_ptr<Vertex>>>(vertices));
+
+		shape_model -> add_facet(facet);
+		++progress_facets;
+	}
 
 
-	if (construct_edges == true) {
+	// Edges are added to the shape model
+	std::cout << std::endl << " Constructing Edges " << std::endl ;
 
-		shape_model -> construct_edges();
-		shape_model -> compute_dyads();
+	boost::progress_display progress_edges(edge_vertices_indices.size()) ;
+	for (auto edge_iter = edge_vertices_indices.begin(); edge_iter != edge_vertices_indices.end(); ++edge_iter) {
+
+		std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[*edge_iter -> begin()];
+		std::shared_ptr<Vertex> v1 = vertex_index_to_ptr[*std::next(edge_iter -> begin())];
+
+		std::shared_ptr<Edge> edge = std::make_shared<Edge>(v0, v1);
+
+		shape_model -> add_edge(edge);
+		++progress_edges;
 
 	}
+
+
+
+	// The consistency of the surface normals is checked
+	shape_model -> check_normals_consistency();
 
 
 }

@@ -11,9 +11,15 @@
 #include <set>
 #include <map>
 
+#include "Facet.hpp"
+#include "Edge.hpp"
+#include "Vertex.hpp"
+
 class ShapeModel {
 
 public:
+
+	~ShapeModel();
 
 	void compute_dyads();
 	void compute_F_dyads();
@@ -26,30 +32,20 @@ public:
 	                    std::set< unsigned int > > & edge);
 	void compute_E_dyads();
 
-	void load(const std::string & filename);
-	void save(const std::string & filename) const;
 
-	void load_normals(const std::string & filename);
-	void save_normals(const std::string & filename) const ;
-
-	void load_F_dyads(const std::string & filename);
-	void save_F_dyads(const std::string & filename) const ;
-
-	void load_E_dyads(const std::string & filename);
-	void save_E_dyads(const std::string & filename) const ;
-
-	arma::mat get_F_dyad(unsigned int facet) const ;
-	void set_F_dyad(unsigned int facet, arma::mat dyad) ;
-
-	arma::mat get_E_dyad(unsigned int edge_index) const ;
-	void set_E_dyad(unsigned int edge_index, arma::mat & dyad) ;
+	std::shared_ptr<arma::mat> get_F_dyad_ptr(unsigned int facet) ;
+	std::shared_ptr<arma::mat> get_E_dyad_ptr(unsigned int edge_index) ;
 
 	std::set<unsigned int> get_edge_from_edge_index(unsigned int edge_index) const ;
-	unsigned int get_vertex_global_index_from_edge_index(unsigned int vertex_local_index, unsigned int edge_index) const ;
+	unsigned long long * get_vertex_global_index_from_edge_index(unsigned int edge_index) ;
 
 	unsigned int get_NFacets() const ;
 	unsigned int get_NVertices() const ;
 	unsigned int get_NEdges() const ;
+
+	bool contains(double * point, double tol = 1e-6) ;
+
+	double * get_facet_normal(unsigned int facet);
 
 
 	void set_NFacets(unsigned int nfacet)  ;
@@ -60,33 +56,29 @@ public:
 	arma::vec get_vertex(unsigned int vertex_index) const;
 	arma::mat get_vertex_bloc(arma::uvec & cols_to_extract) const ;
 
-	unsigned int * get_vertex_indices_in_facet_pointer(unsigned int facet);
+	unsigned int * get_vertex_indices_in_facet_pointer(unsigned int facet) ;
 	arma::mat * get_vertices_pointer() ;
 	arma::umat * get_facet_vertices_pointer();
 
 	void check_normals_consistency(double tol = 1e-3) const;
 
-	void set_vertices(arma::mat vertices);
-	void set_facet_vertices(arma::umat facet_vertices);
+
+	void add_facet(Facet * facet);
+	void add_edge(std::shared_ptr<Edge> edge);
+	void add_vertex(std::shared_ptr<Vertex> vertex);
+
+	std::vector<std::shared_ptr< Vertex> > * get_vertices();
+	std::vector<Facet * >  * get_facets();
+	std::vector<std::shared_ptr< Edge> > * get_edges();
 
 
 protected:
 
-	arma::mat vertices;
-	arma::umat facet_vertices;
-	arma::mat facet_normals;
-	arma::cube E_dyads;
-	arma::cube F_dyads;
+	std::vector<Facet * >  facets;
+	std::vector<std::shared_ptr< Edge> >  edges;
+	std::vector<std::shared_ptr< Vertex> >  vertices;
 
-	arma::umat edges_vertices_indices;
-
-	unsigned int NFacets;
-	unsigned int NVertices;
-	unsigned int NEdges;
-
-	std::map<std::set<unsigned int> , std::set<unsigned int> > edges_to_facets;
-	std::map< std::set<unsigned int> , unsigned int> edges_to_edges_index;
-
+	std::vector< std::shared_ptr< std::vector<Facet * > > > vertices_to_facets;
 
 
 

@@ -5,6 +5,8 @@
 #include "ShapeModel.hpp"
 #include <armadillo>
 #include "omp.h"
+#include <boost/progress.hpp>
+
 
 class ShapeModelImporter{
 

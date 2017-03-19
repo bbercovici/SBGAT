@@ -100,10 +100,16 @@ source/main.cpp
 source/ShapeModel.cpp
 source/DynamicAnalyses.cpp
 source/ShapeModelImporter.cpp
+source/Facet.cpp
+source/Edge.cpp
+source/Vertex.cpp
 include/ShapeModel.hpp
 include/DynamicAnalyses.hpp
 include/Densities.hpp
 include/ShapeModelImporter.hpp
+include/Facet.hpp
+include/Edge.hpp
+include/Vertex.hpp
 )
 
 set(library_dependencies

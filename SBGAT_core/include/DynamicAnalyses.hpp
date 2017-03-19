@@ -11,8 +11,7 @@ class DynamicAnalyses {
 public:
 	DynamicAnalyses(ShapeModel * shape_model);
 	void compute_pgm(double density, bool return_pgm = false);
-	arma::vec pgm_acceleration(arma::vec & facet_center , double density) const ;
-	bool is_inside(arma::vec point, double tol = 1e-6) const ;
+	arma::vec pgm_acceleration(double * point , double density) const ;
 
 protected:
 	ShapeModel * shape_model;
