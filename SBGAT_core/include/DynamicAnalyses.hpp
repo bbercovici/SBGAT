@@ -5,6 +5,7 @@
 #include <armadillo>
 #include <boost/progress.hpp>
 #include "omp.h"
+#include "OMP_flags.hpp"
 
 class DynamicAnalyses {
 

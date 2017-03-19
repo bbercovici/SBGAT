@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "ShapeModelImporter.hpp"
 #include "ShapeModel.hpp"
@@ -6,8 +5,9 @@
 #include "Densities.hpp"
 #include <chrono>
 
-
 #include <armadillo>
+
+
 
 int main( int argc, char** argv ) {
 
@@ -27,7 +27,7 @@ int main( int argc, char** argv ) {
     start = std::chrono::system_clock::now();
 	
 	dynamic_analyses.compute_pgm(Density::KW4_ALPHA_DENSITY);
-	
+
 	// arma::vec p = {6378000,0,0};
 	// std::cout << shape_model.contains(p.colptr(0)) << std::endl;
 

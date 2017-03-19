@@ -8,12 +8,17 @@ get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
 
-if (${CMAKE_MINOR_VERSION} EQUAL 0)
+if (${CMAKE_MINOR_VERSION} EQUAL 0 AND NOT APPLE)
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
 else()
-
 	message("This is not a CCAR computer")
+endif()
+
+
+if (APPLE)
+	set(CMAKE_C_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/gcc-6 CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/g++-6 CACHE STRING "C++ Compiler" FORCE)
 endif()
 
 
@@ -28,16 +33,14 @@ endif()
 
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
-add_definitions(-Wall )
+
+add_definitions(-Wall -O2)
+
 include_directories(include)
 
-if (UNIX AND NOT APPLE)
-	set(CMAKE_CXX_FLAGS "-std=c++11 ")
-elseif(APPLE)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ")
-	set(CMAKE_C_COMPILER clang-omp CACHE STRING "C compiler" FORCE)
-	set(CMAKE_CXX_COMPILER clang-omp++ CACHE STRING "C++ compiler" FORCE)
-endif()
+set(CMAKE_CXX_FLAGS "-std=c++11 ")
+set(CMAKE_CXX_FLAGS "-std=c++11 ")
+
 
 
 
@@ -110,6 +113,7 @@ include/ShapeModelImporter.hpp
 include/Facet.hpp
 include/Edge.hpp
 include/Vertex.hpp
+include/OMP_flags.hpp
 )
 
 set(library_dependencies

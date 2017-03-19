@@ -14,6 +14,7 @@
 #include "Facet.hpp"
 #include "Edge.hpp"
 #include "Vertex.hpp"
+#include "OMP_flags.hpp"
 
 class ShapeModel {
 

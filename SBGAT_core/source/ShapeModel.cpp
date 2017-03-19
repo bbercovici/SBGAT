@@ -1,7 +1,5 @@
 #include "ShapeModel.hpp"
 #include <chrono>
-#define USE_OMP_SHAPE_MODEL 1
-
 
 // void ShapeModel::load(const std::string & filename) {
 
