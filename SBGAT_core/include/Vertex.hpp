@@ -3,6 +3,7 @@
 #include <armadillo>
 #include "Edge.hpp"
 #include "Facet.hpp"
+#include <memory>
 
 #include <set>
 

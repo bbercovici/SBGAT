@@ -3,7 +3,7 @@
 #include <armadillo>
 #include "Facet.hpp"
 #include "Vertex.hpp"
-
+#include <memory>
 #include <set>
 
 class Facet;
