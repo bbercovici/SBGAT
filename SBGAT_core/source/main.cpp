@@ -27,10 +27,10 @@ int main( int argc, char** argv ) {
     start = std::chrono::system_clock::now();
 	
 	// dynamic_analyses.compute_pgm(Density::KW4_ALPHA_DENSITY);
-	arma::vec p = {6378000,0,0};
+	// arma::vec p = {6378000,0,0};
 	// std::cout << shape_model.contains(p.colptr(0)) << std::endl;
 
-	std::cout << dynamic_analyses.pgm_acceleration(p.colptr(0),Density::EARTH_DENSITY) << std::endl;
+	// std::cout << dynamic_analyses.pgm_acceleration(p.colptr(0),Density::EARTH_DENSITY) << std::endl;
 
     end = std::chrono::system_clock::now();
  	std::chrono::duration<double> elapsed_seconds = end - start;
