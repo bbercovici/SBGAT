@@ -1,4 +1,4 @@
-#include "Vertex.hpp"
+#include "../include/Vertex.hpp"
 
 void Vertex::set_coordinates(std::shared_ptr<arma::vec> coordinates) {
 	this -> coordinates = coordinates;

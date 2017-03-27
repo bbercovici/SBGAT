@@ -1,10 +1,8 @@
-#include "Facet.hpp"
+#include "../include/Facet.hpp"
 #include <memory>
 
 Facet::Facet(std::shared_ptr< std::vector<std::shared_ptr<Vertex > > >   vertices) {
 	this -> vertices = vertices;
-
-	// std::cout << this << std::endl;
 
 	for (unsigned int vertex_index = 0; vertex_index < this -> vertices -> size(); ++vertex_index) {
 		this -> vertices -> at(vertex_index) -> add_facet_ownership(this);
@@ -19,7 +17,6 @@ Facet::Facet(std::shared_ptr< std::vector<std::shared_ptr<Vertex > > >   vertice
 	this -> compute_facet_dyad();
 
 	// Allocating memory for the facet center
-
 	this -> facet_center = std::make_shared<arma::vec>(arma::zeros(3));;
 	this -> compute_facet_center();
 

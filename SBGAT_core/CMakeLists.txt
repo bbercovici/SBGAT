@@ -35,19 +35,16 @@ cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
 add_definitions(-Wall -O2)
-
 include_directories(include)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ")
-set(CMAKE_CXX_FLAGS "-std=c++11 ")
-
 
 
 
 # Check what version of the compiler is installed
 execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                 OUTPUT_VARIABLE GCC_VERSION)
-message(${GCC_VERSION})
+message("GCC version is " ${GCC_VERSION})
 if (GCC_VERSION VERSION_LESS 4.7)
         set(CMAKE_CXX_FLAGS "-std=c++0x")
 endif()
@@ -55,11 +52,17 @@ endif()
 
 
 # Find Boost
-set(Boost_USE_STATIC_LIBS OFF) 
-set(Boost_USE_MULTITHREADED ON)  
-set(Boost_USE_STATIC_RUNTIME OFF) 
-find_package(Boost COMPONENTS filesystem REQUIRED) 
-include_directories(${Boost_INCLUDE_DIRS}) 
+# set(Boost_USE_STATIC_LIBS OFF) 
+# set(Boost_USE_MULTITHREADED ON)  
+# set(Boost_USE_STATIC_RUNTIME OFF) 
+set(BOOST_ROOT /usr/local/Cellar/boost/1.63.0/)
+find_package(Boost COMPONENTS filesystem) 
+if (Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIRS}) 
+else()
+	include_directories(/usr/local/Cellar/boost/1.60.0_2/include) 
+	set(Boost_LIBRARY_DIRS "/usr/local/Cellar/boost/1.60.0_2/lib")
+endif()
 
 # Find Armadillo 
 find_package(Armadillo REQUIRED)
@@ -106,6 +109,12 @@ source/ShapeModelImporter.cpp
 source/Facet.cpp
 source/Edge.cpp
 source/Vertex.cpp
+source/VoxelGrid.cpp
+source/VoxelNode.cpp
+source/Voxel.cpp
+source/RefFrame.cpp
+source/RigidBodyKinematics.cpp
+source/FrameGraph.cpp
 include/ShapeModel.hpp
 include/DynamicAnalyses.hpp
 include/Densities.hpp
@@ -114,6 +123,14 @@ include/Facet.hpp
 include/Edge.hpp
 include/Vertex.hpp
 include/OMP_flags.hpp
+include/VoxelGrid.hpp
+include/VoxelNode.hpp
+include/Voxel.hpp
+include/RefFrame.hpp
+include/RigidBodyKinematics.hpp
+include/Adjacency_List.hpp
+include/FrameGraph.hpp
+
 )
 
 set(library_dependencies

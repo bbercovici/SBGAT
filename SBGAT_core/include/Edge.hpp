@@ -13,11 +13,29 @@ class Edge {
 
 public:
 
+	/**
+	Constructor
+	@param v0 Pointer to the first edge vertex
+	@param v1 Pointer to the second edge vertex
+	*/
 	Edge(std::shared_ptr<Vertex> v0 ,
 	     std::shared_ptr<Vertex> v1);
-
+	/**
+	Accessor to the first edge vertex
+	@return v0 Pointer to the first edge vertex
+	*/
 	Vertex * get_v0();
+
+	/**
+	Accessor to the second edge vertex
+	@return v1 Pointer to the second edge vertex
+	*/
 	Vertex * get_v1();
+
+	/**
+	Returns a pointer to the edge dyad
+	@return E Edge dyad
+	*/
 	arma::mat * get_edge_dyad();
 
 

@@ -55,7 +55,6 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 		r3m[2] = r3[2] - point[2];
 
 
-
 		double R1 = std::sqrt( r1m[0] * r1m[0]
 		                       + r1m[1] * r1m[1]
 		                       + r1m[2] * r1m[2]       );
@@ -72,7 +71,6 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 		double r2_cross_r3_0 = r2m[1] * r3m[2] - r2m[2] * r3m[1];
 		double r2_cross_r3_1 = r3m[0] * r2m[2] - r3m[2] * r2m[0];
 		double r2_cross_r3_2 = r2m[0] * r3m[1] - r2m[1] * r3m[0];
-
 
 
 		double wf = 2 * std::atan2(

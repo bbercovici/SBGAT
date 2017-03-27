@@ -1,4 +1,4 @@
-#include "Edge.hpp"
+#include "../include/Edge.hpp"
 
 Edge::Edge(std::shared_ptr<Vertex> v0 ,
            std::shared_ptr<Vertex> v1) {

@@ -9,4 +9,4 @@ Enable/Disable the corresponding functionality by setting the flag
 #define USE_OMP_SHAPE_MODEL 1
 
 // Use OMP multithreading in DynamicAnalysis methods
-#define USE_OMP_DYNAMIC_ANALYSIS 1
+#define USE_OMP_DYNAMIC_ANALYSIS 0

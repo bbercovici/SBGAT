@@ -1,10 +1,11 @@
 #include "ShapeModelImporter.hpp"
 
-ShapeModelImporter::ShapeModelImporter(std::string filename) {
+ShapeModelImporter::ShapeModelImporter(std::string filename, double unit_factor) {
 	this -> filename = filename;
+	this -> unit_factor = unit_factor;
 }
 
-void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool construct_edges ) const {
+void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 	std::ifstream ifs(this -> filename);
 
@@ -30,7 +31,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 		char type;
 		linestream >> type;
 
-		if (type == '#' || type == 's') {
+		if (type == '#' || type == 's'  || type == 'o' || type == 'm' || type == 'u') {
 			continue;
 		}
 
@@ -38,7 +39,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 			double vx, vy, vz;
 			linestream >> vx >> vy >> vz;
 			arma::vec vertex = {vx, vy, vz};
-			vertices.push_back(vertex);
+			vertices.push_back(this -> unit_factor * vertex);
 
 		}
 
@@ -98,13 +99,14 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 
 	}
 
-	std::cout<< std::endl << " Constructing Facets " << std::endl ;
+	std::cout << std::endl << " Constructing Facets " << std::endl ;
 
 	boost::progress_display progress_facets(facet_vertices.size()) ;
+
 	// Facets are added to the shape model
 	for (unsigned int facet_index = 0; facet_index < facet_vertices.size(); ++facet_index) {
 
-		// The vertices stored in this facet are pulled. 
+		// The vertices stored in this facet are pulled.
 		std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[facet_vertices[facet_index][0]];
 		std::shared_ptr<Vertex> v1 = vertex_index_to_ptr[facet_vertices[facet_index][1]];
 		std::shared_ptr<Vertex> v2 = vertex_index_to_ptr[facet_vertices[facet_index][2]];
@@ -114,6 +116,10 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 		vertices.push_back(v1);
 		vertices.push_back(v2);
 
+
+		// Was invariably getting the same memory address if using
+		// std::make_shared. The destructor of ShapeModel will take care
+		// of those
 		Facet * facet = new Facet(std::make_shared<std::vector<std::shared_ptr<Vertex>>>(vertices));
 
 		shape_model -> add_facet(facet);
@@ -141,6 +147,16 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model, bool constru
 
 	// The consistency of the surface normals is checked
 	shape_model -> check_normals_consistency();
+
+
+	// The surface area, volume, center of mass of the shape model
+	// are computed
+	shape_model -> update_mass_properties();
+
+	// The shape model is shifted so as to have its coordinates
+	// expressed in its barycentric frame
+	shape_model -> shift(-(*shape_model -> get_center_of_mass()));
+
 
 
 }
