@@ -27,7 +27,7 @@ message("Default ${CMAKE_C_COMPILER} version is " ${GCC_VERSION})
 # Set up the C++11 and OMP compile flags 
 if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
 		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
-        	set(CMAKE_CXX_FLAGS "-std=c++0x")
+        	set(CMAKE_CXX_FLAGS "-std=c++11")
         else() # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
         	if(EXISTS /usr/local/Cellar/gcc/6.3.0_1/bin/) 
         		message("Switching to GCC 6.3.0_1")
