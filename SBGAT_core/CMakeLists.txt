@@ -21,33 +21,33 @@ endif()
 execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
                 OUTPUT_VARIABLE GCC_VERSION)
 message("Default compiler is " ${CMAKE_C_COMPILER})
-message("GCC version is " ${GCC_VERSION})
+message("Default ${CMAKE_C_COMPILER} version is " ${GCC_VERSION})
 
-if (GCC_VERSION VERSION_LESS 4.7) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
-		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer
+
+# Set up the C++11 and OMP compile flags 
+if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
+		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
         	set(CMAKE_CXX_FLAGS "-std=c++0x")
         else() # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
         	if(EXISTS /usr/local/Cellar/gcc/6.3.0_1/bin/) 
+        		message("Switching to GCC 6.3.0_1")
 	        	set(CMAKE_C_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/gcc-6 CACHE STRING "C Compiler" FORCE)
 				set(CMAKE_CXX_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/g++-6 CACHE STRING "C++ Compiler" FORCE)
 			elseif(EXISTS /usr/local/bin/clang-omp) # If the previous check failed, will attempt to get clang-omp/clang-omp++
+			    message("Switching to Clamg-OMP")
 				set(CMAKE_C_COMPILER /usr/local/bin/clang-omp CACHE STRING "C Compiler" FORCE)
 				set(CMAKE_CXX_COMPILER /usr/local/bin/clang-omp++ CACHE STRING "C++ Compiler" FORCE)
 			else()# no OMP-compliant compiler was found on this mac. The program will still run but without multithreading
 				message("No OMP-compliant compiler was found on this mac. The program will still run but without multithreading")
 			endif()
         endif()
-    else() # Running on a proper Linux machine
+else() # Running on a proper Linux machine
     	set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
 
 
-
-
 project(${EXE_NAME})
-
-
 
 
 
