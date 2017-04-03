@@ -21,8 +21,8 @@ int main( int argc, char** argv ) {
 
 	ShapeModel shape_model("T", &frame_graph);
 
-	// ShapeModelImporter shape_io("../../resources/KW4Alpha.obj");
 	ShapeModelImporter shape_io("../../resources/KW4Alpha.obj",1);
+	// ShapeModelImporter shape_io("../../resources/pumpkin.obj",1000);
 
 	shape_io.load_shape_model(&shape_model);
 
