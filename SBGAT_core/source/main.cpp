@@ -21,7 +21,8 @@ int main( int argc, char** argv ) {
 
 	ShapeModel shape_model("T", &frame_graph);
 
-	ShapeModelImporter shape_io("../../resources/KW4Alpha.obj",1);
+	// ShapeModelImporter shape_io("../../resources/KW4Alpha.obj",1);
+	ShapeModelImporter shape_io("../../resources/sphere.obj", 1);
 	// ShapeModelImporter shape_io("../../resources/pumpkin.obj",1000);
 
 	shape_io.load_shape_model(&shape_model);
@@ -32,7 +33,7 @@ int main( int argc, char** argv ) {
 	start = std::chrono::system_clock::now();
 
 	dynamic_analyses.compute_pgm(Density::KW4_ALPHA_DENSITY);
-
+	
 	end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end - start;

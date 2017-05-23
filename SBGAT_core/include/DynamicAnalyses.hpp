@@ -16,6 +16,7 @@ public:
 
 protected:
 	ShapeModel * shape_model;
+	
 
 };
 

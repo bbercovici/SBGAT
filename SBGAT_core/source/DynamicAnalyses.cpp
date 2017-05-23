@@ -98,10 +98,8 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 	#pragma omp parallel for reduction(-:ax,ay,az) if (USE_OMP_DYNAMIC_ANALYSIS)
 	for (unsigned int edge_index = 0; edge_index < this -> shape_model -> get_NEdges(); ++ edge_index) {
 
-
 		const double * r1 =  this -> shape_model -> get_edges() -> at(edge_index) -> get_v0() -> get_coordinates() -> colptr(0);
 		const double * r2 =  this -> shape_model -> get_edges() -> at(edge_index) -> get_v1() -> get_coordinates() -> colptr(0);
-
 
 		double r1m[3];
 		double r2m[3];
@@ -136,7 +134,6 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 		double * E_col_0 = Edyad -> colptr(0);
 		double * E_col_1 = Edyad -> colptr(1);
 		double * E_col_2 = Edyad -> colptr(2);
-
 
 		ax -= Le * (E_col_0[0] * r1m[0] + E_col_1[0] * r1m[1] +  E_col_2[0] * r1m[2]);
 		ay -= Le * (E_col_0[1] * r1m[0] + E_col_1[1] * r1m[1] +  E_col_2[1] * r1m[2]);
