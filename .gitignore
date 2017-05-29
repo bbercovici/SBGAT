@@ -1,10 +1,10 @@
-
-build/
 resources/
+build/
 saved_pgm/
 doc/
+output/
 *.dox
 Doxyfile
 *.mdj
 *.pdf
-
+*.obj

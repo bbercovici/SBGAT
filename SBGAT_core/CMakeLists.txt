@@ -128,6 +128,7 @@ source/Voxel.cpp
 source/RefFrame.cpp
 source/RigidBodyKinematics.cpp
 source/FrameGraph.cpp
+source/SyntheticObservations.cpp
 include/ShapeModel.hpp
 include/DynamicAnalyses.hpp
 include/Densities.hpp
@@ -143,6 +144,7 @@ include/RefFrame.hpp
 include/RigidBodyKinematics.hpp
 include/Adjacency_List.hpp
 include/FrameGraph.hpp
+include/SyntheticObservations.hpp
 )
 
 # Linking

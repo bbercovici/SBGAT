@@ -270,6 +270,30 @@ arma::vec mrp_to_euler321d(const arma::vec & sigma) {
 	return dcm_to_euler321d(mrp_to_dcm(sigma));
 }
 
+arma::vec prv_to_mrp(const arma::vec & prv) {
+	return dcm_to_mrp(prv_to_dcm(prv));
+}
+
+arma::mat prv_to_dcm(const arma::vec & prv) {
+
+	if (arma::norm(prv) > 0) {
+		double Phi = arma::norm(prv);
+		double Sigma = 1 - std::cos(Phi);
+		arma::vec e = prv / Phi;
+
+		arma::mat dcm = Sigma * e * e.t() + std::cos(Phi) * arma::eye<arma::mat>(3,3) - std::sin(Phi) * tilde(e);
+
+
+		return dcm;
+	}
+
+	else {
+		return arma::eye<arma::mat>(3,3);
+	}
+
+
+}
+
 
 
 

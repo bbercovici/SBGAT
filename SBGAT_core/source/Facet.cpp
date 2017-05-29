@@ -96,3 +96,11 @@ void Facet::compute_area() {
 double Facet::get_area() const {
 	return this -> area;
 }
+
+double Facet::get_albedo() const {
+	return this -> albedo;
+}
+
+void Facet::set_albedo(double albedo) {
+	this -> albedo = albedo;
+}

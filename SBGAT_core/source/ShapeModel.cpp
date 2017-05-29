@@ -176,6 +176,8 @@ ShapeModel::ShapeModel(std::string ref_frame_name,
 
 
 
+
+
 void ShapeModel::add_facet(Facet * facet) {
 	this -> facets. push_back(facet);
 }
@@ -290,10 +292,10 @@ void ShapeModel::update_mass_properties() {
 
 	this -> compute_volume();
 
-	this -> compute_center_of_mass();
+	this -> recompute_center_of_mass();
 }
 
-void ShapeModel::compute_center_of_mass() {
+void ShapeModel::recompute_center_of_mass() {
 	double c_x = 0;
 	double c_y = 0;
 	double c_z = 0;
@@ -418,10 +420,11 @@ void ShapeModel::get_bounding_box(double * bounding_box) const {
 }
 
 
-
-
 void ShapeModel::set_ref_frame_name(std::string ref_frame_name) {
 
 	this -> ref_frame_name = ref_frame_name;
 }
+
+
+
 

@@ -92,6 +92,18 @@ public:
 	double get_area() const;
 
 	/**
+	Return facet albedo
+	@return facet 0 < albedo < 1
+	*/
+	double get_albedo() const;
+
+	/**
+	Set facet albedo
+	@param facet 0 < albedo < 1
+	*/
+	void set_albedo(double albedo);
+
+	/**
 	Return pointer to facet center
 	@return pointer to facet center
 	*/
@@ -103,15 +115,12 @@ public:
 	*/
 	std::vector<std::shared_ptr<Vertex > > * get_vertices() ;
 
-
-
 protected:
 
 	void compute_facet_dyad();
 	void compute_normal();
 	void compute_area();
 	void compute_facet_center();
-
 
 	std::shared_ptr< std::vector<std::shared_ptr<Vertex > > > vertices ;
 	std::shared_ptr<arma::mat> facet_dyad;
@@ -121,6 +130,8 @@ protected:
 	std::set<std::shared_ptr< Facet > > neighbors;
 	std::vector<std::shared_ptr <Edge> > facet_edges;
 	double area;
+	double albedo;
+
 
 };
 #endif

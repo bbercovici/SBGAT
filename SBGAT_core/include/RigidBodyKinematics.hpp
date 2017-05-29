@@ -252,6 +252,25 @@ Converts a dcm to the principal rotation vector
 */
 std::pair<double, arma::vec > dcm_to_prv(const arma::mat & dcm) ;
 
+
+/**
+Converts a PRV to the corresponding DCM
+@param prv Principal rotation vector
+@return DCM
+*/
+
+arma::mat prv_to_dcm(const arma::vec & prv);
+
+
+/**
+Converts a PRV to a well-behaved MRP set
+@param prv Principal rotation vector
+@return MRP set
+*/
+
+arma::vec prv_to_mrp(const arma::vec & prv);
+
+
 #endif
 
 

@@ -79,7 +79,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	std::cout << " Number of facets: " << facet_vertices.size() << std::endl;
 	std::cout << " Number of edges: " << edge_vertices_indices.size() << std::endl;
 
-
 	// Vertices are added to the shape model
 	std::vector<std::shared_ptr<Vertex>> vertex_index_to_ptr(vertices.size(), nullptr);
 
@@ -122,6 +121,10 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		// of those
 		Facet * facet = new Facet(std::make_shared<std::vector<std::shared_ptr<Vertex>>>(vertices));
 
+
+		// Temporary: the facet's albedo is set to 1
+		facet -> set_albedo(1);
+
 		shape_model -> add_facet(facet);
 		++progress_facets;
 	}
@@ -142,7 +145,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		++progress_edges;
 
 	}
-
 
 
 	// The consistency of the surface normals is checked

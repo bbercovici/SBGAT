@@ -101,7 +101,7 @@ protected:
 	Adjacency_List<std::shared_ptr <RefFrame> , std::pair< std::string, std::string > > adjacency_list;
 	std::map< std::string , std::shared_ptr <RefFrame> > ref_names_to_ref_ptrs;
 
-
+	
 	void convert_to_parent_of_provided_child_frame(arma::vec & coords, RefFrame * ref_frame,
 	        bool is_unit_vector) const;
 	void convert_to_child_of_provided_parent_frame(arma::vec & coords, RefFrame * ref_frame,

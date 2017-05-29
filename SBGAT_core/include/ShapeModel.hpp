@@ -20,7 +20,7 @@
 
 
 /**
-Declaration of the ShapeModel class. Effectively represents
+Declaration of the ShapeModel class. Represents
 a shape parametrized in terms of facets/edges/vertices. The topology
 information is stored in the facets/vertices whereas the edges
 store relevant quantities for variational methods such as
@@ -44,7 +44,6 @@ public:
 	*/
 	ShapeModel(std::string ref_frame_name,
 	           FrameGraph * frame_graph);
-
 
 	/**
 	Destructor
@@ -82,7 +81,7 @@ public:
 
 
 	/**
-	Checks that the normals were consistently oriented. If not,
+	Checks if the normals are consistently oriented. If not,
 	the ordering of the vertices in the provided shape model file is incorrect
 	@param tol numerical tolerance (if consistent: norm(Sum(oriented_surface_area)) / average_facet_surface_area << tol)
 	*/
@@ -153,11 +152,19 @@ public:
 	*/
 	double get_volume() const;
 
+
 	/**
 	Returns the location of the center of mass
 	@return pointer to center of mass
 	*/
 	arma::vec * get_center_of_mass();
+
+	/**
+	Returns the body's spin axis
+	@return pointer to spin axis
+	*/
+	arma::vec * get_spin_axis();
+
 
 	/**
 	Returns the name of the reference frame attached to this
@@ -166,9 +173,8 @@ public:
 	*/
 	std::string get_ref_frame_name() const;
 
-
 	/**
-	Updates the values of the center of mass, volume, surface area
+	Recomputes the values of the center of mass, volume, surface area
 	*/
 	void update_mass_properties();
 
@@ -184,15 +190,16 @@ protected:
 
 	void compute_surface_area();
 	void compute_volume();
-	void compute_center_of_mass();
+	void recompute_center_of_mass();
 
 	std::vector<Facet * >  facets;
 	std::vector<std::shared_ptr< Edge> >  edges;
 	std::vector<std::shared_ptr< Vertex> >  vertices;
 
 	double volume;
-	arma::vec cm;
 	double surface_area;
+
+	arma::vec cm;
 
 	FrameGraph * frame_graph;
 	std::string ref_frame_name;
