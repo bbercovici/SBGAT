@@ -10,20 +10,24 @@ Facet::Facet(std::shared_ptr< std::vector<std::shared_ptr<Vertex > > >   vertice
 
 	// Allocating memory for the facet normal
 	this -> facet_normal = std::make_shared<arma::vec>(arma::zeros(3));
-	this -> compute_normal();
 
 	// Allocating memory for the facet dyad
 	this -> facet_dyad = std::make_shared<arma::mat>(arma::zeros(3, 3));
-	this -> compute_facet_dyad();
 
 	// Allocating memory for the facet center
 	this -> facet_center = std::make_shared<arma::vec>(arma::zeros(3));;
-	this -> compute_facet_center();
-
 
 	// Computing surface area
 	this -> compute_area();
 
+}
+
+
+void Facet::update() {
+	this -> compute_normal();
+	this -> compute_area();
+	this -> compute_facet_center();
+	this -> compute_facet_dyad();
 }
 
 void Facet::compute_normal() {

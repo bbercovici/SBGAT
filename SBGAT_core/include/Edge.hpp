@@ -38,10 +38,15 @@ public:
 	*/
 	arma::mat * get_edge_dyad();
 
+	/**
+	Computes the edge dyad
+	*/
+	void compute_dyad();
+
+
 
 protected:
 
-	void compute_dyad();
 
 	std::shared_ptr<Vertex> v0;
 	std::shared_ptr<Vertex> v1;

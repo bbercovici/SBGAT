@@ -20,27 +20,36 @@ int main( int argc, char** argv ) {
 	frame_graph.add_transform("N", "E");
 
 	ShapeModel shape_model("T", &frame_graph);
+	// ShapeModelImporter shape_io("../../resources/KW4Alpha.obj", 1000);
+	// ShapeModelImporter shape_io("../../resources/earth_spherical.obj", 1);
+	ShapeModelImporter shape_io("../../resources/bennu.obj", 1000);
 
-	ShapeModelImporter shape_io("../../resources/KW4Alpha.obj", 1000);
-	// ShapeModelImporter shape_io("../../resources/sphere.obj", 1000);
-	// ShapeModelImporter shape_io("../../resources/pumpkin.obj", 1000);
 
 	shape_io.load_shape_model(&shape_model);
 
 	DynamicAnalyses dynamic_analyses(&shape_model);
-	
+
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	start = std::chrono::system_clock::now();
 
-	arma::vec spin_axis = {0, 0, 1};
-	double spin_rate = 2 * arma::datum::pi / (2.7645 * 3600);
+	// arma::vec spin_axis = {0, 0, 1};
+	// double spin_rate = 2 * arma::datum::pi / (2.7645 * 3600);
 
-	dynamic_analyses.compute_pgm(Density::KW4_ALPHA_DENSITY);
-	dynamic_analyses.save_gravity_accelerations_to_path("../output/accelerations_inertial_kw4.txt");
+	double p[3];
+	p[0] = 0;
+	p[1] = 0;
+	p[2] = 2000;
 
-	dynamic_analyses.compute_slopes(spin_axis, spin_rate);
-	dynamic_analyses.save_slopes("../output/slopes_kw4.txt");
+	std::cout << dynamic_analyses.pgm_acceleration(p, 1260).t() << std::endl;
+	
+	// dynamic_analyses.compute_pgm_accelerations(Density::KW4_ALPHA_DENSITY);
+	// dynamic_analyses.save_pgm_accelerations("../output/accelerations_inertial_kw4.txt");
 
+	// dynamic_analyses.compute_pgm_potentials(Density::KW4_ALPHA_DENSITY);
+	// dynamic_analyses.save_pgm_potentials("../output/potentials_inertial_kw4.txt");
+
+	// dynamic_analyses.compute_slopes(spin_axis, spin_rate);
+	// dynamic_analyses.save_slopes("../output/slopes_kw4.txt");
 
 	end = std::chrono::system_clock::now();
 

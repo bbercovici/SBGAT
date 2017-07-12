@@ -35,7 +35,7 @@ arma::mat * Edge::get_edge_dyad()  {
 void Edge::compute_dyad() {
 
 	arma::vec * facet_normal_A = this -> fA -> get_facet_normal();
-	arma::vec * facet_normal_B =  this -> fB -> get_facet_normal();
+	arma::vec * facet_normal_B = this -> fB -> get_facet_normal();
 
 	arma::vec edge_dir = arma::normalise(arma::cross(*facet_normal_A, *facet_normal_B) );
 	arma::vec edge_normal_A_to_B = arma::normalise(arma::cross(edge_dir, *facet_normal_A));

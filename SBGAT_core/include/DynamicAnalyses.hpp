@@ -18,18 +18,18 @@ public:
 	DynamicAnalyses(ShapeModel * shape_model);
 
 	/**
-	Evaluates the Polyhedron Gravity Model (PGM) at the center of each facet of the shape model
+	Evaluates the Polyhedron Gravity Model acceleration (PGM) at the center of each facet of the shape model
 	@param density Density of the shape model (kg/m^3)
-	@param XXXXXX
 	*/
-	void compute_pgm(double density, bool return_pgm = false);
+	void compute_pgm_accelerations(double density);
 
 	/**
-	Saves the gravity acceleration to file.
-	@param path Save path
+	Evaluates the Polyhedron Gravity Model potentials (PGM) at the center of each facet of the shape model
+	@param density Density of the shape model (kg/m^3)
 	*/
-	void save_gravity_accelerations_to_path(std::string path) const;
+	void compute_pgm_potentials(double density);
 
+	
 	/**
 	Computes gravitational slopes
 	@param spin_axis Spin axis in body-fixed frame
@@ -47,18 +47,40 @@ public:
 
 
 	/**
-	Evaluates the gravity acceleration due to gravity at the provided point using a Polyhedron Gravity Model
+	Saves the gravitional potentials to file
+	@param path Save path
+	*/
+	void save_pgm_potentials(std::string path) const;
+
+	/**
+	Saves the gravity acceleration to file.
+	@param path Save path
+	*/
+	void save_pgm_accelerations(std::string path) const;
+
+
+	/**
+	Evaluates the acceleration due to gravity at the provided point using a Polyhedron Gravity Model
 	@param point Array of body-frame coordinates at which the acceleration is evaluated
 	@param density Density of the shape model (kg/m^3)
 	@return PGM acceleration
 	*/
 	arma::vec pgm_acceleration(double * point , double density) const ;
 
+	/**
+	Evaluates the gravity potential at the provided point using a Polyhedron Gravity Model
+	@param point Array of body-frame coordinates at which the acceleration is evaluated
+	@param density Density of the shape model (kg/m^3)
+	@return PGM potential
+	*/
+	double pgm_potential(double * point , double density) const;
+
 protected:
 
 
 	ShapeModel * shape_model;
-	arma::mat gravity_accelerations;
+	arma::mat pgm_accelerations;
+	arma::vec pgm_potentials;
 	arma::vec slopes;
 
 

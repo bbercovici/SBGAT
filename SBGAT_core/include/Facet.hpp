@@ -81,7 +81,7 @@ public:
 	        std::shared_ptr<Vertex>v1) const ;
 
 	/**
-	Not implemented
+	Recomputes the facet dyads, normal, surface area and center
 	*/
 	void update();
 

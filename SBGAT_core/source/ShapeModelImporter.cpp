@@ -147,17 +147,25 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	}
 
 
-	// The consistency of the surface normals is checked
-	shape_model -> check_normals_consistency();
-
-
-	// The surface area, volume, center of mass of the shape model
+	// The surface area, volume, center of mass and inertia of the shape model
 	// are computed
 	shape_model -> update_mass_properties();
 
 	// The shape model is shifted so as to have its coordinates
 	// expressed in its barycentric frame
-	shape_model -> shift(-(*shape_model -> get_center_of_mass()));
+	shape_model -> shift_to_barycenter();
+
+	// The shape model is then rotated so as to be oriented
+	// with respect to its principal axes
+	shape_model -> align_with_principal_axes();
+
+	// Edges and facets are updated (their dyads, normals and centers
+	// are computed) to reflect the new position/orientation
+	shape_model -> update_facets();
+	shape_model -> update_edges();
+
+	// The consistency of the surface normals is checked
+	shape_model -> check_normals_consistency();
 
 
 

@@ -96,10 +96,11 @@ VoxelGrid::VoxelGrid(ShapeModel * shape_model, unsigned int N) {
 
 	}
 
-	// Finally, all the voxels are tested for potential inclusion. If a vertex is found 
-	// to be empty, it is not added to the voxel grid. This will free the 
-	// memory allocated to this voxel. The same thing will happen
-	// For the voxel nodes that were not in use
+	// Finally, all the voxels are tested for potential inclusion.
+
+
+	
+
 
 
 

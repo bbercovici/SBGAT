@@ -152,6 +152,17 @@ public:
 	*/
 	double get_volume() const;
 
+	
+	/**
+	Update all the facets of the shape model
+	*/
+	void update_facets() ;
+
+	/**
+	Update all the edges of the shape model
+	*/
+	void update_edges() ;
+
 
 	/**
 	Returns the location of the center of mass
@@ -180,9 +191,41 @@ public:
 
 	/**
 	Shifts the coordinates of the shape model
-	@param x Shifting to apply to the coordinates
+	so as to have (0,0,0) aligned with its barycenter
+	
+	The resulting barycenter coordinates are (0,0,0)
 	*/
-	void shift(arma::vec x);
+	void shift_to_barycenter();
+
+	/**
+	Applies a rotation that aligns the body
+	with its principal axes. 
+
+	This assumes that the body has been shifted so
+	that (0,0,0) lies at its barycenter
+
+	The resulting inertia tensor is diagonal
+
+	Undefined behavior if
+	the inertia tensor has not been computed beforehand
+	*/
+	void align_with_principal_axes();
+
+
+	/**
+	Returns the inertia tensor of the body in the body-fixed
+	principal axes
+	@return principal inertia tensor
+	*/
+	arma::mat get_body_inertia() const;
+
+	/**
+	Returns the directions of the principal inertia 
+	axes expressed in the original coordinate frame
+	in which the coordinates of the body were provided
+	@return principal axes directions
+	*/
+	arma::mat get_inertia_axes() const;
 
 
 protected:
@@ -190,16 +233,20 @@ protected:
 
 	void compute_surface_area();
 	void compute_volume();
-	void recompute_center_of_mass();
+	void compute_center_of_mass();
+	void compute_inertia();
 
 	std::vector<Facet * >  facets;
 	std::vector<std::shared_ptr< Edge> >  edges;
 	std::vector<std::shared_ptr< Vertex> >  vertices;
 
 	double volume;
-	double surface_area;
-
 	arma::vec cm;
+
+	arma::mat body_inertia;
+	arma::mat inertia_axes;
+
+	double surface_area;
 
 	FrameGraph * frame_graph;
 	std::string ref_frame_name;

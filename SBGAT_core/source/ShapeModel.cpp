@@ -144,30 +144,6 @@ ShapeModel::ShapeModel() {
 
 }
 
-void ShapeModel::shift(arma::vec x) {
-
-	// The vertices are shifted
-	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
-	for (unsigned int vertex_index = 0;
-	        vertex_index < this -> get_NVertices();
-	        ++vertex_index) {
-
-		*this -> vertices[vertex_index] -> get_coordinates() = *this -> vertices[vertex_index] -> get_coordinates() + x;
-
-	}
-
-	// The facet centers are shifted
-	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
-	for (unsigned int facet_index = 0;
-	        facet_index < this -> get_NFacets();
-	        ++facet_index) {
-
-		*this -> facets[facet_index] -> get_facet_center() =  *this -> facets[facet_index] -> get_facet_center() + x;
-	}
-
-
-}
-
 ShapeModel::ShapeModel(std::string ref_frame_name,
                        FrameGraph * frame_graph) {
 	this -> frame_graph = frame_graph;
@@ -263,6 +239,116 @@ void ShapeModel::check_normals_consistency(double tol) const {
 }
 
 
+void ShapeModel::shift_to_barycenter() {
+
+	arma::vec x = - (*this -> get_center_of_mass());
+
+	// The vertices are shifted
+	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
+	for (unsigned int vertex_index = 0;
+	        vertex_index < this -> get_NVertices();
+	        ++vertex_index) {
+
+		*this -> vertices[vertex_index] -> get_coordinates() = *this -> vertices[vertex_index] -> get_coordinates() + x;
+
+	}
+
+	this -> cm = 0 * this -> cm;
+
+}
+
+void ShapeModel::align_with_principal_axes() {
+
+	arma::vec moments;
+	arma::mat axes ;
+	double l = std::pow(this -> volume, 1. / 3.);
+	arma::mat non_dim_I = this -> body_inertia / (l * l * l * l * l);
+
+	double T = arma::trace(non_dim_I) ;
+	double Pi = 0.5 * (T * T - arma::trace(non_dim_I * non_dim_I));
+	double U = std::sqrt(T * T - 3 * Pi) / 3;
+	double Det = arma::det(non_dim_I);
+
+	if (U > 1e-6) {
+
+		double Theta = std::acos( (- 2 * T * T * T +  9 * T * Pi - 27 * Det) / (54 * U * U * U ));
+
+		double A = T / 3 - 2 * U * std::cos(Theta / 3);
+		double B = T / 3 - 2 * U * std::cos(Theta / 3 - 2 * arma::datum::pi / 3);
+		double C = T / 3 - 2 * U * std::cos(Theta / 3 + 2 * arma::datum::pi / 3);
+
+		moments = {A, B, C};
+
+		arma::mat L0 = non_dim_I - moments(0) * arma::eye<arma::mat>(3, 3);
+		arma::mat L1 = non_dim_I - moments(1) * arma::eye<arma::mat>(3, 3);
+
+		L0.row(0) = arma::normalise(L0.row(0));
+		L0.row(1) = arma::normalise(L0.row(1));
+		L0.row(2) = arma::normalise(L0.row(2));
+
+		L1.row(0) = arma::normalise(L1.row(0));
+		L1.row(1) = arma::normalise(L1.row(1));
+		L1.row(2) = arma::normalise(L1.row(2));
+
+		arma::mat e0_mat(3, 3);
+
+		e0_mat.row(0) = arma::cross(L0.row(0), L0.row(1));
+		e0_mat.row(1) = arma::cross(L0.row(0), L0.row(2));
+		e0_mat.row(2) = arma::cross(L0.row(1), L0.row(2));
+
+		arma::vec norms_e0 = {arma::norm(e0_mat.row(0)), arma::norm(e0_mat.row(1)), arma::norm(e0_mat.row(2))};
+		double best_e0 = norms_e0.index_max();
+		arma::vec e0 = arma::normalise(e0_mat.row(best_e0).t());
+
+		arma::mat e1_mat(3, 3);
+		e1_mat.row(0) = arma::cross(L1.row(0), L1.row(1));
+		e1_mat.row(1) = arma::cross(L1.row(0), L1.row(2));
+		e1_mat.row(2) = arma::cross(L1.row(1), L1.row(2));
+
+		arma::vec norms_e1 = {arma::norm(e1_mat.row(0)), arma::norm(e1_mat.row(1)), arma::norm(e1_mat.row(2))};
+		double best_e1 = norms_e1.index_max();
+		arma::vec e1 = arma::normalise(e1_mat.row(best_e1).t());
+
+		arma::vec e2 = arma::cross(e0, e1);
+
+		axes = arma::join_rows(e0, arma::join_rows(e1, e2));
+	}
+
+	else {
+		moments = std::pow(Det, 1. / 3.) * arma::ones<arma::vec>(3);
+		axes = arma::eye<arma::mat>(3, 3);
+	}
+
+	moments = l * l * l * l * l * moments;
+
+
+
+	std::cout << "Non-dimensional inertia: " << std::endl;
+	std::cout << non_dim_I << std::endl;
+	
+	std::cout << "Principal axes: " << std::endl;
+	std::cout << axes << std::endl;
+
+	std::cout << "Principal moments: " << std::endl;
+	std::cout << moments << std::endl;
+
+
+
+
+	// The vertices are shifted
+	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
+	for (unsigned int vertex_index = 0;
+	        vertex_index < this -> get_NVertices();
+	        ++vertex_index) {
+
+		*this -> vertices[vertex_index] -> get_coordinates() = axes.t() * (*this -> vertices[vertex_index] -> get_coordinates());
+
+	}
+
+	this -> body_inertia = arma::diagmat(moments);
+	this -> inertia_axes = axes;
+
+}
 
 void ShapeModel::compute_volume() {
 	double volume = 0;
@@ -292,10 +378,103 @@ void ShapeModel::update_mass_properties() {
 
 	this -> compute_volume();
 
-	this -> recompute_center_of_mass();
+	this -> compute_center_of_mass();
+	this -> compute_inertia();
+
 }
 
-void ShapeModel::recompute_center_of_mass() {
+void ShapeModel::update_facets() {
+
+	for (auto & facet : this -> facets) {
+		facet -> update();
+	}
+
+}
+
+
+void ShapeModel::update_edges() {
+
+	for (auto & edge : this -> edges) {
+		edge -> compute_dyad();
+	}
+
+}
+
+bool ShapeModel::contains(double * point, double tol ) {
+
+	double lagrangian = 0;
+
+	// Facet loop
+	#pragma omp parallel for reduction(+:lagrangian) if (USE_OMP_DYNAMIC_ANALYSIS)
+	for (unsigned int facet_index = 0; facet_index < this  -> get_NFacets(); ++ facet_index) {
+
+		std::vector<std::shared_ptr<Vertex > > * vertices = this  -> get_facets() -> at(facet_index) -> get_vertices();
+
+		const double * r1 =  vertices -> at(0) -> get_coordinates() -> colptr(0);
+		const double * r2 =  vertices -> at(1) -> get_coordinates() -> colptr(0);
+		const double * r3 =  vertices -> at(2) -> get_coordinates() -> colptr(0);
+
+		double r1m[3];
+		double r2m[3];
+		double r3m[3];
+
+		r1m[0] = r1[0] - point[0];
+		r1m[1] = r1[1] - point[1];
+		r1m[2] = r1[2] - point[2];
+
+		r2m[0] = r2[0] - point[0];
+		r2m[1] = r2[1] - point[1];
+		r2m[2] = r2[2] - point[2];
+
+		r3m[0] = r3[0] - point[0];
+		r3m[1] = r3[1] - point[1];
+		r3m[2] = r3[2] - point[2];
+
+
+		double R1 = std::sqrt( r1m[0] * r1m[0]
+		                       + r1m[1] * r1m[1]
+		                       + r1m[2] * r1m[2]       );
+
+		double R2 = std::sqrt( r2m[0] * r2m[0]
+		                       + r2m[1] * r2m[1]
+		                       + r2m[2] * r2m[2]      );
+
+
+		double R3 = std::sqrt( r3m[0] * r3m[0]
+		                       + r3m[1] * r3m[1]
+		                       + r3m[2] * r3m[2]      );
+
+		double r2_cross_r3_0 = r2m[1] * r3m[2] - r2m[2] * r3m[1];
+		double r2_cross_r3_1 = r3m[0] * r2m[2] - r3m[2] * r2m[0];
+		double r2_cross_r3_2 = r2m[0] * r3m[1] - r2m[1] * r3m[0];
+
+
+		double wf = 2 * std::atan2(
+		                r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
+
+		                R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
+		                + R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
+		                + R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
+
+
+
+		lagrangian += wf;
+
+	}
+
+	if (std::abs(lagrangian) < tol) {
+		return false;
+	}
+	else {
+		return true;
+	}
+
+
+
+}
+
+
+void ShapeModel::compute_center_of_mass() {
 	double c_x = 0;
 	double c_y = 0;
 	double c_z = 0;
@@ -332,6 +511,112 @@ void ShapeModel::recompute_center_of_mass() {
 	arma::vec cm = {c_x, c_y, c_z};
 
 	this -> cm =  cm ;
+
+}
+
+void ShapeModel::compute_inertia() {
+
+
+	double P_xx = 0;
+	double P_yy = 0;
+	double P_zz = 0;
+	double P_xy = 0;
+	double P_xz = 0;
+	double P_yz = 0;
+
+	#pragma omp parallel for reduction(+:P_xx,P_yy,P_zz,P_xy,P_xz,P_yz) if (USE_OMP_SHAPE_MODEL)
+	for (unsigned int facet_index = 0;
+	        facet_index < this -> facets.size();
+	        ++facet_index) {
+
+
+		std::vector<std::shared_ptr<Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
+
+		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+
+		double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
+		double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
+		double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
+
+		double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
+
+
+
+		P_xx += dv / 20 * (2 * r0d[0] * r0d[0]
+		                   + 2 * r1d[0] * r1d[0]
+		                   + 2 * r2d[0] * r2d[0]
+		                   + r0d[0] * r1d[0]
+		                   + r0d[0] * r1d[0]
+		                   + r0d[0] * r2d[0]
+		                   + r0d[0] * r2d[0]
+		                   + r1d[0] * r2d[0]
+		                   + r1d[0] * r2d[0]);
+
+
+		P_yy += dv / 20 * (2 * r0d[1] * r0d[1]
+		                   + 2 * r1d[1] * r1d[1]
+		                   + 2 * r2d[1] * r2d[1]
+		                   + r0d[1] * r1d[1]
+		                   + r0d[1] * r1d[1]
+		                   + r0d[1] * r2d[1]
+		                   + r0d[1] * r2d[1]
+		                   + r1d[1] * r2d[1]
+		                   + r1d[1] * r2d[1]);
+
+		P_zz += dv / 20 * (2 * r0d[2] * r0d[2]
+		                   + 2 * r1d[2] * r1d[2]
+		                   + 2 * r2d[2] * r2d[2]
+		                   + r0d[2] * r1d[2]
+		                   + r0d[2] * r1d[2]
+		                   + r0d[2] * r2d[2]
+		                   + r0d[2] * r2d[2]
+		                   + r1d[2] * r2d[2]
+		                   + r1d[2] * r2d[2]);
+
+		P_xy += dv / 20 * (2 * r0d[0] * r0d[1]
+		                   + 2 * r1d[0] * r1d[1]
+		                   + 2 * r2d[0] * r2d[1]
+		                   + r0d[0] * r1d[1]
+		                   + r0d[1] * r1d[0]
+		                   + r0d[0] * r2d[1]
+		                   + r0d[1] * r2d[0]
+		                   + r1d[0] * r2d[1]
+		                   + r1d[1] * r2d[0]);
+
+		P_xz += dv / 20 * (2 * r0d[0] * r0d[2]
+		                   + 2 * r1d[0] * r1d[2]
+		                   + 2 * r2d[0] * r2d[2]
+		                   + r0d[0] * r1d[2]
+		                   + r0d[2] * r1d[0]
+		                   + r0d[0] * r2d[2]
+		                   + r0d[2] * r2d[0]
+		                   + r1d[0] * r2d[2]
+		                   + r1d[2] * r2d[0]);
+
+		P_yz += dv / 20 * (2 * r0d[1] * r0d[2]
+		                   + 2 * r1d[1] * r1d[2]
+		                   + 2 * r2d[1] * r2d[2]
+		                   + r0d[1] * r1d[2]
+		                   + r0d[2] * r1d[1]
+		                   + r0d[1] * r2d[2]
+		                   + r0d[2] * r2d[1]
+		                   + r1d[1] * r2d[2]
+		                   + r1d[2] * r2d[1]);
+
+	}
+
+	// The inertia tensor is finally assembled
+
+	arma::mat I = {
+		{P_yy + P_zz, -P_xy, -P_xz},
+		{ -P_xy, P_xx + P_zz, -P_yz},
+		{ -P_xz, -P_yz, P_xx + P_yy}
+	};
+
+	this -> body_inertia = I;
+
 
 }
 

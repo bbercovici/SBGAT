@@ -99,6 +99,7 @@ void SyntheticObservations::compute_lightcurve_fixed_spin(
 double SyntheticObservations::collect_brightness(arma::vec & earth_to_body_dir_T, arma::vec & sun_to_body_dir_T) {
 
 	double brightness = 0;
+	
 	// The brightness reflected towards Earth is accumulated over each facet
 	#pragma omp parallel for reduction(+:brightness)
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {
