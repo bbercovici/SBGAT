@@ -22,17 +22,10 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <vtkPointSource.h>
-#include <vtkCleanPolyData.h>
-#include <vtkDelaunay3D.h>
-#include <vtkCellArray.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkXMLPolyDataReader.h>
-#include <vtkOBJReader.h>
-#include <vtkOBJExporter.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkAreaPicker.h>
 #include <vtkTransformPolyDataFilter.h>
-#include <vtkTransform.h>
-#include <vtkCamera.h>
-#include <vtkLine.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkAxesActor.h>
 #include <vtkPolyDataNormals.h>
@@ -42,18 +35,18 @@
 #include "osxHelper.h"
 
 
-#include "ModifyAreaWidget.hpp"
-#include "InteractorStyle.hpp"
-#include "ComputePGMWidget.hpp"
-#include "ShapeInfoWidget.hpp"
-#include "SetInputScalingWidget.hpp"
-#include "Asteroid.hpp"
+// #include "ModifyAreaWidget.hpp"
+// #include "InteractorStyle.hpp"
+// #include "ComputePGMWidget.hpp"
+// #include "ShapeInfoWidget.hpp"
+// #include "SetInputScalingWidget.hpp"
+// #include "Asteroid.hpp"
 
-#include "vtkOBJWriter.h"
+// #include "vtkOBJWriter.h"
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
-class ModifyAreaWidget;
+// class ModifyAreaWidget;
 
 /**
 Declaration of the Mainwindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
@@ -93,7 +86,7 @@ public:
 	Return a copy of the vector storing the pointers to the vtk actors currently displayed
 	@return Vector of vtkActor *
 	*/
-	std::vector<vtkSmartPointer<vtkActor> > get_actor_vector();
+	// std::vector<vtkSmartPointer<vtkActor> > get_actor_vector();
 
 
 	/**
@@ -105,19 +98,19 @@ public:
 	Sets the visibility of all the actors owned by this
 	@param visibility Boolean setting the visibility of the actors owned by this
 	*/
-	void set_actors_visibility(bool visibility);
+	// void set_actors_visibility(bool visibility);
 
 	/**
 	Returns a pointer to the asteroid currently loaded
 	@return Pointer to the asteroid
 	*/
-	Asteroid * get_asteroid();
+	// Asteroid * get_asteroid();
 
 	/**
 	Sets the scaling factor applied to the
 	input data to have it expressed in meters
 	*/
-	void set_scaling_factor(double scaling_factor);
+	// void set_scaling_factor(double scaling_factor);
 
 	/**
 		Enable/Disables an action in the GUI
@@ -179,26 +172,26 @@ private slots:
 	/**
 	Opens a shape model
 	*/
-	void open();
+	// void open();
 
 	/**
 	Saves the vertex data of the shape model currently displayed to an $prefix.obj file with $prefix chosen by the user
 	This function also generates $prefix.mtl file which contains material/lightning information
 	*/
-	void save();
+	// void save();
 
 	/**
 	Allows the interactor to grab props by
 	setting its style mode to INTERACTOR_IS_SELECT
 	It is rigourosly equivalent to pressing the "r" key
 	*/
-	void select();
+	// void select();
 
 	/**
 	Sets the shape color to that chosen by the user. A shape model must be displayed so that
 	the corresponding action is enabled
 	*/
-	void set_shape_color();
+	// void set_shape_color();
 
 	/**
 	Sets the background color to that chosen by the user
@@ -209,18 +202,18 @@ private slots:
 	Opens a widget displaying information on the
 	currently opened shape model
 	*/
-	void open_shape_info_widget();
+	// void open_shape_info_widget();
 
 
 	/**
 	Opens a widget allowing the user to compute the polyhedron gravity model of the displayed shape model
 	*/
-	void open_compute_pgm_widget();
+	// void open_compute_pgm_widget();
 
 	/**
 	Displays arrows representing the facets normals
 	*/
-	void show_facet_normals();
+	// void show_facet_normals();
 
 
 private:
@@ -240,7 +233,7 @@ private:
 	generates the convex hull corresponding to this dataset and
 	displays both on the main window.
 	*/
-	void load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id);
+	// void load_obj(vtkSmartPointer<vtkPolyData> read_polydata_without_id);
 
 	/**
 	Creates the GUI elements and places them in the main window
@@ -250,12 +243,12 @@ private:
 	/**
 	Remove all the actors owned by this instance of mainwindow
 	*/
-	void remove_actors();
+	// void remove_actors();
 
 	/**
 	Clear all windows and loaded shape models
 	*/
-	void clear_all();
+	// void clear_all();
 
 
 	/**
@@ -273,7 +266,7 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 	std::vector<vtkSmartPointer<vtkActor> > normal_actors;
-	Asteroid * asteroid;
+	// Asteroid * asteroid;
 
 
 

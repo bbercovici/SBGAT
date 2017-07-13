@@ -8,10 +8,8 @@ cmake_minimum_required(VERSION 3.0.2)
 # Set project name - based on current directory
 # Should give you the option to change in the CMake gui
 
-
 # Specify the available build types for multi-configuration generators
 # set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE INTERNAL "Configuration types")
-
 
 # Specify the directory that simulation code is located in
 # Should give you the option to change in the CMake gui
@@ -34,9 +32,8 @@ elseif(APPLE)
 endif()
 
 
-add_definitions(-Wall)
+add_definitions(-Wall -O2)
 include_directories(include)
-
 
 # Widgets finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Widgets REQUIRED)
@@ -57,15 +54,12 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
-
 # Assimp
 include_directories(/Users/bbercovici/assimp_3_3_1/include)
 set(assimp_dependencies  
 	"/usr/local/lib/libassimp.3.3.1.dylib"
 	"/usr/local/lib/libassimp.3.dylib"
 	"/usr/local/lib/libassimp.dylib")
-
-
 
 # Cocoa
 if(APPLE)
@@ -84,60 +78,19 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir, tell CMake to always look for includes there
 
-
-# Set up macro for adding sources
-# macro(add_sources)
-#     file(RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
-#     foreach(_src ${ARGN})
-#         if(_relPath)
-#             list(APPEND SRCS "${_relPath}/${_src}")
-#         else()
-#             list(APPEND SRCS "${_src}")
-#         endif()
-#     endforeach()
-#     if(_relPath)
-#         # propagate SRCS to parent directory
-#         set(SRCS ${SRCS} PARENT_SCOPE)
-#     endif()
-# endmacro()
-
 # Add source files in root directory
 add_executable(${EXE_NAME}
 source/main.cpp
 source/Mainwindow.cpp
-source/ModifyAreaWidget.cpp
-source/InteractorStyle.cpp
 source/osxHelper.mm
-source/Asteroid.cpp
-source/Vect.cpp
-source/Matrix.cpp
-source/ComputePGMWidget.cpp
-source/ShapeInfoWidget.cpp
-source/SetInputScalingWidget.cpp
-source/vtkOBJWriter.cpp
-source/ShapeModel.cpp
-source/DynamicAnalyses.cpp
 include/Mainwindow.hpp
-include/InteractorStyle.hpp
-include/InheritedPicker.hpp
-include/ModifyAreaWidget.hpp
 include/osxHelper.h   
-include/Asteroid.hpp
-include/Vect.hpp
-include/Matrix.hpp   
-include/ComputePGMWidget.hpp
-include/ShapeInfoWidget.hpp
-include/SetInputScalingWidget.hpp
-include/vtkOBJWriter.h
-include/ShapeModel.hpp
-include/DynamicAnalyses.hpp
 )
 
 set(library_dependencies
 ${Qt5Widgets_LIBRARIES}
 ${VTK_LIBRARIES}
 ${ARMADILLO_LIBRARIES}
-${assimp_dependencies}
 ${Boost_LIBRARIES})
 
 
