@@ -5,9 +5,6 @@
 #include <string>
 #include <iostream>
 #include <armadillo>
-// #include <assimp/Importer.hpp>
-// #include <assimp/scene.h>
-// #include <assimp/postprocess.h>
 #include <set>
 #include <map>
 #include <limits>
@@ -18,9 +15,11 @@
 #include "OMP_flags.hpp"
 #include "FrameGraph.hpp"
 
+namespace SBGAT_CORE {
+
 
 /**
-Declaration of the ShapeModel class. Represents
+Declaration of the ShapeModel class. Effectively represents
 a shape parametrized in terms of facets/edges/vertices. The topology
 information is stored in the facets/vertices whereas the edges
 store relevant quantities for variational methods such as
@@ -44,6 +43,7 @@ public:
 	*/
 	ShapeModel(std::string ref_frame_name,
 	           FrameGraph * frame_graph);
+
 
 	/**
 	Destructor
@@ -81,7 +81,7 @@ public:
 
 
 	/**
-	Checks if the normals are consistently oriented. If not,
+	Checks that the normals were consistently oriented. If not,
 	the ordering of the vertices in the provided shape model file is incorrect
 	@param tol numerical tolerance (if consistent: norm(Sum(oriented_surface_area)) / average_facet_surface_area << tol)
 	*/
@@ -141,6 +141,13 @@ public:
 	void get_bounding_box(double * bounding_box) const;
 
 	/**
+	Saves the shape model in the form of an .obj file
+	@param path Location of the saved file
+	*/
+	void save(std::string path) const;
+
+
+	/**
 	Returns the surface area of the shape model
 	@return surface area (U^2 where U is the unit of the shape coordinates)
 	*/
@@ -152,7 +159,24 @@ public:
 	*/
 	double get_volume() const;
 
-	
+	/**
+	Returns the location of the center of mass
+	@return pointer to center of mass
+	*/
+	arma::vec * get_center_of_mass();
+
+	/**
+	Returns the name of the reference frame attached to this
+	ref frame
+	@return name of reference frame
+	*/
+	std::string get_ref_frame_name() const;
+
+	/**
+	Updates the values of the center of mass, volume, surface area
+	*/
+	void update_mass_properties();
+
 	/**
 	Update all the facets of the shape model
 	*/
@@ -165,41 +189,24 @@ public:
 
 
 	/**
-	Returns the location of the center of mass
-	@return pointer to center of mass
+	Updates the specified facets of the shape model. Ensures consistency between the vertex coordinates
+	and the facet surface area, normals, dyads and centers.
+	@param facets Facets to be updated
 	*/
-	arma::vec * get_center_of_mass();
+	void update_facets(std::set<Facet *> & facets);
 
-	/**
-	Returns the body's spin axis
-	@return pointer to spin axis
-	*/
-	arma::vec * get_spin_axis();
-
-
-	/**
-	Returns the name of the reference frame attached to this
-	ref frame
-	@return name of reference frame
-	*/
-	std::string get_ref_frame_name() const;
-
-	/**
-	Recomputes the values of the center of mass, volume, surface area
-	*/
-	void update_mass_properties();
 
 	/**
 	Shifts the coordinates of the shape model
 	so as to have (0,0,0) aligned with its barycenter
-	
+
 	The resulting barycenter coordinates are (0,0,0)
 	*/
 	void shift_to_barycenter();
 
 	/**
 	Applies a rotation that aligns the body
-	with its principal axes. 
+	with its principal axes.
 
 	This assumes that the body has been shifted so
 	that (0,0,0) lies at its barycenter
@@ -211,21 +218,20 @@ public:
 	*/
 	void align_with_principal_axes();
 
+	/**
+	Checks if every facets in the shape model has good quality.
+	@param min_facet_angle Minimum facet vertex angle indicating degeneracy
+	@param min_edge_angle Minimum edge angle indicating degeneracy
+	If not, some facets are recycled until the mesh becomes satisfying
+	*/
+	void enforce_mesh_quality(double min_facet_angle, double min_edge_angle) ;
 
 	/**
-	Returns the inertia tensor of the body in the body-fixed
-	principal axes
+	Returns the non-dimensional inertia tensor of the body in the body-fixed
+	principal axes. (rho == 1, l = (volume)^(1/3))
 	@return principal inertia tensor
 	*/
-	arma::mat get_body_inertia() const;
-
-	/**
-	Returns the directions of the principal inertia 
-	axes expressed in the original coordinate frame
-	in which the coordinates of the body were provided
-	@return principal axes directions
-	*/
-	arma::mat get_inertia_axes() const;
+	arma::mat get_inertia() const;
 
 
 protected:
@@ -241,17 +247,17 @@ protected:
 	std::vector<std::shared_ptr< Vertex> >  vertices;
 
 	double volume;
+	double surface_area;
+	
 	arma::vec cm;
 
-	arma::mat body_inertia;
-	arma::mat inertia_axes;
+	arma::mat inertia;
 
-	double surface_area;
 
 	FrameGraph * frame_graph;
 	std::string ref_frame_name;
 
 
 };
-
+}
 #endif

@@ -3,10 +3,15 @@
 
 #include "ShapeModel.hpp"
 #include <armadillo>
-#include <boost/progress.hpp>
 #include "omp.h"
 #include "OMP_flags.hpp"
-#include "RigidBodyKinematics.hpp"
+
+#include <RigidBodyKinematics.hpp>
+#include <boost/progress.hpp>
+
+
+
+namespace SBGAT_CORE {
 
 class SyntheticObservations {
 
@@ -60,9 +65,7 @@ protected:
 	arma::mat lightcurve_data;
 
 
-
-
 };
 
-
+}
 #endif

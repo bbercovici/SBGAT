@@ -1,5 +1,10 @@
 #include "RefFrame.hpp"
 
+
+using namespace SBGAT_CORE;
+
+
+
 RefFrame::RefFrame(std::string name) {
 
 	this -> name = name;
@@ -62,7 +67,7 @@ arma::vec * RefFrame::get_origin_from_parent() {
 
 void RefFrame::set_mrp_from_parent(arma::vec & mrp) {
 	*this -> mrp_from_parent = mrp;
-	*this -> dcm_from_parent = mrp_to_dcm(mrp);
+	*this -> dcm_from_parent = RBK::mrp_to_dcm(mrp);
 }
 
 void RefFrame::set_origin_from_parent(arma::vec & origin) {

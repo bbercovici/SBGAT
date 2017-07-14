@@ -7,9 +7,11 @@
 
 #include <set>
 
+namespace SBGAT_CORE {
+
+
 class Edge;
 class Facet;
-
 class Vertex {
 
 public:
@@ -26,15 +28,12 @@ public:
 	*/
 	void set_coordinates(std::shared_ptr<arma::vec> coordinates);
 
-
 	/**
 	Adds $facet to the vector of Facet * that own this vertex.
 	Nothing happens if the facet is already listed
 	@param facet Pointer to the facet owning this vertex
 	*/
 	void add_facet_ownership(Facet * facet);
-
-
 
 	/**
 	Finds the facets owming both $this and $vertex
@@ -69,9 +68,9 @@ protected:
 	std::vector<Facet * > owning_facets;
 
 
-
-
 };
+
+}
 
 
 #endif

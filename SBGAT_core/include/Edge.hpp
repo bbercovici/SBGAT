@@ -6,6 +6,9 @@
 #include <memory>
 #include <set>
 
+
+namespace SBGAT_CORE {
+
 class Facet;
 class Vertex;
 
@@ -57,4 +60,7 @@ protected:
 	std::shared_ptr<arma::mat> edge_dyad;
 
 };
+
+
+}
 #endif

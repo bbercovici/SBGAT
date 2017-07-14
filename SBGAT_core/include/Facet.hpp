@@ -7,6 +7,8 @@
 
 #include <set>
 
+namespace SBGAT_CORE {
+
 class Edge;
 class Vertex;
 
@@ -69,8 +71,8 @@ public:
 
 
 	/**
-	Returns pointer to the first vertex owned by $this that is 
-	neither $v0 and $v1. When $v0 and $v1 are on the same edge, 
+	Returns pointer to the first vertex owned by $this that is
+	neither $v0 and $v1. When $v0 and $v1 are on the same edge,
 	this method returns a pointer to the vertex of $this that is not
 	on the edge but still owned by $this
 	@param v0 Pointer to first vertex to exclude
@@ -134,4 +136,6 @@ protected:
 
 
 };
+
+}
 #endif

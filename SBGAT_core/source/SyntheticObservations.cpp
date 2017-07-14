@@ -1,6 +1,10 @@
 #include "SyntheticObservations.hpp"
 
 
+using namespace SBGAT_CORE;
+
+
+
 SyntheticObservations::SyntheticObservations(ShapeModel * shape_model, FrameGraph * frame_graph) {
 
 	this -> shape_model = shape_model;
@@ -55,8 +59,8 @@ void SyntheticObservations::compute_lightcurve_fixed_spin(
 		double theta_body =  2 * arma::datum::pi * (t - times(0)) / (std::sqrt(radius * radius * radius));
 
 		// Set frames origin
-		arma::vec sun_to_earth_N = M3(theta_earth ).t() * u ;
-		arma::vec sun_to_body_N = radius * M3(theta_body + initial_phase).t() * u ;
+		arma::vec sun_to_earth_N = RBK::M3(theta_earth ).t() * u ;
+		arma::vec sun_to_body_N = radius * RBK::M3(theta_body + initial_phase).t() * u ;
 
 		this -> frame_graph -> set_transform_origin("N", "E", sun_to_earth_N);
 		this -> frame_graph -> set_transform_origin("N", "T", sun_to_body_N) ;
@@ -64,7 +68,7 @@ void SyntheticObservations::compute_lightcurve_fixed_spin(
 		// Set body attitude
 		double spin_angle = (t - times(0)) * spin_rate;
 		arma::vec prv = spin_angle * spin_axis;
-		arma::vec mrp = prv_to_mrp(prv);
+		arma::vec mrp = RBK::prv_to_mrp(prv);
 
 		this -> frame_graph -> set_transform_mrp("N", "T", mrp);
 
@@ -99,7 +103,7 @@ void SyntheticObservations::compute_lightcurve_fixed_spin(
 double SyntheticObservations::collect_brightness(arma::vec & earth_to_body_dir_T, arma::vec & sun_to_body_dir_T) {
 
 	double brightness = 0;
-	
+
 	// The brightness reflected towards Earth is accumulated over each facet
 	#pragma omp parallel for reduction(+:brightness)
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {

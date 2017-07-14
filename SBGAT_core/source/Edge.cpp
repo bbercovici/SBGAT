@@ -1,5 +1,10 @@
 #include "../include/Edge.hpp"
 
+
+using namespace SBGAT_CORE;
+
+
+
 Edge::Edge(std::shared_ptr<Vertex> v0 ,
            std::shared_ptr<Vertex> v1) {
 

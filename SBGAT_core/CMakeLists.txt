@@ -1,11 +1,20 @@
-# CMakeLists.txt for SBGAT_core
-# Benjamin Bercovici, 03/10/2017
-# ORCCA
-# University of Colorado 
+# @file   CMakeLists.txt
+# @Author Benjamin Bercovici (bebe0705@colorado.edu)
+# @date   July, 2017
+# @brief  CMake listing enabling compilation and installation of the SBGAT_CORE library
 
 
+# Specify install location by setting this variable. Currently installing under
+# ./SBGAT_core/lib/
+set (SBGAT_CORE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib )
+
+# Specify location of RBK Library headers
+set(RBK_LIBRARY_CMAKE_INSTALL /usr/local/lib/cmake/RigidBodyKinematics/)
+
+
+# Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
+set(LIB_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
 if (${CMAKE_MINOR_VERSION} EQUAL 0 AND NOT APPLE) # if true, running on a CCAR computer (old CMAKE and RedHat)
 	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
@@ -47,8 +56,7 @@ else() # Running on a proper Linux machine
 endif()
 
 
-project(${EXE_NAME})
-
+project(${LIB_NAME})
 
 
 # Specify the version used
@@ -68,43 +76,23 @@ include_directories(external/include)
 
 # Find Boost
 set(BOOST_ROOT /usr/local/Cellar/boost/1.63.0/)
-find_package(Boost COMPONENTS filesystem system) 
-if (Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIRS}) 
-else() # This corresponds to a personal setting. The first statement should be sufficient to find BOOST provided it is installed
-	include_directories(/usr/local/Cellar/boost/1.60.0_2/include) 
-	set(Boost_LIBRARY_DIRS "/usr/local/Cellar/boost/1.60.0_2/lib")
-endif()
+find_package(Boost COMPONENTS filesystem system REQUIRED) 
+include_directories(${Boost_INCLUDE_DIRS}) 
+
 
 # Find Armadillo 
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find OpenMP
-# This is not mandatory. If not found, the pragmas will simply be ignored (may have to comment out #include "omp.h")
-find_package(OpenMP)
-if(OPENMP_FOUND)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+find_package(OpenMP REQUIRED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
-# Assimp
-# find_package(assimp)
-# include_directories(${ASSIMP_INCLUDE_DIRS})
-
-
-# include_directories(~/include/assimp)
-# if (APPLE)
-# 	set(ASSIMP_LIBRARY  
-# 		"/usr/local/lib/libassimp.3.3.1.dylib"
-# 		"/usr/local/lib/libassimp.3.dylib"
-# 		"/usr/local/lib/libassimp.dylib")
-# elseif(UNIX AND NOT APPLE)
-# 	set(ASSIMP_LIBRARY  
-# 			"/usr/local/lib/libassimp.so.3.3.1"
-# 			"/usr/local/lib/libassimp.so.3"
-# 			"/usr/local/lib/libassimp.so")
-# endif()
+# Find RBK 
+set (CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${RBK_LIBRARY_CMAKE_INSTALL}")
+find_package(RigidBodyKinematics REQUIRED)
+include_directories(${RBK_INCLUDE_DIRS})
 
 # Fortran compiler, required by Armadillo on Linux/Ubuntu
 if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0)
@@ -114,41 +102,35 @@ if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0)
 endif()
 
 # Add source files in root directory
-add_executable(${EXE_NAME}
-source/main.cpp
+add_library(${LIB_NAME} 
+SHARED
 source/ShapeModel.cpp
 source/DynamicAnalyses.cpp
 source/ShapeModelImporter.cpp
 source/Facet.cpp
 source/Edge.cpp
 source/Vertex.cpp
-source/VoxelGrid.cpp
-source/VoxelNode.cpp
-source/Voxel.cpp
 source/RefFrame.cpp
-source/RigidBodyKinematics.cpp
 source/FrameGraph.cpp
 source/SyntheticObservations.cpp
-include/ShapeModel.hpp
-include/DynamicAnalyses.hpp
-include/Densities.hpp
-include/ShapeModelImporter.hpp
-include/Facet.hpp
-include/Edge.hpp
-include/Vertex.hpp
-include/OMP_flags.hpp
-include/VoxelGrid.hpp
-include/VoxelNode.hpp
-include/Voxel.hpp
-include/RefFrame.hpp
-include/RigidBodyKinematics.hpp
-include/Adjacency_List.hpp
-include/FrameGraph.hpp
-include/SyntheticObservations.hpp
 )
 
 # Linking
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
-${Boost_LIBRARIES})
-target_link_libraries(${EXE_NAME} ${library_dependencies})
+${Boost_LIBRARIES}
+${RBK_LIBRARY})
+target_link_libraries(${LIB_NAME} ${library_dependencies})
+
+# Installing
+install (TARGETS ${LIB_NAME} DESTINATION ${SBGAT_CORE_INSTALL_DIR})
+install (FILES ${RBK_LIBRARY_CMAKE_INSTALL}/RigidBodyKinematicsConfig.cmake DESTINATION ${SBGAT_CORE_INSTALL_DIR})
+install (FILES ${PROJECT_SOURCE_DIR}/SBGATCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SBGAT_CORE/)
+
+
+
+
+
+
+
+

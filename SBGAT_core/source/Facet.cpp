@@ -1,5 +1,8 @@
-#include "../include/Facet.hpp"
+#include "Facet.hpp"
 #include <memory>
+
+
+using namespace SBGAT_CORE;
 
 Facet::Facet(std::shared_ptr< std::vector<std::shared_ptr<Vertex > > >   vertices) {
 	this -> vertices = vertices;

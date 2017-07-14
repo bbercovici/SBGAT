@@ -1,5 +1,7 @@
 #include "DynamicAnalyses.hpp"
 
+using namespace SBGAT_CORE;
+
 DynamicAnalyses::DynamicAnalyses(ShapeModel * shape_model) {
 	this -> shape_model = shape_model;
 }

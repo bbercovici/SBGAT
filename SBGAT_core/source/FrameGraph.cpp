@@ -1,5 +1,8 @@
 #include "FrameGraph.hpp"
 
+
+using namespace SBGAT_CORE;
+
 FrameGraph::FrameGraph() {
 
 }

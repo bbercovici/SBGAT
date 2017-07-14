@@ -1,8 +1,14 @@
 #include "ShapeModelImporter.hpp"
 
-ShapeModelImporter::ShapeModelImporter(std::string filename, double unit_factor) {
+
+
+using namespace SBGAT_CORE;
+
+
+ShapeModelImporter::ShapeModelImporter(std::string filename, double unit_factor, bool use_edges) {
 	this -> filename = filename;
 	this -> unit_factor = unit_factor;
+	this -> use_edges = use_edges;
 }
 
 void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
@@ -19,7 +25,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	std::vector<arma::uvec> facet_vertices;
 
 	std::set<std::set<unsigned int> > edge_vertices_indices;
-
 
 	std::cout << " Reading " << this -> filename << std::endl;
 	while (std::getline(ifs, line)) {
@@ -79,6 +84,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	std::cout << " Number of facets: " << facet_vertices.size() << std::endl;
 	std::cout << " Number of edges: " << edge_vertices_indices.size() << std::endl;
 
+
 	// Vertices are added to the shape model
 	std::vector<std::shared_ptr<Vertex>> vertex_index_to_ptr(vertices.size(), nullptr);
 
@@ -99,6 +105,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	}
 
 	std::cout << std::endl << " Constructing Facets " << std::endl ;
+
 
 	boost::progress_display progress_facets(facet_vertices.size()) ;
 
@@ -121,31 +128,28 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		// of those
 		Facet * facet = new Facet(std::make_shared<std::vector<std::shared_ptr<Vertex>>>(vertices));
 
-
-		// Temporary: the facet's albedo is set to 1
-		facet -> set_albedo(1);
-
 		shape_model -> add_facet(facet);
 		++progress_facets;
 	}
 
 
 	// Edges are added to the shape model
-	std::cout << std::endl << " Constructing Edges " << std::endl ;
+	if (this -> use_edges == true) {
+		std::cout << std::endl << " Constructing Edges " << std::endl ;
 
-	boost::progress_display progress_edges(edge_vertices_indices.size()) ;
-	for (auto edge_iter = edge_vertices_indices.begin(); edge_iter != edge_vertices_indices.end(); ++edge_iter) {
+		boost::progress_display progress_edges(edge_vertices_indices.size()) ;
+		for (auto edge_iter = edge_vertices_indices.begin(); edge_iter != edge_vertices_indices.end(); ++edge_iter) {
 
-		std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[*edge_iter -> begin()];
-		std::shared_ptr<Vertex> v1 = vertex_index_to_ptr[*std::next(edge_iter -> begin())];
+			std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[*edge_iter -> begin()];
+			std::shared_ptr<Vertex> v1 = vertex_index_to_ptr[*std::next(edge_iter -> begin())];
 
-		std::shared_ptr<Edge> edge = std::make_shared<Edge>(v0, v1);
+			std::shared_ptr<Edge> edge = std::make_shared<Edge>(v0, v1);
 
-		shape_model -> add_edge(edge);
-		++progress_edges;
+			shape_model -> add_edge(edge);
+			++progress_edges;
 
+		}
 	}
-
 
 	// The surface area, volume, center of mass and inertia of the shape model
 	// are computed
@@ -162,10 +166,14 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	// Edges and facets are updated (their dyads, normals and centers
 	// are computed) to reflect the new position/orientation
 	shape_model -> update_facets();
-	shape_model -> update_edges();
+
+	if (this -> use_edges == true) {
+		shape_model -> update_edges();
+	}
 
 	// The consistency of the surface normals is checked
 	shape_model -> check_normals_consistency();
+
 
 
 

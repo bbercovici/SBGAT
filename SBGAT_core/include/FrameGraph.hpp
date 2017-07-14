@@ -5,7 +5,7 @@
 #include <memory>
 #include "Adjacency_List.hpp"
 
-
+namespace SBGAT_CORE {
 
 class FrameGraph {
 
@@ -32,8 +32,8 @@ public:
 	@param input Vector to convert
 	@param from Name of reference frame to convert from
 	@param to Name of reference frame to convert to
-	@param is_unit_vector True if the provided coordinates are 
-	that of a unit vector. This will disable the translational part 
+	@param is_unit_vector True if the provided coordinates are
+	that of a unit vector. This will disable the translational part
 	of the transform
 	@return converted coordinates
 	*/
@@ -77,7 +77,7 @@ public:
 	RefFrame * get_frame(std::string frame_name);
 
 
-	/**	
+	/**
 	Creates a reference frame transform between a
 	parent frame $parent_name and and child frame $child_name.
 
@@ -101,7 +101,7 @@ protected:
 	Adjacency_List<std::shared_ptr <RefFrame> , std::pair< std::string, std::string > > adjacency_list;
 	std::map< std::string , std::shared_ptr <RefFrame> > ref_names_to_ref_ptrs;
 
-	
+
 	void convert_to_parent_of_provided_child_frame(arma::vec & coords, RefFrame * ref_frame,
 	        bool is_unit_vector) const;
 	void convert_to_child_of_provided_parent_frame(arma::vec & coords, RefFrame * ref_frame,
@@ -110,5 +110,6 @@ protected:
 
 };
 
+}
 
 #endif

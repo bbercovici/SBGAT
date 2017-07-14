@@ -1,3 +1,7 @@
+
+
+
+
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 project(${EXE_NAME})
@@ -26,7 +30,7 @@ if (UNIX AND NOT APPLE)
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 elseif(APPLE)
-	set (CMAKE_PREFIX_PATH "~/Qt/5.7/clang_64/lib/cmake" "~/VTK/VTK_release_build/")
+	set (CMAKE_PREFIX_PATH "~/Qt/5.9.1/clang_64/lib/cmake" "~/VTK/VTK_release_build/")
 	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 endif()

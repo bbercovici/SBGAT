@@ -7,6 +7,9 @@
 #include "omp.h"
 #include "OMP_flags.hpp"
 
+
+namespace SBGAT_CORE {
+
 class DynamicAnalyses {
 
 public:
@@ -29,7 +32,7 @@ public:
 	*/
 	void compute_pgm_potentials(double density);
 
-	
+
 	/**
 	Computes gravitational slopes
 	@param spin_axis Spin axis in body-fixed frame
@@ -86,6 +89,8 @@ protected:
 
 
 };
+
+}
 
 
 #endif

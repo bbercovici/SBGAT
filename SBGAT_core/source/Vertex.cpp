@@ -1,12 +1,18 @@
 #include "../include/Vertex.hpp"
 
+
+using namespace SBGAT_CORE;
+
+
+
+
 void Vertex::set_coordinates(std::shared_ptr<arma::vec> coordinates) {
 	this -> coordinates = coordinates;
 }
 
 
 void Vertex::add_facet_ownership(Facet * facet) {
-	
+
 	bool already_present = false;
 
 	for (unsigned int i = 0; i < this -> owning_facets.size(); ++i) {

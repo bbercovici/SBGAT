@@ -5,6 +5,14 @@
 #include <memory>
 #include <armadillo>
 #include "RigidBodyKinematics.hpp"
+
+
+
+namespace SBGAT_CORE {
+
+
+
+
 class RefFrame {
 
 public:
@@ -86,7 +94,7 @@ protected:
 
 
 };
-
+}
 
 
 
