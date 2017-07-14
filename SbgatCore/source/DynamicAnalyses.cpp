@@ -333,6 +333,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 }
 
 
+
 void DynamicAnalyses::save_slopes(std::string path) const {
 
 	this -> slopes.save(path, arma::raw_ascii);

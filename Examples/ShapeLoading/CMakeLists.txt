@@ -1,16 +1,7 @@
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
-# @brief  CMake listing enabling compilation and installation of the SBGAT_CORE library
-
-
-# Specify install location of SBGAT_CORE by setting this variable. Currently installing under
-# ./SBGAT_core/lib/
-set (SBGAT_CORE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib )
-
-# Specify location of RBK Library headers
-set(RBK_LIBRARY_CMAKE_INSTALL /usr/local/lib/cmake/RigidBodyKinematics/)
-
+# @brief  CMake listing enabling compilation and installation of the ShapeLoading example
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -89,7 +80,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Find RBK 
-set (CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${RBK_LIBRARY_CMAKE_INSTALL}")
 find_package(RigidBodyKinematics REQUIRED)
 include_directories(${RBK_INCLUDE_DIRS})
 

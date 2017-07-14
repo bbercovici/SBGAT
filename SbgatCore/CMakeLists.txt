@@ -1,15 +1,7 @@
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
-# @brief  CMake listing enabling compilation and installation of the SBGAT_CORE library
-
-
-# Specify install location by setting this variable. Currently installing under
-# ./SBGAT_core/lib/
-set (SBGATCORE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib )
-
-# Specify location of RBK Library .cmake
-set(RBK_LIBRARY_CMAKE_INSTALL /usr/local/lib/cmake/RigidBodyKinematics/)
+# @brief  CMake listing enabling compilation and installation of the SbgatCore library
 
 
 # Building procedure
@@ -122,8 +114,9 @@ ${RBK_LIBRARY})
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing
-install (TARGETS ${LIB_NAME} DESTINATION ${SBGATCORE_INSTALL_DIR})
+install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
 install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SbgatCore/)
+install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
 
 
 
