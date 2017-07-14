@@ -1,6 +1,4 @@
 # Exclusions
-build/
-lib/
 resources/*
 doc/*
 
