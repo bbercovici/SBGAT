@@ -12,6 +12,3 @@ Doxyfile
 *.pdf
 *.obj
 
-# Exception to the rule to retain folder but not content
-!build/.gitkeep 
-!lib/.gitkeep 
