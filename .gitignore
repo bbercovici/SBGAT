@@ -1,10 +1,17 @@
-resources/
+# Exclusions
 build/
-saved_pgm/
-doc/
-output/
+lib/
+resources/*
+doc/*
+
+# File exclusions in root
+
 *.dox
 Doxyfile
 *.mdj
 *.pdf
 *.obj
+
+# Exception to the rule to retain folder but not content
+*/build/.gitkeep 
+*/lib/.gitkeep 
