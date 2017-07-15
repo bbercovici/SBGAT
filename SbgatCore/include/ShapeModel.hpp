@@ -15,6 +15,7 @@
 #include "OMP_flags.hpp"
 #include "FrameGraph.hpp"
 
+
 namespace SBGAT_CORE {
 
 
@@ -55,6 +56,8 @@ public:
 	@return number of facets
 	*/
 	unsigned int get_NFacets() const ;
+
+
 
 	/**
 	Returns number of vertices
@@ -256,6 +259,7 @@ protected:
 
 	FrameGraph * frame_graph;
 	std::string ref_frame_name;
+
 
 
 };

@@ -1,5 +1,4 @@
-#include "../include/ShapeModel.hpp"
-#include <chrono>
+#include "ShapeModel.hpp"
 
 using namespace SBGAT_CORE;
 
@@ -42,6 +41,13 @@ void ShapeModel::update_facets(std::set<Facet *> & facets) {
 	}
 
 }
+
+
+
+
+
+
+
 
 bool ShapeModel::contains(double * point, double tol ) {
 
