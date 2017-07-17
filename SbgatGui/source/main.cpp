@@ -2,6 +2,9 @@
 #include "Mainwindow.hpp"
 #include <vtkVersion.h>
 
+#include <ShapeModelImporter.hpp>
+
+
 int main( int argc, char** argv ) {
 
 	QApplication app( argc, argv );
@@ -12,5 +15,4 @@ int main( int argc, char** argv ) {
 	return app.exec();
 
 
-	return 0;
 }

@@ -12,24 +12,28 @@
 #include <QtWidgets/QMenuBar>
 #include <QColorDialog>
 #include <QColor>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QMainWindow>
 #include <QtWidgets/QWidget>
 #include <QStatusBar>
+#include <QInputDialog>
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkAreaPicker.h>
-#include <vtkTransformPolyDataFilter.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkAxesActor.h>
-#include <vtkArrowSource.h>
+#include <vtkPolygon.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+
 
 #include "QVTKWidget.h"
-#include "osxHelper.h"
+
+#include <ShapeModelImporter.hpp>
+#include <ShapeModel.hpp>
+
+#include <map>
+
 
 
 // forward declaration of InteractorStyle
@@ -75,7 +79,6 @@ public:
 	vtkSmartPointer<vtkRenderWindowInteractor> get_render_window_interactor();
 
 
-
 	/**
 	Enable/Disables an action in the GUI
 	@param enabled Status the targeted action will be set to
@@ -86,7 +89,7 @@ public:
 	/**
 	Open load model
 	*/
-	QAction * load_action;
+	QAction * load_shape_model_action;
 
 	/**
 	Save shape model
@@ -133,13 +136,12 @@ public:
 
 	// Slots
 private slots:
-	
+
 	/**
 	Sets the background color to that chosen by the user
 	*/
 	void set_background_color();
 
-	
 
 
 private:
@@ -159,22 +161,33 @@ private:
 	*/
 	void setupUi();
 
+
 	/**
-	Scaling factor applied to the
-	input data to have it expressed in meters
+	Load shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
+	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
-	double scaling_factor;
+	void load_shape_model();
+
+
+	/**
+	Creates and display a vtkPolyData corresponding to the provided shape model
+	@param shape_model Pointer to instantiated shape model
+	*/
+	void create_vtkpolydata_from_shape_model(SBGAT_CORE::ShapeModel * shape_model);
+
+
 
 	QMenu * fileMenu;
 	QMenu * ShapeModelMenu;
 	QMenu * ViewMenu;
 
 	vtkSmartPointer<vtkRenderer> renderer;
-	vtkSmartPointer<vtkOrientationMarkerWidget> widget;
-	std::vector<vtkSmartPointer<vtkActor> > actor_vector;
+	vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
 	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
-	std::vector<vtkSmartPointer<vtkActor> > normal_actors;
 
+	std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
+
+	std::map<std::string, std::shared_ptr<SBGAT_CORE::ShapeModel> > shape_models;
 
 
 };
