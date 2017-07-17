@@ -17,10 +17,10 @@ public:
 	/**
 	Constructor
 	@param filename absolute or relative path to the OBJ file to be read
-	@param unit_facet 1 if provided file uses meters, 1000 if km are used, ...
+	@param scaling_factor 1 if provided file uses meters, 1000 if km are used, ...
 	@ param use_edges True if the shape model to be loaded should be augmented with edges
 	*/
-	ShapeModelImporter(std::string filename, double unit_factor = 1,
+	ShapeModelImporter(std::string filename, double scaling_factor,
 	                   bool use_edges = true);
 
 	/**
@@ -32,7 +32,7 @@ public:
 
 protected:
 	std::string filename;
-	double unit_factor;
+	double scaling_factor;
 	bool use_edges;
 
 };
