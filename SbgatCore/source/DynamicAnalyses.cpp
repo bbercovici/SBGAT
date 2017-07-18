@@ -39,13 +39,19 @@ void DynamicAnalyses::compute_pgm_potentials(double density) {
 }
 
 
-void DynamicAnalyses::compute_gravity_slopes(
+arma::vec DynamicAnalyses::compute_gravity_slopes(
     arma::vec spin_axis,
     double spin_rate) {
 
 	arma::vec omega_body_wrt_inertial = spin_rate * spin_axis;
+	arma::vec stats;
+
+	double min_slope = 181;
+	double max_slope = -181;
+	double mean_slope = 0;
 
 
+	#pragma omp parallel for reduction(+:mean_slope), reduction(min:min_slope), reduction(max:max_slope)
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets();
 	        ++facet_index) {
 
@@ -59,10 +65,25 @@ void DynamicAnalyses::compute_gravity_slopes(
 		                                               omega_body_wrt_inertial,
 		                                               arma::cross(omega_body_wrt_inertial, *facet -> get_facet_center())))
 		                                              ))) * 180 / arma::datum::pi ;
-		
+
+
+		// Statistics are accumulated
+		if (slope_d > max_slope) {
+			max_slope = slope_d;
+		}
+
+		if (slope_d < min_slope) {
+			min_slope = slope_d;
+		}
+		mean_slope += slope_d / this -> shape_model -> get_NFacets();
+
+		// The result for this facet is saved
 		facet -> get_facet_results() -> set_grav_slope(slope_d);
 
 	}
+
+	stats = {min_slope, mean_slope, max_slope};
+	return stats;
 
 }
 

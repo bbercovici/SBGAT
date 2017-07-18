@@ -34,11 +34,12 @@ public:
 
 
 	/**
-	Computes gravitational slopes
+	Computes gravitational slopes, evaluated and stored at the center of each facet
 	@param spin_axis Spin axis in body-fixed frame
 	@param spin_rate Spin rate (rad/s)
+	@return Vector storing the [min,mean,max] slopes (deg)
 	*/
-	void compute_gravity_slopes(
+	arma::vec compute_gravity_slopes(
 	    arma::vec spin_axis,
 	    double spin_rate);
 

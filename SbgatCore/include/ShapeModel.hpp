@@ -82,7 +82,6 @@ public:
 	*/
 	bool contains(double * point, double tol = 1e-6) ;
 
-
 	/**
 	Checks that the normals were consistently oriented. If not,
 	the ordering of the vertices in the provided shape model file is incorrect

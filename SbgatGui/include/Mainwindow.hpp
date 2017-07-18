@@ -20,7 +20,11 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QStringList>
-#include <QCoreApplication>
+#include <QTableWidget>
+#include <QPushButton>
+#include <QHeaderView>
+
+
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
@@ -36,6 +40,9 @@
 #include <vtkScalarBarActor.h>
 #include <vtkActor2DCollection.h>
 #include <vtkLookupTable.h>
+#include <vtkTextProperty.h>
+#include <vtkCamera.h>
+#include <vtkInteractorStyleSwitch.h>
 
 
 #include "QVTKWidget.h"
@@ -73,6 +80,10 @@ public:
 
 	// Log console
 	QPlainTextEdit * log_console;
+
+
+	// Shape selection widget
+	QTableWidget * shape_table;
 
 
 
@@ -196,12 +207,13 @@ public:
 	/**
 	Evaluates gravitational slope at the center of each facet
 	*/
-	QAction * compute_gravity_slopes_action;
+	QAction * compute_grav_slopes_action;
+
 
 	/**
-	Evaluates gravitational slope at the center of each facet
+	Show gravitational slopes
 	*/
-	QAction * toggle_grav_slopes_visibility_action;
+	QAction * show_grav_slopes_action;
 
 
 	// Slots
@@ -213,6 +225,35 @@ private slots:
 	void set_background_color();
 
 
+	/**
+	Removes the selected shape model from SBGAT. Removes the shape and clears all associated variables from SBGAT
+	*/
+	void remove_shape();
+
+	/**
+	Shows/hides the shape model
+	@param row Row index of calling cell
+	@param col Col index of calling cell (should be 1 for the slot to proceed, otherwise the call is ignored)
+	*/
+	void toggle_shape_visibility(int row, int col) ;
+
+
+	/**
+	Updates availability of GUI actions given latest model state. Ensures that all available actions
+	are consistent with current Sbgat state
+	*/
+	void update_actions_availability() ;
+
+
+	/**
+	Updates the GUI when a new shape model is selected
+	*/
+
+	void update_GUI_changed_shape_model();
+
+
+
+
 
 private:
 	/**
@@ -220,6 +261,22 @@ private:
 	appropriate slots
 	*/
 	void createActions();
+
+
+	/**
+	Removes props associated with display of gravity slopes
+	@param name Name of shape model associated with the removal of the visual props
+	@param remove_all True if all props should be removed
+	*/
+	void remove_grav_slopes_props(std::string name, bool remove_all) ;
+
+
+	/**
+	Adds a row in the table widget corresponding to the shape model that was just loaded into Sbgat
+	@param name Shape model name
+	*/
+	void add_shape_to_table_widget(std::string name);
+
 
 	/**
 	Creates and populates the menu bar
@@ -240,9 +297,9 @@ private:
 
 
 	/**
-	Enables/disables visibility of gravity slopes, provided that they have been computed
+	Show gravitational slopes by choosing one shape model for which gravitational slopes are available
 	*/
-	void toggle_grav_slopes_visibility();
+	void show_grav_slopes();
 
 	/**
 	Transfer results of gravity slopes computation into vtk
@@ -250,10 +307,10 @@ private:
 	void update_vtk_slopes() ;
 
 	/**
-	Prints dimensionless principal inertia tensor of the target (assuming constant density)
+	Prints dimensionless principal inertia tensor of the active shape (assuming constant density)
 	to the log console
 	*/
-	void print_inertia() const ;
+	void print_inertia() ;
 
 
 	/**
@@ -320,6 +377,12 @@ private:
 	std::map<std::string, vtkSmartPointer<vtkPolyData> > polydatas;
 	std::map<std::string, vtkSmartPointer<vtkPolyDataMapper> > mappers;
 	std::map<std::string, vtkSmartPointer<vtkActor> > actors;
+
+	std::map<std::string, bool > consistent_global_accelerations;
+	std::map<std::string, bool > consistent_grav_slopes;
+
+
+
 
 
 

@@ -4,6 +4,29 @@
 # @brief  CMake listing enabling compilation and installation of SBgatGui
 
 
+################################################################################
+#
+# 								User-defined paths
+#						Should be checked for consistency
+#						Before running 'cmake ..' in build dir
+#
+################################################################################
+
+# Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
+set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/6.3.0_1/bin/)
+
+
+
+
+################################################################################
+#
+#
+# 		The following should normally not require any modification
+# 				Unless new files are added to the build tree
+#
+#
+################################################################################
+
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
@@ -29,10 +52,11 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
 		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
         	set(CMAKE_CXX_FLAGS "-std=c++0x")
         else() # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-        	if(EXISTS /usr/local/Cellar/gcc/6.3.0_1/bin/) 
-        		message("Switching to GCC 6.3.0_1")
-	        	set(CMAKE_C_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/gcc-6 CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER /usr/local/Cellar/gcc/6.3.0_1/bin/g++-6 CACHE STRING "C++ Compiler" FORCE)
+        	if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
+        		message("Switching to OMP-friendly GCC ")
+	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-6 CACHE STRING "C Compiler" FORCE)
+
+				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-6 CACHE STRING "C++ Compiler" FORCE)
 			else()# no OMP-compliant compiler was found on this mac. 
 				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac. The program will still run but without multithreading")
 			endif()
