@@ -15,6 +15,14 @@
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
 set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/6.3.0_1/bin/)
 
+# Path to VTK build directory
+set (VTK_BUILD_DIR ~/VTK/VTK_release_build/)
+
+# Path to Qt5 cmake config file (author's mac configuration)
+set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.1/clang_64/lib/cmake")
+
+# Path to Qt5 cmake config file (author's ubuntu configuration)
+set (QT_CMAKE_CONFIG_LINUX "~/Qt5.7.1/5.7/gcc_64/lib/cmake/")
 
 
 
@@ -55,7 +63,6 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
         	if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
         		message("Switching to OMP-friendly GCC ")
 	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-6 CACHE STRING "C Compiler" FORCE)
-
 				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-6 CACHE STRING "C++ Compiler" FORCE)
 			else()# no OMP-compliant compiler was found on this mac. 
 				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac. The program will still run but without multithreading")
@@ -78,16 +85,15 @@ endif()
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
+
 if (UNIX AND NOT APPLE)
-	set (CMAKE_PREFIX_PATH "~/Qt5.7.1/5.7/gcc_64/lib/cmake/" "~/VTK/VTK_release_build/")
+	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_LINUX} ${VTK_BUILD_DIR})
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 elseif(APPLE)
-	set (CMAKE_PREFIX_PATH "~/Qt/5.9.1/clang_64/lib/cmake" "~/VTK/VTK_release_build/")
+	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC} ${VTK_BUILD_DIR})
 	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 endif()
-
-
 
 
 add_definitions(-Wall -O2 )
@@ -150,6 +156,5 @@ ${SBGATCORE_LIBRARY}
 ${RBK_LIBRARY}
 )
 
-message(${library_dependencies})
 target_link_libraries(${EXE_NAME} ${library_dependencies})
 

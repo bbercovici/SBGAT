@@ -721,7 +721,7 @@ void Mainwindow::compute_gravity_slopes() {
         }
 
         // Matching doubles
-        QRegExp re("[-+]?[0-9]*\.?[0-9]+");
+        QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
 
         if (re.exactMatch(angles_split.at(0)) && re.exactMatch(angles_split.at(1)) && re.exactMatch(angles_split.at(2))) {
             angles_arma(0) = angles_split.at(0).toDouble();
@@ -845,7 +845,7 @@ void Mainwindow::compute_pgm_acceleration() {
         }
 
         // Matching doubles
-        QRegExp re("[-+]?[0-9]*\.?[0-9]+");
+        QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
 
         if (re.exactMatch(coords_split.at(0)) && re.exactMatch(coords_split.at(1)) && re.exactMatch(coords_split.at(2))) {
             point[0] = coords_split.at(0).toDouble();
