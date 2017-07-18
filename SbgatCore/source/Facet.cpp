@@ -23,6 +23,14 @@ Facet::Facet(std::shared_ptr< std::vector<std::shared_ptr<Vertex > > >   vertice
 	// Computing surface area
 	this -> compute_area();
 
+	// Allocating memory for the structure holding the results
+	this -> facet_results = std::make_shared<FacetResults>();
+
+}
+
+
+std::shared_ptr<FacetResults> Facet::get_facet_results() const {
+	return this -> facet_results;
 }
 
 

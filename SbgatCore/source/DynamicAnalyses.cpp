@@ -7,66 +7,60 @@ DynamicAnalyses::DynamicAnalyses(ShapeModel * shape_model) {
 }
 
 void DynamicAnalyses::compute_pgm_accelerations(double density ) {
-	this -> pgm_accelerations.reset() ;
-	this -> pgm_accelerations = arma::mat(3, this -> shape_model -> get_NFacets());
 
-	std::cout << std::endl << " Computing PGM accelerations" << std::endl ;
-	boost::progress_display progress(this -> shape_model -> get_NFacets()) ;
-
+	arma::vec acc(3);
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {
+		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
 
-		this -> pgm_accelerations.col(facet_index) = this -> pgm_acceleration(
-		            this -> shape_model -> get_facets() -> at(facet_index) -> get_facet_center() -> colptr(0) ,
-		            density);
+		acc = this -> pgm_acceleration(
+		          facet -> get_facet_center() -> colptr(0) ,
+		          density);
+		facet -> get_facet_results() -> set_grav_acceleration(acc);
 
-		++progress;
 	}
+
 }
 
 
 
 void DynamicAnalyses::compute_pgm_potentials(double density) {
 
-	this -> pgm_potentials.reset() ;
-	this -> pgm_potentials = arma::vec(this -> shape_model -> get_NFacets());
-
-	std::cout << std::endl << " Computing PGM potentials" << std::endl ;
-	boost::progress_display progress(this -> shape_model -> get_NFacets()) ;
-
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {
 
-		this -> pgm_potentials(facet_index) = this -> pgm_potential(
-		            this -> shape_model -> get_facets() -> at(facet_index) -> get_facet_center() -> colptr(0) ,
-		            density);
+		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
 
-		++progress;
+		double potential = this -> pgm_potential(
+		                       facet -> get_facet_center() -> colptr(0) ,
+		                       density);
+		facet -> get_facet_results() -> set_grav_potential(potential);
+
 	}
 
 }
 
 
-void DynamicAnalyses::compute_slopes(
+void DynamicAnalyses::compute_gravity_slopes(
     arma::vec spin_axis,
     double spin_rate) {
 
 	arma::vec omega_body_wrt_inertial = spin_rate * spin_axis;
-
-	this -> slopes.reset();
-	this -> slopes = arma::vec(this -> shape_model -> get_NFacets());
 
 
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets();
 	        ++facet_index) {
 
 		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
+
 		arma::vec * n = facet -> get_facet_normal();
-		this -> slopes(facet_index) = std::acos(-arma::dot(
-		        *n,
-		        arma::normalise(this -> pgm_accelerations.col(facet_index) - (
-		                            arma::cross(
-		                                omega_body_wrt_inertial,
-		                                arma::cross(omega_body_wrt_inertial, *facet -> get_facet_center())))
-		                       ))) * 180 / arma::datum::pi ;
+		double slope_d = std::acos(-arma::dot(
+		                               *n,
+		                               arma::normalise(*facet -> get_facet_results() -> get_grav_acceleration() - (
+		                                       arma::cross(
+		                                               omega_body_wrt_inertial,
+		                                               arma::cross(omega_body_wrt_inertial, *facet -> get_facet_center())))
+		                                              ))) * 180 / arma::datum::pi ;
+		
+		facet -> get_facet_results() -> set_grav_slope(slope_d);
 
 	}
 
@@ -333,24 +327,5 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 }
 
 
-
-void DynamicAnalyses::save_slopes(std::string path) const {
-
-	this -> slopes.save(path, arma::raw_ascii);
-
-}
-
-
-void DynamicAnalyses::save_pgm_potentials(std::string path) const {
-
-	this -> pgm_potentials.save(path, arma::raw_ascii);
-
-}
-
-void DynamicAnalyses::save_pgm_accelerations(std::string path) const {
-
-	this -> pgm_accelerations.save(path, arma::raw_ascii);
-
-}
 
 

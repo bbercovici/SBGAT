@@ -237,6 +237,8 @@ public:
 	arma::mat get_inertia() const;
 
 
+
+
 protected:
 
 
@@ -251,14 +253,14 @@ protected:
 
 	double volume;
 	double surface_area;
-	
-	arma::vec cm;
 
+	arma::vec cm;
 	arma::mat inertia;
 
 
 	FrameGraph * frame_graph;
 	std::string ref_frame_name;
+
 
 
 

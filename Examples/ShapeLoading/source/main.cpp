@@ -15,7 +15,7 @@ int main( int argc, char** argv ) {
 	SBGAT_CORE::FrameGraph frame_graph;
 	frame_graph.add_frame("ECI");
 	frame_graph.add_frame("BF");
-
+	
 	// The ECI frame is defined as the parent of the body-fixed frame
 	// The BF frame and the ECI frame are considered as coincident by default
 	frame_graph.add_transform("ECI", "BF");
@@ -32,6 +32,9 @@ int main( int argc, char** argv ) {
 	// shape model
 	shape_io.load_shape_model(&shape_model);
 
+	// The dimensionless inertia expressed in the body-fixed frame is shown
+	std::cout << shape_model.get_inertia() << std::endl;
+
 	// Dynamic analyses are performed on the shape model
 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&shape_model);
 
@@ -40,6 +43,7 @@ int main( int argc, char** argv ) {
 	p[1] = 0;
 	p[2] = 2000;
 
+	// The acceleration at the provided point is calculated using the polyhedron gravity model
 	std::cout << dynamic_analyses.pgm_acceleration(p, SBGAT_CORE::constants::density::kw4_alpha).t() << std::endl;
 	
 

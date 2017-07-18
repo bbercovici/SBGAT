@@ -5,7 +5,6 @@
 #include "ShapeModel.hpp"
 #include <armadillo>
 #include "omp.h"
-#include <boost/progress.hpp>
 
 namespace SBGAT_CORE {
 
@@ -18,7 +17,7 @@ public:
 	Constructor
 	@param filename absolute or relative path to the OBJ file to be read
 	@param scaling_factor 1 if provided file uses meters, 1000 if km are used, ...
-	@ param use_edges True if the shape model to be loaded should be augmented with edges
+	@param use_edges True if the shape model to be loaded should be augmented with edges
 	*/
 	ShapeModelImporter(std::string filename, double scaling_factor,
 	                   bool use_edges = true);

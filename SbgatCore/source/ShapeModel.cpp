@@ -24,12 +24,17 @@ void ShapeModel::update_facets() {
 }
 
 
+
 void ShapeModel::update_edges() {
 
 	for (auto & edge : this -> edges) {
 		edge -> compute_dyad();
 	}
 
+}
+
+void ShapeModel::add_facet(Facet * facet) {
+	this -> facets. push_back(facet);
 }
 
 
@@ -188,8 +193,6 @@ void ShapeModel::align_with_principal_axes() {
 	double U = std::sqrt(T * T - 3 * Pi) / 3;
 	double Det = arma::det(this -> inertia);
 
-	std::cout << "Non-dimensional inertia: " << std::endl;
-	std::cout << this -> inertia << std::endl;
 
 	if (U > 1e-6) {
 
@@ -241,11 +244,6 @@ void ShapeModel::align_with_principal_axes() {
 		axes = arma::eye<arma::mat>(3, 3);
 	}
 
-	std::cout << "Principal axes: " << std::endl;
-	std::cout << axes << std::endl;
-
-	std::cout << "Non-dimensional principal moments: " << std::endl;
-	std::cout << moments << std::endl;
 
 	// The vertices are shifted
 	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
@@ -275,15 +273,9 @@ ShapeModel::ShapeModel(std::string ref_frame_name,
 
 
 
-void ShapeModel::add_facet(Facet * facet) {
-	this -> facets. push_back(facet);
-}
-
-
 std::string ShapeModel::get_ref_frame_name() const {
 	return this -> ref_frame_name;
 }
-
 
 void ShapeModel::add_edge(std::shared_ptr<Edge> edge) {
 	this -> edges. push_back(edge);

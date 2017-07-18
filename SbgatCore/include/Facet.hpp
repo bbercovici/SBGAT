@@ -3,6 +3,8 @@
 #include <armadillo>
 #include "Edge.hpp"
 #include "Vertex.hpp"
+#include "FacetResults.hpp"
+
 #include <memory>
 
 #include <set>
@@ -44,7 +46,6 @@ public:
 	Not implemented
 	*/
 	void remove_edge(std::shared_ptr< Facet > edge);
-
 
 
 	/**
@@ -117,6 +118,15 @@ public:
 	*/
 	std::vector<std::shared_ptr<Vertex > > * get_vertices() ;
 
+
+
+	/**
+	Retuns pointer to the structure holding results specific
+	to this facet (gravity potential, slope,...)
+	@return pointer to facet results member
+	*/
+	std::shared_ptr<FacetResults> get_facet_results() const;
+
 protected:
 
 	void compute_facet_dyad();
@@ -133,6 +143,9 @@ protected:
 	std::vector<std::shared_ptr <Edge> > facet_edges;
 	double area;
 	double albedo;
+
+	std::shared_ptr<FacetResults> facet_results;
+
 
 
 };

@@ -110,7 +110,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		vertices.push_back(v1);
 		vertices.push_back(v2);
 
-
 		// Was invariably getting the same memory address if using
 		// std::make_shared. The destructor of ShapeModel will take care
 		// of those
@@ -120,11 +119,9 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 	}
 
-
 	// Edges are added to the shape model
 	if (this -> use_edges == true) {
 
-		boost::progress_display progress_edges(edge_vertices_indices.size()) ;
 		for (auto edge_iter = edge_vertices_indices.begin(); edge_iter != edge_vertices_indices.end(); ++edge_iter) {
 
 			std::shared_ptr<Vertex> v0 = vertex_index_to_ptr[*edge_iter -> begin()];

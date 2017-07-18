@@ -38,29 +38,9 @@ public:
 	@param spin_axis Spin axis in body-fixed frame
 	@param spin_rate Spin rate (rad/s)
 	*/
-	void compute_slopes(
+	void compute_gravity_slopes(
 	    arma::vec spin_axis,
 	    double spin_rate);
-
-	/**
-	Saves the gravitional slopes to file
-	@param path Save path
-	*/
-	void save_slopes(std::string path) const;
-
-
-	/**
-	Saves the gravitional potentials to file
-	@param path Save path
-	*/
-	void save_pgm_potentials(std::string path) const;
-
-	/**
-	Saves the gravity acceleration to file.
-	@param path Save path
-	*/
-	void save_pgm_accelerations(std::string path) const;
-
 
 	/**
 	Evaluates the acceleration due to gravity at the provided point using a Polyhedron Gravity Model
@@ -82,9 +62,6 @@ protected:
 
 
 	ShapeModel * shape_model;
-	arma::mat pgm_accelerations;
-	arma::vec pgm_potentials;
-	arma::vec slopes;
 
 
 

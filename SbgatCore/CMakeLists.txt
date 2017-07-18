@@ -104,6 +104,7 @@ source/Vertex.cpp
 source/RefFrame.cpp
 source/FrameGraph.cpp
 source/SyntheticObservations.cpp
+source/FacetResults.cpp
 )
 
 # Linking

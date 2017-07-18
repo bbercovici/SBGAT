@@ -49,7 +49,6 @@ endif()
 
 project(${EXE_NAME})
 
-
 # Specify the version used
 if (${CMAKE_MAJOR_VERSION} LESS 3)
 	message(FATAL_ERROR " You are running an outdated version of CMake")
@@ -66,7 +65,6 @@ include_directories(include)
 include_directories(external/include)
 
 # Find Boost
-set(BOOST_ROOT /usr/local/Cellar/boost/1.63.0/)
 find_package(Boost COMPONENTS filesystem system REQUIRED) 
 include_directories(${Boost_INCLUDE_DIRS}) 
 
@@ -82,7 +80,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED)
 include_directories(${RBK_INCLUDE_DIRS})
-
 
 # Find SBGAT 
 find_package(SbgatCore REQUIRED)
@@ -106,6 +103,7 @@ ${ARMADILLO_LIBRARIES}
 ${SBGATCORE_LIBRARY}
 ${RBK_LIBRARY})
 target_link_libraries(${EXE_NAME} ${library_dependencies})
+
 
 
 
