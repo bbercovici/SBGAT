@@ -1,6 +1,5 @@
 #include <iostream>
 #include <armadillo>
-#include <chrono>
 
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
@@ -37,7 +36,6 @@ int main( int argc, char** argv ) {
 	// First of all, the Polyhedron Gravity Model accelerations are obtained at the center of each facet
 	// The resulting accelerations will be saved within each facet of the shape model in a
 	// FacetResults object
-
 	double density = 2000; //(kg/m^3)
 	dynamic_analyses.compute_pgm_accelerations(density);
 
@@ -47,13 +45,13 @@ int main( int argc, char** argv ) {
 	double spin_rate = 2 * arma::datum::pi / (3600 * 2.7645);
 	arma::vec stats_slopes = dynamic_analyses.compute_gravity_slopes(spin_axis, spin_rate);
 
-	// Some statistics about the slopes are available to us 
+	// Some statistics about the slopes are available
 	std::cout << "Mean slope: "<< stats_slopes(1) << " deg" << std::endl;
 	std::cout << "Min slope: " << stats_slopes(0) << " deg" << std::endl;
 	std::cout << "Max slope: " << stats_slopes(2) << " deg" << std::endl;
 
-	// One can also loop over all the facets to get access to the slopes at the center of each one. For the sake of illustration,
-	// only the first one is accessed this way here
+	// One can also loop over all the facets and get their slopes. This is demonstrated with 
+	// the first facet of the shape model
 	std::cout << "Slope at the center of the first facet of the shape model: " << shape_model.get_facets() -> at(0) -> get_facet_results() -> get_grav_slope() << " deg\n";
 
 
