@@ -1,7 +1,7 @@
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
-# @brief  CMake listing enabling compilation of ShapeLoading example
+# @brief  CMake listing enabling compilation of GravitationalSlopes example
 
 
 ################################################################################

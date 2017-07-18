@@ -23,7 +23,7 @@ int main( int argc, char** argv ) {
 	// An empty shape model associated with the BF frame is created
 	SBGAT_CORE::ShapeModel shape_model("BF", &frame_graph);
 
-	// A shape model importer is created to load in a Bennu shape model 
+	// A shape model importer is created to load in an OBJ shape model 
 	// The vertices coordinates in this OBJ file will be inflated by 1000
 	// in order to have the shape internally represented in meters
 	SBGAT_CORE::ShapeModelImporter shape_io("../bennu.obj", 1000);
@@ -38,6 +38,8 @@ int main( int argc, char** argv ) {
 	// Dynamic analyses are performed on the shape model
 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&shape_model);
 
+	// The acceleration of gravity is evaluated at the point of coordinates (0,0,2000)
+	// in the body-fixed frame
 	double p[3];
 	p[0] = 0;
 	p[1] = 0;
