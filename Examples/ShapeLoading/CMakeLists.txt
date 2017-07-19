@@ -79,7 +79,7 @@ add_definitions(-Wall -O2 )
 include_directories(include)
 
 # Find Boost
-find_package(Boost COMPONENTS Filesystem) 
+find_package(Boost COMPONENTS filesystem) 
 include_directories(${Boost_INCLUDE_DIRS}) 
 
 # Find armadillo package
