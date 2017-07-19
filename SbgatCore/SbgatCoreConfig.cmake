@@ -8,3 +8,6 @@ elseif(UNIX AND NOT APPLE)
 else()
 	message(FATAL_ERROR "Unsupported platform")
 endif()
+
+message("-- Targeting" ${SBGATCORE_LIBRARY})
+
