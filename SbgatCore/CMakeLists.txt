@@ -63,7 +63,7 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
 
         endif()
 else() # Running on a proper Linux machine
-    	set(CMAKE_CXX_FLAGS "-std=c++11")
+    	set(CMAKE_CXX_FLAGS "-std=c++17")
 endif()
 
 
