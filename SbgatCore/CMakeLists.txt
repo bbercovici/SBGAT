@@ -53,6 +53,7 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
         	set(CMAKE_CXX_FLAGS "-std=c++0x")
         else() # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
         	if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
+        		message("Running on Mac ")
         		message("Switching to OMP-friendly GCC ")
 	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-6 CACHE STRING "C Compiler" FORCE)
 				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-6 CACHE STRING "C++ Compiler" FORCE)
@@ -63,7 +64,9 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
 
         endif()
 else() # Running on a proper Linux machine
-    	set(CMAKE_CXX_FLAGS "-std=c++17")
+        message("Running on a Linux machine ")
+
+    	set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
 
