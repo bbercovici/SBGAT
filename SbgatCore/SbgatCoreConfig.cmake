@@ -8,5 +8,5 @@ else()
 	message(FATAL_ERROR "Unsupported platform")
 endif()
 
-message("-- Found SbgatCore: "${SBGATCORE_LIBRARY})
+message("-- Found SbgatCore: " ${SBGATCORE_LIBRARY})
 
