@@ -22,7 +22,7 @@ set (VTK_BUILD_DIR ~/VTK/VTK_release_build/)
 set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.1/clang_64/lib/cmake")
 
 # Path to Qt5 cmake config file (author's ubuntu configuration)
-set (QT_CMAKE_CONFIG_LINUX "~/Qt5.7.1/5.7/gcc_64/lib/cmake/")
+set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.1/gcc_64/lib/cmake/")
 
 
 
