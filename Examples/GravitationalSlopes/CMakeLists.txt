@@ -94,6 +94,13 @@ include_directories(${RBK_INCLUDE_DIRS})
 find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
+
+# Find OpenMP
+find_package(OpenMP REQUIRED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+
 # Add source files in root directory
 add_executable(${EXE_NAME}
 source/main.cpp
