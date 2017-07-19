@@ -39,7 +39,7 @@ else()
 	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
     set (CMAKE_CXX_STANDARD 11)
-	message("This is not a CCAR computer")
+	message("This is a Linux machine. CMAKE_CXX_STANDARD 11 used")
 endif()
 
 # Check what version of the compiler is installed

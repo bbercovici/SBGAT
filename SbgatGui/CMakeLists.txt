@@ -46,7 +46,8 @@ else()
 	# Not sure about this. Should work on a modern Ubuntu system
 	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-	message("This is not a CCAR computer")
+	set (CMAKE_CXX_STANDARD 11)
+	message("This is a Linux machine. CMAKE_CXX_STANDARD 11 used")
 endif()
 
 # Check what version of the compiler is installed
@@ -70,8 +71,6 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
 			set(CMAKE_CXX_FLAGS "-std=c++11")
 
         endif()
-else() # Running on a proper Linux machine
-    	set(CMAKE_CXX_FLAGS "-std=c++11")
 endif()
 
 
