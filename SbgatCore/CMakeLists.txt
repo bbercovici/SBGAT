@@ -40,6 +40,7 @@ elseif(NOT APPLE)
 	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
     set (CMAKE_CXX_STANDARD 17)
 	message("This is a Linux machine. CMAKE_CXX_STANDARD 17 used")
+	message("CMAKE FLAGS :      ${CMAKE_CXX_FLAGS}")
 endif()
 
 # Check what version of the compiler is installed
