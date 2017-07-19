@@ -36,8 +36,8 @@ else()
 	# Not sure about this. Should work on a modern Ubuntu system
 	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-	set (CMAKE_CXX_STANDARD 11)
-	message("This is a Linux machine. CMAKE_CXX_STANDARD 11 used")
+	set (CMAKE_CXX_STANDARD 17)
+	message("This is a Linux machine. CMAKE_CXX_STANDARD 17 used")
 endif()
 
 # Check what version of the compiler is installed

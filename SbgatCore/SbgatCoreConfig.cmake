@@ -1,4 +1,3 @@
-message("-- Found SbgatCore")
 set(SBGATCORE_INCLUDE_HEADER /usr/local/include/SbgatCore/)
 
 if (APPLE)
@@ -9,5 +8,5 @@ else()
 	message(FATAL_ERROR "Unsupported platform")
 endif()
 
-message("-- Targeting" ${SBGATCORE_LIBRARY})
+message("-- Found SbgatCore: "${SBGATCORE_LIBRARY})
 
