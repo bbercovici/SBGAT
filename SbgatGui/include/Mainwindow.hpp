@@ -44,8 +44,11 @@
 #include <vtkCamera.h>
 #include <vtkInteractorStyleSwitch.h>
 
-
 #include "QVTKWidget.h"
+
+#include <QVTKOpenGLWidget.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+
 
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
@@ -70,7 +73,7 @@ class Mainwindow : public QMainWindow {
 
 public:
 	// QVTKWidget
-	QVTKWidget * qvtkWidget;
+	QVTKOpenGLWidget * qvtkWidget;
 
 	// Docks
 	QDockWidget * lateral_dockwidget;

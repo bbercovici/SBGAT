@@ -7,6 +7,7 @@
 
 int main( int argc, char** argv ) {
 
+	QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
 	QApplication app( argc, argv );
 	QLocale::setDefault(QLocale::c());
 

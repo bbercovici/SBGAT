@@ -19,11 +19,13 @@ void Mainwindow::setupUi() {
     this -> resize(990, 583);
 
     this -> lateral_dockwidget = new QDockWidget(this);
-    this -> qvtkWidget = new QVTKWidget(this);
+    this -> qvtkWidget = new QVTKOpenGLWidget(this);
     this -> status_bar = new QStatusBar(this);
     this -> log_console = new QPlainTextEdit(this);
     this -> log_console -> setReadOnly(true);
     this -> shape_table = new QTableWidget(0, 3, this);
+
+
 
     // The status bar is populated
     this -> setStatusBar(this -> status_bar);
@@ -54,6 +56,7 @@ void Mainwindow::setupUi() {
 
     // Central window
     this -> setCentralWidget(qvtkWidget);
+
     this -> setWindowTitle(QStringLiteral("SBGAT (WIP)"));
 
     // Actions and menus are created
@@ -62,7 +65,11 @@ void Mainwindow::setupUi() {
 
     // A VTK renderer is created and linked with the qvtk widget
     this -> renderer = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer< vtkGenericOpenGLRenderWindow> render_window = vtkSmartPointer< vtkGenericOpenGLRenderWindow>::New();
+    this -> qvtkWidget -> SetRenderWindow(render_window);
     this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
+
+
 
     this -> renderer -> SetGradientBackground (true);
     this -> renderer -> SetBackground (0.5, 0.5, 1);
@@ -395,6 +402,8 @@ void Mainwindow::load_shape_model() {
             // A VTK Polydata is created from the loaded shape model
             // and displayed on the QVTKWidget
             this -> create_vtkpolydata_from_shape_model(shape_model.get(), name);
+
+            
             end = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsed_seconds = end - start;
 
