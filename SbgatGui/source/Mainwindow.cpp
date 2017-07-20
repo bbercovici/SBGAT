@@ -69,7 +69,6 @@ void Mainwindow::setupUi() {
     this -> qvtkWidget -> SetRenderWindow(render_window);
     this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
 
-    std::cout << "Done adding renderer" << std::endl;
 
     this -> renderer -> SetGradientBackground (true);
     this -> renderer -> SetBackground (0.5, 0.5, 1);
@@ -84,6 +83,10 @@ void Mainwindow::setupUi() {
     this -> renderWindowInteractor -> SetInteractorStyle( style );
 
     this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
+    std::cout << "Done assigning render window" << std::endl;
+
+
+
 
     vtkSmartPointer<vtkAxesActor> axes =
         vtkSmartPointer<vtkAxesActor>::New();
