@@ -65,7 +65,7 @@ void Mainwindow::setupUi() {
 
     // A VTK renderer is created and linked with the qvtk widget
     this -> renderer = vtkSmartPointer<vtkRenderer>::New();
-    vtkSmartPointer< vtkGenericOpenGLRenderWindow> render_window = vtkSmartPointer< vtkGenericOpenGLRenderWindow>::New();
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> render_window = vtkSmartPointer< vtkGenericOpenGLRenderWindow>::New();
     this -> qvtkWidget -> SetRenderWindow(render_window);
     this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
 
@@ -106,7 +106,7 @@ void Mainwindow::setupUi() {
     this -> show();
 
     std::cout << "Before rendering" << std::endl;
-    // this -> qvtkWidget -> GetRenderWindow() -> Render();
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
     std::cout << "Done rendering" << std::endl;
 
 
