@@ -106,7 +106,7 @@ void Mainwindow::setupUi() {
     this -> show();
 
     std::cout << "Before rendering" << std::endl;
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
+    // this -> qvtkWidget -> GetRenderWindow() -> Render();
     std::cout << "Done rendering" << std::endl;
 
 
