@@ -16,15 +16,15 @@ Mainwindow::Mainwindow() {
 }
 
 void Mainwindow::setupUi() {
-    this -> resize(990, 583);
+    this -> resize(1024, 768);
 
+    // The widget are created
     this -> lateral_dockwidget = new QDockWidget(this);
     this -> qvtkWidget = new QVTKOpenGLWidget(this);
     this -> status_bar = new QStatusBar(this);
     this -> log_console = new QPlainTextEdit(this);
     this -> log_console -> setReadOnly(true);
     this -> shape_table = new QTableWidget(0, 3, this);
-
 
 
     // The status bar is populated
@@ -35,6 +35,7 @@ void Mainwindow::setupUi() {
     QStringList header_lists = {"Name", "Show", " "};
     this -> shape_table -> setHorizontalHeaderLabels(header_lists);
     this -> shape_table ->horizontalHeader()->setStretchLastSection(true);
+
     // Selecting an item in the table highlights the entire row
     this -> shape_table -> setSelectionBehavior(QAbstractItemView::SelectRows);
     this -> shape_table -> setSelectionMode(QAbstractItemView::SingleSelection);
@@ -56,7 +57,6 @@ void Mainwindow::setupUi() {
 
     // Central window
     this -> setCentralWidget(qvtkWidget);
-
     this -> setWindowTitle(QStringLiteral("SBGAT (WIP)"));
 
     // Actions and menus are created
@@ -69,7 +69,7 @@ void Mainwindow::setupUi() {
     this -> qvtkWidget -> SetRenderWindow(render_window);
     this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
 
-
+    std::cout << "Done adding renderer" << std::endl;
 
     this -> renderer -> SetGradientBackground (true);
     this -> renderer -> SetBackground (0.5, 0.5, 1);
@@ -403,7 +403,7 @@ void Mainwindow::load_shape_model() {
             // and displayed on the QVTKWidget
             this -> create_vtkpolydata_from_shape_model(shape_model.get(), name);
 
-            
+
             end = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsed_seconds = end - start;
 
