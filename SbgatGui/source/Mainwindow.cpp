@@ -83,7 +83,6 @@ void Mainwindow::setupUi() {
     this -> renderWindowInteractor -> SetInteractorStyle( style );
 
     this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
-    std::cout << "Done assigning render window" << std::endl;
 
 
 
@@ -106,6 +105,8 @@ void Mainwindow::setupUi() {
 
     this -> show();
     this -> qvtkWidget -> GetRenderWindow() -> Render();
+    std::cout << "Done rendering" << std::endl;
+
 
 }
 
