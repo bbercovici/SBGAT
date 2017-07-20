@@ -104,6 +104,8 @@ void Mainwindow::setupUi() {
             this, SLOT(update_GUI_changed_shape_model()));
 
     this -> show();
+
+    std::cout << "Before rendering" << std::endl;
     this -> qvtkWidget -> GetRenderWindow() -> Render();
     std::cout << "Done rendering" << std::endl;
 
