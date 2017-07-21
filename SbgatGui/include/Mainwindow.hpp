@@ -107,11 +107,7 @@ public:
 	*/
 	void close_lateral_dockwidget();
 
-	/**
-	Returns a pointer to the window interactor
-	*/
-	vtkSmartPointer<vtkRenderWindowInteractor> get_render_window_interactor();
-
+	
 
 	/**
 	Enable/Disables an action in the GUI
@@ -372,7 +368,6 @@ private:
 
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
-	vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 
 	std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
 

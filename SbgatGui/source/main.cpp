@@ -6,8 +6,12 @@
 
 
 int main( int argc, char** argv ) {
+	QSurfaceFormat surfaceFormat = QVTKOpenGLWidget::defaultFormat();
 
-	QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
+	surfaceFormat.setSamples(8);
+
+	surfaceFormat.setStencilBufferSize(8);
+	QSurfaceFormat::setDefaultFormat(surfaceFormat);
 	QApplication app( argc, argv );
 	QLocale::setDefault(QLocale::c());
 

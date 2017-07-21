@@ -74,17 +74,13 @@ void Mainwindow::setupUi() {
     this -> renderer -> SetBackground (0.5, 0.5, 1);
 
     vtkSmartPointer<vtkAreaPicker> areaPicker = vtkSmartPointer<vtkAreaPicker>::New();
-    this -> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    this -> renderWindowInteractor -> SetPicker(areaPicker);
+
 
     vtkSmartPointer<vtkInteractorStyleSwitch> style =
         vtkSmartPointer<vtkInteractorStyleSwitch>::New();
 
-    this -> renderWindowInteractor -> SetInteractorStyle( style );
-
-    this -> renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
-
-
+    render_window -> GetInteractor() -> SetInteractorStyle( style );
+    render_window -> GetInteractor() -> SetPicker(areaPicker);
 
 
     vtkSmartPointer<vtkAxesActor> axes =
@@ -93,7 +89,7 @@ void Mainwindow::setupUi() {
     this -> orientation_widget =
         vtkSmartPointer<vtkOrientationMarkerWidget>::New();
     orientation_widget -> SetOrientationMarker( axes );
-    orientation_widget -> SetInteractor( this -> renderWindowInteractor );
+    orientation_widget -> SetInteractor(render_window -> GetInteractor() );
     orientation_widget -> SetViewport( 0.0, 0.0, 0.2, 0.2 );
     orientation_widget -> SetEnabled( 1 );
     orientation_widget -> InteractiveOff();
@@ -102,6 +98,8 @@ void Mainwindow::setupUi() {
     // A slot is connected to the signal sent by the table when a new selection is made
     connect(this -> shape_table, SIGNAL(currentItemChanged(QTableWidgetItem * , QTableWidgetItem * )),
             this, SLOT(update_GUI_changed_shape_model()));
+    
+    this -> qvtkWidget -> update();
 
     this -> show();
 
@@ -110,9 +108,6 @@ void Mainwindow::setupUi() {
 
 }
 
-vtkSmartPointer<vtkRenderWindowInteractor> Mainwindow::get_render_window_interactor() {
-    return this -> renderWindowInteractor;
-}
 
 void Mainwindow::set_action_status(bool enabled, QAction * action) {
     action -> setEnabled(enabled);
