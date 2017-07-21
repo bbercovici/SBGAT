@@ -106,12 +106,6 @@ include_directories(${Qt5Widgets_INCLUDES})
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
-if(UNIX AND NOT APPLE)
-find_package(Qt5X11Extras REQUIRED)
-        list(APPEND Qt5Widgets_LIBRARIES ${Qt5X11Extras_LIBRARIES} )
-endif(UNIX AND NOT APPLE)
-
-
 # Find VTK Package
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
