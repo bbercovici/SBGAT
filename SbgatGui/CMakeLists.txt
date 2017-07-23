@@ -67,7 +67,7 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
 			else()# no OMP-compliant compiler was found on this mac. 
 				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac. The program will still run but without multithreading")
 		endif()
-		set(CMAKE_CXX_FLAGS "-std=c++11")
+		set(CMAKE_CXX_FLAGS "-std=c++17")
 
 endif()
 

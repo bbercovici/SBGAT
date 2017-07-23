@@ -16,7 +16,8 @@
 
 #include "Mainwindow.hpp"
 
-
+namespace SBGAT_GUI {
+	
 class Mainwindow;
 
 class SettingsWindow : public QDialog {
@@ -49,5 +50,5 @@ protected:
 
 
 };
-
+}
 #endif

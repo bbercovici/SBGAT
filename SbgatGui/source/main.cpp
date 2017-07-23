@@ -2,9 +2,6 @@
 #include "Mainwindow.hpp"
 #include <vtkVersion.h>
 
-#include <ShapeModelImporter.hpp>
-
-
 int main( int argc, char** argv ) {
 
 
@@ -15,7 +12,7 @@ int main( int argc, char** argv ) {
 	QApplication app( argc, argv );
 	QLocale::setDefault(QLocale::c());
 
-	Mainwindow window;
+	SBGAT_GUI::Mainwindow window;
 
 	return app.exec();
 

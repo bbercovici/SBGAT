@@ -23,9 +23,6 @@
 #include <QTableWidget>
 #include <QPushButton>
 #include <QHeaderView>
-
-
-
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
@@ -44,11 +41,8 @@
 #include <vtkCamera.h>
 #include <vtkInteractorStyleSwitch.h>
 
-#include "QVTKWidget.h"
-
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-
 
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
@@ -63,6 +57,10 @@
 
 // forward declaration of InteractorStyle
 class InteractorStyle;
+
+
+namespace SBGAT_GUI {
+
 
 /**
 Declaration of the Mainwindow Class. Main class of the GUI as it hosts the VTK pipeline visualizer and
@@ -421,5 +419,5 @@ private:
 
 
 };
-
+}
 #endif

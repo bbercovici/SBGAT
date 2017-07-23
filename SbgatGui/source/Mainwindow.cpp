@@ -1,8 +1,10 @@
 #include "Mainwindow.hpp"
+using namespace SBGAT_GUI;
 
 // shortcut to interactor modes
 #define INTERACTOR_IS_ORIENT 0
 #define INTERACTOR_IS_SELECT 1
+
 
 Mainwindow::Mainwindow() {
 

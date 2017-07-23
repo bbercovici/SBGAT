@@ -1,8 +1,8 @@
 /**
-\Adjacency_List.hh
+Adjacency_List.hh
 \author Andrew French
 \date Jan 8, 2014
- \brief Adjacency_List class template. This is a template for a graph of vertices
+\brief Adjacency_List class template. This is a template for a graph of vertices
         and edges of types T1 and T2, respectively.
 
 \details The Adjacency_List class is a container class that stores information

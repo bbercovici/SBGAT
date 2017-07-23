@@ -1,6 +1,6 @@
 #include "SettingsWindow.hpp"
 
-
+using namespace SBGAT_GUI;
 
 SettingsWindow::SettingsWindow(Mainwindow * parent) {
 
@@ -68,7 +68,7 @@ SettingsWindow::SettingsWindow(Mainwindow * parent) {
 	                       "border-style: outset;" +
 	                       "border-width: 2px;" +
 	                       "min-width: 5em;" +
-	                       "border-color: beige;" + 
+	                       "border-color: beige;" +
 	                       "border-radius: 10px;");
 
 	this -> open_color_dialog_button -> setStyleSheet(color_string);
@@ -131,7 +131,7 @@ void SettingsWindow::open_color_dialog() {
 		                       "border-style: outset;" +
 		                       "border-width: 2px;" +
 		                       "min-width: 5em;" +
-		                       "border-color: beige;" + 
+		                       "border-color: beige;" +
 		                       "border-radius: 10px;");
 
 		this -> open_color_dialog_button -> setStyleSheet(color_string);
