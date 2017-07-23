@@ -58,6 +58,7 @@
 #include <chrono>
 #include <sstream>
 
+#include "SettingsWindow.hpp"
 
 
 // forward declaration of InteractorStyle
@@ -89,6 +90,10 @@ public:
 	QTableWidget * shape_table;
 
 
+	/**
+	Constructor. Setups the GUI and creates an instance of QVTK Widget
+	*/
+	Mainwindow();
 
 	/**
 	Returns a pointer to the vtkRenderer associated with the window's QVTK widget
@@ -96,18 +101,11 @@ public:
 	*/
 	vtkSmartPointer<vtkRenderer> get_renderer();
 
-	/**
-	Constructor. Setups the GUI and creates an instance of QVTK Widget
-	*/
-	Mainwindow();
-
 
 	/**
 	Closes any opened lateral dockwidget
 	*/
 	void close_lateral_dockwidget();
-
-	
 
 	/**
 	Enable/Disables an action in the GUI
@@ -126,6 +124,12 @@ public:
 	Open load model
 	*/
 	QAction * load_shape_model_action;
+
+
+	/**
+	Open settings window
+	*/
+	QAction * load_settings_window_action;
 
 	/**
 	Save shape model
@@ -186,9 +190,20 @@ public:
 	QAction * save_console_action;
 
 	/**
-	Saves the log console to a file
+	Prints the shape inertia to the log console
 	*/
 	QAction * print_inertia_action;
+
+
+	/**
+	Prints the shape volume to the log console
+	*/
+	QAction * print_volume_action;
+
+	/**
+	Prints the shape surface area to the log console
+	*/
+	QAction * print_surface_action;
 
 	/**
 	Evaluates the polyhedron gravity model at the specified point in the
@@ -196,6 +211,10 @@ public:
 	*/
 	QAction * compute_pgm_acceleration_action;
 
+	/**
+	Opens settings window
+	*/
+	QAction * open_settings_window_action;
 
 	/**
 	Evaluates the polyhedron gravity model at center of each facet, evaluated in the
@@ -250,11 +269,15 @@ private slots:
 
 	void update_GUI_changed_shape_model();
 
+	/**
+	Open settings window
+	*/
 
-
+	void open_settings_window();
 
 
 private:
+
 	/**
 	Creates the GUI actions enabling the user to interact with the software, and connects them to the
 	appropriate slots
@@ -310,6 +333,18 @@ private:
 	to the log console
 	*/
 	void print_inertia() ;
+
+
+	/**
+	Prints volume of active shape (m^3) to the log console
+	*/
+	void print_volume() ;
+
+
+	/**
+	Prints surface of active shape (m^2) to the log console
+	*/
+	void print_surface() ;
 
 
 	/**

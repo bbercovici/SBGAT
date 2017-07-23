@@ -146,7 +146,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir,
 add_executable(${EXE_NAME}
 source/main.cpp
 source/Mainwindow.cpp
+source/SettingsWindow.cpp
 include/Mainwindow.hpp
+include/SettingsWindow.hpp
 )
 
 set(library_dependencies

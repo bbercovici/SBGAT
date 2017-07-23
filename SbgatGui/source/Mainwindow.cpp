@@ -32,7 +32,7 @@ void Mainwindow::setupUi() {
     this -> statusBar() -> showMessage("Ready");
 
     // Headers are added to the shape table
-    QStringList header_lists = {"Name", "Show", " "};
+    QStringList header_lists = {"Name", "Show", "Erase"};
     this -> shape_table -> setHorizontalHeaderLabels(header_lists);
     this -> shape_table ->horizontalHeader()->setStretchLastSection(true);
 
@@ -98,7 +98,7 @@ void Mainwindow::setupUi() {
     // A slot is connected to the signal sent by the table when a new selection is made
     connect(this -> shape_table, SIGNAL(currentItemChanged(QTableWidgetItem * , QTableWidgetItem * )),
             this, SLOT(update_GUI_changed_shape_model()));
-    
+
     this -> qvtkWidget -> update();
 
     this -> show();
@@ -150,6 +150,13 @@ void Mainwindow::set_background_color() {
 }
 
 
+void Mainwindow::open_settings_window() {
+
+    SettingsWindow settings_window(this);
+    settings_window.exec();
+
+}
+
 void Mainwindow::createActions() {
 
     this -> set_background_color_action = new QAction(tr("Background Color"), this);
@@ -157,10 +164,13 @@ void Mainwindow::createActions() {
     connect(this -> set_background_color_action, &QAction::triggered, this, &Mainwindow::set_background_color);
 
 
-    this -> load_shape_model_action = new QAction(tr("Load shape model"), this);
+    this -> load_shape_model_action = new QAction(tr("Load"), this);
     this -> load_shape_model_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
     connect(this -> load_shape_model_action, &QAction::triggered, this, &Mainwindow::load_shape_model);
 
+    this -> open_settings_window_action = new QAction(tr("Settings"), this);
+    this -> open_settings_window_action -> setStatusTip(tr("Open settings window where SbgatGUI settings can be set"));
+    connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
 
     this -> show_lateral_dockwidget_action = new QAction(tr("Show lateral widget"), this);
     this -> show_lateral_dockwidget_action -> setStatusTip(tr("Shows/hides lateral widget holding shape model information"));
@@ -177,9 +187,19 @@ void Mainwindow::createActions() {
     connect(this -> save_console_action, &QAction::triggered, this, &Mainwindow::save_console);
 
 
-    this -> print_inertia_action = new QAction(tr("Get inertia tensor"), this);
+    this -> print_inertia_action = new QAction(tr("Print inertia tensor"), this);
     this -> print_inertia_action -> setStatusTip(tr("Print inertia tensor to the log console"));
     connect(this -> print_inertia_action, &QAction::triggered, this, &Mainwindow::print_inertia);
+
+    this -> print_volume_action = new QAction(tr("Print volume "), this);
+    this -> print_volume_action -> setStatusTip(tr("Print volume to the log console"));
+    connect(this -> print_volume_action, &QAction::triggered, this, &Mainwindow::print_volume);
+
+
+    this -> print_surface_action = new QAction(tr("Print surface "), this);
+    this -> print_surface_action -> setStatusTip(tr("Print surface to the log console"));
+    connect(this -> print_surface_action, &QAction::triggered, this, &Mainwindow::print_surface);
+
 
 
     this -> compute_pgm_acceleration_action = new QAction(tr("Compute PGM acceleration"), this);
@@ -209,6 +229,9 @@ void Mainwindow::update_actions_availability() {
     if (this -> shape_models.size() == 0) {
 
         this -> print_inertia_action -> setEnabled(false);
+        this -> print_volume_action -> setEnabled(false);
+        this -> print_surface_action -> setEnabled(false);
+
         this -> compute_pgm_acceleration_action -> setEnabled(false);
         this -> compute_global_pgm_acceleration_action -> setEnabled(false);
         this -> compute_grav_slopes_action -> setEnabled(false);
@@ -219,6 +242,9 @@ void Mainwindow::update_actions_availability() {
 
         // These options become available for all shape models
         this -> print_inertia_action -> setEnabled(true);
+        this -> print_volume_action -> setEnabled(true);
+        this -> print_surface_action -> setEnabled(true);
+
         this -> compute_pgm_acceleration_action -> setEnabled(true);
         this -> compute_global_pgm_acceleration_action -> setEnabled(true);
 
@@ -227,7 +253,6 @@ void Mainwindow::update_actions_availability() {
 
         if (this -> consistent_global_accelerations[name] == true) {
             this -> compute_grav_slopes_action -> setEnabled(true);
-
         }
         else {
             this -> compute_grav_slopes_action -> setEnabled(false);
@@ -463,7 +488,7 @@ void Mainwindow::add_shape_to_table_widget(std::string name) {
     QHBoxLayout* layout = new QHBoxLayout(button_container);
 
     QPushButton * erase_shape_button = new QPushButton(button_container);
-    erase_shape_button -> setText("Erase");
+    erase_shape_button -> setText("X");
 
     erase_shape_button -> setProperty("name", QVariant(QString::fromStdString(name)));
     layout -> addWidget(erase_shape_button);
@@ -557,6 +582,30 @@ void Mainwindow::remove_shape() {
 
 
 
+
+
+
+
+void Mainwindow::print_volume() {
+    int selected_row_index = this -> shape_table -> selectionModel() -> currentIndex().row();
+    std::string name = this -> shape_table -> item(selected_row_index, 0) -> text() .toStdString();
+    auto active_shape  =  this -> shape_models[name];
+
+    this -> log_console -> appendPlainText(QString::fromStdString("- Volume of " + name + " (m^3) :"));
+    this -> log_console -> appendPlainText(" " + QString::number(active_shape -> get_volume()));
+}
+
+
+
+void Mainwindow::print_surface() {
+    int selected_row_index = this -> shape_table -> selectionModel() -> currentIndex().row();
+    std::string name = this -> shape_table -> item(selected_row_index, 0) -> text() .toStdString();
+    auto active_shape  =  this -> shape_models[name];
+
+    this -> log_console -> appendPlainText(QString::fromStdString("- Surface of " + name + " (m^2) :"));
+    this -> log_console -> appendPlainText(" " + QString::number(active_shape -> get_surface_area()));
+}
+
 void Mainwindow::print_inertia() {
     int selected_row_index = this -> shape_table -> selectionModel() -> currentIndex().row();
     std::string name = this -> shape_table -> item(selected_row_index, 0) -> text() .toStdString();
@@ -566,8 +615,6 @@ void Mainwindow::print_inertia() {
     std::stringstream ss;
     active_shape -> get_inertia().print(ss);
     this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-
 }
 
 
@@ -906,18 +953,23 @@ void Mainwindow::compute_pgm_acceleration() {
 
 
 void Mainwindow::createMenus() {
-    this -> FileMenu = menuBar()->addMenu(tr("&File"));
+    this -> FileMenu = menuBar() -> addMenu(tr("&File"));
     this -> FileMenu -> addAction(this -> load_shape_model_action);
+    this -> FileMenu -> addAction(this -> open_settings_window_action);
 
     this -> ViewMenu = menuBar() -> addMenu(tr("&View"));
     this -> ViewMenu -> addAction(this -> set_background_color_action);
     this -> ViewMenu -> addAction(this -> show_lateral_dockwidget_action);
     this -> ViewMenu -> addSeparator();
 
-    this -> ShapeMenu = menuBar() -> addMenu(tr("&Shape Model"));
+    this -> ShapeMenu = menuBar() -> addMenu(tr("&Measures"));
+
+    this -> ShapeMenu -> addAction(this -> print_surface_action);
+    this -> ShapeMenu -> addAction(this -> print_volume_action);
     this -> ShapeMenu -> addAction(this -> print_inertia_action);
 
-    this -> DynamicAnalysesMenu = menuBar() -> addMenu(tr("&Dynamic Analyses"));
+
+    this -> DynamicAnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
     this -> DynamicAnalysesMenu -> addAction(this -> compute_pgm_acceleration_action);
     this -> DynamicAnalysesMenu -> addSeparator();
     this -> DynamicAnalysesMenu -> addAction(this -> compute_global_pgm_acceleration_action);
@@ -927,7 +979,7 @@ void Mainwindow::createMenus() {
     this -> ResultsMenu = menuBar() -> addMenu(tr("&Results"));
     this -> ResultsMenu -> addAction(this -> show_grav_slopes_action);
 
-    this -> ConsoleMenu = menuBar() -> addMenu(tr("&Log Console"));
+    this -> ConsoleMenu = menuBar() -> addMenu(tr("&Console"));
     this -> ConsoleMenu -> addAction(this -> clear_console_action);
     this -> ConsoleMenu -> addAction(this -> save_console_action);
 
