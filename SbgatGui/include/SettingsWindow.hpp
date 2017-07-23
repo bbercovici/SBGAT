@@ -1,3 +1,14 @@
+/**
+SettingsWindow.hpp
+\author Benjamin Bercovici
+\date July 22, 2017
+\brief SettingsWindow class enabling preferences setting.
+
+\details This class inherits from QDialog and enables the
+user to set a number of options. Default options values will eventually be
+saved to a hidden configuration file loaded anytime SbgatGui starts up
+*/
+
 
 #ifndef HEADER_SETTINGSWINDOW
 #define HEADER_SETTINGSWINDOW
@@ -17,7 +28,7 @@
 #include "Mainwindow.hpp"
 
 namespace SBGAT_GUI {
-	
+
 class Mainwindow;
 
 class SettingsWindow : public QDialog {
@@ -26,14 +37,22 @@ class SettingsWindow : public QDialog {
 public:
 
 	/**
-	Constructor
+	Creates the settings window
+	@param parent pointer to parent window.
 	*/
 	SettingsWindow(Mainwindow * parent) ;
 
 
 private slots:
-
+	
+	/**
+	Applies the currently seleted options to SbgatGUI
+	*/
 	void accept();
+
+	/**
+	Opens up QColorPalette where a background color can be selected.
+	*/
 	void open_color_dialog();
 
 

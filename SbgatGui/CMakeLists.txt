@@ -147,8 +147,10 @@ add_executable(${EXE_NAME}
 source/main.cpp
 source/Mainwindow.cpp
 source/SettingsWindow.cpp
+source/ModelDataWrapper.cpp
 include/Mainwindow.hpp
 include/SettingsWindow.hpp
+include/ModelDataWrapper.hpp
 )
 
 set(library_dependencies

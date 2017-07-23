@@ -140,16 +140,6 @@ void Mainwindow::update_GUI_changed_shape_model() {
 
 }
 
-void Mainwindow::set_background_color() {
-    QColorDialog *  palette = new QColorDialog(this);
-
-    QColor qcolor =  palette -> getColor();
-    if (qcolor.isValid()) {
-        this -> renderer -> SetBackground (float(qcolor.red()) / 255, float(qcolor.green()) / 255, float(qcolor.blue()) / 255);
-        this -> qvtkWidget -> GetRenderWindow() -> Render();
-    }
-
-}
 
 
 void Mainwindow::open_settings_window() {
@@ -160,10 +150,6 @@ void Mainwindow::open_settings_window() {
 }
 
 void Mainwindow::createActions() {
-
-    this -> set_background_color_action = new QAction(tr("Background Color"), this);
-    this -> set_background_color_action -> setStatusTip(tr("Set the background color"));
-    connect(this -> set_background_color_action, &QAction::triggered, this, &Mainwindow::set_background_color);
 
 
     this -> load_shape_model_action = new QAction(tr("Load"), this);
@@ -949,8 +935,6 @@ void Mainwindow::compute_pgm_acceleration() {
     }
 
 
-
-
 }
 
 
@@ -960,7 +944,6 @@ void Mainwindow::createMenus() {
     this -> FileMenu -> addAction(this -> open_settings_window_action);
 
     this -> ViewMenu = menuBar() -> addMenu(tr("&View"));
-    this -> ViewMenu -> addAction(this -> set_background_color_action);
     this -> ViewMenu -> addAction(this -> show_lateral_dockwidget_action);
     this -> ViewMenu -> addSeparator();
 
