@@ -25,7 +25,9 @@ namespace SBGAT_GUI {
 \brief Worker class. Provides interface between SbgatCore, SbgatGUI and QThreads
 
 \details This class is used an interface to a QThread, enabling heavy data processing outside of the
-main thread within which the GUI lives. This allows to the GUI to remain responsive
+main thread within which the GUI lives. This allows to the GUI to remain responsive. Its implementation
+was based on the very informative blog post by Maya Posch at
+https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
 */
 class Worker: public QObject {
 	Q_OBJECT
@@ -47,12 +49,12 @@ public:
 public slots:
 	/**
 	Computes the global PGM acceleration over the provided shape model
-	*/		
+	*/
 	void process_pgm_acc();
 
 	/**
 	Computes the global PGM potentials over the provided shape model
-	*/		
+	*/
 	void process_pgm_pot() ;
 
 
