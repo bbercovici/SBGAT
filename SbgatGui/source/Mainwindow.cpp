@@ -766,7 +766,7 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses, density, this -> wrapped_data[name],
-                                     name, this -> log_console);
+                                     name);
         worker ->  moveToThread(thread);
         connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_acc()));
         connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
@@ -809,8 +809,10 @@ void Mainwindow::compute_global_pgm_potential() {
         this -> shape_table -> setDisabled(true);
 
         QThread * thread = new QThread;
-        Worker * worker = new Worker(dyn_analyses, density, this -> wrapped_data[name],
-                                     name, this -> log_console);
+        Worker * worker = new Worker(dyn_analyses,
+                                     density,
+                                     this -> wrapped_data[name],
+                                     name);
         worker ->  moveToThread(thread);
         connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_pot()));
         connect(worker, SIGNAL(finished()), thread, SLOT(quit()));

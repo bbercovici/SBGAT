@@ -6,12 +6,11 @@ using namespace SBGAT_GUI;
 Worker::Worker(std::shared_ptr<SBGAT_CORE::DynamicAnalyses> dyn_analyses,
                double density,
                std::shared_ptr<ModelDataWrapper> model_data,
-               std::string name, QPlainTextEdit * log_console) {
+               std::string name) {
 
 	this -> dyn_analyses = dyn_analyses;
 	this -> density = density;
 	this -> name = name;
-	this -> log_console = log_console;
 	this -> model_data = model_data;
 
 }
@@ -34,7 +33,7 @@ void Worker::process_pgm_acc() {
 	// Log out
 	QString log_out = QString::fromStdString("\n- Done computing in ")
 	                  + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s");
-	
+
 	emit logging_out(log_out);
 	emit free_gui(true);
 	emit finished();
@@ -54,7 +53,7 @@ void Worker::process_pgm_pot() {
 	// Log out
 	QString log_out = QString::fromStdString("\n- Done computing in ")
 	                  + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s");
-	
+
 	emit logging_out(log_out);
 	emit free_gui(true);
 	emit finished();
