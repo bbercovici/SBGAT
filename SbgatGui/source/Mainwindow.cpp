@@ -763,6 +763,8 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
         // The shape selection table is frozen
         this -> shape_table -> setDisabled(true);
+        this -> menuBar() -> setDisabled(true);
+
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses, density, this -> wrapped_data[name],
@@ -774,8 +776,9 @@ void Mainwindow::compute_global_pgm_acceleration() {
         connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
-        connect(worker, SIGNAL(free_gui(bool)), this -> shape_table, SLOT(setEnabled(bool)));
-
+        connect(worker, SIGNAL(free_shape_table(bool)), this -> shape_table, SLOT(setEnabled(bool)));
+        connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
+       
         thread -> start();
 
 
@@ -807,6 +810,8 @@ void Mainwindow::compute_global_pgm_potential() {
 
         // The shape selection table is frozen
         this -> shape_table -> setDisabled(true);
+        this -> menuBar()  -> setDisabled(true);
+
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses,
@@ -821,7 +826,8 @@ void Mainwindow::compute_global_pgm_potential() {
         connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
         connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
         connect(worker, SIGNAL(finished()), this, SLOT(update_vtk_potentials()));
-        connect(worker, SIGNAL(free_gui(bool)), this -> shape_table, SLOT(setEnabled(bool)));
+        connect(worker, SIGNAL(free_shape_table(bool)), this -> shape_table, SLOT(setEnabled(bool)));
+        connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
 
         thread -> start();
 
@@ -1066,7 +1072,7 @@ void Mainwindow::compute_pgm_acceleration() {
 
 
 void Mainwindow::createMenus() {
-    this -> FileMenu = menuBar() -> addMenu(tr("&File"));
+    this -> FileMenu = this -> menuBar() -> addMenu(tr("&File"));
     this -> FileMenu -> addAction(this -> load_shape_model_action);
     this -> FileMenu -> addAction(this -> open_settings_window_action);
 

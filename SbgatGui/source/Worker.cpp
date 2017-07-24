@@ -35,7 +35,10 @@ void Worker::process_pgm_acc() {
 	                  + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s");
 
 	emit logging_out(log_out);
-	emit free_gui(true);
+	emit free_shape_table(true);
+	emit free_menu_bar(true);
+
+
 	emit finished();
 }
 
@@ -55,7 +58,9 @@ void Worker::process_pgm_pot() {
 	                  + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s");
 
 	emit logging_out(log_out);
-	emit free_gui(true);
+	emit free_shape_table(true);
+	emit free_menu_bar(true);
+
 	emit finished();
 }
 

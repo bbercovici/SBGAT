@@ -25,7 +25,7 @@ namespace SBGAT_GUI {
 \brief Worker class. Provides interface between SbgatCore, SbgatGUI and QThreads
 
 \details This class is used an interface to a QThread, enabling heavy data processing outside of the
-main thread within which the GUI lives. This allows to the GUI to remain responsive. Its implementation
+main thread within which the GUI lives. This allows the GUI to remain responsive. Its implementation
 was based on the very informative blog post by Maya Posch at
 https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
 */
@@ -62,8 +62,23 @@ signals:
 	void progress(int);
 	void finished();
 	void error(QString err);
+	/**
+	Passes on a QString message to the console on the mainwindow
+	@param log_out Log out messa
+	*/
 	void logging_out(QString log_out);
-	void free_gui(bool gui_status);
+
+	/**
+	Enables/disables log console
+	@param console_status log console status
+	*/
+	void free_shape_table(bool console_status);
+
+	/**
+	Enables/disables menu bar
+	@param menu_status menu bar status
+	*/
+	void free_menu_bar(bool menu_status);
 
 
 
