@@ -1,14 +1,3 @@
-/**
-SettingsWindow.hpp
-\author Benjamin Bercovici
-\date July 22, 2017
-\brief SettingsWindow class enabling preferences setting.
-
-\details This class inherits from QDialog and enables the
-user to set a number of options. Default options values will eventually be
-saved to a hidden configuration file loaded anytime SbgatGui starts up
-*/
-
 
 #ifndef HEADER_SETTINGSWINDOW
 #define HEADER_SETTINGSWINDOW
@@ -30,6 +19,17 @@ saved to a hidden configuration file loaded anytime SbgatGui starts up
 namespace SBGAT_GUI {
 
 class Mainwindow;
+
+/*!
+@class SettingsWindow
+\author Benjamin Bercovici
+\date July 22, 2017
+\brief SettingsWindow class enabling preferences setting.
+
+\details This class inherits from QDialog and enables the
+user to set a number of options. Default options values will eventually be
+saved to a hidden configuration file loaded anytime SbgatGui starts up.
+*/
 
 class SettingsWindow : public QDialog {
 	Q_OBJECT

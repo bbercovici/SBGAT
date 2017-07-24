@@ -47,3 +47,33 @@ void ModelDataWrapper::set_actor(vtkSmartPointer<vtkActor> actor) {
 
 
 
+bool ModelDataWrapper::get_global_pgm_acc() const {
+	return this -> consistent_global_acceleration;
+}
+
+
+bool ModelDataWrapper::get_global_pgm_pot() const {
+	return this -> consistent_global_potential;
+}
+
+
+bool ModelDataWrapper::get_grav_slopes() const {
+	return this -> consistent_grav_slope;
+}
+
+void ModelDataWrapper::set_global_pgm_acc(bool global_pgm_acc) {
+	this -> consistent_global_acceleration = global_pgm_acc;
+}
+
+
+void ModelDataWrapper::set_global_pgm_pot(bool global_pgm_pot) {
+	this -> consistent_global_potential = global_pgm_pot;
+}
+
+
+
+void ModelDataWrapper::set_grav_slopes(bool grav_slopes) {
+	this -> consistent_grav_slope = grav_slopes;
+}
+
+

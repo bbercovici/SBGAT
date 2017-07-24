@@ -1,16 +1,3 @@
-/**
-ModelDataWrapper.hpp
-\author Benjamin Bercovici
-\date July 22, 2017
-\brief ModelDataWrapper class. Convenient wrapper around SbgatCore shape models, VTK entities and 
-other shape-related that must remain together
-
-\details This class stores pointers to various elements belonging to the same "shape model" and
-that should not be separated. This includes the SbgatCore::ShapeModel object itself, its associated vtkPolydata,
-vtkActor, vtkMapper, and also several boolean variables that are used to keep the GUI consistent at all time.
-Using this wrapping structure thus helps condensing the code by providing unified access to all these
-elements through a unique interface.
-*/
 
 
 
@@ -25,6 +12,19 @@ elements through a unique interface.
 
 namespace SBGAT_GUI {
 
+/*!
+@class ModelDataWrapper
+\author Benjamin Bercovici
+\date July 22, 2017
+\brief ModelDataWrapper class. Convenient wrapper around SbgatCore shape models, VTK entities and
+other shape-related that must remain together
+
+\details This class stores pointers to various elements belonging to the same "shape model" and
+that should not be separated. This includes the SbgatCore::ShapeModel object itself, its associated vtkPolydata,
+vtkActor, vtkMapper, and also several boolean variables that are used to keep the GUI consistent at all time.
+Using this wrapping structure thus helps condensing the code by providing unified access to all these
+elements through a unique interface.
+*/
 
 class ModelDataWrapper {
 
@@ -85,6 +85,54 @@ public:
 	void set_actor(vtkSmartPointer<vtkActor> actor);
 
 
+	/**
+	Accessor to consistent_global_acceleration.
+	@return true if global pgm accelerations have been computed
+	*/
+	bool get_global_pgm_acc() const;
+
+
+	/**
+	Accessor to consistent_global_potential
+	@return true if global pgm potentials have been computed
+	*/
+	bool get_global_pgm_pot() const;
+
+	/**
+	Accessor to consistent_grav_slope.
+	@return true gravity slopes have been computed
+	*/
+	bool get_grav_slopes() const;
+
+	/**
+	Setter to consistent_global_acceleration
+	@param global_pgm true if consistent global accelerations have been
+	computed
+	*/
+
+	void set_global_pgm_acc(bool global_pgm_acc);
+
+
+	/**
+	Setter to consistent_global_potential
+	@param global_pgm_pot true if consistent global potentials have been
+	computed
+	*/
+	void set_global_pgm_pot(bool global_pgm_pot);
+
+
+	/**
+	Setter to consistent_global_acceleration
+	@param grav_slopes true if consistent global accelerations have been
+	computed
+	*/
+
+	void set_grav_slopes(bool grav_slopes);
+
+
+
+
+
 protected:
 
 	std::shared_ptr<SBGAT_CORE::ShapeModel>  shape_model;
@@ -92,8 +140,11 @@ protected:
 	vtkSmartPointer<vtkPolyDataMapper>  mapper;
 	vtkSmartPointer<vtkActor>  actor;
 
-	bool consistent_global_acceleration;
-	bool consistent_grav_slope;
+	bool consistent_global_acceleration = false;
+	bool consistent_global_potential = false;
+
+	bool consistent_grav_slope = false;
+
 
 
 };

@@ -1,14 +1,9 @@
-/**
-Mainwindow.hpp
+/*!
+@file Mainwindow.hpp
 \author Benjamin Bercovici
 \date July 22, 2017
-\brief Mainwindow class. This is the main class of the SbgatGUI application
-
-\details This class inherits from QMainWindow and hosts the QVTKOpenGLWidget where
-all rendering and display tasks occur. Also exposes SbgatCore classes to the user
-through the user interface layer brought by Qt.
+\brief Stores definition of the Mainwindow class.
 */
-
 
 #ifndef HEADER_MAINWINDOW
 #define HEADER_MAINWINDOW
@@ -34,6 +29,8 @@ through the user interface layer brought by Qt.
 #include <QTableWidget>
 #include <QPushButton>
 #include <QHeaderView>
+#include <QThread>
+
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
@@ -65,18 +62,25 @@ through the user interface layer brought by Qt.
 
 #include "SettingsWindow.hpp"
 #include "ModelDataWrapper.hpp"
-
-
-// Forward declaration of InteractorStyle
-class InteractorStyle;
+#include "Worker.hpp"
 
 
 namespace SBGAT_GUI {
 
+// Forward declaration of InteractorStyle
+class InteractorStyle;
 
-/**
-Main class of the GUI as it hosts the VTK pipeline visualizer and
+/*!
+@class Mainwindow
+\author Benjamin Bercovici
+\date July 22, 2017
+\brief Mainwindow class. This is the main class of the SbgatGUI application
+
+\details {Main class of the GUI as it hosts the VTK pipeline visualizer and
 the actions/menus allowing the user to interact with the program data.
+This class inherits from QMainWindow and hosts the QVTKOpenGLWidget where
+all rendering and display tasks occur. Also exposes SbgatCore classes to the user
+through the user interface layer brought by Qt.}
 */
 
 class Mainwindow : public QMainWindow {
@@ -197,6 +201,13 @@ public:
 	*/
 	QAction * compute_global_pgm_acceleration_action;
 
+
+	/**
+	When triggered, starts global polyhedron gravity model potential evaluation. Queries the
+	bulk density of attracting body before computing pgm potential at the center of each facet.
+	*/
+	QAction * compute_global_pgm_potential_action;
+
 	/**
 	When triggered, starts evaluation sequence of gravitational slope at the center of each facet.
 	Will query orientation of spin axis along with spin rate. Only available if the
@@ -210,6 +221,13 @@ public:
 	computed gravitational slopes can be turned on/off.
 	*/
 	QAction * show_grav_slopes_action;
+
+
+	/**
+	When triggered, opens up a widget where visibility of
+	computed gravitational potentials can be turned on/off.
+	*/
+	QAction * show_global_pgm_pot_action;
 
 
 	// Slots
@@ -249,6 +267,17 @@ private slots:
 	void open_settings_window();
 
 
+	/**
+	Transfer results of gravity slopes computation into VTK.
+	*/
+	void update_vtk_slopes() ;
+
+	/**
+	Transfer results of gravity potential computation into VTK.
+	*/
+	void update_vtk_potentials();
+
+
 private:
 
 	/**
@@ -259,12 +288,12 @@ private:
 
 
 	/**
-	Removes props associated with display of gravity slopes.
+	Removes props associated with display of results
 	@param name name of shape model associated with the removal of the visual props
 	@param remove_all true if all props should be removed. Otherwise only those corresponding to the
 	name in argument will be removed.
 	*/
-	void remove_grav_slopes_props(std::string name, bool remove_all) ;
+	void remove_results_visual_props(std::string name, bool remove_all) ;
 
 
 	/**
@@ -298,10 +327,13 @@ private:
 	*/
 	void show_grav_slopes();
 
+
 	/**
-	Transfer results of gravity slopes computation into VTK.
+	Show gravitational potentials by choosing one shape model for which gravitational potentials are available.
 	*/
-	void update_vtk_slopes() ;
+	void show_global_pgm_pot();
+
+
 
 	/**
 	Prints dimensionless principal inertia tensor of the active shape (assuming constant density)
@@ -329,6 +361,8 @@ private:
 	void compute_pgm_acceleration();
 
 
+
+
 	/**
 	Computes the polyhedron gravity model acceleration at the center of each facet,
 	expressed in the shape's principal body frame.
@@ -337,8 +371,14 @@ private:
 
 
 	/**
+	Computes the polyhedron gravity model potential at the center of each facet
+	*/
+	void compute_global_pgm_potential() ;
+
+
+	/**
 	Computes the gravity slopes at the center of each facet.
-	The gravity acceleration at each facet must have been completed first, so this
+	The gravity acceleration at each facet must have been computed first, so this
 	method is not accessible before it is the case for the currently selected
 	shape model.
 	*/
@@ -347,12 +387,12 @@ private:
 
 
 	/**
-	Creates and display a vtkPolyData corresponding to the provided shape model
-	@param shape_model pointer to instantiated shape model
-	@param name name under which the polydata should be saved
+	Creates and display a vtkPolyData corresponding to the provided shape model.
+	Also stores the associated vtkPolyDataMapper and vtkActor
+	@param model_data pointer to the ModelDataWrapper housing the data
+	related to the shape model being created
 	*/
-	void create_vtkpolydata_from_shape_model(SBGAT_CORE::ShapeModel * shape_model,
-	        std::string name);
+	void create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWrapper> model_data);
 
 	/**
 	Shows/hides lateral dockwidget.
@@ -376,20 +416,11 @@ private:
 	QMenu * ConsoleMenu;
 	QMenu * ResultsMenu;
 
-
-
 	vtkSmartPointer<vtkRenderer> renderer;
 	vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
 
 	std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
 
-	std::map<std::string, std::shared_ptr<SBGAT_CORE::ShapeModel> > shape_models;
-	std::map<std::string, vtkSmartPointer<vtkPolyData> > polydatas;
-	std::map<std::string, vtkSmartPointer<vtkPolyDataMapper> > mappers;
-	std::map<std::string, vtkSmartPointer<vtkActor> > actors;
-
-	std::map<std::string, bool > consistent_global_accelerations;
-	std::map<std::string, bool > consistent_grav_slopes;
 
 	std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_data;
 
