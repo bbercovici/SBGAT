@@ -11,7 +11,6 @@ void ShapeModel::update_mass_properties() {
 	this -> compute_surface_area();
 	this -> compute_volume();
 	this -> compute_center_of_mass();
-	this -> compute_inertia();
 
 }
 
@@ -187,6 +186,9 @@ void ShapeModel::align_with_principal_axes() {
 
 	arma::vec moments;
 	arma::mat axes ;
+
+	this -> compute_inertia();
+
 
 	double T = arma::trace(this -> inertia) ;
 	double Pi = 0.5 * (T * T - arma::trace(this -> inertia * this -> inertia));

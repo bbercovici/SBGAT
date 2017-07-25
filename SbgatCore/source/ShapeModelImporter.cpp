@@ -134,7 +134,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		}
 	}
 
-	// The surface area, volume, center of mass and inertia of the shape model
+	// The surface area, volume, center of mass of the shape model
 	// are computed
 	shape_model -> update_mass_properties();
 
@@ -144,6 +144,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 	// The shape model is then rotated so as to be oriented
 	// with respect to its principal axes
+	// The inertia tensor expressed in the principal is computed on this occasion
 	shape_model -> align_with_principal_axes();
 
 	// Edges and facets are updated (their dyads, normals and centers
