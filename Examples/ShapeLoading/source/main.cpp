@@ -26,7 +26,7 @@ int main( int argc, char** argv ) {
 	// A shape model importer is created to load in an OBJ shape model 
 	// The vertices coordinates in this OBJ file will be inflated by 1000
 	// in order to have the shape internally represented in meters
-	SBGAT_CORE::ShapeModelImporter shape_io("../bennu.obj", 1000);
+	SBGAT_CORE::ShapeModelImporter shape_io("../../GravitationalSlopes/KW4Alpha.obj", 1000);
 
 	// The shape model is built by connecting the shape model importer and the 
 	// shape model
