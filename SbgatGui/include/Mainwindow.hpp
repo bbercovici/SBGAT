@@ -183,6 +183,12 @@ public:
 	*/
 	QAction * print_surface_action;
 
+
+	/**
+	When triggered, prints the center of mass coordinates to the log console
+	*/
+	QAction * print_center_of_mass_action;
+
 	/**
 	When triggered, starts polyhedron gravity model computation sequence by
 	querying point coordinates in the
@@ -346,6 +352,12 @@ private:
 	Prints volume of active shape (m^3) to the log console.
 	*/
 	void print_volume() ;
+
+
+	/**
+	Prints center of mass coordinates shape (m) to the log console.
+	*/
+	void print_center_of_mass() ;
 
 
 	/**

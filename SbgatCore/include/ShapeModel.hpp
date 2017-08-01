@@ -76,7 +76,7 @@ public:
 	Determines whether the provided point lies inside or outside the shape model.
 	The shape model must have a closed surface for this method to be trusted
 	@param point coordinates of the point to be tested expressed in the shape model frame
-	@param tol numerical tolerance ,i.e value under which the lagrangian of the "surface field"
+	@param tol numerical tolerance ,i.e value under which the laplacian of the "surface field"
 		below which the point is considered outside
 	@return true if point is contained inside the shape, false otherwise
 	*/
@@ -117,6 +117,14 @@ public:
 	to the shape model
 	*/
 	void set_ref_frame_name(std::string ref_frame_name);
+
+
+	/**
+	Translates and rotates the shape model so as to have (0,0,0) aligned with its
+	barycenter and (1,0,0), (0,1,0) and (0,0,1) with its principal axes
+	*/
+
+	void shift_rotate_to_principal_frame();
 
 	/**
 	Pointer to the shape model's vertices
@@ -162,10 +170,20 @@ public:
 	double get_volume() const;
 
 	/**
-	Returns the location of the center of mass
-	@return pointer to center of mass
+	Returns the center of mass of the shape expressed in the reference
+	frame used before the most recent call to shift_rotate_to_principal_frame
+	@return center of mass coordinates in reference frame in use before calling shift_rotate_to_principal_frame
 	*/
-	arma::vec * get_center_of_mass();
+	arma::vec get_center_of_mass() const;
+
+
+	/**
+	Returns the DCM orienting the shape's principal axes and
+	the reference frame used before the most recent call to shift_rotate_to_principal_frame
+	@return DCM : P_principal_axis_at_loading_time = DCM * P_in_original_frame
+	*/
+	arma::mat get_original_to_principal_dcm() const;
+
 
 	/**
 	Returns the name of the reference frame attached to this
@@ -198,13 +216,7 @@ public:
 	void update_facets(std::set<Facet *> & facets);
 
 
-	/**
-	Shifts the coordinates of the shape model
-	so as to have (0,0,0) aligned with its barycenter
 
-	The resulting barycenter coordinates are (0,0,0)
-	*/
-	void shift_to_barycenter();
 
 	/**
 	Applies a rotation that aligns the body
@@ -229,22 +241,25 @@ public:
 	void enforce_mesh_quality(double min_facet_angle, double min_edge_angle) ;
 
 	/**
-	Returns the non-dimensional inertia tensor of the body in the body-fixed
-	principal axes. (rho == 1, l = (volume)^(1/3))
-	@return principal inertia tensor
+	Returns the non-dimensional inertia tensor of the body in a
+	barycentric frame (rho == 1, l = (volume)^(1/3))
+	@return inertia tensor
 	*/
 	arma::mat get_inertia() const;
 
-
-
-
 protected:
 
+	/**
+	Shifts the coordinates of the shape model
+	so as to have (0,0,0) aligned with its barycenter
+	*/
+	void shift_to_barycenter();
 
 	void compute_surface_area();
 	void compute_volume();
 	void compute_center_of_mass();
 	void compute_inertia();
+	void compute_principal_axes();
 
 	std::vector<Facet * >  facets;
 	std::vector<std::shared_ptr< Edge> >  edges;
@@ -253,7 +268,13 @@ protected:
 	double volume;
 	double surface_area;
 
+	bool barycenter_aligned ;
+	bool principal_axes_aligned ;
+
+
 	arma::vec cm;
+	arma::mat original_to_principal_dcm;
+
 	arma::mat inertia;
 
 

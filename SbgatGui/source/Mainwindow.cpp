@@ -179,6 +179,11 @@ void Mainwindow::createActions() {
     this -> print_inertia_action -> setStatusTip(tr("Print inertia tensor to the log console"));
     connect(this -> print_inertia_action, &QAction::triggered, this, &Mainwindow::print_inertia);
 
+
+    this -> print_center_of_mass_action = new QAction(tr("Print center of mass"), this);
+    this -> print_center_of_mass_action -> setStatusTip(tr("Print inertia tensor to the log console"));
+    connect(this -> print_center_of_mass_action, &QAction::triggered, this, &Mainwindow::print_center_of_mass);
+
     this -> print_volume_action = new QAction(tr("Print volume "), this);
     this -> print_volume_action -> setStatusTip(tr("Print volume to the log console"));
     connect(this -> print_volume_action, &QAction::triggered, this, &Mainwindow::print_volume);
@@ -656,11 +661,26 @@ void Mainwindow::print_inertia() {
     std::string name = this -> shape_table -> item(selected_row_index, 0) -> text() .toStdString();
     auto active_shape  =  this -> wrapped_data[name] -> get_shape_model();
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless principal inertia matrix of " + name + " :"));
+    this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name + " :"));
     std::stringstream ss;
     active_shape -> get_inertia().print(ss);
     this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 }
+
+void Mainwindow::print_center_of_mass() {
+    int selected_row_index = this -> shape_table -> selectionModel() -> currentIndex().row();
+    std::string name = this -> shape_table -> item(selected_row_index, 0) -> text() .toStdString();
+    auto active_shape  =  this -> wrapped_data[name] -> get_shape_model();
+
+    this -> log_console -> appendPlainText(QString::fromStdString("- Center of mass coordinates of " + name + " (m) :"));
+    std::stringstream ss;
+    active_shape -> get_center_of_mass().print(ss);
+    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+}
+
+
+
+
 
 
 
@@ -1084,6 +1104,7 @@ void Mainwindow::createMenus() {
 
     this -> ShapeMenu -> addAction(this -> print_surface_action);
     this -> ShapeMenu -> addAction(this -> print_volume_action);
+    this -> ShapeMenu -> addAction(this -> print_center_of_mass_action);
     this -> ShapeMenu -> addAction(this -> print_inertia_action);
 
 

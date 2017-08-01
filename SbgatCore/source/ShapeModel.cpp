@@ -11,6 +11,12 @@ void ShapeModel::update_mass_properties() {
 	this -> compute_surface_area();
 	this -> compute_volume();
 	this -> compute_center_of_mass();
+	this -> compute_inertia();
+	this -> compute_principal_axes();
+
+
+	this -> barycenter_aligned = false;
+	this -> principal_axes_aligned = false;
 
 }
 
@@ -49,16 +55,29 @@ void ShapeModel::update_facets(std::set<Facet *> & facets) {
 
 
 
+void ShapeModel::shift_rotate_to_principal_frame() {
 
+	if (this -> barycenter_aligned == false) {
+		this -> shift_to_barycenter();
+		this -> barycenter_aligned = true;
+	}
 
+	if (this -> barycenter_aligned == true &&
+	        this -> principal_axes_aligned == false) {
+		this -> align_with_principal_axes();
+		this -> principal_axes_aligned = true;
+
+	}
+
+}
 
 
 bool ShapeModel::contains(double * point, double tol ) {
 
-	double lagrangian = 0;
+	double laplacian = 0;
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:lagrangian) if (USE_OMP_DYNAMIC_ANALYSIS)
+	#pragma omp parallel for reduction(+:laplacian) if (USE_OMP_DYNAMIC_ANALYSIS)
 	for (unsigned int facet_index = 0; facet_index < this -> get_NFacets(); ++ facet_index) {
 
 		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> get_facets() -> at(facet_index) -> get_vertices();
@@ -111,11 +130,11 @@ bool ShapeModel::contains(double * point, double tol ) {
 
 
 
-		lagrangian += wf;
+		laplacian += wf;
 
 	}
 
-	if (std::abs(lagrangian) < tol) {
+	if (std::abs(laplacian) < tol) {
 		return false;
 	}
 	else {
@@ -166,7 +185,8 @@ void ShapeModel::save(std::string path) const {
 
 void ShapeModel::shift_to_barycenter() {
 
-	arma::vec x = - (*this -> get_center_of_mass());
+
+	arma::vec x = - this -> cm;
 
 	// The vertices are shifted
 	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
@@ -178,23 +198,42 @@ void ShapeModel::shift_to_barycenter() {
 
 	}
 
-	this -> cm = 0 * this -> cm;
 
 }
 
 void ShapeModel::align_with_principal_axes() {
 
+
+	// The vertices are rotated so as to have their coordinates
+	// expressed in the principal frame
+	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
+	for (unsigned int vertex_index = 0;
+	        vertex_index < this -> get_NVertices();
+	        ++vertex_index) {
+
+		*this -> vertices[vertex_index] -> get_coordinates() = this -> original_to_principal_dcm * (*this -> vertices[vertex_index] -> get_coordinates());
+	}
+
+
+}
+
+arma::mat ShapeModel::get_inertia() const {
+	return this -> inertia;
+
+}
+
+
+
+void ShapeModel::compute_principal_axes() {
+
+
 	arma::vec moments;
 	arma::mat axes ;
-
-	this -> compute_inertia();
-
 
 	double T = arma::trace(this -> inertia) ;
 	double Pi = 0.5 * (T * T - arma::trace(this -> inertia * this -> inertia));
 	double U = std::sqrt(T * T - 3 * Pi) / 3;
 	double Det = arma::det(this -> inertia);
-
 
 	if (U > 1e-6) {
 
@@ -246,25 +285,9 @@ void ShapeModel::align_with_principal_axes() {
 		axes = arma::eye<arma::mat>(3, 3);
 	}
 
-
-	// The vertices are shifted
-	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
-	for (unsigned int vertex_index = 0;
-	        vertex_index < this -> get_NVertices();
-	        ++vertex_index) {
-
-		*this -> vertices[vertex_index] -> get_coordinates() = axes.t() * (*this -> vertices[vertex_index] -> get_coordinates());
-	}
-
-	this -> inertia = arma::diagmat(moments);
+	this -> original_to_principal_dcm = axes.t();
 
 }
-
-arma::mat ShapeModel::get_inertia() const {
-	return this -> inertia;
-
-}
-
 
 
 ShapeModel::ShapeModel(std::string ref_frame_name,
@@ -376,42 +399,47 @@ void ShapeModel::compute_volume() {
 
 
 void ShapeModel::compute_center_of_mass() {
-	double c_x = 0;
-	double c_y = 0;
-	double c_z = 0;
-	double volume = this -> get_volume();
 
-	#pragma omp parallel for reduction(+:c_x,c_y,c_z) if (USE_OMP_SHAPE_MODEL)
-	for (unsigned int facet_index = 0;
-	        facet_index < this -> facets.size();
-	        ++facet_index) {
+	if (this -> barycenter_aligned == false) {
+
+		double c_x = 0;
+		double c_y = 0;
+		double c_z = 0;
+		double volume = this -> get_volume();
+
+		#pragma omp parallel for reduction(+:c_x,c_y,c_z) if (USE_OMP_SHAPE_MODEL)
+		for (unsigned int facet_index = 0;
+		        facet_index < this -> facets.size();
+		        ++facet_index) {
 
 
-		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
+			std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
 
-		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
-		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
-		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+			arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+			arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+			arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
 
-		double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
-		double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
-		double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
+			double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
+			double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
+			double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
 
-		double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
+			double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
 
-		double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
-		double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
-		double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
+			double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
+			double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
+			double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
 
-		c_x = c_x + dv * dr_x / volume;
-		c_y = c_y + dv * dr_y / volume;
-		c_z = c_z + dv * dr_z / volume;
+			c_x = c_x + dv * dr_x / volume;
+			c_y = c_y + dv * dr_y / volume;
+			c_z = c_z + dv * dr_z / volume;
+
+		}
+
+		arma::vec cm = {c_x, c_y, c_z};
+
+		this -> cm =  cm ;
 
 	}
-
-	arma::vec cm = {c_x, c_y, c_z};
-
-	this -> cm =  cm ;
 
 
 }
@@ -515,14 +543,17 @@ void ShapeModel::compute_inertia() {
 	}
 
 	// The inertia tensor is finally assembled
-
 	arma::mat I = {
 		{P_yy + P_zz, -P_xy, -P_xz},
 		{ -P_xy, P_xx + P_zz, -P_yz},
 		{ -P_xz, -P_yz, P_xx + P_yy}
 	};
 
-	this -> inertia = I;
+	// The inertia tensor is centered at the barycenter
+	// The parallel axis theorem is used
+	// Note that because of the scaling operation, M = rho * V = rho * l ^ 3 = l ^ 3
+
+	this -> inertia = I - std::pow(l, 5) * RBK::tilde(this -> cm) * RBK::tilde(this -> cm).t();
 
 }
 
@@ -537,8 +568,12 @@ double ShapeModel::get_surface_area() const {
 }
 
 
-arma::vec * ShapeModel::get_center_of_mass() {
-	return &(this -> cm);
+arma::vec ShapeModel::get_center_of_mass() const {
+	return this -> cm;
+}
+
+arma::mat ShapeModel::get_original_to_principal_dcm() const {
+	return this -> original_to_principal_dcm;
 }
 
 
