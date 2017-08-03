@@ -27,14 +27,17 @@ public:
 	Converts the coordinates of the provided vector from frame
 	$from to frame $to. For this to work, $from and $to must be
 	in the FrameGraph and a path must be connecting them
-	@param input Vector to convert
-	@param from Name of reference frame to convert from
-	@param to Name of reference frame to convert to
-	@param conserve_norm True if the expected conversion is of the form x_B = [BN]x_N where
+	@param input vector to convert
+	@param from name of reference frame to convert from
+	@param to name of reference frame to convert to
+	@param conserve_norm defines whether the provided coordinates are that of a vector whose norm should be conserved or not
+
+	True if the expected conversion is of the form x_B = [BN]x_N where
 	- x_N are the provided coordinates in the departure frame, 
 	- N the departure frame, 
 	- B the arrival frame
-	- [BN] the direction cosine matrix orienting the two frames. 
+	- [BN] the direction cosine matrix orienting the two frames.
+
 	If False, then 
 	a translational part T is added as in x_B = [BN]x_N + T, where 
 	-  x_B are the coordinates of point x expressed in the B frame
