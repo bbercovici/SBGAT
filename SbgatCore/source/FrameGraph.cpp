@@ -10,7 +10,7 @@ FrameGraph::FrameGraph() {
 
 
 arma::vec FrameGraph::convert(arma::vec & input, std::string from, std::string to,
-                              bool is_unit_vector) {
+                              bool conserve_norm) {
 
 	std::deque<std::shared_ptr<RefFrame > > path = this -> adjacency_list.dfs(
 	            ref_names_to_ref_ptrs[from], ref_names_to_ref_ptrs[to]);
@@ -31,14 +31,14 @@ arma::vec FrameGraph::convert(arma::vec & input, std::string from, std::string t
 		// current frame is parent frame
 		if (transform.second == (*it_next_frame) -> get_name()) {
 			this -> convert_to_child_of_provided_parent_frame(coords, (*it_next_frame).get(),
-			        is_unit_vector);
+			        conserve_norm);
 		}
 
 		// current frame is child frame
 		else if (transform.first == (*it_next_frame) -> get_name()) {
 
 			this -> convert_to_parent_of_provided_child_frame(coords, (*it_current_frame).get(),
-			        is_unit_vector);
+			        conserve_norm);
 		}
 		else {
 			throw (std::runtime_error("Illegal frame conversion"));
@@ -52,9 +52,9 @@ arma::vec FrameGraph::convert(arma::vec & input, std::string from, std::string t
 
 
 void FrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
-        RefFrame * ref_frame, bool is_unit_vector) const {
+        RefFrame * ref_frame, bool conserve_norm) const {
 
-	if (is_unit_vector == false) {
+	if (conserve_norm == false) {
 		coords = *ref_frame -> get_origin_from_parent() +  (*ref_frame -> get_dcm_from_parent()).t() * coords;
 	}
 	else {
@@ -64,9 +64,9 @@ void FrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
 }
 
 void FrameGraph::convert_to_child_of_provided_parent_frame(arma::vec & coords,
-        RefFrame * ref_frame, bool is_unit_vector) const {
+        RefFrame * ref_frame, bool conserve_norm) const {
 
-	if (is_unit_vector == false) {
+	if (conserve_norm == false) {
 		coords = (*ref_frame -> get_dcm_from_parent()) * ( coords - (*ref_frame -> get_origin_from_parent()) );
 	}
 	else {

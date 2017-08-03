@@ -27,18 +27,25 @@ public:
 	Converts the coordinates of the provided vector from frame
 	$from to frame $to. For this to work, $from and $to must be
 	in the FrameGraph and a path must be connecting them
-
-
 	@param input Vector to convert
 	@param from Name of reference frame to convert from
 	@param to Name of reference frame to convert to
-	@param is_unit_vector True if the provided coordinates are
-	that of a unit vector. This will disable the translational part
-	of the transform
+	@param conserve_norm True if the expected conversion is of the form x_B = [BN]x_N where
+	- x_N are the provided coordinates in the departure frame, 
+	- N the departure frame, 
+	- B the arrival frame
+	- [BN] the direction cosine matrix orienting the two frames. 
+	If False, then 
+	a translational part T is added as in x_B = [BN]x_N + T, where 
+	-  x_B are the coordinates of point x expressed in the B frame
+	-  x_N are the coordinates of point x expressed in the N frame
+	- [BN] being the direction cosine matrix orienting the two frames. 
+	- T the coordinates of the displacement vector from the origin of frame B to that of frame N, expressed 
+	in the B frame
 	@return converted coordinates
 	*/
 	arma::vec convert(arma::vec & input, std::string from,
-	                  std::string to, bool is_unit_vector = false);
+	                  std::string to, bool conserve_norm = false);
 
 
 	/**
@@ -103,9 +110,9 @@ protected:
 
 
 	void convert_to_parent_of_provided_child_frame(arma::vec & coords, RefFrame * ref_frame,
-	        bool is_unit_vector) const;
+	        bool conserve_norm) const;
 	void convert_to_child_of_provided_parent_frame(arma::vec & coords, RefFrame * ref_frame,
-	        bool is_unit_vector) const;
+	        bool conserve_norm) const;
 
 
 };

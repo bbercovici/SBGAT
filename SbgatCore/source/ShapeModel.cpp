@@ -15,7 +15,6 @@ void ShapeModel::update_mass_properties() {
 	this -> compute_volume();
 	this -> compute_center_of_mass();
 	this -> compute_inertia();
-
 	this -> compute_principal_axes();
 
 
@@ -402,47 +401,42 @@ void ShapeModel::compute_volume() {
 
 void ShapeModel::compute_center_of_mass() {
 
-	if (this -> barycenter_aligned == false) {
+	double c_x = 0;
+	double c_y = 0;
+	double c_z = 0;
+	double volume = this -> get_volume();
 
-		double c_x = 0;
-		double c_y = 0;
-		double c_z = 0;
-		double volume = this -> get_volume();
-
-		#pragma omp parallel for reduction(+:c_x,c_y,c_z) if (USE_OMP_SHAPE_MODEL)
-		for (unsigned int facet_index = 0;
-		        facet_index < this -> facets.size();
-		        ++facet_index) {
+	#pragma omp parallel for reduction(+:c_x,c_y,c_z) if (USE_OMP_SHAPE_MODEL)
+	for (unsigned int facet_index = 0;
+	        facet_index < this -> facets.size();
+	        ++facet_index) {
 
 
-			std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
+		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
 
-			arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
-			arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
-			arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
 
-			double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
-			double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
-			double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
+		double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
+		double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
+		double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
 
-			double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
+		double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
 
-			double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
-			double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
-			double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
+		double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
+		double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
+		double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
 
-			c_x = c_x + dv * dr_x / volume;
-			c_y = c_y + dv * dr_y / volume;
-			c_z = c_z + dv * dr_z / volume;
-
-		}
-
-		arma::vec center_of_mass = {c_x, c_y, c_z};
-
-		this -> cm =  center_of_mass ;
+		c_x = c_x + dv * dr_x / volume;
+		c_y = c_y + dv * dr_y / volume;
+		c_z = c_z + dv * dr_z / volume;
 
 	}
 
+	arma::vec center_of_mass = {c_x, c_y, c_z};
+
+	this -> cm =  center_of_mass ;
 
 }
 
