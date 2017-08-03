@@ -4,7 +4,6 @@
 
 int main( int argc, char** argv ) {
 
-
 	QSurfaceFormat surfaceFormat = QVTKOpenGLWidget::defaultFormat();
 
 	QSurfaceFormat::setDefaultFormat(surfaceFormat);

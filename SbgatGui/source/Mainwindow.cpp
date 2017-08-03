@@ -798,7 +798,7 @@ void Mainwindow::compute_global_pgm_acceleration() {
         connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
         connect(worker, SIGNAL(free_shape_table(bool)), this -> shape_table, SLOT(setEnabled(bool)));
         connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
-       
+
         thread -> start();
 
 
@@ -1070,12 +1070,13 @@ void Mainwindow::compute_pgm_acceleration() {
             // The PGM acceleration is computed at the provided point
             arma::vec coords_arma = {point[0], point[1], point[2]};
             std::stringstream ss_coords;
+            ss_coords.precision(10);
+            ss_coords << " " << point[0] << "\n" << " " << point[1] << "\n" << " " << point[2] << "\n";
 
             arma::vec acc = dynas.pgm_acceleration(point , density);
             std::stringstream ss_acc;
-
-            acc.print(ss_acc);
-            coords_arma.print(ss_coords);
+            ss_acc.precision(10);
+            ss_acc << " " << acc[0] << "\n" << " " << acc[1] << "\n" << " " << acc[2] << "\n";
 
             this -> log_console -> appendPlainText(QString::fromStdString("\n- At body-fixed coordinates (m) : "));
             this -> log_console -> appendPlainText(QString::fromStdString(ss_coords.str()));
