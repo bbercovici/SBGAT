@@ -453,7 +453,6 @@ void ShapeModel::compute_inertia() {
 
 	double l = std::pow(this -> volume, 1. / 3.);
 
-
 	#pragma omp parallel for reduction(+:P_xx,P_yy,P_zz,P_xy,P_xz,P_yz) if (USE_OMP_SHAPE_MODEL)
 	for (unsigned int facet_index = 0;
 	        facet_index < this -> facets.size();
@@ -548,10 +547,10 @@ void ShapeModel::compute_inertia() {
 
 	// The inertia tensor is centered at the barycenter
 	// The parallel axis theorem is used
-	// Note that because of the scaling operation, M = rho * V = rho * l ^ 3 = l ^ 3
+	// Recall that this inertia tensor is dimensionless
 
 
-	this -> inertia = I - std::pow(l, 5) * RBK::tilde(this -> cm) * RBK::tilde(this -> cm).t();
+	this -> inertia = I - RBK::tilde(this -> cm / l) * RBK::tilde(this -> cm / l).t();
 
 
 }

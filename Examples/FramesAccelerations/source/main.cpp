@@ -30,8 +30,9 @@ int main( int argc, char** argv ) {
 	// The BF frame and the ECI frame are considered as coincident by default
 	frame_graph.add_transform("original", "principal_barycentric");
 
-	// An empty shape model associated with the BF frame is created
-	SBGAT_CORE::ShapeModel shape_model("BF", &frame_graph);
+	// An empty shape model is created
+	// Its name is left empty for the moment
+	SBGAT_CORE::ShapeModel shape_model("", &frame_graph);
 
 	// A shape model importer is created to load in an OBJ shape model
 	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
@@ -52,7 +53,7 @@ int main( int argc, char** argv ) {
 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&shape_model);
 
 	// The acceleration of gravity is evaluated at the point of coordinates (1,1,1)
-	// in the principal_barycentric frame. 
+	// in the principal_barycentric frame.
 	arma::vec p = {1, 1, 1};
 
 	// The acceleration at the provided point is calculated using the polyhedron gravity model
@@ -83,6 +84,14 @@ int main( int argc, char** argv ) {
 
 	std::cout << "Acceleration from point converted to in principal barycentric frame: " << std::endl;
 	std::cout << acc_original_converted.t() << std::endl;
+
+	if (arma::norm(p - p_original_converted) / arma::norm(p_original_converted) < 1e-6) {
+		std::cout << "p and p_original_converted are identical!" << std::endl;
+	}
+
+	if (arma::norm(acc - acc_original_converted) / arma::norm(acc_original_converted) < 1e-6) {
+		std::cout << "The accelerations evaluated at p and p_original_converted are identical!" << std::endl;
+	}
 
 
 	return 0;

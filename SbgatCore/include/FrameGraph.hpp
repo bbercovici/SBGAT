@@ -33,7 +33,8 @@ public:
 	@param conserve_norm defines whether the provided coordinates are that of a vector whose norm should be conserved or not
 
 	True if the expected conversion is of the form x_B = [BN]x_N where
-	- x_N are the provided coordinates in the departure frame, 
+	- x_N are the provided coordinates in the departure frame N, 
+	- x_N are the expected coordinates in the departure frame B
 	- N the departure frame, 
 	- B the arrival frame
 	- [BN] the direction cosine matrix orienting the two frames.
