@@ -8,15 +8,17 @@ ShapeModel::ShapeModel() {
 
 void ShapeModel::update_mass_properties() {
 
+	this -> barycenter_aligned = false;
+	this -> principal_axes_aligned = false;
+
 	this -> compute_surface_area();
 	this -> compute_volume();
 	this -> compute_center_of_mass();
 	this -> compute_inertia();
+
 	this -> compute_principal_axes();
 
 
-	this -> barycenter_aligned = false;
-	this -> principal_axes_aligned = false;
 
 }
 
@@ -435,9 +437,9 @@ void ShapeModel::compute_center_of_mass() {
 
 		}
 
-		arma::vec cm = {c_x, c_y, c_z};
+		arma::vec center_of_mass = {c_x, c_y, c_z};
 
-		this -> cm =  cm ;
+		this -> cm =  center_of_mass ;
 
 	}
 
@@ -542,6 +544,7 @@ void ShapeModel::compute_inertia() {
 
 	}
 
+
 	// The inertia tensor is finally assembled
 	arma::mat I = {
 		{P_yy + P_zz, -P_xy, -P_xz},
@@ -553,7 +556,9 @@ void ShapeModel::compute_inertia() {
 	// The parallel axis theorem is used
 	// Note that because of the scaling operation, M = rho * V = rho * l ^ 3 = l ^ 3
 
+
 	this -> inertia = I - std::pow(l, 5) * RBK::tilde(this -> cm) * RBK::tilde(this -> cm).t();
+
 
 }
 

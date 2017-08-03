@@ -72,7 +72,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		}
 
 		else {
-			std::cout << " unrecognized type: " << type << std::endl;
+			std::cout << " unrecognized character: " << type << std::endl;
 			throw;
 		}
 
@@ -91,6 +91,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 		vertex_index_to_ptr[vertex_index] = vertex;
 		shape_model -> add_vertex(vertex);
+
 
 	}
 
@@ -132,12 +133,13 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 			shape_model -> add_edge(edge);
 
 		}
-	}
+	}	
+
 
 	// The surface area, volume, center of mass, inertia of the shape model
 	// are computed
 	shape_model -> update_mass_properties();
-	
+
 
 	// The coordinates of the shape model 
 	// are edited so as to be expressed in the barycentric principal frame
