@@ -12,8 +12,12 @@
 #
 ################################################################################
 
+
+# OMP-friendly GCC Major version (will only be used on Mac OS systems)
+set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
+
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/6.3.0_1/bin/)
+set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.1.0/bin/)
 
 # Path to VTK build directory
 set (VTK_BUILD_DIR ~/VTK/VTK_release_build/)
@@ -23,6 +27,7 @@ set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.1/clang_64/lib/cmake")
 
 # Path to Qt5 cmake config file (author's ubuntu configuration)
 set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.1/gcc_64/lib/cmake/")
+
 
 
 
@@ -62,14 +67,16 @@ if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR c
         	set(CMAKE_CXX_FLAGS "-std=c++0x")
         elseif(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
         		message("Switching to OMP-friendly GCC ")
-	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-6 CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-6 CACHE STRING "C++ Compiler" FORCE)
-			else()# no OMP-compliant compiler was found on this mac. 
-				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac. The program will still run but without multithreading")
-		endif()
-		set(CMAKE_CXX_FLAGS "-std=c++17")
+	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
+				set(CMAKE_CXX_FLAGS "-std=c++17")
 
+			else()# no OMP-compliant compiler was found on this mac. 
+				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac.")
+		endif()
 endif()
+
+set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC} ${VTK_BUILD_DIR})
 
 
 project(${EXE_NAME})
@@ -82,19 +89,7 @@ endif()
 cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
-
-if (UNIX AND NOT APPLE)
-	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_LINUX} ${VTK_BUILD_DIR})
-	set(CMAKE_CXX_FLAGS "-std=c++11 ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-elseif(APPLE)
-	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC} ${VTK_BUILD_DIR})
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-endif()
-
-
 add_definitions(-Wall -O2 )
-set(CMAKE_CXX_FLAGS "-std=c++11")
 include_directories(include)
 
 # Widgets finds its own dependencies (QtGui and QtCore)
