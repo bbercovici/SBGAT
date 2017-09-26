@@ -1,4 +1,5 @@
 #include "DynamicAnalyses.hpp"
+#include "PolyhedralSphericalHarmo.hpp"
 
 using namespace SBGAT_CORE;
 
@@ -215,11 +216,6 @@ double DynamicAnalyses::pgm_potential(double * point , double density) const {
 
 }
 
-
-
-
-
-
 arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) const {
 
 	double ax = 0;
@@ -347,6 +343,67 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 }
 
+void DynamicAnalyses::compute_exterior_sh_coefs_normalized(
+    arma::mat & Cnm_total,
+    arma::mat & Snm_total,
+    unsigned int n_degree,
+    double ref_radius,
+    double density,
+    bool normalized) {
+
+	// Preallocation
+	double total_mass = this -> shape_model -> get_volume() * density;
+
+	// Normalized coefficients
+	Cnm_total = arma::zeros<arma::mat>(n_degree + 1  , n_degree + 1);
+	Snm_total = arma::zeros<arma::mat>(n_degree + 1  , n_degree + 1);
+
+	// Main loop
+	unsigned int num_facet = this -> shape_model -> get_NFacets();
+
+	for (unsigned int facet_index = 0 ; facet_index <  num_facet; ++ facet_index) { // Keep adding differential C * Mass and S * Mass
+
+		// Volume of tetrahedron associated with current facet
+		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> shape_model -> get_facets() -> at(facet_index) -> get_vertices();
+
+		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+		double dv = arma::dot(*r0, arma::cross(*r1 - *r0, *r2 - *r0)) / 6.;
+
+		// Compute the CS for each polyhedron
+
+		arma::mat Cnm2f ;
+		arma::mat Snm2f ;
+
+		ComputePolyhedralCS(
+		    Cnm2f,
+		    Snm2f,
+		    n_degree,
+		    ref_radius,
+		    dv * density,
+		    density,
+		    r0 -> colptr(0),
+		    r1 -> colptr(0),
+		    r2 -> colptr(0),
+		    total_mass,
+		    normalized
+		);// % For normalized coeffs
+
+
+		// Total \sum (C_i * Mass_i) for each density region
+
+		Cnm_total += Cnm2f * dv * density;
+		Snm_total += Snm2f * dv * density;
+		
+
+	}
+
+	// Compute the overall coefficient values
+	Cnm_total = Cnm_total / total_mass;
+	Snm_total = Snm_total / total_mass;
+
+}
 
 
 

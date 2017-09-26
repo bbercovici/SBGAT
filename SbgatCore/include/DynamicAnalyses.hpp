@@ -34,6 +34,23 @@ public:
 
 
 	/**
+	Compute the normalized exterior gravity spherical harmonics coefficients assuming a constant density polyhedron
+	@param Cnm_total computed Cnm and Snm coefficients
+	@param Snm_total computed Snm coefficients
+	@param n_degree maximum degree of the spherical harmonics expansion
+	@param ref_radius normalizing radius (L)
+	@param density density of polyhedron (M/L^3)
+	@param normalized if true, returns normalized coefficients
+	*/
+	void compute_exterior_sh_coefs_normalized(
+	    arma::mat & Cnm_total,
+	    arma::mat & Snm_total,
+	    unsigned int n_degree,
+	    double ref_radius,
+	    double density,
+	    bool normalized);
+
+	/**
 	Computes gravitational slopes, evaluated and stored at the center of each facet
 	@param spin_axis Spin axis in body-fixed frame
 	@param spin_rate Spin rate (rad/s)
@@ -61,10 +78,7 @@ public:
 
 protected:
 
-
 	ShapeModel * shape_model;
-
-
 
 };
 

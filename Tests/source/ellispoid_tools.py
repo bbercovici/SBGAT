@@ -1,7 +1,7 @@
 # @file   ellispoid_tools.py
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   August, 2017
-# @brief  Python routines enabling computation of the analytical gravity acceleration caused by an ellispoidal shape
+# @brief  Python routines enabling computation of the analytical gravity acceleration created by an ellispoidal shape
 
 
 import numpy as np
@@ -189,15 +189,14 @@ def acceleration(x,y,z,alpha,beta,gamma,mu):
 	z = z / max_axis
 
 	T = np.sqrt(max_axis ** 3 / mu)
-	mu = 1
 
 	roots = phi_roots(x,y,z,alpha,beta,gamma)
 	
 	root = np.max(roots)
 
-	a_x = - 3./2. * mu * x * integrate.quad(ax_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
-	a_y = - 3./2. * mu * y * integrate.quad(ay_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
-	a_z = - 3./2. * mu * z * integrate.quad(az_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
+	a_x = - 3./2. * x * integrate.quad(ax_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
+	a_y = - 3./2. * y * integrate.quad(ay_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
+	a_z = - 3./2. * z * integrate.quad(az_integrand,root,np.inf,args = (alpha,beta,gamma))[0]
 
 	return np.array([a_x,a_y,a_z]) * (max_axis / T ** 2)
 

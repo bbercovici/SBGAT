@@ -52,7 +52,7 @@ execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
 message("Default compiler is " ${CMAKE_C_COMPILER})
 message("Default ${CMAKE_C_COMPILER} version is " ${GCC_VERSION})
 
-# Set up the C++11 and OMP compile flags 
+# Set up the C++ and OMP compile flags 
 if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
 		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
         	set(CMAKE_CXX_FLAGS "-std=c++0x")
@@ -124,6 +124,7 @@ source/RefFrame.cpp
 source/FrameGraph.cpp
 source/SyntheticObservations.cpp
 source/FacetResults.cpp
+source/PolyhedralSphericalHarmo.cpp
 )
 
 # Linking

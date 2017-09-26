@@ -1,12 +1,3 @@
-# Exclusions
-resources/*
-doc/*
-
-# File exclusions in root
-
-*.dox
-Doxyfile
-*.mdj
-*.pdf
-
-
+*
+*/
+!.gitignore
