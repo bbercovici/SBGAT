@@ -1,5 +1,7 @@
 #include "PolyhedralSphericalHarmo.hpp"
 
+
+
 /*** global tables used by AccumulateOneSimplex and IntegrateOneSimplex ***/
 
 
@@ -74,7 +76,7 @@ void ComputePolyhedralCS(arma::mat & Cnm2f,
 
 	// /** zero the result accumulators **/
 
-	for ( int n = 0; n < nmDim; ++n) {
+	for ( int n = 0; n <= nmDim; ++n) {
 		for ( int m = 0; m <= n; ++m) {
 			Cnm [n][m] = 0;
 			Snm [n][m] = 0;
@@ -167,6 +169,9 @@ void	AccumulateOneSimplex (
 	/* prepare dimensionless overall scale factor for this simplex */
 
 	const double overallFactor = density * det / polygon_mass;
+
+
+
 
 	if (overallFactor == 0.0) return; /* nothing to do */
 

@@ -361,6 +361,9 @@ void DynamicAnalyses::compute_exterior_sh_coefs_normalized(
 	// Main loop
 	unsigned int num_facet = this -> shape_model -> get_NFacets();
 
+
+
+
 	for (unsigned int facet_index = 0 ; facet_index <  num_facet; ++ facet_index) { // Keep adding differential C * Mass and S * Mass
 
 		// Volume of tetrahedron associated with current facet
@@ -369,6 +372,10 @@ void DynamicAnalyses::compute_exterior_sh_coefs_normalized(
 		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
 		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
 		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+
+
+
+
 		double dv = arma::dot(*r0, arma::cross(*r1 - *r0, *r2 - *r0)) / 6.;
 
 		// Compute the CS for each polyhedron
@@ -395,7 +402,6 @@ void DynamicAnalyses::compute_exterior_sh_coefs_normalized(
 
 		Cnm_total += Cnm2f * dv * density;
 		Snm_total += Snm2f * dv * density;
-		
 
 	}
 

@@ -111,6 +111,10 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 		vertices.push_back(v1);
 		vertices.push_back(v2);
 
+
+
+
+
 		// Was invariably getting the same memory address if using
 		// std::make_shared. The destructor of ShapeModel will take care
 		// of those
@@ -140,7 +144,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 	// are computed
 	shape_model -> update_mass_properties();
 
-
 	// The coordinates of the shape model 
 	// are edited so as to be expressed in the barycentric principal frame
 	shape_model -> shift_rotate_to_principal_frame();
@@ -155,8 +158,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 	// The consistency of the surface normals is checked
 	shape_model -> check_normals_consistency();
-
-
-
+	
 
 }
