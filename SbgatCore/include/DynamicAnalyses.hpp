@@ -35,7 +35,7 @@ public:
 
 	/**
 	Compute the exterior gravity spherical harmonics coefficients assuming a constant density polyhedron
-	@param Cnm_total computed Cnm and Snm coefficients
+	@param Cnm_total computed Cnm coefficients
 	@param Snm_total computed Snm coefficients
 	@param n_degree maximum degree of the spherical harmonics expansion
 	@param ref_radius normalizing radius (L)
