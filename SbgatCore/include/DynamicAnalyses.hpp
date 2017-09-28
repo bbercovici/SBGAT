@@ -34,15 +34,15 @@ public:
 
 
 	/**
-	Compute the normalized exterior gravity spherical harmonics coefficients assuming a constant density polyhedron
+	Compute the exterior gravity spherical harmonics coefficients assuming a constant density polyhedron
 	@param Cnm_total computed Cnm and Snm coefficients
 	@param Snm_total computed Snm coefficients
 	@param n_degree maximum degree of the spherical harmonics expansion
 	@param ref_radius normalizing radius (L)
 	@param density density of polyhedron (M/L^3)
-	@param normalized if true, returns normalized coefficients
+	@param normalized if true, computed normalized coefficients
 	*/
-	void compute_exterior_sh_coefs_normalized(
+	void compute_exterior_sh_coefs(
 	    arma::mat & Cnm_total,
 	    arma::mat & Snm_total,
 	    unsigned int n_degree,

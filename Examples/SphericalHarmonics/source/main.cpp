@@ -1,3 +1,11 @@
+/** 
+@file   main.cpp
+@Author Benjamin Bercovici (bebe0705@colorado.edu)
+@date   September, 2017
+@brief  Example demonstrating the computation of gravity spherical harmonics
+assuming a constant density from an input polyhedral shape model
+*/
+
 #include <iostream>
 #include <armadillo>
 #include <chrono>
@@ -5,7 +13,6 @@
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
 #include <DynamicAnalyses.hpp>
-#include <Constants.hpp>
 
 int main( int argc, char** argv ) {
 
@@ -15,31 +22,35 @@ int main( int argc, char** argv ) {
 	SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
 
 	shape_io.load_shape_model(&shape_model);
-
-
 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&shape_model);
+
+	// Harmonics up to degree five are computed
+	int degree = 5;
+
+	// Density of Eros (kg/km^3)
+	double density = 2670000000000.0;
+
+	// Reference radius of Eros (km)
+	double ref_radius = 16;
+
+	// Flag set to true for normalized coefficients, false for unnormalized ones
+	bool normalized = true;
 
 	arma::mat Cnm_total;
 	arma::mat Snm_total;
 
-	int degree = 5;
-
-	dynamic_analyses.compute_exterior_sh_coefs_normalized(
+	dynamic_analyses.compute_exterior_sh_coefs(
 		Cnm_total,
 		Snm_total,
 		degree,
-		16,
-		2670000000000.0,
-		true);
+		ref_radius,
+		density,
+		normalized);
 
 
-	std::cout << std::setprecision(10);
-
+	// The coefficients are stored in a more convenient form 
 	arma::mat coefs = arma::zeros<arma::mat>((degree + 1) * (degree + 2)/2 - 1,4);
 	
-	std::cout << Cnm_total << std::endl;
-
-
 	for (int n = 1 ; n < degree + 1 ; ++n){
 		for (int m = 0 ; m <= n; ++m){
 
@@ -52,10 +63,14 @@ int main( int argc, char** argv ) {
 
 		}
 	}
+	// coefs now holds the normalized spherical harmonics coefficients
+	// the matrix's 4 columns are labelled as follows:
+	// degree n -- order m -- Cnm -- Snm
 
-	coefs.save("coefs_arma.txt",arma::raw_ascii);
+	std::cout << coefs << std::endl;
 
-
+	// The coefficient table is saved to a file
+	coefs.save("eros_spherical_coords_normalized.txt",arma::raw_ascii);
 
 	return 0;
 }

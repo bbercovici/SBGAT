@@ -343,7 +343,7 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 }
 
-void DynamicAnalyses::compute_exterior_sh_coefs_normalized(
+void DynamicAnalyses::compute_exterior_sh_coefs(
     arma::mat & Cnm_total,
     arma::mat & Snm_total,
     unsigned int n_degree,
