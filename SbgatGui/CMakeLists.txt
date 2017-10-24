@@ -23,10 +23,10 @@ set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.1.0/bin/)
 set (VTK_BUILD_DIR ~/VTK/VTK_release_build/)
 
 # Path to Qt5 cmake config file (author's mac configuration)
-set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.1/clang_64/lib/cmake")
+set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.2/clang_64/lib/cmake")
 
 # Path to Qt5 cmake config file (author's ubuntu configuration)
-set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.1/gcc_64/lib/cmake/")
+set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.2/gcc_64/lib/cmake/")
 
 
 

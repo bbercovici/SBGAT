@@ -137,7 +137,6 @@ void Mainwindow::update_GUI_changed_shape_model() {
     this -> update_actions_availability();
 
 
-
 }
 
 
@@ -235,6 +234,8 @@ void Mainwindow::update_actions_availability() {
     if (this -> wrapped_data.size() == 0) {
 
         this -> print_inertia_action -> setEnabled(false);
+        this -> print_center_of_mass_action -> setEnabled(false);
+
         this -> print_volume_action -> setEnabled(false);
         this -> print_surface_action -> setEnabled(false);
 
@@ -252,6 +253,8 @@ void Mainwindow::update_actions_availability() {
         this -> print_inertia_action -> setEnabled(true);
         this -> print_volume_action -> setEnabled(true);
         this -> print_surface_action -> setEnabled(true);
+        this -> print_center_of_mass_action -> setEnabled(true);
+
 
         this -> compute_pgm_acceleration_action -> setEnabled(true);
         this -> compute_global_pgm_acceleration_action -> setEnabled(true);
@@ -295,7 +298,6 @@ void Mainwindow::remove_results_visual_props(std::string name, bool remove_all) 
 
 }
 
-
 void Mainwindow::show_grav_slopes() {
 
     QStringList valid_shapes;
@@ -307,7 +309,6 @@ void Mainwindow::show_grav_slopes() {
     }
 
     valid_shapes << QString::fromStdString("");
-
 
     bool ok_item;
     QString selected_shape_model = QInputDialog::getItem(this, "Gravitational slopes", "Toggle visibility of gravity slopes for shape model:", valid_shapes, 0, false, &ok_item);
