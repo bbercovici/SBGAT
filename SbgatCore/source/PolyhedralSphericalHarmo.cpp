@@ -1,11 +1,6 @@
 #include "PolyhedralSphericalHarmo.hpp"
 
 
-
-/*** global tables used by AccumulateOneSimplex and IntegrateOneSimplex ***/
-
-
-
 void ComputePolyhedralCS(arma::mat & Cnm2f,
                          arma::mat & Snm2f,
                          int n_degree,
@@ -66,8 +61,6 @@ void ComputePolyhedralCS(arma::mat & Cnm2f,
 		                             vertical1Factors,
 		                             vertical2Factors);
 	}
-
-
 
 
 
@@ -336,7 +329,8 @@ void	AccumulateOneSimplex (
 /*******************************************************************
  * Calculate basic tables
  *******************************************************************/
-void	CalculateBasicTables (int n_degree, double (&mixingFactors) [nmDim + 1] [nmDim + 1] [nmDim + 1],
+void	CalculateBasicTables (int n_degree, 
+	double (&mixingFactors) [nmDim + 1] [nmDim + 1] [nmDim + 1],
                               int (&trinomialCoefficientCount)[nmDim + 1]) {
 
 	/* local table of factorials 0! to (n+3)! */

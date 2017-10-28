@@ -1,3 +1,12 @@
+/**
+@file   ShapeModel.txt
+@Author Benjamin Bercovici (bebe0705@colorado.edu)
+@date   May, 2017
+@brief  Declaration of the ShapeModel class holding the methods
+and pointers representative of a small body shape model
+*/
+
+
 
 #ifndef HEADER_SHAPEMODEL
 #define HEADER_SHAPEMODEL
@@ -18,13 +27,12 @@
 
 namespace SBGAT_CORE {
 
-
 /**
-Declaration of the ShapeModel class. Effectively represents
-a shape parametrized in terms of facets/edges/vertices. The topology
-information is stored in the facets/vertices whereas the edges
-store relevant quantities for variational methods such as
-the Polyhedron Gravity Model Evaluation
+Declaration of the ShapeModel class. Represents
+a shape parametrized in terms of facets/edges/vertices. In addition, 
+edge and facets dyads can be computed for the sake of Polyhedral Gravity Model computation. This class
+also provides methods enabling one to compute inertial properties such as the center-of-mass, principal axes and inertia
+tensor of the shape being operated on.
 */
 class ShapeModel {
 
@@ -38,9 +46,9 @@ public:
 
 	/**
 	Constructor
-	@param frame_graph Pointer to the graph storing
+	@param frame_graph pointer to the graph storing
 	reference frame relationships
-	@param frame_graph Pointer to the reference frame graph
+	@param frame_graph pointer to the reference frame graph
 	*/
 	ShapeModel(std::string ref_frame_name,
 	           FrameGraph * frame_graph);
@@ -83,7 +91,7 @@ public:
 	bool contains(double * point, double tol = 1e-6) ;
 
 	/**
-	Checks that the normals were consistently oriented. If not,
+	Checks whether the normals were consistently oriented. If not,
 	the ordering of the vertices in the provided shape model file is incorrect
 	@param tol numerical tolerance (if consistent: norm(Sum(oriented_surface_area)) / average_facet_surface_area << tol)
 	*/

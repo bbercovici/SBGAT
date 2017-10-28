@@ -1,3 +1,10 @@
+/**
+@file   ShapeModelImporter.txt
+@Author Benjamin Bercovici (bebe0705@colorado.edu)
+@date   May, 2017
+@brief  Declaration of the ShapeModelImporter.txt class holding the method and members required to 
+load in a Wavefront file storing a shape model.
+*/
 
 #ifndef HEADER_SHAPEMODELIMPORTER
 #define HEADER_SHAPEMODELIMPORTER
@@ -9,6 +16,10 @@
 namespace SBGAT_CORE {
 
 
+	/**
+	Declaration of the ShapeModelImporter class. Holds the method and members required to 
+	load in a Wavefront file storing a shape model.
+	*/
 class ShapeModelImporter {
 
 public:
@@ -25,7 +36,7 @@ public:
 	/**
 	Reads-in an OBJ file storing the shape model info and sets the field of
 	$shape_model to the corresponding values
-	@param shape_model Pointer to the shape model to receive the read data
+	@param shape_model pointer to the shape model to receive the read data
 	*/
 	void load_shape_model(ShapeModel * shape_model) const;
 

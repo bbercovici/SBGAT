@@ -58,19 +58,36 @@ int main( int argc, char** argv ) {
 
 			coefs.row(index)(0) = n;
 			coefs.row(index)(1) = m;
-			coefs.row(index)(2) = Cnm_total.row(n)(m);
-			coefs.row(index)(3) = Snm_total.row(n)(m);
+			coefs.row(index)(2) = Cnm_total(n,m);
+			coefs.row(index)(3) = Snm_total(n,m);
 
 		}
 	}
+
+	std::cout << "Cbar coefficients : " << std::endl;
+	std::cout << Cnm_total << std::endl;
+
+
+	std::cout << "Sbar coefficients : " << std::endl;
+	std::cout << Snm_total << std::endl;
+
+
 	// coefs now holds the normalized spherical harmonics coefficients
 	// the matrix's 4 columns are labelled as follows:
 	// degree n -- order m -- Cnm -- Snm
 
+	std::cout << "Sorted coefficients (degree n -- order m -- Cnm -- Snm) : "<< std::endl;
 	std::cout << coefs << std::endl;
 
-	// The coefficient table is saved to a file
+	// The sorted coefficient table is saved to a file
 	coefs.save("eros_spherical_coords_normalized.txt",arma::raw_ascii);
+
+	// The unsorted coefficients are sorted as well	
+	Cnm_total.save("eros_Cbar.txt",arma::raw_ascii);
+	Snm_total.save("eros_Sbar.txt",arma::raw_ascii);
+
+
+
 
 	return 0;
 }

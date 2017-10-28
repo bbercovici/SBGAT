@@ -1,3 +1,16 @@
+/**
+@file   PolyhedralSphericalHarmo.hpp
+@Author Benjamin Bercovici (bebe0705@colorado.edu) (from the original code by 
+Yu Takahashi and Siamak Hesar)
+@date   October, 2017
+@brief  Declaration of the methods enabling the
+computation of gravity spherical harmonics
+coefficients about a polyhedral shape model. 
+*/
+
+
+
+
 #ifndef HEADER_COMPUTEPOLYHEDRALCSBAR
 #define HEADER_COMPUTEPOLYHEDRALCSBAR
 
@@ -13,9 +26,6 @@
 /* coded as a macro so the compiler can optimize loop invariants */
 
 #define Index(i,j,k,n) ( ((n)-(i)) * ((n)-(i)+1) / 2 + (k) )
-
-
-
 
 
 /**
@@ -101,5 +111,17 @@ void ComputePolyhedralCS(
     double * r2,
     double total_mass,
     bool normalized) ;
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif

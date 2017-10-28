@@ -1,6 +1,7 @@
 #include "DynamicAnalyses.hpp"
 #include "PolyhedralSphericalHarmo.hpp"
 
+
 using namespace SBGAT_CORE;
 
 DynamicAnalyses::DynamicAnalyses(ShapeModel * shape_model) {
@@ -14,8 +15,8 @@ void DynamicAnalyses::compute_pgm_accelerations(double density ) {
 		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
 
 		acc = this -> pgm_acceleration(
-		          facet -> get_facet_center() -> colptr(0) ,
-		          density);
+			facet -> get_facet_center() -> colptr(0) ,
+			density);
 		facet -> get_facet_results() -> set_grav_acceleration(acc);
 
 	}
@@ -31,8 +32,8 @@ void DynamicAnalyses::compute_pgm_potentials(double density) {
 		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
 
 		double potential = this -> pgm_potential(
-		                       facet -> get_facet_center() -> colptr(0) ,
-		                       density);
+			facet -> get_facet_center() -> colptr(0) ,
+			density);
 		facet -> get_facet_results() -> set_grav_potential(potential);
 
 	}
@@ -41,8 +42,8 @@ void DynamicAnalyses::compute_pgm_potentials(double density) {
 
 
 arma::vec DynamicAnalyses::compute_gravity_slopes(
-    arma::vec spin_axis,
-    double spin_rate) {
+	arma::vec spin_axis,
+	double spin_rate) {
 
 	arma::vec omega_body_wrt_inertial = spin_rate * spin_axis;
 	arma::vec stats;
@@ -54,37 +55,36 @@ arma::vec DynamicAnalyses::compute_gravity_slopes(
 
 	#pragma omp parallel for reduction(+:mean_slope), reduction(min:min_slope), reduction(max:max_slope)
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets();
-	        ++facet_index) {
+		++facet_index) {
 
 		Facet * facet = this -> shape_model -> get_facets() -> at(facet_index);
 
-		arma::vec * n = facet -> get_facet_normal();
-		double slope_d = std::acos(-arma::dot(
-		                               *n,
-		                               arma::normalise(*facet -> get_facet_results() -> get_grav_acceleration() - (
-		                                       arma::cross(
-		                                               omega_body_wrt_inertial,
-		                                               arma::cross(omega_body_wrt_inertial, *facet -> get_facet_center())))
-		                                              ))) * 180 / arma::datum::pi ;
-
+	arma::vec * n = facet -> get_facet_normal();
+	double slope_d = std::acos(-arma::dot(
+		*n,
+		arma::normalise(*facet -> get_facet_results() -> get_grav_acceleration() - (
+			arma::cross(
+				omega_body_wrt_inertial,
+				arma::cross(omega_body_wrt_inertial, *facet -> get_facet_center())))
+		))) * 180 / arma::datum::pi ;
 
 		// Statistics are accumulated
-		if (slope_d > max_slope) {
-			max_slope = slope_d;
-		}
-
-		if (slope_d < min_slope) {
-			min_slope = slope_d;
-		}
-		mean_slope += slope_d / this -> shape_model -> get_NFacets();
-
-		// The result for this facet is saved
-		facet -> get_facet_results() -> set_grav_slope(slope_d);
-
+	if (slope_d > max_slope) {
+		max_slope = slope_d;
 	}
 
-	stats = {min_slope, mean_slope, max_slope};
-	return stats;
+	if (slope_d < min_slope) {
+		min_slope = slope_d;
+	}
+	mean_slope += slope_d / this -> shape_model -> get_NFacets();
+
+		// The result for this facet is saved
+	facet -> get_facet_results() -> set_grav_slope(slope_d);
+
+}
+
+stats = {min_slope, mean_slope, max_slope};
+return stats;
 
 }
 
@@ -121,17 +121,17 @@ double DynamicAnalyses::pgm_potential(double * point , double density) const {
 
 
 		double R1 = std::sqrt( r1m[0] * r1m[0]
-		                       + r1m[1] * r1m[1]
-		                       + r1m[2] * r1m[2]       );
+			+ r1m[1] * r1m[1]
+			+ r1m[2] * r1m[2]       );
 
 		double R2 = std::sqrt( r2m[0] * r2m[0]
-		                       + r2m[1] * r2m[1]
-		                       + r2m[2] * r2m[2]      );
+			+ r2m[1] * r2m[1]
+			+ r2m[2] * r2m[2]      );
 
 
 		double R3 = std::sqrt( r3m[0] * r3m[0]
-		                       + r3m[1] * r3m[1]
-		                       + r3m[2] * r3m[2]      );
+			+ r3m[1] * r3m[1]
+			+ r3m[2] * r3m[2]      );
 
 		double r2_cross_r3_0 = r2m[1] * r3m[2] - r2m[2] * r3m[1];
 		double r2_cross_r3_1 = r3m[0] * r2m[2] - r3m[2] * r2m[0];
@@ -139,11 +139,11 @@ double DynamicAnalyses::pgm_potential(double * point , double density) const {
 
 
 		double wf = 2 * std::atan2(
-		                r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
+			r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
 
-		                R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
-		                + R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
-		                + R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
+			R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
+			+ R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
+			+ R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
 
 
 		arma::mat * Fdyad = this -> shape_model -> get_facets() -> at(facet_index) -> get_facet_dyad();
@@ -181,16 +181,16 @@ double DynamicAnalyses::pgm_potential(double * point , double density) const {
 
 
 		double R1 = std::sqrt( r1m[0] * r1m[0]
-		                       + r1m[1] * r1m[1]
-		                       + r1m[2] * r1m[2]       );
+			+ r1m[1] * r1m[1]
+			+ r1m[2] * r1m[2]       );
 
 		double R2 = std::sqrt( r2m[0] * r2m[0]
-		                       + r2m[1] * r2m[1]
-		                       + r2m[2] * r2m[2]      );
+			+ r2m[1] * r2m[1]
+			+ r2m[2] * r2m[2]      );
 
 		double Re = std::sqrt( (r2m[0] - r1m[0]) * (r2m[0] - r1m[0])
-		                       + (r2m[1] - r1m[1]) * (r2m[1] - r1m[1])
-		                       + (r2m[2] - r1m[2]) * (r2m[2] - r1m[2])      );
+			+ (r2m[1] - r1m[1]) * (r2m[1] - r1m[1])
+			+ (r2m[2] - r1m[2]) * (r2m[2] - r1m[2])      );
 
 
 		double Le = std::log((R1 + R2 + Re) / (R1 + R2 - Re));
@@ -250,17 +250,17 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 
 		double R1 = std::sqrt( r1m[0] * r1m[0]
-		                       + r1m[1] * r1m[1]
-		                       + r1m[2] * r1m[2]       );
+			+ r1m[1] * r1m[1]
+			+ r1m[2] * r1m[2]       );
 
 		double R2 = std::sqrt( r2m[0] * r2m[0]
-		                       + r2m[1] * r2m[1]
-		                       + r2m[2] * r2m[2]      );
+			+ r2m[1] * r2m[1]
+			+ r2m[2] * r2m[2]      );
 
 
 		double R3 = std::sqrt( r3m[0] * r3m[0]
-		                       + r3m[1] * r3m[1]
-		                       + r3m[2] * r3m[2]      );
+			+ r3m[1] * r3m[1]
+			+ r3m[2] * r3m[2]      );
 
 		double r2_cross_r3_0 = r2m[1] * r3m[2] - r2m[2] * r3m[1];
 		double r2_cross_r3_1 = r3m[0] * r2m[2] - r3m[2] * r2m[0];
@@ -268,11 +268,11 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 
 		double wf = 2 * std::atan2(
-		                r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
+			r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
 
-		                R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
-		                + R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
-		                + R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
+			R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
+			+ R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
+			+ R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
 
 
 		arma::mat * Fdyad = this -> shape_model -> get_facets() -> at(facet_index) -> get_facet_dyad();
@@ -308,16 +308,16 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 
 
 		double R1 = std::sqrt( r1m[0] * r1m[0]
-		                       + r1m[1] * r1m[1]
-		                       + r1m[2] * r1m[2]       );
+			+ r1m[1] * r1m[1]
+			+ r1m[2] * r1m[2]       );
 
 		double R2 = std::sqrt( r2m[0] * r2m[0]
-		                       + r2m[1] * r2m[1]
-		                       + r2m[2] * r2m[2]      );
+			+ r2m[1] * r2m[1]
+			+ r2m[2] * r2m[2]      );
 
 		double Re = std::sqrt( (r2m[0] - r1m[0]) * (r2m[0] - r1m[0])
-		                       + (r2m[1] - r1m[1]) * (r2m[1] - r1m[1])
-		                       + (r2m[2] - r1m[2]) * (r2m[2] - r1m[2])      );
+			+ (r2m[1] - r1m[1]) * (r2m[1] - r1m[1])
+			+ (r2m[2] - r1m[2]) * (r2m[2] - r1m[2])      );
 
 
 		double Le = std::log((R1 + R2 + Re) / (R1 + R2 - Re));
@@ -344,12 +344,12 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 }
 
 void DynamicAnalyses::compute_exterior_sh_coefs(
-    arma::mat & Cnm_total,
-    arma::mat & Snm_total,
-    unsigned int n_degree,
-    double ref_radius,
-    double density,
-    bool normalized) {
+	arma::mat & Cnm_total,
+	arma::mat & Snm_total,
+	unsigned int n_degree,
+	double ref_radius,
+	double density,
+	bool normalized) {
 
 	// Preallocation
 	double total_mass = this -> shape_model -> get_volume() * density;
@@ -362,8 +362,6 @@ void DynamicAnalyses::compute_exterior_sh_coefs(
 	unsigned int num_facet = this -> shape_model -> get_NFacets();
 
 
-
-
 	for (unsigned int facet_index = 0 ; facet_index <  num_facet; ++ facet_index) { // Keep adding differential C * Mass and S * Mass
 
 		// Volume of tetrahedron associated with current facet
@@ -374,8 +372,6 @@ void DynamicAnalyses::compute_exterior_sh_coefs(
 		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
 
 
-
-
 		double dv = arma::dot(*r0, arma::cross(*r1 - *r0, *r2 - *r0)) / 6.;
 
 		// Compute the CS for each polyhedron
@@ -384,17 +380,17 @@ void DynamicAnalyses::compute_exterior_sh_coefs(
 		arma::mat Snm2f ;
 
 		ComputePolyhedralCS(
-		    Cnm2f,
-		    Snm2f,
-		    n_degree,
-		    ref_radius,
-		    dv * density,
-		    density,
-		    r0 -> colptr(0),
-		    r1 -> colptr(0),
-		    r2 -> colptr(0),
-		    total_mass,
-		    normalized
+			Cnm2f,
+			Snm2f,
+			n_degree,
+			ref_radius,
+			dv * density,
+			density,
+			r0 -> colptr(0),
+			r1 -> colptr(0),
+			r2 -> colptr(0),
+			total_mass,
+			normalized
 		);// % For normalized coeffs
 
 
@@ -410,6 +406,171 @@ void DynamicAnalyses::compute_exterior_sh_coefs(
 	Snm_total = Snm_total / total_mass;
 
 }
+
+
+
+void DynamicAnalyses::GetBnmNormalizedExterior(int n_degree,
+	arma::mat & b_bar_real,
+	arma::mat & b_bar_imag,
+	const arma::vec & pos,
+	double ref_radius){
+
+
+	double r_sat = arma::norm(pos);
+	double x_sat = pos(0);
+	double y_sat = pos(1);
+	double z_sat = pos(2);
+
+	double delta_1_n;
+
+
+    /*////////////////////////////////
+    // -- Vertical Recurrences -- //
+    ////////////////////////////////*/
+
+	for (int mm = 0; mm <= n_degree+2; mm++) {
+
+
+      // Pretty sure I don't need this
+
+		double m = (double) mm;
+
+		for (int nn = mm; nn <= n_degree+2; nn++) {
+
+      // Pretty sure I don't need this
+
+			double n = (double) nn;
+
+            /*// Recursive Formulae*/
+
+			if (mm == nn) {
+
+				if (mm == 0) {
+
+					b_bar_real(0,0) = ref_radius/r_sat;
+					b_bar_imag(0,0) = 0.0;
+
+				} else {
+
+					if (nn == 1) {
+
+						delta_1_n = 1.0;
+
+					} else {
+
+						delta_1_n = 0.0;
+
+					} 
+
+					b_bar_real(nn,nn) = sqrt( (1.0 + delta_1_n)*(2.0*n + 1.0)/(2.0*n) ) * (ref_radius/r_sat) * ( x_sat/r_sat*b_bar_real(nn-1,nn-1) - y_sat/r_sat*b_bar_imag(nn-1,nn-1) );
+					b_bar_imag(nn,nn) = sqrt( (1.0 + delta_1_n)*(2.0*n + 1.0)/(2.0*n) ) * (ref_radius/r_sat) * ( y_sat/r_sat*b_bar_real(nn-1,nn-1) + x_sat/r_sat*b_bar_imag(nn-1,nn-1) );
+
+				} 
+
+			} 
+
+			else {
+
+				if ( nn >= 2 ) {
+
+					b_bar_real(nn,mm) = sqrt( (4.0*n*n - 1.0)/(n*n - m*m) )*(ref_radius/r_sat)*(z_sat/r_sat)*b_bar_real(nn-1,mm) - sqrt( (2.0*n + 1.0)*( (n - 1.0)*(n - 1.0) - m*m )/( (2.0*n - 3.0)*(n*n - m*m) ) )*(ref_radius/r_sat)*(ref_radius/r_sat)*b_bar_real(nn-2,mm);
+					b_bar_imag(nn,mm) = sqrt( (4.0*n*n - 1.0)/(n*n - m*m) )*(ref_radius/r_sat)*(z_sat/r_sat)*b_bar_imag(nn-1,mm) - sqrt( (2.0*n + 1.0)*( (n - 1.0)*(n - 1.0) - m*m )/( (2.0*n - 3.0)*(n*n - m*m) ) )*(ref_radius/r_sat)*(ref_radius/r_sat)*b_bar_imag(nn-2,mm);
+
+				} else {
+
+					b_bar_real(nn,mm) = sqrt( (4.0*n*n - 1.0)/(n*n - m*m) )*(ref_radius/r_sat)*(z_sat/r_sat)*b_bar_real(nn-1,mm);
+					b_bar_imag(nn,mm) = sqrt( (4.0*n*n - 1.0)/(n*n - m*m) )*(ref_radius/r_sat)*(z_sat/r_sat)*b_bar_imag(nn-1,mm);
+
+				} 
+
+			} 
+
+		} 
+
+	} 
+
+} 
+
+
+arma::vec DynamicAnalyses::spherical_harmo_acc(const unsigned int n_degree,
+	const double ref_radius,
+	const double  mu,
+	const arma::vec & pos, 
+	const arma::mat & Cbar,
+	const arma::mat & Sbar) {
+
+	int n_max = 50;
+
+	if (Cbar.n_rows < n_degree){
+		throw std::runtime_error("Cbar has fewer rows than the queried spherical expansion degree");
+	}
+
+	if (Sbar.n_rows < n_degree){
+		throw std::runtime_error("Sbar has fewer rows than the queried spherical expansion degree");
+	}
+
+
+	arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+	arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+
+	GetBnmNormalizedExterior(n_degree,
+		b_bar_real,
+		b_bar_imag,
+		pos,
+		ref_radius);
+
+
+	double K0 = 0.5 * mu / ref_radius / ref_radius;
+	double x_ddot = 0;
+	double y_ddot = 0;
+	double z_ddot = 0;
+
+
+	for (unsigned int nn = 0; nn<=n_degree; nn++){
+
+		double n = (double) nn;
+
+		for (unsigned int mm = 0; mm<=nn; mm++){
+
+			double m = (double) mm;
+			double delta_1_m;
+
+			if (mm == 1){
+				delta_1_m = 1.0;
+			}
+			else{
+				delta_1_m = 0.0;
+			} 
+
+			double K1 = sqrt( (n+2.0) * (n+1.0) * (2.0*n+1.0) / 2.0 / (2.0*n+3.0) );
+			double K2 = sqrt( (n+m+2.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) );
+			double K3 = sqrt( 2.0 * (n-m+2.0) * (n-m+1.0) * (2.0*n+1.0) / (2.0 - delta_1_m) / (2.0*n+3.0) );
+
+			if (mm == 0){
+
+				x_ddot -= 2.0*K0 * ( Cbar(nn,mm)*K1*b_bar_real(nn+1,mm+1) );
+				y_ddot -= 2.0*K0 * ( Cbar(nn,mm)*K1*b_bar_imag(nn+1,mm+1) );
+				z_ddot -= 2.0*K0 * ( Cbar(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) );
+
+			}
+			else{
+
+				x_ddot += K0 * ( -Cbar(nn,mm)*K2*b_bar_real(nn+1,mm+1) -Sbar(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +Cbar(nn,mm)*K3*b_bar_real(nn+1,mm-1) +Sbar(nn,mm)*K3*b_bar_imag(nn+1,mm-1));
+				y_ddot += K0 * ( -Cbar(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +Sbar(nn,mm)*K2*b_bar_real(nn+1,mm+1) -Cbar(nn,mm)*K3*b_bar_imag(nn+1,mm-1) +Sbar(nn,mm)*K3*b_bar_real(nn+1,mm-1));
+				z_ddot -= 2.0*K0 * ( Cbar(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) +Sbar(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2*n+1.0)/(2.0*n+3.0))*b_bar_imag(nn+1,mm) );
+
+			} 
+
+		} 
+
+	} 
+
+	arma::vec acceleration = {x_ddot,y_ddot,z_ddot};
+
+	return acceleration;
+
+} 
+
 
 
 
