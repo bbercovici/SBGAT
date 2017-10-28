@@ -4,12 +4,12 @@ using namespace SBGAT_GUI;
 
 
 Worker::Worker(std::shared_ptr<SBGAT_CORE::DynamicAnalyses> dyn_analyses,
-               double density,
+               double mu,
                std::shared_ptr<ModelDataWrapper> model_data,
                std::string name) {
 
 	this -> dyn_analyses = dyn_analyses;
-	this -> density = density;
+	this -> mu = mu;
 	this -> name = name;
 	this -> model_data = model_data;
 
@@ -22,7 +22,7 @@ void Worker::process_pgm_acc() {
 
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	start = std::chrono::system_clock::now();
-	this -> dyn_analyses -> compute_pgm_accelerations(density);
+	this -> dyn_analyses -> compute_pgm_accelerations(mu);
 	end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 
@@ -47,7 +47,7 @@ void Worker::process_pgm_pot() {
 
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	start = std::chrono::system_clock::now();
-	this -> dyn_analyses -> compute_pgm_potentials(density);
+	this -> dyn_analyses -> compute_pgm_potentials(mu);
 	end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 

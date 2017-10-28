@@ -776,7 +776,12 @@ void Mainwindow::compute_global_pgm_acceleration() {
                      "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
                      5, &ok_density);
 
+
+
+
     if (ok_density) {
+
+        double mu = density * arma::datum::G * this -> wrapped_data[name] -> get_shape_model() -> get_volume();
 
 
         // Log in
@@ -788,7 +793,7 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
 
         QThread * thread = new QThread;
-        Worker * worker = new Worker(dyn_analyses, density, this -> wrapped_data[name],
+        Worker * worker = new Worker(dyn_analyses, mu, this -> wrapped_data[name],
                                      name);
         worker ->  moveToThread(thread);
         connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_acc()));
@@ -826,6 +831,10 @@ void Mainwindow::compute_global_pgm_potential() {
     if (ok_density) {
 
 
+        double mu = density * arma::datum::G * this -> wrapped_data[name] -> get_shape_model() -> get_volume();
+
+
+
         // Log int
         this -> log_console -> appendPlainText(QString::fromStdString("- Computing global PGM facet potentials of " + name + " ..."));
 
@@ -836,7 +845,7 @@ void Mainwindow::compute_global_pgm_potential() {
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses,
-                                     density,
+                                     mu,
                                      this -> wrapped_data[name],
                                      name);
         worker ->  moveToThread(thread);
@@ -927,7 +936,7 @@ void Mainwindow::compute_gravity_slopes() {
             // A GUI flag is updated to indicate that this shape model has consistent slopes ready to be displayed
             this -> wrapped_data[name] -> set_grav_slopes(true);
 
-            // The GUI actions are updates
+            // The GUI actions are updated
             this -> update_actions_availability();
 
             // The previously displayed slopes (if any) are removed
@@ -1068,13 +1077,17 @@ void Mainwindow::compute_pgm_acceleration() {
 
         if (ok_density) {
 
+            double mu = density * arma::datum::G * this -> wrapped_data[name] -> get_shape_model() -> get_volume();
+
+
+
             // The PGM acceleration is computed at the provided point
             arma::vec coords_arma = {point[0], point[1], point[2]};
             std::stringstream ss_coords;
             ss_coords.precision(10);
             ss_coords << " " << point[0] << "\n" << " " << point[1] << "\n" << " " << point[2] << "\n";
 
-            arma::vec acc = dynas.pgm_acceleration(point , density);
+            arma::vec acc = dynas.pgm_acceleration(point , mu);
             std::stringstream ss_acc;
             ss_acc.precision(10);
             ss_acc << " " << acc[0] << "\n" << " " << acc[1] << "\n" << " " << acc[2] << "\n";

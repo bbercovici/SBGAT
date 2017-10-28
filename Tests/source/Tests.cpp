@@ -62,12 +62,9 @@ void TestsSBCore::test_pgm_consistency_cube() {
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
 		shape_io.load_shape_model(&shape_model);
-
-
-
-
 		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), 1e6);
+		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
+		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
 
 		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
 	}
@@ -76,12 +73,13 @@ void TestsSBCore::test_pgm_consistency_cube() {
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube_50k.obj", 1);
 		shape_io.load_shape_model(&shape_model);
+		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
 
 
 
 
 		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), 1e6);
+		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
 
 		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
 	}
@@ -90,10 +88,11 @@ void TestsSBCore::test_pgm_consistency_cube() {
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube_200k.obj", 1);
 		shape_io.load_shape_model(&shape_model);
+		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
 
 
 		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), 1e6);
+		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
 
 		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
 	}
@@ -129,7 +128,9 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 	shape_io.load_shape_model(&shape_model);
 
 	SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-	arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), 1e6);
+	double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
+
+	arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
 
 	assert(arma::norm(acc_true - acc) / arma::norm(acc) < 5e-5);
 
@@ -190,7 +191,10 @@ void TestsSBCore::test_spherical_harmonics_consistency() {
 	// of this spherical harmonics code by Yu Takahashi
 	// and Siamak Hesar
 
-	arma::vec acc_true = { -0.567824977098112e-6,-0.846742135468519e-6,-0.836664679681573e-6};
+	arma::vec acc_true = { -0.567824977098112e-6,
+		-0.846742135468519e-6,
+		-0.836664679681573e-6
+	};
 
 	arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
 		ref_radius,
@@ -198,7 +202,6 @@ void TestsSBCore::test_spherical_harmonics_consistency() {
 		pos, 
 		Cnm_total,
 		Snm_total);
-
 
 	assert(arma::norm(acc_true - acc_sph) / arma::norm(acc_sph) < 1e-10);
 

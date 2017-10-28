@@ -35,12 +35,12 @@ class Worker: public QObject {
 public:
 	/**
 	@param dyn_analyses pointer to DynamicAnalyses object instantiated from the shape model of interest
-	@param density shape density (kg/m^3)
+	@param mu standard gravitational parameter (m^3/s^-2)
 	@param model_data pointer to the ModelDataWrapper representative of the shape being operated on
 	@param name name of the shape
 	*/
 	Worker(std::shared_ptr<SBGAT_CORE::DynamicAnalyses> dyn_analyses,
-	       double density,
+	       double mu,
 	       std::shared_ptr<ModelDataWrapper> model_data,
 	       std::string name) ;
 
@@ -85,7 +85,7 @@ signals:
 private:
 
 	std::shared_ptr<SBGAT_CORE::DynamicAnalyses> dyn_analyses;
-	double density;
+	double mu;
 	std::string name;
 	std::shared_ptr<ModelDataWrapper> model_data;
 

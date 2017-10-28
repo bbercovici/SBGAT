@@ -39,15 +39,15 @@ namespace SBGAT_CORE {
 
 	/**
 	Evaluates the Polyhedron Gravity Model acceleration (PGM) at the center of each facet of the shape model
-	@param density Density of the shape model (kg/m^3)
+	@param mu standard gravitational parameter of the shape model (L^3/T^2)
 	*/
-		void compute_pgm_accelerations(double density);
+		void compute_pgm_accelerations(const double mu);
 
 	/**
 	Evaluates the Polyhedron Gravity Model potentials (PGM) at the center of each facet of the shape model
-	@param density Density of the shape model (kg/m^3)
+	@param mu standard gravitational parameter of the shape model (L^3/T^2)
 	*/
-		void compute_pgm_potentials(double density);
+		void compute_pgm_potentials(const double mu);
 
 
 	/**
@@ -81,10 +81,10 @@ namespace SBGAT_CORE {
 	/**
 	Evaluates the acceleration due to gravity at the provided point using a Polyhedron Gravity Model
 	@param point body-frame coordinates at which the acceleration is evaluated (L)
-	@param density density of the shape model (M/L^3)
+	@param mu standard gravitational parameter of the shape model (L^3/T^2)
 	@return PGM acceleration
 	*/
-		arma::vec pgm_acceleration(double * point , double density) const ;
+		arma::vec pgm_acceleration(double * point ,const double mu) const ;
 
 	/**
 	Evaluates the gravity potential at the provided point using a Polyhedron Gravity Model

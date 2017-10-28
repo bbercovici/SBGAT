@@ -8,7 +8,7 @@ DynamicAnalyses::DynamicAnalyses(ShapeModel * shape_model) {
 	this -> shape_model = shape_model;
 }
 
-void DynamicAnalyses::compute_pgm_accelerations(double density ) {
+void DynamicAnalyses::compute_pgm_accelerations(const double mu ) {
 
 	arma::vec acc(3);
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {
@@ -16,7 +16,7 @@ void DynamicAnalyses::compute_pgm_accelerations(double density ) {
 
 		acc = this -> pgm_acceleration(
 			facet -> get_facet_center() -> colptr(0) ,
-			density);
+			mu);
 		facet -> get_facet_results() -> set_grav_acceleration(acc);
 
 	}
@@ -25,7 +25,7 @@ void DynamicAnalyses::compute_pgm_accelerations(double density ) {
 
 
 
-void DynamicAnalyses::compute_pgm_potentials(double density) {
+void DynamicAnalyses::compute_pgm_potentials(const double mu) {
 
 	for (unsigned int facet_index = 0; facet_index < this -> shape_model -> get_NFacets(); ++facet_index) {
 
@@ -33,7 +33,7 @@ void DynamicAnalyses::compute_pgm_potentials(double density) {
 
 		double potential = this -> pgm_potential(
 			facet -> get_facet_center() -> colptr(0) ,
-			density);
+			mu);
 		facet -> get_facet_results() -> set_grav_potential(potential);
 
 	}
@@ -89,7 +89,7 @@ return stats;
 }
 
 
-double DynamicAnalyses::pgm_potential(double * point , double density) const {
+double DynamicAnalyses::pgm_potential(double * point ,const double mu) const {
 
 	double potential = 0;
 
@@ -209,14 +209,14 @@ double DynamicAnalyses::pgm_potential(double * point , double density) const {
 		potential += (ax * r1m[0] + ay * r1m[1] + az * r1m[2]);
 
 	}
-	potential *= 0.5 * density * arma::datum::G;
+	potential *= 0.5 * mu / this -> shape_model -> get_volume();
 
 
 	return potential;
 
 }
 
-arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) const {
+arma::vec DynamicAnalyses::pgm_acceleration(double * point , const double mu) const {
 
 	double ax = 0;
 	double ay = 0;
@@ -333,17 +333,17 @@ arma::vec DynamicAnalyses::pgm_acceleration(double * point , double density) con
 		ay -= Le * (E_col_0[1] * r1m[0] + E_col_1[1] * r1m[1] +  E_col_2[1] * r1m[2]);
 		az -= Le * (E_col_0[2] * r1m[0] + E_col_1[2] * r1m[1] +  E_col_2[2] * r1m[2]);
 
-
 	}
 
 	arma::vec acceleration = {ax, ay, az};
-	acceleration = acceleration * arma::datum::G * density;
+	acceleration = acceleration * mu / this -> shape_model -> get_volume();
 
 	return acceleration;
 
 }
 
 void DynamicAnalyses::compute_exterior_sh_coefs(
+	
 	arma::mat & Cnm_total,
 	arma::mat & Snm_total,
 	unsigned int n_degree,
@@ -524,7 +524,6 @@ arma::vec DynamicAnalyses::spherical_harmo_acc(const unsigned int n_degree,
 	double x_ddot = 0;
 	double y_ddot = 0;
 	double z_ddot = 0;
-
 
 	for (unsigned int nn = 0; nn<=n_degree; nn++){
 

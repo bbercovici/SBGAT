@@ -18,11 +18,11 @@ int main( int argc, char** argv ) {
 
 
 	SBGAT_CORE::FrameGraph frame_graph;
-	SBGAT_CORE::ShapeModel shape_model("B", &frame_graph);
+	SBGAT_CORE::ShapeModel eros("B", &frame_graph);
 	SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
 
-	shape_io.load_shape_model(&shape_model);
-	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&shape_model);
+	shape_io.load_shape_model(&eros);
+	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
 
 	// Harmonics up to degree five are computed
 	int degree = 5;
@@ -46,6 +46,28 @@ int main( int argc, char** argv ) {
 		ref_radius,
 		density,
 		normalized);
+
+	// This coefficients can then be used to evaluate an acceleration at a query point
+	// outside of the sphere circumscribing the input shape
+	arma::vec pos = {10,10,10};
+
+	// The standard gravitational parameter of Eros is computed
+	double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
+
+	arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
+		ref_radius,
+		mu,
+		pos, 
+		Cnm_total,
+		Snm_total);
+
+	std::cout << "Spherical harmonics acceleration at the query point (km/s^2): " << std::endl;
+	std::cout << acc_sph << std::endl;
+
+	arma::vec acc_pgm = dynamic_analyses.pgm_acceleration(pos.colptr(0) , density);
+
+	std::cout << "Polyhedron gravity model acceleration at the query point (km/s^2): " << std::endl;
+	std::cout << acc_pgm << std::endl;
 
 
 	// The coefficients are stored in a more convenient form 
