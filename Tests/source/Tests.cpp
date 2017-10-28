@@ -21,7 +21,7 @@ void TestsSBCore::test_loading_shape() {
 	std::cout << "- Running test_loading_shape ..." << std::endl;
 
 	SBGAT_CORE::ShapeModel shape_model("", nullptr);
-	SBGAT_CORE::ShapeModelImporter shape_io("cube.obj", 1);
+	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
 	shape_io.load_shape_model(&shape_model);
 
 	assert(shape_model.get_NFacets() == 12);
@@ -60,7 +60,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("cube.obj", 1);
+		SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
 		shape_io.load_shape_model(&shape_model);
 
 
@@ -74,7 +74,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("cube_50k.obj", 1);
+		SBGAT_CORE::ShapeModelImporter shape_io("../cube_50k.obj", 1);
 		shape_io.load_shape_model(&shape_model);
 
 
@@ -88,7 +88,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("cube_200k.obj", 1);
+		SBGAT_CORE::ShapeModelImporter shape_io("../cube_200k.obj", 1);
 		shape_io.load_shape_model(&shape_model);
 
 
@@ -114,7 +114,7 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 
 	std::cout << "- Running test_pgm_consistency_ellipsoid ..." << std::endl;
 
-	// The attracting shape is an ellispoid of semi-major axes 3 x 2 x 1 m of density rho = 1e6 kg/m^3
+	// The attracting shape is an ellipsoid of semi-major axes 3 x 2 x 1 m of density rho = 1e6 kg/m^3
 	// The analytic acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
 	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
 	arma::vec X = {1, 2, 3};
@@ -125,7 +125,7 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 	};
 
 	SBGAT_CORE::ShapeModel shape_model("", nullptr);
-	SBGAT_CORE::ShapeModelImporter shape_io("ellipsoid.obj", 1);
+	SBGAT_CORE::ShapeModelImporter shape_io("../ellipsoid.obj", 1);
 	shape_io.load_shape_model(&shape_model);
 
 	SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
@@ -134,10 +134,6 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 	assert(arma::norm(acc_true - acc) / arma::norm(acc) < 5e-5);
 
 	std::cout << "-- test_pgm_consistency_ellipsoid successful" << std::endl;
-
-
-
-
 
 }
 
