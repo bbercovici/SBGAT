@@ -7,6 +7,8 @@ void TestsSBCore::run() {
 	TestsSBCore::test_pgm_consistency_cube();
 	TestsSBCore::test_pgm_consistency_ellipsoid();
 	TestsSBCore::test_spherical_harmonics_consistency();
+	TestsSBCore::test_spherical_harmonics_invariance();
+
 
 
 }
@@ -208,6 +210,108 @@ void TestsSBCore::test_spherical_harmonics_consistency() {
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
+
+void TestsSBCore::test_spherical_harmonics_invariance(){
+
+	std::cout << "- Running test_spherical_harmonics_invariance ..." << std::endl;
+
+	arma::vec acc_sph_km(3);
+	arma::vec acc_sph_m(3);
+
+
+	{
+
+		SBGAT_CORE::FrameGraph frame_graph;
+		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
+		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
+
+		shape_io.load_shape_model(&eros);
+		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
+
+		int degree = 10;
+
+		double density = 2670000000000.0;
+
+		double ref_radius = 16;
+
+		bool normalized = true;
+
+		arma::mat Cnm_total;
+		arma::mat Snm_total;
+
+		dynamic_analyses.compute_exterior_sh_coefs(
+			Cnm_total,
+			Snm_total,
+			degree,
+			ref_radius,
+			density,
+			normalized);
+
+		arma::vec pos = {10,10,10};
+
+		double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
+
+		acc_sph_km = dynamic_analyses.spherical_harmo_acc(degree,
+			ref_radius,
+			mu,
+			pos, 
+			Cnm_total,
+			Snm_total);
+	}
+
+	{
+
+		SBGAT_CORE::FrameGraph frame_graph;
+		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
+		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1000);
+
+		shape_io.load_shape_model(&eros);
+		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
+
+		int degree = 10;
+
+		double density = 2670;
+
+		double ref_radius = 16000;
+
+		bool normalized = true;
+
+		arma::mat Cnm_total;
+		arma::mat Snm_total;
+
+		dynamic_analyses.compute_exterior_sh_coefs(
+			Cnm_total,
+			Snm_total,
+			degree,
+			ref_radius,
+			density,
+			normalized);
+
+		arma::vec pos = {10000,10000,10000};
+
+		double mu = eros.get_volume() * (density * arma::datum::G);
+
+		acc_sph_m = dynamic_analyses.spherical_harmo_acc(degree,
+			ref_radius,
+			mu,
+			pos, 
+			Cnm_total,
+			Snm_total);
+	}
+
+	assert(arma::norm(acc_sph_m - 1e3 * acc_sph_km) < 1e-10);
+
+
+	std::cout << "-- test_spherical_harmonics_invariance successful" << std::endl;
+
+
+}
+
+
+
+
+
+
 
 
 
