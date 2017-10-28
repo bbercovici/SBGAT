@@ -33,6 +33,8 @@ int main( int argc, char** argv ) {
 	shape_io.load_shape_model(&shape_model);
 
 	// The dimensionless inertia expressed in the body-fixed frame is shown
+	std::cout << "Body-fixed inertia tensor (kg m^2):\n";
+
 	std::cout << shape_model.get_inertia() << std::endl;
 
 	// Dynamic analyses are performed on the shape model
@@ -46,7 +48,10 @@ int main( int argc, char** argv ) {
 	p[2] = 2000;
 
 	// The acceleration at the provided point is calculated using the polyhedron gravity model
-	std::cout << dynamic_analyses.pgm_acceleration(p, SBGAT_CORE::constants::density::kw4_alpha).t() << std::endl;
+	double mu = SBGAT_CORE::constants::density::kw4_alpha * arma::datum::G * shape_model . get_volume();
+		
+	std::cout << "Gravity acceleration at (0,0,2000) (m) in m/s^2:";
+	std::cout << dynamic_analyses.pgm_acceleration(p, mu).t() << std::endl;
 	
 
 

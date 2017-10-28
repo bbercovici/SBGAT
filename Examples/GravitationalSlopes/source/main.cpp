@@ -37,7 +37,8 @@ int main( int argc, char** argv ) {
 	// The resulting accelerations will be saved within each facet of the shape model in a
 	// FacetResults object
 	double density = 2000; //(kg/m^3)
-	dynamic_analyses.compute_pgm_accelerations(density);
+	double mu = arma::datum::G * density * shape_model . get_volume();
+	dynamic_analyses.compute_pgm_accelerations(mu);
 
 	// The slopes can now be computed, assuming a rotation period of 2.7645 hours and a spin axis oriented along
 	// the +z axis in the body-fixed frame (axis of maximum inertia)

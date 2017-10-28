@@ -57,7 +57,10 @@ int main( int argc, char** argv ) {
 	arma::vec p = {1, 1, 1};
 
 	// The acceleration at the provided point is calculated using the polyhedron gravity model
-	arma::vec acc = dynamic_analyses.pgm_acceleration(p.colptr(0), 5000);
+	
+	double density = 5000;
+	double mu = density * arma::datum::G * shape_model . get_volume();
+	arma::vec acc = dynamic_analyses.pgm_acceleration(p.colptr(0), mu);
 
 	// The acceleration of gravity is evaluated at the point of coordinates (1.5,1.5,1.5)
 	// in original frame (that is, the frame that was used in the obj file storing the shape's coordinates)
@@ -67,7 +70,7 @@ int main( int argc, char** argv ) {
 	arma::vec p_original_converted = frame_graph.convert(p_original, "original", "principal_barycentric");
 
 	// The acceleration at the provided point is calculated using the polyhedron gravity model
-	arma::vec acc_original_converted = dynamic_analyses.pgm_acceleration(p_original_converted.colptr(0), 5000);
+	arma::vec acc_original_converted = dynamic_analyses.pgm_acceleration(p_original_converted.colptr(0), mu);
 
 
 	std::cout << "Coordinates of point already in barycentric principal frame: " << std::endl;
@@ -82,17 +85,10 @@ int main( int argc, char** argv ) {
 	std::cout << acc.t() << std::endl;
 
 
-	std::cout << "Acceleration from point converted to in principal barycentric frame: " << std::endl;
+	std::cout << "Acceleration from point converted to principal barycentric frame: " << std::endl;
 	std::cout << acc_original_converted.t() << std::endl;
 
-	if (arma::norm(p - p_original_converted) / arma::norm(p_original_converted) < 1e-6) {
-		std::cout << "p and p_original_converted are identical!" << std::endl;
-	}
-
-	if (arma::norm(acc - acc_original_converted) / arma::norm(acc_original_converted) < 1e-6) {
-		std::cout << "The accelerations evaluated at p and p_original_converted are identical!" << std::endl;
-	}
-
+	
 
 	return 0;
 }
