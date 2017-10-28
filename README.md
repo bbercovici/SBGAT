@@ -1,5 +1,5 @@
 # SBGAT
-Small Bodies Geophysical Analysis Tool implementation
+The Small Bodies Geophysical Analysis Tool implementation
 
 Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
 
