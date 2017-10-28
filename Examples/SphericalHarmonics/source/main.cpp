@@ -25,7 +25,7 @@ int main( int argc, char** argv ) {
 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
 
 	// Harmonics up to degree five are computed
-	int degree = 5;
+	int degree = 10;
 
 	// Density of Eros (kg/km^3)
 	double density = 2670000000000.0;
@@ -64,7 +64,7 @@ int main( int argc, char** argv ) {
 	std::cout << "Spherical harmonics acceleration at the query point (km/s^2): " << std::endl;
 	std::cout << acc_sph << std::endl;
 
-	arma::vec acc_pgm = dynamic_analyses.pgm_acceleration(pos.colptr(0) , density);
+	arma::vec acc_pgm = dynamic_analyses.pgm_acceleration(pos.colptr(0) , mu);
 
 	std::cout << "Polyhedron gravity model acceleration at the query point (km/s^2): " << std::endl;
 	std::cout << acc_pgm << std::endl;
