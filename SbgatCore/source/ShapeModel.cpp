@@ -54,9 +54,7 @@ void ShapeModel::update_facets(std::set<Facet *> & facets) {
 }
 
 
-
-
-void ShapeModel::shift_rotate_to_principal_frame() {
+void ShapeModel::shift_rotate_to_principal_frame(bool enforce_principal_axes) {
 
 	if (this -> barycenter_aligned == false) {
 		this -> shift_to_barycenter();
@@ -64,7 +62,7 @@ void ShapeModel::shift_rotate_to_principal_frame() {
 	}
 
 	if (this -> barycenter_aligned == true &&
-	        this -> principal_axes_aligned == false) {
+	        this -> principal_axes_aligned == false && enforce_principal_axes == true) {
 		this -> align_with_principal_axes();
 		this -> principal_axes_aligned = true;
 

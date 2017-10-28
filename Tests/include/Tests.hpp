@@ -25,6 +25,8 @@ void run();
 void test_loading_shape();
 void test_pgm_consistency_cube();
 void test_pgm_consistency_ellipsoid();
+void test_spherical_harmonics_consistency();
+
 
 }
 

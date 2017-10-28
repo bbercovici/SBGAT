@@ -10,7 +10,7 @@ ShapeModelImporter::ShapeModelImporter(std::string filename, double scaling_fact
 	this -> use_edges = use_edges;
 }
 
-void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
+void ShapeModelImporter::load_shape_model(ShapeModel * shape_model , bool enforce_principal_axes) const {
 
 	std::ifstream ifs(this -> filename);
 
@@ -146,7 +146,7 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model ) const {
 
 	// The coordinates of the shape model 
 	// are edited so as to be expressed in the barycentric principal frame
-	shape_model -> shift_rotate_to_principal_frame();
+	shape_model -> shift_rotate_to_principal_frame(enforce_principal_axes);
 
 	// Edges and facets are updated (their dyads, normals and centers
 	// are computed) to reflect the new position/orientation

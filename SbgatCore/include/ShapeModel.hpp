@@ -130,9 +130,11 @@ public:
 	/**
 	Translates and rotates the shape model so as to have (0,0,0) aligned with its
 	barycenter and (1,0,0), (0,1,0) and (0,0,1) with its principal axes
+	@param enforce_principal_axes true if the shape must be ligned up 
+	with its principal axes of inertia
 	*/
 
-	void shift_rotate_to_principal_frame();
+	void shift_rotate_to_principal_frame(bool enforce_principal_axes);
 
 	/**
 	Pointer to the shape model's vertices
@@ -231,12 +233,11 @@ public:
 	with its principal axes.
 
 	This assumes that the body has been shifted so
-	that (0,0,0) lies at its barycenter
-
-	The resulting inertia tensor is diagonal
+	that (0,0,0) lies at its barycenter . The resulting inertia tensor is diagonal
 
 	Undefined behavior if
 	the inertia tensor has not been computed beforehand
+	
 	*/
 	void align_with_principal_axes();
 

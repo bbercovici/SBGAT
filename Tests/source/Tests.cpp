@@ -6,10 +6,10 @@ void TestsSBCore::run() {
 	TestsSBCore::test_loading_shape();
 	TestsSBCore::test_pgm_consistency_cube();
 	TestsSBCore::test_pgm_consistency_ellipsoid();
+	TestsSBCore::test_spherical_harmonics_consistency();
+
 
 }
-
-
 
 
 /**
@@ -106,7 +106,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 
 
 /**
-This test checks ensures that the Polyhedron Gravity Model
+This test ensures that the Polyhedron Gravity Model
 computed around an ellispoid shape is consistent
 with the analytical expression
 */
@@ -134,6 +134,75 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 	assert(arma::norm(acc_true - acc) / arma::norm(acc) < 5e-5);
 
 	std::cout << "-- test_pgm_consistency_ellipsoid successful" << std::endl;
+
+}
+
+
+/**
+This test checks the consistency of the spherical harmonics coefficients computation 
+about a shape model of Eros against
+
+*/
+
+void TestsSBCore::test_spherical_harmonics_consistency() {
+
+	std::cout << "- Running test_spherical_harmonics_consistency ..." << std::endl;
+
+
+	SBGAT_CORE::FrameGraph frame_graph;
+	SBGAT_CORE::ShapeModel eros("B", &frame_graph);
+	SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
+
+	shape_io.load_shape_model(&eros,false);
+	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
+
+	// Harmonics up to degree five are computed
+	int degree = 5;
+
+	// Density of Eros (kg/km^3). The input shape model has 
+	// its coordinates expressed in km 
+	double density = 2670000000000.0;
+
+	// Reference radius of Eros (km)
+	double ref_radius = 16;
+
+	// Flag set to true for normalized coefficients, false for unnormalized ones
+	bool normalized = true;
+
+	arma::mat Cnm_total;
+	arma::mat Snm_total;
+
+	dynamic_analyses.compute_exterior_sh_coefs(
+		Cnm_total,
+		Snm_total,
+		degree,
+		ref_radius,
+		density,
+		normalized);
+
+	// The standard gravitational parameter of Eros is computed
+	double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
+
+	// The accelerations are evaluated at the query point
+	arma::vec pos = {10,10,10};
+
+	// Accelerations obtained from the legacy MEX implementation 
+	// of this spherical harmonics code by Yu Takahashi
+	// and Siamak Hesar
+
+	arma::vec acc_true = { -0.567824977098112e-6,-0.846742135468519e-6,-0.836664679681573e-6};
+
+	arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
+		ref_radius,
+		mu,
+		pos, 
+		Cnm_total,
+		Snm_total);
+
+
+	assert(arma::norm(acc_true - acc_sph) / arma::norm(acc_sph) < 1e-10);
+
+	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
 

@@ -113,10 +113,10 @@ namespace SBGAT_CORE {
 	- 3: L. E. Cunningham, "On the computation of the spherical harmonic terms needed during the numerical integration of the orbital motion of an artificial satellite"
 
 	@param n_degree degree of the expansion
-	@param ref_radius reference radius used in the expansion
-	@param mu reference mass used in the expansion
+	@param ref_radius reference radius used in the expansion [L]
+	@param mu standard gravitational parameter of the attracting body [L^3/s^2]
 	@param pos query point position expressed in the body-fixed frame of the 
-	attracting body
+	attracting body [L]
 	@param Cbar matrix of normalized C coefficients
 	@param Sbar matrix of normalized S coefficients
 	@return spherical harmonics acceleration evaluated in the body-fixed frame

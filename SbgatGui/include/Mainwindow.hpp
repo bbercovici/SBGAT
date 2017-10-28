@@ -260,7 +260,7 @@ private slots:
 	are consistent with current Sbgat state.
 	*/
 	void update_actions_availability() ;
-
+	
 
 	/**
 	Updates the GUI when a new shape model is selected from the lateral widget.

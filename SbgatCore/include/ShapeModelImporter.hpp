@@ -37,8 +37,11 @@ public:
 	Reads-in an OBJ file storing the shape model info and sets the field of
 	$shape_model to the corresponding values
 	@param shape_model pointer to the shape model to receive the read data
+	@param enforce_principal_axes if true, the loaded shape
+	will be rotated to lign up with its principal axes after
+	it has been shited to its barycenter
 	*/
-	void load_shape_model(ShapeModel * shape_model) const;
+	void load_shape_model(ShapeModel * shape_model,bool enforce_principal_axes = true) const;
 
 protected:
 	std::string filename;
