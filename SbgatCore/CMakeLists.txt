@@ -82,7 +82,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 # Compiler flags
 add_definitions(-Wall -O2 )
 
-# Set up the C++17 and OMP compile flags 
+# Enable C++17 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Include directories
