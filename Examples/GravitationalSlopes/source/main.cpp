@@ -7,6 +7,9 @@
 
 int main( int argc, char** argv ) {
 
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	std::chrono::duration<double> elapsed_seconds ;
+	start = std::chrono::system_clock::now();
 	// A Reference frame graph is created. This is the
 	// keystone of SBGAT as it connects different reference frame together
 	// and enables coordinates transformations from one frame to another
@@ -54,7 +57,10 @@ int main( int argc, char** argv ) {
 	// One can also loop over all the facets and get their slopes. This is demonstrated with 
 	// the first facet of the shape model
 	std::cout << "Slope at the center of the first facet of the shape model: " << shape_model.get_facets() -> at(0) -> get_facet_results() -> get_grav_slope() << " deg\n";
-
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end - start;
+	
+	std::cout << "Elapsed time: " << duration.count() << " s" << std::endl;
 
 
 
