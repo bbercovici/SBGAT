@@ -60,7 +60,7 @@ int main( int argc, char** argv ) {
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end - start;
 	
-	std::cout << "Elapsed time: " << duration.count() << " s" << std::endl;
+	std::cout << "Elapsed time: " << elapsed_seconds.count() << " s" << std::endl;
 
 
 
