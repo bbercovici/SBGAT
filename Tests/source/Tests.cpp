@@ -299,7 +299,7 @@ void TestsSBCore::test_spherical_harmonics_invariance(){
 			Snm_total);
 	}
 
-	assert(arma::norm(acc_sph_m - 1e3 * acc_sph_km) < 1e-10);
+	assert(arma::norm(acc_sph_m - 1e3 * acc_sph_km)/arma::norm(acc_sph_km) < 1e-10);
 
 
 	std::cout << "-- test_spherical_harmonics_invariance successful" << std::endl;

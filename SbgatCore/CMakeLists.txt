@@ -29,47 +29,43 @@ set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 #
 #
 ################################################################################
+
+
+if (EXISTS /home/bebe0705/.am_fortuna)
+	set(IS_FORTUNA ON)
+	message("-- This is Fortuna")
+else()
+	set(IS_FORTUNA OFF)
+	message("-- This is not Fortuna")
+
+endif()
+
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(LIB_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-if (${CMAKE_MINOR_VERSION} EQUAL 0 AND NOT APPLE) # if true, running on a CCAR computer (old CMAKE and RedHat)
-	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-elseif(NOT APPLE)
-	# Not sure about this. Should work on a modern Ubuntu system
-	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-    set (CMAKE_CXX_STANDARD 17)
-	message("This is a Linux machine. CMAKE_CXX_STANDARD 17 used")
 
+if (${IS_FORTUNA})
+	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+else()
+	if(APPLE)
+		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
+			message("Switching to OMP-friendly GCC ")
+	    	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
 
-endif()
-
-# Check what version of the compiler is installed
-execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
-                OUTPUT_VARIABLE GCC_VERSION)
-message("Default compiler is " ${CMAKE_C_COMPILER})
-message("Default ${CMAKE_C_COMPILER} version is " ${GCC_VERSION})
-
-# Set up the C++ and OMP compile flags 
-if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
-		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
-        	set(CMAKE_CXX_FLAGS "-std=c++0x")
-        elseif(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-        		message("Switching to OMP-friendly GCC ")
-	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
-				set(CMAKE_CXX_FLAGS "-std=c++17")
-			
-			else()
-				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac. ")
+		else()# no OMP-compliant compiler was found on this mac. 
+			message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
 		endif()
+	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
+				message("Switching to /usr/local/gcc ")
+		    	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+				set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+	endif()
 endif()
-
 
 project(${LIB_NAME})
-
 
 # Specify the version used
 if (${CMAKE_MAJOR_VERSION} LESS 3)
@@ -81,6 +77,9 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
 # Compiler flags
 add_definitions(-Wall -O2 )
+
+# Set up the C++17 and OMP compile flags 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Include directories
 include_directories(include)
@@ -100,12 +99,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 
 # Find RBK 
-# set (CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${RBK_LIBRARY_CMAKE_INSTALL}")
 find_package(RigidBodyKinematics REQUIRED)
-include_directories(${RBK_INCLUDE_DIRS})
+include_directories(${RBK_INCLUDE_DIR})
 
 # Fortran compiler, required by Armadillo on Linux/Ubuntu
-if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0)
+if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0 AND NOT ${IS_FORTUNA})
 	find_library(GFORTRAN_LIBRARY gfortran
 	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
@@ -135,10 +133,15 @@ ${RBK_LIBRARY})
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing
-install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
-install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SbgatCore/)
-install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
-
+if (NOT ${IS_FORTUNA})
+	install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
+	install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SbgatCore/)
+	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+else()
+	install (TARGETS ${LIB_NAME} DESTINATION /home/bebe0705/libs/local/lib)
+	install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /home/bebe0705/libs/local/lib/cmake/SbgatCore/)
+	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /home/bebe0705/libs/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+endif()
 
 
 

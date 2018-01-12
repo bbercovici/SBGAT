@@ -88,7 +88,7 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED)
-include_directories(${RBK_INCLUDE_DIRS})
+include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
 find_package(SbgatCore REQUIRED)

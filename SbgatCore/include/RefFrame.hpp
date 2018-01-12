@@ -4,7 +4,7 @@
 
 #include <memory>
 #include <armadillo>
-#include "RigidBodyKinematics.hpp"
+#include <RigidBodyKinematics.hpp>
 
 
 
