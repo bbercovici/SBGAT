@@ -34,11 +34,15 @@ set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 if (EXISTS /home/bebe0705/.am_fortuna)
 	set(IS_FORTUNA ON)
 	message("-- This is Fortuna")
+	set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+
 else()
 	set(IS_FORTUNA OFF)
 	message("-- This is not Fortuna")
 
 endif()
+
+
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -99,7 +103,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED)
+find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Fortran compiler, required by Armadillo on Linux/Ubuntu
