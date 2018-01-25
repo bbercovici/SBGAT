@@ -8,6 +8,7 @@ ShapeModel::ShapeModel() {
 
 void ShapeModel::update_mass_properties() {
 
+	
 	this -> barycenter_aligned = false;
 	this -> principal_axes_aligned = false;
 
@@ -51,6 +52,14 @@ void ShapeModel::update_facets(std::set<Facet *> & facets) {
 		facet -> update();
 	}
 
+}
+
+void ShapeModel::rotate(arma::mat M){
+
+	for (auto point = this -> vertices.begin(); point != this -> vertices.end(); ++point){
+		arma::vec coords = *(*point) -> get_coordinates();
+		(*point) -> set_coordinates(std::make_shared<arma::vec>(M*coords)) ;
+	}
 }
 
 
@@ -200,18 +209,84 @@ void ShapeModel::shift_to_barycenter() {
 
 }
 
+
+
+void ShapeModel::get_principal_inertias(arma::mat & axes,arma::vec & moments) const{
+
+
+	arma::eig_sym(moments,axes,this -> inertia);
+	
+	// The following ensures that the orientation 
+	// of the principal axes is uniquely distributed
+	double bbox[6];
+	
+	arma::vec e0 = axes.col(0);
+	arma::vec e1 = axes.col(1);
+	arma::vec e2 = axes.col(2);
+
+
+	if (arma::det(axes) < 0){
+		e0 = -e0;
+	}
+
+	axes = arma::join_rows(e0,arma::join_rows(axes.col(1),axes.col(2)));
+
+
+	this -> get_bounding_box(bbox,axes.t());
+	arma::vec x_max = {bbox[3],bbox[4],bbox[5]}; 
+	arma::vec x_min = {bbox[0],bbox[1],bbox[2]}; 
+
+	arma::mat M0 = arma::eye<arma::mat>(3,3);
+	arma::mat M1 = {{1,0,0},{0,-1,0},{0,0,-1}};
+	arma::mat M2 = {{-1,0,0},{0,1,0},{0,0,-1}};
+	arma::mat M3 = {{-1,0,0},{0,-1,0},{0,0,1}};
+
+	if (std::abs(arma::dot(x_max,e0)) > std::abs(arma::dot(x_min,e0))){
+
+		if(std::abs(arma::dot(x_max,e1)) > std::abs(arma::dot(x_min,e1))){
+			axes = axes * M0;
+		}
+
+		else{
+
+			axes = axes * M1;
+		}
+
+
+	}
+	else{
+		if(std::abs(arma::dot(x_max,e1)) > std::abs(arma::dot(x_min,e1))){
+
+			axes = axes * M2;
+		}
+
+		else{
+
+			axes = axes * M3;
+		}
+	}
+	
+
+}
+
+
 void ShapeModel::align_with_principal_axes() {
 
+	// The inertia is (re)computed
+	this -> compute_inertia();
 
-	// The vertices are rotated so as to have their coordinates
-	// expressed in the principal frame
-	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
-	for (unsigned int vertex_index = 0;
-	        vertex_index < this -> get_NVertices();
-	        ++vertex_index) {
+	arma::vec moments;
+	arma::mat axes;
 
-		*this -> vertices[vertex_index] -> get_coordinates() = this -> original_to_principal_dcm * (*this -> vertices[vertex_index] -> get_coordinates());
-	}
+	// The principal axes are extracted. 
+	this -> get_principal_inertias(axes,moments);
+
+	// The shape model is rotated to line up its principal eaxes
+	this -> rotate(axes.t());
+
+	// The inertia is et to its diagonal value
+	this -> inertia = arma::diagmat(moments);
+
 
 
 }
@@ -592,65 +667,25 @@ void ShapeModel::compute_surface_area() {
 
 
 
+void ShapeModel::get_bounding_box(double * bounding_box,arma::mat M) const {
 
+	arma::vec P0 = *this -> vertices. at(0) -> get_coordinates();
 
+	arma::vec bbox_min = arma::zeros<arma::vec>(3);
+	arma::vec bbox_max = arma::zeros<arma::vec>(3);
 
-void ShapeModel::get_bounding_box(double * bounding_box) const {
-
-	double xmin = std::numeric_limits<double>::infinity();
-	double ymin = std::numeric_limits<double>::infinity();
-	double zmin = std::numeric_limits<double>::infinity();
-
-	double xmax =  - std::numeric_limits<double>::infinity();
-	double ymax =  - std::numeric_limits<double>::infinity();
-	double zmax =  - std::numeric_limits<double>::infinity();
-
-	#pragma omp parallel for reduction(max : xmax,ymax,zmax),reduction(min : xmin,ymin,zmin)
 	for ( unsigned int vertex_index = 0; vertex_index < this -> get_NVertices(); ++ vertex_index) {
-
-		double * vertex_cords = this -> vertices[vertex_index] -> get_coordinates() -> colptr(0);
-
-		if (vertex_cords[0] >= xmax) {
-			xmax = vertex_cords[0];
-		}
-		else if (vertex_cords[0] <= xmin) {
-			xmin = vertex_cords[0];
-		}
-
-		if (vertex_cords[1] >= ymax) {
-			ymax = vertex_cords[1];
-		}
-		else if (vertex_cords[1] <= ymin) {
-			ymin = vertex_cords[1];
-		}
-
-		if (vertex_cords[2] >= zmax) {
-			zmax = vertex_cords[2];
-		}
-		else if (vertex_cords[2] <= zmin) {
-			zmin = vertex_cords[2];
-		}
+		bbox_min = arma::min(bbox_min,M * (*this -> vertices[vertex_index] -> get_coordinates()));
+		bbox_max = arma::max(bbox_max,M * (*this -> vertices[vertex_index] -> get_coordinates()));
 
 	}
 
-	bounding_box[0] = xmin;
-	bounding_box[1] = ymin;
-	bounding_box[2] = zmin;
-	bounding_box[3] = xmax;
-	bounding_box[4] = ymax;
-	bounding_box[5] = zmax;
-
-
-	std::cout << "xmin : " << xmin << std::endl;
-	std::cout << "xmax : " << xmax << std::endl;
-
-
-	std::cout << "ymin : " << ymin << std::endl;
-	std::cout << "ymax : " << ymax << std::endl;
-
-
-	std::cout << "zmin : " << zmin << std::endl;
-	std::cout << "zmax : " << zmax << std::endl;
+	bounding_box[0] = bbox_min(0);
+	bounding_box[1] = bbox_min(1);
+	bounding_box[2] = bbox_min(2);
+	bounding_box[3] = bbox_max(0);
+	bounding_box[4] = bbox_max(1);
+	bounding_box[5] = bbox_max(2);
 
 
 }

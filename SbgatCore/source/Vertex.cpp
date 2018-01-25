@@ -11,6 +11,8 @@ void Vertex::set_coordinates(std::shared_ptr<arma::vec> coordinates) {
 }
 
 
+
+
 void Vertex::add_facet_ownership(Facet * facet) {
 
 	bool already_present = false;

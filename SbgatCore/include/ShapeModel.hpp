@@ -81,6 +81,21 @@ public:
 
 
 	/**
+	Rotates the shape model 
+	@param M rotation matrix
+	*/
+	void rotate(arma::mat M);
+
+	/**
+	Returns the principal axes and principal moments of the shape model
+	@param axes M as in X = MX' where X' is a position expressed in the principal frame
+	@param moments dimensionless inertia moments in ascending order
+	*/	
+	void get_principal_inertias(arma::mat & axes,arma::vec & moments) const;
+
+
+
+	/**
 	Determines whether the provided point lies inside or outside the shape model.
 	The shape model must have a closed surface for this method to be trusted
 	@param point coordinates of the point to be tested expressed in the shape model frame
@@ -156,9 +171,10 @@ public:
 
 	/**
 	Returns the dimensions of the bounding box
-	@param Bounding box dimension to be computed (xmin,ymin,zmin,xmax,ymax,zmax)
+	@param bounding_box dimension to be computed (xmin,ymin,zmin,xmax,ymax,zmax)
+	@param M rotation matrix
 	*/
-	void get_bounding_box(double * bounding_box) const;
+	void get_bounding_box(double * bounding_box,arma::mat M = arma::eye<arma::mat>(3,3)) const;
 
 	/**
 	Saves the shape model in the form of an .obj file
