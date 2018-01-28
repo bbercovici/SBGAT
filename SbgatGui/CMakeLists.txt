@@ -19,16 +19,11 @@ set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
 set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 
-# Path to VTK build directory
-set (VTK_BUILD_DIR ~/VTK/VTK_release_build/)
-
 # Path to Qt5 cmake config file (author's mac configuration)
-set (QT_CMAKE_CONFIG_MAC "~/Qt/5.9.2/clang_64/lib/cmake")
+set (QT_CMAKE_CONFIG_MAC "~/Qt/5.10.0/clang_64/lib/cmake")
 
 # Path to Qt5 cmake config file (author's ubuntu configuration)
-set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.2/gcc_64/lib/cmake/")
-
-
+set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.10.0/gcc_64/lib/cmake/")
 
 
 ################################################################################
@@ -40,43 +35,43 @@ set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.9.2/gcc_64/lib/cmake/")
 #
 ################################################################################
 
+if (EXISTS /home/bebe0705/.am_fortuna)
+	set(IS_FORTUNA ON)
+	message("-- This is Fortuna")
+	set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+
+else()
+	set(IS_FORTUNA OFF)
+	message("-- This is not Fortuna")
+
+endif()
+
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-if (${CMAKE_MINOR_VERSION} EQUAL 0 AND NOT APPLE) # if true, running on a CCAR computer (old CMAKE and RedHat)
-	set(CMAKE_C_COMPILER /usr/local/gcc/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/local/gcc/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-elseif(NOT APPLE)
-	# Not sure about this. Should work on a modern Ubuntu system
-	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-	set (CMAKE_CXX_STANDARD 17)
-	message("This is a Linux machine. CMAKE_CXX_STANDARD 17 used")
-endif()
+if (${IS_FORTUNA})
+	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+else()
+	if(APPLE)
+		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
+			message("Switching to OMP-friendly GCC ")
+	    	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
 
-# Check what version of the compiler is installed
-execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
-                OUTPUT_VARIABLE GCC_VERSION)
-message("Default compiler is " ${CMAKE_C_COMPILER})
-message("Default ${CMAKE_C_COMPILER} version is " ${GCC_VERSION})
-
-# Set up the C++11 and OMP compile flags 
-if (GCC_VERSION VERSION_LESS 4.7 OR APPLE) # if true, either running on a CCAR computer or a Mac (Clang has messed-up version IDs)
-		if (NOT APPLE) # If NOT APPLE, then running on a CCAR computer. The proper compiler should have already been set
-        	set(CMAKE_CXX_FLAGS "-std=c++0x")
-        elseif(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-        		message("Switching to OMP-friendly GCC ")
-	        	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
-				set(CMAKE_CXX_FLAGS "-std=c++17")
-
-			else()# no OMP-compliant compiler was found on this mac. 
-				message(FATAL_ERROR "No OMP-compliant compiler was found on this mac.")
+		else()# no OMP-compliant compiler was found on this mac. 
+			message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
 		endif()
+	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
+				message("Switching to /usr/local/gcc ")
+		    	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+				set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+	endif()
 endif()
 
-set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC} ${VTK_BUILD_DIR})
+
+set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
 
 
 project(${EXE_NAME})
@@ -96,7 +91,7 @@ include_directories(include)
 find_package(Qt5Widgets REQUIRED)
 
 # The Qt5Widgets_INCLUDES also includes the include directories for dependencies QtCore and QtGui
-include_directories(${Qt5Widgets_INCLUDES})
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
@@ -126,9 +121,9 @@ find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
-find_package(OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+# find_package(OpenMP REQUIRED)
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 
 # Tell CMake to run moc when necessary:

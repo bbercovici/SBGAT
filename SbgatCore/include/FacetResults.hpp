@@ -18,8 +18,6 @@ public:
 	*/
 	FacetResults();
 
-
-
 	/**
 	Get gravity potential (kg * m^2/s^2)
 	@return gravity potential

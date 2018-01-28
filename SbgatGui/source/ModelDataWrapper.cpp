@@ -26,6 +26,11 @@ vtkSmartPointer<vtkActor> ModelDataWrapper::get_actor() const {
 }
 
 
+vtkSmartPointer<vtkPoints> ModelDataWrapper::get_points() const {
+	return this -> points;
+}
+
+
 void ModelDataWrapper::set_shape_model(std::shared_ptr<SBGAT_CORE::ShapeModel> shape_model) {
 	this -> shape_model = shape_model;
 }
@@ -33,6 +38,11 @@ void ModelDataWrapper::set_shape_model(std::shared_ptr<SBGAT_CORE::ShapeModel> s
 
 void ModelDataWrapper::set_polydata(vtkSmartPointer<vtkPolyData> polydata) {
 	this -> polydata = polydata;
+}
+
+
+void ModelDataWrapper::set_points(vtkSmartPointer<vtkPoints> points){
+	this -> points = points;
 }
 
 

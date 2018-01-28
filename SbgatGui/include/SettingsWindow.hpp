@@ -13,12 +13,15 @@
 #include <QCheckBox>
 
 #include <QVTKOpenGLWidget.h>
-
+#include <vtkTexture.h>
+#include <vtkPNGReader.h>
+#include <vtkImageFlip.h>
+#include <vtkSkybox.h>
 #include "Mainwindow.hpp"
 
 namespace SBGAT_GUI {
 
-class Mainwindow;
+	class Mainwindow;
 
 /*!
 @class SettingsWindow
@@ -31,43 +34,62 @@ user to set a number of options. Default options values will eventually be
 saved to a hidden configuration file loaded anytime SbgatGui starts up.
 */
 
-class SettingsWindow : public QDialog {
-	Q_OBJECT
+	class SettingsWindow : public QDialog {
+		Q_OBJECT
 
-public:
+	public:
 
 	/**
 	Creates the settings window
 	@param parent pointer to parent window.
 	*/
-	SettingsWindow(Mainwindow * parent) ;
+		SettingsWindow(Mainwindow * parent) ;
 
 
-private slots:
-	
+		private slots:
+
 	/**
 	Applies the currently seleted options to SbgatGUI
 	*/
-	void accept();
+		void accept();
 
 	/**
 	Opens up QColorPalette where a background color can be selected.
 	*/
-	void open_color_dialog();
+		void open_color_dialog();
+
+	/**
+	Opens up QFileDialog where the user can select a directory
+	storing 6 .png images forming a skybox cubic texture 
+	*/
+		void open_skybox_directory_dialog();
+
+	/**	
+	Displays the selected background type options
+	*/
+		void show_selected_background_type(int index);
 
 
-protected:
 
-	Mainwindow * parent;
+	protected:
 
-	QComboBox * aa_frames_combo_box;
-	QPushButton * open_color_dialog_button;
-	QCheckBox * use_gradient_checkbox;
+		Mainwindow * parent;
+
+		QComboBox * aa_frames_combo_box;
+		QComboBox * background_type_combo_box;
+
+		QPushButton * open_color_dialog_button;
+		QPushButton * open_skybox_directory_dialog_button;
+
+		QCheckBox * use_gradient_checkbox;
+		QGroupBox * background_color_group;
+		QGroupBox * skybox_group ;
 
 
-	double rgb_button[3];
+
+		double rgb_button[3];
 
 
-};
+	};
 }
 #endif

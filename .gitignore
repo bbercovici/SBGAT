@@ -1,3 +1,4 @@
-*
-*/
-!.gitignore
+
+Doxyfile
+doxygen_script.sh
+doc/

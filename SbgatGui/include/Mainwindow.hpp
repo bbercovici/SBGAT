@@ -48,6 +48,8 @@
 #include <vtkTextProperty.h>
 #include <vtkCamera.h>
 #include <vtkInteractorStyleSwitch.h>
+#include <vtkParametricSpline.h>
+#include <vtkParametricFunctionSource.h>
 
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -68,7 +70,7 @@
 namespace SBGAT_GUI {
 
 // Forward declaration of InteractorStyle
-class InteractorStyle;
+	class InteractorStyle;
 
 /*!
 @class Mainwindow
@@ -83,50 +85,72 @@ all rendering and display tasks occur. Also exposes SbgatCore classes to the use
 through the user interface layer brought by Qt.}
 */
 
-class Mainwindow : public QMainWindow {
-	Q_OBJECT
+	class Mainwindow : public QMainWindow {
+		Q_OBJECT
 
-public:
+	public:
 	/**
 	QVTKOpenGLWidget hosting the rendering pipeline.
 	*/
-	QVTKOpenGLWidget * qvtkWidget;
+		QVTKOpenGLWidget * qvtkWidget;
 
 	/**
 	Lateral dockwidget hosting a log console and
 	shape selection options.
 	*/
-	QDockWidget * lateral_dockwidget;
+		QDockWidget * lateral_dockwidget;
 
 	/**
 	Info bar providing SbgatGUI status and information
 	about currently selected shape model.
 	*/
-	QStatusBar * status_bar;
+		QStatusBar * status_bar;
 
 	/**
 	Read-only log console. Its content can be saved to a file.
 	The console itself can be cleared from the menu bar.
 	*/
-	QPlainTextEdit * log_console;
+		QPlainTextEdit * log_console;
 
 
 	/**
 	Shape selection table widget. Enables shape selection/ visibility toggle / erasing
 	*/
-	QTableWidget * shape_table;
+		QTableWidget * prop_table;
 
 
 	/**
 	Setups the GUI and creates an instance of QVTK Widget.
 	*/
-	Mainwindow();
+		Mainwindow();
 
 	/**
 	Returns a pointer to the renderer associated with the window's QVTK widget.
 	@return pointer to the vtkRenderer associated with the window's QVTK widget.
 	*/
-	vtkSmartPointer<vtkRenderer> get_renderer();
+		vtkSmartPointer<vtkRenderer> get_renderer();
+
+
+
+
+	/**
+	Returns to a pair storing the directory and vtkActor pointer to the current skybox
+	@return a pair storing the directory and vtkActor pointer to the current skybox
+	*/
+		std::pair<std::string,vtkSmartPointer<vtkActor> > get_skybox_pair() const;
+
+	/**
+	Setter to the skybox's vtkActor
+	@param skybox_actor Skybox actor
+	*/
+		void set_skybox_actor(vtkSmartPointer<vtkActor> skybox_actor);
+
+	/**
+	Setter to the skybox's directory
+	@param skybox_dir Skybox directory
+	*/
+		void set_skybox_directory(std::string skybox_dir);
+
 
 
 	/**
@@ -134,7 +158,7 @@ public:
 	@param enabled Status the targeted action will be set to
 	@param action Pointer to action to enable/disable
 	*/
-	void set_action_status(bool enabled, QAction * action);
+		void set_action_status(bool enabled, QAction * action);
 
 
 	// Actions
@@ -142,116 +166,112 @@ public:
 	/**
 	When triggered, starts shape model loading action sequence.
 	*/
-	QAction * load_shape_model_action;
+		QAction * load_shape_model_action;
+
+	/**
+	When triggered, starts trajectory loading action sequence.
+	*/
+		QAction * load_trajectory_action;
 
 
 	/**
 	When triggered, opens settings window.
 	*/
-	QAction * load_settings_window_action;
+		QAction * load_settings_window_action;
 
 	/**
 	When triggered, clears the log console.
 	*/
-	QAction * clear_console_action;
+		QAction * clear_console_action;
 
 	/**
 	When triggered, opens path dialog where a savepath is queried.
 	If a valid path is provided, the content of the console is saved to this path
 	*/
-	QAction * save_console_action;
+		QAction * save_console_action;
 
 
 	/**
 	When triggered, show/hides the lateral widget
 	*/
-	QAction * show_lateral_dockwidget_action;
+		QAction * show_lateral_dockwidget_action;
 
 	/**
-	When triggered, prints the shape inertia to the log console
+	When triggered, prints geometry measures of the selected prop to the console
 	*/
-	QAction * print_inertia_action;
+		QAction * compute_geometry_measures_action;
 
-
-	/**
-	When triggered, prints the shape volume to the log console
-	*/
-	QAction * print_volume_action;
-
-	/**
-	When triggered, prints the shape surface area to the log console
-	*/
-	QAction * print_surface_action;
-
-
-	/**
-	When triggered, prints the center of mass coordinates to the log console
-	*/
-	QAction * print_center_of_mass_action;
 
 	/**
 	When triggered, starts polyhedron gravity model computation sequence by
 	querying point coordinates in the
 	principal body frame and bulk density of attracting body.
 	*/
-	QAction * compute_pgm_acceleration_action;
+		QAction * compute_pgm_acceleration_action;
 
 	/**
 	When triggered, opens settings window.
 	*/
-	QAction * open_settings_window_action;
+		QAction * open_settings_window_action;
+
 
 	/**
 	When triggered, starts global polyhedron gravity model accelerations evaluation. Queries the
 	bulk density of attracting body before computing pgm accelerations at the center of each facet.
 	*/
-	QAction * compute_global_pgm_acceleration_action;
+		QAction * compute_global_pgm_acceleration_action;
 
 
 	/**
 	When triggered, starts global polyhedron gravity model potential evaluation. Queries the
 	bulk density of attracting body before computing pgm potential at the center of each facet.
 	*/
-	QAction * compute_global_pgm_potential_action;
+		QAction * compute_global_pgm_potential_action;
 
 	/**
 	When triggered, starts evaluation sequence of gravitational slope at the center of each facet.
 	Will query orientation of spin axis along with spin rate. Only available if the
 	global PGM accelerations of the selected shape have already been computed
 	*/
-	QAction * compute_grav_slopes_action;
+		QAction * compute_grav_slopes_action;
 
 
 	/**
 	When triggered, opens up a widget where visibility of
 	computed gravitational slopes can be turned on/off.
 	*/
-	QAction * show_grav_slopes_action;
+		QAction * show_grav_slopes_action;
 
 
 	/**
 	When triggered, opens up a widget where visibility of
 	computed gravitational potentials can be turned on/off.
 	*/
-	QAction * show_global_pgm_pot_action;
+		QAction * show_global_pgm_pot_action;
 
 
 	// Slots
-private slots:
+		private slots:
 
 
 	/**
 	Removes the selected shape model from Sbgat by querying the name of the selected shape.
 	Using this name to remove the shape, mappers, polydatas and actors associated with it.
 	*/
-	void remove_shape();
+		void remove_prop();
 
-	/**
-	Shows/hides the selected shape model from the lateral widget.
+
+		/**
+		Computes and displays a number of geometry measures associated with the selected prop 
+		*/
+		void compute_geometry_measures();
+
+		/**
+	Shows/hides the selected prop from the lateral widget.
 	@param row row index of calling cell
 	@param col col index of calling cell (should be 1 for the slot to proceed, otherwise the call is ignored)
 	*/
-	void toggle_shape_visibility(int row, int col) ;
+		void toggle_prop_visibility(int row, int col) ;
 
 
 	/**
@@ -259,38 +279,38 @@ private slots:
 	Ensures that all available actions
 	are consistent with current Sbgat state.
 	*/
-	void update_actions_availability() ;
-	
+		void update_actions_availability() ;
+
 
 	/**
 	Updates the GUI when a new shape model is selected from the lateral widget.
 	*/
-	void update_GUI_changed_shape_model();
+		void update_GUI_changed_prop();
 
 	/**
 	Open settings window.
 	*/
-	void open_settings_window();
+		void open_settings_window();
 
 
 	/**
 	Transfer results of gravity slopes computation into VTK.
 	*/
-	void update_vtk_slopes() ;
+		void update_vtk_slopes() ;
 
 	/**
 	Transfer results of gravity potential computation into VTK.
 	*/
-	void update_vtk_potentials();
+		void update_vtk_potentials();
 
 
-private:
+	private:
 
 	/**
 	Creates the GUI actions enabling the user to interact with the software, and connects them to the
 	corresponding slots.
 	*/
-	void createActions();
+		void createActions();
 
 
 	/**
@@ -299,7 +319,7 @@ private:
 	@param remove_all true if all props should be removed. Otherwise only those corresponding to the
 	name in argument will be removed.
 	*/
-	void remove_results_visual_props(std::string name, bool remove_all) ;
+		void remove_results_visual_props(std::string name, bool remove_all) ;
 
 
 	/**
@@ -307,37 +327,44 @@ private:
 	and fills it up to represent the newly loaded shape model on a new row.
 	@param name name of new shape.
 	*/
-	void add_shape_to_table_widget(std::string name);
+		void add_prop_to_table_widget(std::string name);
 
 
 	/**
 	Creates and populates the menu bar.
 	*/
-	void createMenus();
+		void createMenus();
 
 	/**
 	Creates the GUI elements and places them in the main window.
 	*/
-	void setupUi();
+		void setupUi();
 
 
 	/**
 	Load shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
 	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
-	void load_shape_model();
+		void load_shape_model();
+
+
+
+	/**
+	Load x/y/z trajectory expressed in a small body's body-fixed frame
+	*/
+		void load_trajectory();
 
 
 	/**
 	Show gravitational slopes by choosing one shape model for which gravitational slopes are available.
 	*/
-	void show_grav_slopes();
+		void show_grav_slopes();
 
 
 	/**
 	Show gravitational potentials by choosing one shape model for which gravitational potentials are available.
 	*/
-	void show_global_pgm_pot();
+		void show_global_pgm_pot();
 
 
 
@@ -345,32 +372,32 @@ private:
 	Prints dimensionless principal inertia tensor of the active shape (assuming constant density)
 	to the log console.
 	*/
-	void print_inertia() ;
+		void compute_inertia() ;
 
 
 	/**
 	Prints volume of active shape (m^3) to the log console.
 	*/
-	void print_volume() ;
+		void compute_volume() ;
 
 
 	/**
 	Prints center of mass coordinates shape (m) to the log console.
 	*/
-	void print_center_of_mass() ;
+		void compute_center_of_mass() ;
 
 
 	/**
 	Prints surface of active shape (m^2) to the log console.
 	*/
-	void print_surface() ;
+		void compute_surface_area() ;
 
 
 	/**
 	Computes the polyhedron gravity model acceleration at the specified point in the
 	shape's principal body frame.
 	*/
-	void compute_pgm_acceleration();
+		void compute_pgm_acceleration();
 
 
 
@@ -379,13 +406,13 @@ private:
 	Computes the polyhedron gravity model acceleration at the center of each facet,
 	expressed in the shape's principal body frame.
 	*/
-	void compute_global_pgm_acceleration() ;
+		void compute_global_pgm_acceleration() ;
 
 
 	/**
 	Computes the polyhedron gravity model potential at the center of each facet
 	*/
-	void compute_global_pgm_potential() ;
+		void compute_global_pgm_potential() ;
 
 
 	/**
@@ -394,7 +421,9 @@ private:
 	method is not accessible before it is the case for the currently selected
 	shape model.
 	*/
-	void compute_gravity_slopes() ;
+		void compute_gravity_slopes() ;
+
+
 
 
 
@@ -404,44 +433,47 @@ private:
 	@param model_data pointer to the ModelDataWrapper housing the data
 	related to the shape model being created
 	*/
-	void create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWrapper> model_data);
+		void create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWrapper> model_data);
 
 	/**
 	Shows/hides lateral dockwidget.
 	*/
-	void show_lateral_dockwidget();
+		void show_lateral_dockwidget();
 
 	/**
 	Clears the console.
 	*/
-	void clear_console() ;
+		void clear_console() ;
 
 	/**
 	Saves the console content to a file.
 	*/
-	void save_console() ;
+		void save_console() ;
 
-	QMenu * FileMenu;
-	QMenu * ShapeMenu;
-	QMenu * ViewMenu;
-	QMenu * DynamicAnalysesMenu;
-	QMenu * ConsoleMenu;
-	QMenu * ResultsMenu;
+		QMenu * FileMenu;
+		QMenu * ShapeMenu;
+		QMenu * ViewMenu;
+		QMenu * DynamicAnalysesMenu;
+		QMenu * ConsoleMenu;
+		QMenu * ResultsMenu;
 
-	vtkSmartPointer<vtkRenderer> renderer;
-	vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
+		vtkSmartPointer<vtkRenderer> renderer;
+		vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
+		std::pair<std::string ,vtkSmartPointer<vtkActor> > skybox_pair;
 
-	std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
-
-
-	std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_data;
+		std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
 
 
-
-
+		std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_shape_data;
+		std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_trajectory_data;
 
 
 
-};
+
+
+
+
+
+	};
 }
 #endif

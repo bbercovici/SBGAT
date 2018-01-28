@@ -58,6 +58,13 @@ public:
 
 
 	/**
+	Accessor to points.
+	@return pointer to points.
+	*/
+	vtkSmartPointer<vtkPoints> get_points() const;
+
+
+	/**
 	Setter of shape model.
 	@param shape_model pointer to shape model to assign.
 	*/
@@ -69,6 +76,13 @@ public:
 	@param polydata pointer to polydata to assign.
 	*/
 	void set_polydata(vtkSmartPointer<vtkPolyData> polydata);
+
+
+	/**
+	Setter of points.
+	@param points pointer to vtkPoints to assign.
+	*/
+	void set_points(vtkSmartPointer<vtkPoints> points);
 
 
 	/**
@@ -139,6 +153,8 @@ protected:
 	vtkSmartPointer<vtkPolyData>  polydata;
 	vtkSmartPointer<vtkPolyDataMapper>  mapper;
 	vtkSmartPointer<vtkActor>  actor;
+	vtkSmartPointer<vtkPoints>  points;
+
 
 	bool consistent_global_acceleration = false;
 	bool consistent_global_potential = false;
