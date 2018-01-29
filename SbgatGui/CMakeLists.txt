@@ -121,9 +121,9 @@ find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
-# find_package(OpenMP REQUIRED)
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+find_package(OpenMP REQUIRED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 
 # Tell CMake to run moc when necessary:
@@ -135,13 +135,17 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir,
 # Add source files in root directory
 add_executable(${EXE_NAME}
 source/main.cpp
+source/CameraPropertiesWindow.cpp
 source/Mainwindow.cpp
-source/SettingsWindow.cpp
 source/ModelDataWrapper.cpp
+source/MoveAlongTrajectoryWindow.cpp
+source/SettingsWindow.cpp
 source/Worker.cpp
+include/CameraPropertiesWindow.hpp
 include/Mainwindow.hpp
-include/SettingsWindow.hpp
 include/ModelDataWrapper.hpp
+include/MoveAlongTrajectoryWindow.hpp
+include/SettingsWindow.hpp
 include/Worker.hpp
 )
 

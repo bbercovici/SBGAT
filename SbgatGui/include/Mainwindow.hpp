@@ -50,9 +50,12 @@
 #include <vtkInteractorStyleSwitch.h>
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
-
+#include <vtkOBJReader.h>
+#include <vtkCenterOfMass.h>
 #include <QVTKOpenGLWidget.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
@@ -64,13 +67,21 @@
 
 #include "SettingsWindow.hpp"
 #include "ModelDataWrapper.hpp"
+#include "MoveAlongTrajectoryWindow.hpp"
+#include "CameraPropertiesWindow.hpp"
+
+
 #include "Worker.hpp"
+
 
 
 namespace SBGAT_GUI {
 
 // Forward declaration of InteractorStyle
 	class InteractorStyle;
+
+
+typedef std::map<std::string , std::shared_ptr<ModelDataWrapper> > DataMap;
 
 /*!
 @class Mainwindow
@@ -130,8 +141,29 @@ through the user interface layer brought by Qt.}
 	*/
 		vtkSmartPointer<vtkRenderer> get_renderer();
 
+	/**
+	Getter to wrapped shape data
+	@return copy of wrapper shape data
+	*/
+	DataMap get_wrapped_shape_data() const;
 
+	/**
+	Getter to wrapped trajectory data
+	@return copy of wrapper trajectory data
+	*/
+	DataMap get_wrapped_trajectory_data() const;
 
+	/**
+	Getter to wrapped attitude data
+	@return copy of attitude shape data
+	*/
+	DataMap get_wrapped_attitude_data() const;
+
+	/**
+	Getter to wrapped spacecraft data
+	@return copy of wrapper spacecraft data
+	*/
+	DataMap get_wrapped_spacecraft_data() const;
 
 	/**
 	Returns to a pair storing the directory and vtkActor pointer to the current skybox
@@ -166,7 +198,7 @@ through the user interface layer brought by Qt.}
 	/**
 	When triggered, starts shape model loading action sequence.
 	*/
-		QAction * load_shape_model_action;
+		QAction * load_small_body_action;
 
 	/**
 	When triggered, starts trajectory loading action sequence.
@@ -215,6 +247,11 @@ through the user interface layer brought by Qt.}
 		QAction * open_settings_window_action;
 
 
+		/**
+	When triggered, opens camera properties window.
+	*/
+		QAction * open_camera_properties_window_action;
+
 	/**
 	When triggered, starts global polyhedron gravity model accelerations evaluation. Queries the
 	bulk density of attracting body before computing pgm accelerations at the center of each facet.
@@ -250,8 +287,47 @@ through the user interface layer brought by Qt.}
 		QAction * show_global_pgm_pot_action;
 
 
+
+
+	/**
+	When triggered, opens the dialog window
+	allowing one to load a spacecraft shape model
+	*/
+		QAction * load_spacecraft_action;
+
+	/**
+	When triggered, opens the dialog window
+	allowing one to move a previously loaded spacecraft along a previously loaded trajectory
+	*/
+		QAction * move_along_traj_action;
+		
+		signals:
+
+		/**
+		Sends the signal that a prop has been added
+		*/
+		void prop_added_signal();
+
+		/**
+		Sends the signal that a prop has been removed
+		*/
+		void prop_removed_signal();
+
 	// Slots
 		private slots:
+
+
+		/**
+	Opens a widget allowing the user to associate a trajectory to a spacecraft 
+	and move the spacecraft along it
+	*/
+		void open_move_along_traj_window();
+
+
+	/**
+	Opens a widget allowing the user edit the camera properties
+	*/
+		void open_camera_properties_window();
 
 
 	/**
@@ -342,10 +418,18 @@ through the user interface layer brought by Qt.}
 
 
 	/**
-	Load shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
+	Load small body shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
 	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
-		void load_shape_model();
+		void load_small_body();
+
+	/**
+	Load spacecraft shape model stored in a .obj file. A vtkPolydata is also constructed for visualization purposes
+	*/
+		void load_spacecraft();
+
+
+
 
 
 
@@ -450,8 +534,10 @@ through the user interface layer brought by Qt.}
 	*/
 		void save_console() ;
 
-		QMenu * FileMenu;
-		QMenu * ShapeMenu;
+		QMenu * SmallBodyMenu;
+		QMenu * SpacecraftMenu;
+		QMenu * MeasuresMenu;
+		QMenu * TrajectoryMenu;
 		QMenu * ViewMenu;
 		QMenu * DynamicAnalysesMenu;
 		QMenu * ConsoleMenu;
@@ -464,8 +550,11 @@ through the user interface layer brought by Qt.}
 		std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
 
 
-		std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_shape_data;
-		std::map<std::string , std::shared_ptr<ModelDataWrapper> > wrapped_trajectory_data;
+		DataMap wrapped_shape_data;
+		DataMap wrapped_trajectory_data;
+		DataMap wrapped_attitude_data;
+		DataMap wrapped_spacecraft_data;
+
 
 
 

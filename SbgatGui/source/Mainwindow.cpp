@@ -63,6 +63,7 @@ void Mainwindow::setupUi() {
 
     // Actions and menus are created
     this -> createActions();
+    this -> update_actions_availability();
     this -> createMenus();
 
     // A VTK renderer is created and linked with the qvtk widget
@@ -117,14 +118,15 @@ void Mainwindow::set_action_status(bool enabled, QAction * action) {
 void Mainwindow::update_GUI_changed_prop() {
 
     // The status bar is updated depending on whether a shape model remains
-    if (this -> wrapped_shape_data.size() == 0 && this -> wrapped_trajectory_data.size() == 0) {
+    if (this -> wrapped_shape_data.size() == 0 && this -> wrapped_trajectory_data.size() == 0 && this -> wrapped_spacecraft_data.size() == 0) {
         this -> statusBar() -> showMessage("Ready");
     }
 
     else {
+
         int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
         std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-        
+
         if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
             auto active_shape_model  =  this -> wrapped_shape_data[name] -> get_shape_model();
 
@@ -137,6 +139,13 @@ void Mainwindow::update_GUI_changed_prop() {
 
             auto points =  this -> wrapped_trajectory_data[name] -> get_points();
             std::string message("Trajectory points : " + std::to_string(points -> GetNumberOfPoints()) );
+
+            this -> statusBar() -> showMessage(QString::fromStdString(message));
+        }
+
+        else if (this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
+
+            std::string message("Spacecraft model: " + name);
 
             this -> statusBar() -> showMessage(QString::fromStdString(message));
         }
@@ -159,9 +168,9 @@ void Mainwindow::open_settings_window() {
 void Mainwindow::createActions() {
 
 
-    this -> load_shape_model_action = new QAction(tr("Load shape model"), this);
-    this -> load_shape_model_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
-    connect(this -> load_shape_model_action, &QAction::triggered, this, &Mainwindow::load_shape_model);
+    this -> load_small_body_action = new QAction(tr("Load shape model"), this);
+    this -> load_small_body_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
+    connect(this -> load_small_body_action, &QAction::triggered, this, &Mainwindow::load_small_body);
 
     this -> load_trajectory_action = new QAction(tr("Load trajectory"), this);
     this -> load_trajectory_action -> setStatusTip(tr("Load a text file storing the x/y/z components a body-fixed trajectory "));
@@ -224,31 +233,52 @@ void Mainwindow::createActions() {
     connect(this -> show_global_pgm_pot_action, &QAction::triggered, this, &Mainwindow::show_global_pgm_pot);
 
 
-    this -> update_actions_availability();
+
+    this -> load_spacecraft_action= new QAction(tr("Load spacecraft"), this);
+    this -> load_spacecraft_action -> setStatusTip(tr("Load spacecraft shape model"));
+    connect(this -> load_spacecraft_action, &QAction::triggered, this, &Mainwindow::load_spacecraft);
+
+
+    this -> move_along_traj_action= new QAction(tr("Move spacecraft"), this);
+    this -> move_along_traj_action -> setStatusTip(tr("Move spacecraft along trajectory"));
+    connect(this -> move_along_traj_action, &QAction::triggered, this, &Mainwindow::open_move_along_traj_window);
+
+    this -> open_camera_properties_window_action =new QAction(tr("Camera properties"), this);
+    this -> open_camera_properties_window_action -> setStatusTip(tr("Open window enabling one to change the camera properties"));
+    connect(this -> open_camera_properties_window_action, &QAction::triggered, this, &Mainwindow::open_camera_properties_window);
+
+
 }
 
 void Mainwindow::update_actions_availability() {
 
-    // If no shape model is loaded
     if (this -> wrapped_shape_data.size() == 0 && this -> wrapped_trajectory_data.size() == 0){
         this -> compute_geometry_measures_action -> setEnabled(false);
+        
     }
-    else if (this -> wrapped_shape_data.size() == 0) {
-
+    else{
         this -> compute_geometry_measures_action -> setEnabled(true);
+    }
 
+
+    if (this -> wrapped_trajectory_data.size() == 0 || this -> wrapped_spacecraft_data.size()== 0){
+        this -> move_along_traj_action -> setEnabled(false);
+    }
+
+    else if (this -> wrapped_trajectory_data.size()  != 0 && this -> wrapped_spacecraft_data.size() != 0){
+        this -> move_along_traj_action -> setEnabled(true);
+    }
+
+
+    if (this -> wrapped_shape_data.size() == 0) {
 
         this -> compute_pgm_acceleration_action -> setEnabled(false);
         this -> compute_global_pgm_potential_action -> setEnabled(false);
-
         this -> compute_global_pgm_acceleration_action -> setEnabled(false);
         this -> compute_grav_slopes_action -> setEnabled(false);
-
     }
-
     else {
 
-        this -> compute_geometry_measures_action -> setEnabled(true);
         this -> compute_pgm_acceleration_action -> setEnabled(true);
         this -> compute_global_pgm_acceleration_action -> setEnabled(true);
         this -> compute_global_pgm_potential_action -> setEnabled(true);
@@ -259,7 +289,6 @@ void Mainwindow::update_actions_availability() {
         if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
 
             if (this -> wrapped_shape_data[name] -> get_global_pgm_acc() == true) {
-
                 this -> compute_grav_slopes_action -> setEnabled(true);
             }
 
@@ -418,7 +447,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-     tr("Text file (*.txt)"));
+       tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -449,10 +478,10 @@ void Mainwindow::show_lateral_dockwidget() {
     }
 }
 
-void Mainwindow::load_shape_model() {
+void Mainwindow::load_small_body() {
 
     QString fileName = QFileDialog::getOpenFileName(this,
-     tr("Open Shape Model"), "~/", tr("Wavefront file (*.obj)"));
+       tr("Load shape model"), "~/", tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
 
@@ -484,7 +513,7 @@ void Mainwindow::load_shape_model() {
             std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
             model_data -> set_shape_model(shape_model);
 
-            // The Camera is moved to be adjusted to the new shape
+            // The camera is moved to be adjusted to the new shape
             this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
 
             // A VTK Polydata is created from the loaded shape model
@@ -499,12 +528,6 @@ void Mainwindow::load_shape_model() {
 
             end = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsed_seconds = end - start;
-
-
-            // The status bar is updated to show the significant figures of the current shape model
-            std::string message("Facets : " + std::to_string(shape_model -> get_NFacets()) + " Vertices: " + std::to_string(shape_model -> get_NVertices())
-                + " Edges: " + std::to_string(shape_model -> get_NEdges()));
-            this -> statusBar() -> showMessage(QString::fromStdString(message));
 
             // The shape table is updated to show the newly loaded shape model
             this -> add_prop_to_table_widget(name);
@@ -521,19 +544,132 @@ void Mainwindow::load_shape_model() {
 
             // The log console displays the name and content of the loaded shape model
             this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-             + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+               + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+
+            // A signal is emitted to warn potential dependents
+            emit prop_added_signal();
+
+        }
+    }
+}
+
+
+void Mainwindow::load_spacecraft() {
+
+    QString fileName = QFileDialog::getOpenFileName(this,
+       tr("Load shape model"), "~/", tr("Wavefront file (*.obj)"));
+
+    if (fileName.isEmpty() == false) {
+
+        bool ok;
+        double scaling_factor = QInputDialog::getDouble(this,
+            "Scaling factor", "Enter scaling factor :", 1, 1e-6, 1e6,
+            5, &ok);
+        if (ok) {
+            this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape model from ") + fileName);
+
+
+            std::chrono::time_point<std::chrono::system_clock> start, end;
+
+            start = std::chrono::system_clock::now();
+
+
+            // The name of the shape model is extracted from the path
+            int dot_index = fileName.lastIndexOf(".");
+            int slash_index = fileName.lastIndexOf("/");
+            std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+
+            vtkSmartPointer<vtkOBJReader> reader =
+            vtkSmartPointer<vtkOBJReader>::New();
+            reader -> SetFileName(fileName.toStdString().c_str());
+            reader -> Update();
+
+            vtkSmartPointer<vtkPolyData> spacecraft_polydata;
+
+            vtkSmartPointer<vtkCenterOfMass> center_of_mass_filter =
+            vtkSmartPointer<vtkCenterOfMass>::New();
+
+
+            // The spacececraft is translated to the origin of the rendering window and scaled
+            center_of_mass_filter -> SetInputConnection(reader -> GetOutputPort());
+            center_of_mass_filter -> SetUseScalarsAsWeights(false);
+            center_of_mass_filter -> Update();
+
+            double center[3];
+            center_of_mass_filter -> GetCenter(center);
+
+            vtkSmartPointer<vtkTransform> translation = vtkSmartPointer<vtkTransform>::New();
+            translation -> Translate( - center[0],  - center[1],  - center[2]);
+            vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
+            vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+            translation_filter -> SetInputConnection(reader -> GetOutputPort());
+            translation_filter -> SetTransform(translation);
+            translation_filter -> Update();
+
+            vtkSmartPointer<vtkTransform> scaling = vtkSmartPointer<vtkTransform>::New();
+            scaling -> Scale( scaling_factor,  scaling_factor,  scaling_factor);
+            vtkSmartPointer<vtkTransformPolyDataFilter> scaling_filter =
+            vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+            scaling_filter -> SetInputConnection(translation_filter -> GetOutputPort());
+            scaling_filter -> SetTransform(scaling);
+            scaling_filter -> Update();
+
+            // Set the actor and mapper
+            vtkSmartPointer<vtkPolyDataMapper> mapper = 
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+            mapper -> SetInputConnection(scaling_filter->GetOutputPort());
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor -> SetMapper(mapper);
+            this -> renderer -> AddActor(actor);
+
+            // A new ModelDataWrapper is created and stored under the name of the spacecraft
+            std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+            model_data -> set_polydata(mapper -> GetInput());
+            model_data -> set_actor(actor);
+            model_data -> set_mapper(mapper);
+
+            // The ModelDataWrapper pointer is stored. An exception
+            // is thrown if the name read from the file is already
+            // associated to one other ModelDataWrapper
+            this -> wrapped_spacecraft_data[name] = model_data;
+
+            end = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end - start;
+
+
+
+            // The shape table is updated to show the newly loaded shape model
+            this -> add_prop_to_table_widget(name);
+
+
+            // The lateral dockwidget is shown if it was not visible already
+            if (this -> lateral_dockwidget -> isVisible() == false) {
+                this -> show_lateral_dockwidget();
+
+            }
+
+            // The GUI actions are updated
+            this -> update_actions_availability();
+
+            // The log console displays the name and content of the loaded shape model
+            this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
+               + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+            
+
+            // A signal is emitted to warn potential dependents
+            emit prop_added_signal();
+
         }
     }
 }
 
 
 
-
-
 void Mainwindow::load_trajectory() {
 
     QString fileName = QFileDialog::getOpenFileName(this,
-     tr("Load trajectory"), "~/", tr("(*.txt)"));
+       tr("Load trajectory"), "~/", tr("(*.txt)"));
 
     if (fileName.isEmpty() == false) {
 
@@ -577,18 +713,18 @@ void Mainwindow::load_trajectory() {
 
             vtkSmartPointer<vtkParametricSpline> spline = 
             vtkSmartPointer<vtkParametricSpline>::New();
-            spline->SetPoints(points);
+            spline -> SetPoints(points);
 
             vtkSmartPointer<vtkParametricFunctionSource> functionSource = 
             vtkSmartPointer<vtkParametricFunctionSource>::New();
-            functionSource->SetParametricFunction(spline);
+            functionSource -> SetParametricFunction(spline);
             functionSource -> SetUResolution (traj.n_cols);
             functionSource -> Update();
 
             // Set the actor and mapper
             vtkSmartPointer<vtkPolyDataMapper> mapper = 
             vtkSmartPointer<vtkPolyDataMapper>::New();
-            mapper -> SetInputConnection(functionSource->GetOutputPort());
+            mapper -> SetInputConnection(functionSource -> GetOutputPort());
             vtkSmartPointer<vtkActor> actor = 
             vtkSmartPointer<vtkActor>::New();
             actor -> SetMapper(mapper);
@@ -609,11 +745,6 @@ void Mainwindow::load_trajectory() {
             // associated to one other ModelDataWrapper
             this -> wrapped_trajectory_data[name] = model_data;
 
-            // The status bar is updated to show the significant figures of the current shape model
-            std::string message("Trajectory points : " + std::to_string(traj.n_cols) );
-
-            this -> statusBar() -> showMessage(QString::fromStdString(message));
-
             // The shape table is updated to show the newly loaded shape model
             this -> add_prop_to_table_widget(name);
 
@@ -628,7 +759,11 @@ void Mainwindow::load_trajectory() {
 
             // The log console displays the name and content of the loaded shape model
             this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-             + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+               + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+            // A signal is emitted to warn potential dependents
+            emit prop_added_signal();
+
         }
     }
 }
@@ -709,7 +844,7 @@ void Mainwindow::toggle_prop_visibility(int row, int col) {
             }
         }
         else if ( this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-         if (item -> checkState() == Qt::Checked) {
+           if (item -> checkState() == Qt::Checked) {
             this -> wrapped_trajectory_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_actor() -> VisibilityOn();
         }
 
@@ -743,18 +878,24 @@ void Mainwindow::remove_prop() {
 
 
     if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end() ){
-    // The actor of this shape is removed
+        // The actor of this shape is removed
         this -> renderer -> RemoveActor(this -> wrapped_shape_data[name] -> get_actor());
 
-    // The data wrapper is removed
+        // The data wrapper is removed
         this -> wrapped_shape_data.erase(name);
     }
-    else{
-         // The actor of this trajectory is removed
+    else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end() ){
+        // The actor of this trajectory is removed
         this -> renderer -> RemoveActor(this -> wrapped_trajectory_data[name] -> get_actor());
 
-    // The data wrapper is removed
+        // The data wrapper is removed
         this -> wrapped_trajectory_data.erase(name);
+    }
+    else if (this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
+        this -> renderer -> RemoveActor(this -> wrapped_spacecraft_data[name] -> get_actor());
+
+        // The data wrapper is removed
+        this -> wrapped_spacecraft_data.erase(name);
     }
 
     // The corresponding row in the table widget is removed
@@ -771,15 +912,17 @@ void Mainwindow::remove_prop() {
     // The Render window is updated
     this -> qvtkWidget -> GetRenderWindow() -> Render();
 
+    emit prop_removed_signal();
+
 }
 
 
 
 void Mainwindow::compute_geometry_measures(){
 
- int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
- std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
- if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+   if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
 
     std::string opening_line = "### Computing shape model geometry measures ###\n";
     this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
@@ -871,6 +1014,7 @@ void Mainwindow::create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWr
 
     auto shape_model = model_data -> get_shape_model();
 
+
     for (unsigned int facet_index = 0; facet_index < shape_model -> get_NFacets(); ++facet_index) {
 
         auto vertices = shape_model -> get_facets() -> at(facet_index) -> get_vertices() ;
@@ -895,8 +1039,7 @@ void Mainwindow::create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWr
 
 
     }
-
-
+    
     // Create a PolyData
     vtkSmartPointer<vtkPolyData> polygonPolyData =
     vtkSmartPointer<vtkPolyData>::New();
@@ -945,8 +1088,8 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
 
     double density = QInputDialog::getDouble(this,
-       "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
-       5, &ok_density);
+     "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
+     5, &ok_density);
 
 
 
@@ -966,7 +1109,7 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses, mu, this -> wrapped_shape_data[name],
-           name);
+         name);
         worker ->  moveToThread(thread);
         connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_acc()));
         connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
@@ -997,8 +1140,8 @@ void Mainwindow::compute_global_pgm_potential() {
 
 
     double density = QInputDialog::getDouble(this,
-       "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
-       5, &ok_density);
+     "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
+     5, &ok_density);
 
     if (ok_density) {
 
@@ -1017,9 +1160,9 @@ void Mainwindow::compute_global_pgm_potential() {
 
         QThread * thread = new QThread;
         Worker * worker = new Worker(dyn_analyses,
-           mu,
-           this -> wrapped_shape_data[name],
-           name);
+         mu,
+         this -> wrapped_shape_data[name],
+         name);
         worker ->  moveToThread(thread);
         connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_pot()));
         connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
@@ -1054,11 +1197,11 @@ void Mainwindow::compute_gravity_slopes() {
     while (ok_spin_axis == true && correct_format == false) {
 
         QString coords = QInputDialog::getText(this,
-         tr("Gravity slopes"),
-         tr("(Azimuth,Elevation) of spin axis (deg) . (0,0) : along z :"),
-         QLineEdit::Normal,
-         QString::fromStdString("Azimuth,Elevation") ,
-         &ok_spin_axis);
+           tr("Gravity slopes"),
+           tr("(Azimuth,Elevation) of spin axis (deg) . (0,0) : along z :"),
+           QLineEdit::Normal,
+           QString::fromStdString("Azimuth,Elevation") ,
+           &ok_spin_axis);
 
         QStringList angles_split = coords.split(",");
 
@@ -1126,7 +1269,7 @@ void Mainwindow::compute_gravity_slopes() {
             std::chrono::duration<double> elapsed_seconds = end - start;
 
             this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
-             + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+               + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
         }
 
@@ -1161,6 +1304,28 @@ void Mainwindow::update_vtk_potentials() {
     active_polydata -> Modified();
 
 }
+
+void Mainwindow::open_move_along_traj_window(){
+
+    MoveAlongTrajectoryWindow * move_along_traj_window = new MoveAlongTrajectoryWindow(this);
+    connect(this,SIGNAL(prop_removed_signal()),move_along_traj_window,SLOT(prop_removed_slot()));
+    connect(this,SIGNAL(prop_added_signal()),move_along_traj_window,SLOT(prop_added_slot()));
+    
+    move_along_traj_window -> show();
+}   
+
+
+void Mainwindow::open_camera_properties_window(){
+
+    CameraPropertiesWindow * camera_properties_window = new CameraPropertiesWindow(this);
+    connect(this,SIGNAL(prop_removed_signal()),camera_properties_window,SLOT(prop_removed_slot()));
+    connect(this,SIGNAL(prop_added_signal()),camera_properties_window,SLOT(prop_added_slot()));
+    
+    camera_properties_window -> show();
+}   
+
+
+
 
 void Mainwindow::update_vtk_slopes() {
 
@@ -1207,11 +1372,11 @@ void Mainwindow::compute_pgm_acceleration() {
     while (ok_coords == true && correct_format == false) {
 
         QString coords = QInputDialog::getText(this,
-         tr("Polyhedron Gravity Model Acceleration"),
-         tr("Body-fixed frames coordinates (m) :"),
-         QLineEdit::Normal,
-         QString::fromStdString("x,y,z") ,
-         &ok_coords);
+           tr("Polyhedron Gravity Model Acceleration"),
+           tr("Body-fixed frames coordinates (m) :"),
+           QLineEdit::Normal,
+           QString::fromStdString("x,y,z") ,
+           &ok_coords);
 
         QStringList coords_split = coords.split(",");
 
@@ -1279,19 +1444,24 @@ void Mainwindow::compute_pgm_acceleration() {
 
 
 void Mainwindow::createMenus() {
-    this -> FileMenu = this -> menuBar() -> addMenu(tr("&File"));
-    this -> FileMenu -> addAction(this -> load_shape_model_action);
-    this -> FileMenu -> addSeparator();
-    this -> FileMenu -> addAction(this -> load_trajectory_action);
-    this -> FileMenu -> addAction(this -> open_settings_window_action);
+
+    this -> SmallBodyMenu = this -> menuBar() -> addMenu(tr("&Small body"));
+    this -> SmallBodyMenu -> addAction(this -> load_small_body_action);
+    this -> SmallBodyMenu -> addSeparator();
+    this -> SmallBodyMenu -> addAction(this -> open_settings_window_action);
 
 
-    this -> ViewMenu = menuBar() -> addMenu(tr("&View"));
-    this -> ViewMenu -> addAction(this -> show_lateral_dockwidget_action);
-    this -> ViewMenu -> addSeparator();
+    this -> TrajectoryMenu = this -> menuBar() -> addMenu(tr("&Trajectory"));
+    this -> TrajectoryMenu -> addAction(this -> load_trajectory_action);
 
-    this -> ShapeMenu = menuBar() -> addMenu(tr("&Measures"));
-    this -> ShapeMenu -> addAction(this -> compute_geometry_measures_action);
+    this -> SpacecraftMenu = this -> menuBar() -> addMenu(tr("&Spacecraft"));
+    this -> SpacecraftMenu -> addAction(this -> load_spacecraft_action);
+    this -> SpacecraftMenu -> addAction(this -> move_along_traj_action);
+
+    
+    this -> MeasuresMenu = menuBar() -> addMenu(tr("&Measures"));
+    this -> MeasuresMenu -> addAction(this -> compute_geometry_measures_action);
+
 
 
     this -> DynamicAnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
@@ -1305,7 +1475,13 @@ void Mainwindow::createMenus() {
     this -> ResultsMenu = menuBar() -> addMenu(tr("&Visualization"));
     this -> ResultsMenu -> addAction(this -> show_grav_slopes_action);
     this -> ResultsMenu -> addAction(this -> show_global_pgm_pot_action);
+    this -> ResultsMenu -> addSeparator();
+    this -> ResultsMenu -> addAction(this -> open_camera_properties_window_action);
 
+
+    this -> ViewMenu = menuBar() -> addMenu(tr("&View"));
+    this -> ViewMenu -> addAction(this -> show_lateral_dockwidget_action);
+    this -> ViewMenu -> addSeparator();
 
     this -> ConsoleMenu = menuBar() -> addMenu(tr("&Console"));
     this -> ConsoleMenu -> addAction(this -> clear_console_action);
@@ -1318,6 +1494,26 @@ void Mainwindow::createMenus() {
 
 
 }
+
+
+DataMap Mainwindow::get_wrapped_shape_data() const{
+    return this -> wrapped_shape_data;
+}
+
+DataMap Mainwindow::get_wrapped_trajectory_data() const{
+    return this -> wrapped_trajectory_data;
+}
+
+DataMap Mainwindow::get_wrapped_attitude_data() const{
+    return this -> wrapped_attitude_data;
+}
+
+DataMap Mainwindow::get_wrapped_spacecraft_data() const{
+    return this -> wrapped_spacecraft_data;
+}
+
+
+
 
 std::pair<std::string,vtkSmartPointer<vtkActor> > Mainwindow::get_skybox_pair() const{
     return this ->skybox_pair;
