@@ -8,7 +8,7 @@
 #include <QColor>
 #include <QGroupBox>
 #include <QDialogButtonBox>
-#include <QDoubleSpinBox>
+#include <QSpinBox>
 #include <QLabel>
 #include <QComboBox>
 #include <QCheckBox>
@@ -90,7 +90,7 @@ namespace SBGAT_GUI {
 
 		QGroupBox * position_group ;
 		QSlider * pos_slider;
-		QDoubleSpinBox * pos_spinbox;
+		QSpinBox * pos_spinbox;
 
 
 

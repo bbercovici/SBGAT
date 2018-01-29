@@ -31,8 +31,7 @@ MoveAlongTrajectoryWindow::MoveAlongTrajectoryWindow(Mainwindow * parent) : QDia
 	this -> camera_focus_check = new QCheckBox(this);
 
 
-	this -> pos_spinbox = new QDoubleSpinBox(this);
-	this -> pos_spinbox -> setRange(0., 100.);
+	this -> pos_spinbox = new QSpinBox(this);
 	this -> trajectory_combo_box = new QComboBox (this);
 	this -> spacecraft_combo_box = new QComboBox (this);
 	this -> camera_orientation_combo_box = new QComboBox (this);
@@ -66,7 +65,7 @@ MoveAlongTrajectoryWindow::MoveAlongTrajectoryWindow(Mainwindow * parent) : QDia
 	connect(button_box, SIGNAL(rejected()), this, SLOT(close()));
 
 	connect(this -> pos_slider,SIGNAL(valueChanged(int)),this ,SLOT(update_position()));
-	connect(this -> pos_spinbox,SIGNAL(valueChanged(double)),this ,SLOT(update_position()));
+	connect(this -> pos_spinbox,SIGNAL(valueChanged(int)),this ,SLOT(update_position()));
 	connect(this -> trajectory_combo_box,SIGNAL(currentIndexChanged(int)),this,SLOT(changed_trajectory()));
 	
 	connect(this -> camera_focus_check,SIGNAL(stateChanged(int)),this,SLOT(toggle_camera_focus(int)));
@@ -129,6 +128,7 @@ void MoveAlongTrajectoryWindow::changed_trajectory(){
 		auto wrapped_trajectory_data = this -> parent -> get_wrapped_trajectory_data();
 		unsigned int N_points = wrapped_trajectory_data[trajectory_name] -> get_points() -> GetNumberOfPoints();
 		this -> pos_slider -> setRange(0, N_points - 1);
+		this -> pos_spinbox -> setRange(0, N_points - 1);
 	}
 
 }
@@ -145,10 +145,10 @@ void MoveAlongTrajectoryWindow::update_position(){
 
 	QObject* obj = sender();
 	if( obj == this -> pos_slider ){ 
-		this -> pos_spinbox -> setValue(double( double(this -> pos_slider -> value()) / (N_points - 1) * 100));
+		this -> pos_spinbox -> setValue(this -> pos_slider -> value());
 	}
 	else{
-		this -> pos_slider -> setValue(int(double(this -> pos_spinbox -> value() * (N_points - 1) / 100)));
+		this -> pos_slider -> setValue(this -> pos_spinbox -> value());
 	}
 
 	
