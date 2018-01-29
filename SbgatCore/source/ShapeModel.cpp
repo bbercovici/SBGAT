@@ -6,6 +6,13 @@ ShapeModel::ShapeModel() {
 
 }
 
+ShapeModel::ShapeModel(std::string ref_frame_name,
+	FrameGraph * frame_graph) {
+	this -> frame_graph = frame_graph;
+	this -> ref_frame_name = ref_frame_name;
+}
+
+
 void ShapeModel::update_mass_properties() {
 
 	
@@ -24,8 +31,10 @@ void ShapeModel::update_mass_properties() {
 
 void ShapeModel::update_facets() {
 
-	for (auto & facet : this -> facets) {
-		facet -> update();
+
+	#pragma omp parallel for
+	for (unsigned int i = 0; i < this -> facets.size(); ++i){
+		this -> facets[i] -> update();
 	}
 
 }
@@ -33,9 +42,9 @@ void ShapeModel::update_facets() {
 
 
 void ShapeModel::update_edges() {
-
-	for (auto & edge : this -> edges) {
-		edge -> compute_dyad();
+	#pragma omp parallel for
+	for (unsigned int i = 0; i < this -> edges.size(); ++i){
+		this -> edges[i] -> compute_dyad();
 	}
 
 }
@@ -71,11 +80,11 @@ void ShapeModel::shift_rotate_to_principal_frame(bool enforce_principal_axes) {
 	}
 
 	if (this -> barycenter_aligned == true &&
-	        this -> principal_axes_aligned == false && enforce_principal_axes == true) {
+		this -> principal_axes_aligned == false && enforce_principal_axes == true) {
 		this -> align_with_principal_axes();
-		this -> principal_axes_aligned = true;
+	this -> principal_axes_aligned = true;
 
-	}
+}
 
 }
 
@@ -112,17 +121,17 @@ bool ShapeModel::contains(double * point, double tol ) {
 
 
 		double R1 = std::sqrt( r1m[0] * r1m[0]
-		                       + r1m[1] * r1m[1]
-		                       + r1m[2] * r1m[2]       );
+			+ r1m[1] * r1m[1]
+			+ r1m[2] * r1m[2]       );
 
 		double R2 = std::sqrt( r2m[0] * r2m[0]
-		                       + r2m[1] * r2m[1]
-		                       + r2m[2] * r2m[2]      );
+			+ r2m[1] * r2m[1]
+			+ r2m[2] * r2m[2]      );
 
 
 		double R3 = std::sqrt( r3m[0] * r3m[0]
-		                       + r3m[1] * r3m[1]
-		                       + r3m[2] * r3m[2]      );
+			+ r3m[1] * r3m[1]
+			+ r3m[2] * r3m[2]      );
 
 		double r2_cross_r3_0 = r2m[1] * r3m[2] - r2m[2] * r3m[1];
 		double r2_cross_r3_1 = r3m[0] * r2m[2] - r3m[2] * r2m[0];
@@ -130,11 +139,11 @@ bool ShapeModel::contains(double * point, double tol ) {
 
 
 		double wf = 2 * std::atan2(
-		                r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
+			r1m[0] * r2_cross_r3_0 + r1m[1] * r2_cross_r3_1 + r1m[2] * r2_cross_r3_2,
 
-		                R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
-		                + R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
-		                + R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
+			R1 * R2 * R3 + R1 * (r2m[0] * r3m[0] + r2m[1] * r3m[1]  + r2m[2] * r3m[2] )
+			+ R2 * (r3m[0] * r1m[0] + r3m[1] * r1m[1] + r3m[2] * r1m[2])
+			+ R3 * (r1m[0] * r2m[0] + r1m[1] * r2m[1] + r1m[2] * r2m[2]));
 
 
 
@@ -161,29 +170,29 @@ void ShapeModel::save(std::string path) const {
 	std::map<std::shared_ptr<Vertex> , unsigned int> vertex_ptr_to_index;
 
 	for (unsigned int vertex_index = 0;
-	        vertex_index < this -> get_NVertices();
-	        ++vertex_index) {
+		vertex_index < this -> get_NVertices();
+		++vertex_index) {
 
 		shape_file << "v " << this -> vertices[vertex_index] -> get_coordinates() -> colptr(0)[0] << " " << this -> vertices[vertex_index] -> get_coordinates() -> colptr(0)[1] << " " << this -> vertices[vertex_index] -> get_coordinates() -> colptr(0)[2] << std::endl;
-		vertex_ptr_to_index[this -> vertices[vertex_index]] = vertex_index;
-	}
+	vertex_ptr_to_index[this -> vertices[vertex_index]] = vertex_index;
+}
 
-	for (unsigned int facet_index = 0;
-	        facet_index < this -> get_NFacets();
-	        ++facet_index) {
+for (unsigned int facet_index = 0;
+	facet_index < this -> get_NFacets();
+	++facet_index) {
 
-		unsigned int v0 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(0)] + 1;
-		unsigned int v1 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(1)] + 1;
-		unsigned int v2 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(2)] + 1;
+	unsigned int v0 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(0)] + 1;
+unsigned int v1 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(1)] + 1;
+unsigned int v2 =  vertex_ptr_to_index[this -> facets[facet_index] -> get_vertices() -> at(2)] + 1;
 
-		shape_file << "f " << v0 << " " << v1 << " " << v2 << std::endl;
+shape_file << "f " << v0 << " " << v1 << " " << v2 << std::endl;
 
-	}
-
-
+}
 
 
-	shape_file.close();
+
+
+shape_file.close();
 
 
 
@@ -199,12 +208,12 @@ void ShapeModel::shift_to_barycenter() {
 	// The vertices are shifted
 	#pragma omp parallel for if(USE_OMP_SHAPE_MODEL)
 	for (unsigned int vertex_index = 0;
-	        vertex_index < this -> get_NVertices();
-	        ++vertex_index) {
+		vertex_index < this -> get_NVertices();
+		++vertex_index) {
 
 		*this -> vertices[vertex_index] -> get_coordinates() = *this -> vertices[vertex_index] -> get_coordinates() + x;
 
-	}
+}
 
 
 }
@@ -364,13 +373,6 @@ void ShapeModel::compute_principal_axes() {
 }
 
 
-ShapeModel::ShapeModel(std::string ref_frame_name,
-                       FrameGraph * frame_graph) {
-	this -> frame_graph = frame_graph;
-	this -> ref_frame_name = ref_frame_name;
-}
-
-
 
 std::string ShapeModel::get_ref_frame_name() const {
 	return this -> ref_frame_name;
@@ -452,20 +454,20 @@ void ShapeModel::compute_volume() {
 
 	#pragma omp parallel for reduction(+:volume) if (USE_OMP_SHAPE_MODEL)
 	for (unsigned int facet_index = 0;
-	        facet_index < this -> facets.size();
-	        ++facet_index) {
+		facet_index < this -> facets.size();
+		++facet_index) {
 
 		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
 
-		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
-		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
-		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
-		double dv = arma::dot(*r0, arma::cross(*r1 - *r0, *r2 - *r0)) / 6.;
-		volume = volume + dv;
+	arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+	arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+	arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+	double dv = arma::dot(*r0, arma::cross(*r1 - *r0, *r2 - *r0)) / 6.;
+	volume = volume + dv;
 
-	}
+}
 
-	this -> volume = volume;
+this -> volume = volume;
 
 }
 
@@ -481,35 +483,35 @@ void ShapeModel::compute_center_of_mass() {
 
 	#pragma omp parallel for reduction(+:c_x,c_y,c_z) if (USE_OMP_SHAPE_MODEL)
 	for (unsigned int facet_index = 0;
-	        facet_index < this -> facets.size();
-	        ++facet_index) {
+		facet_index < this -> facets.size();
+		++facet_index) {
 
 
 		std::vector<std::shared_ptr<SBGAT_CORE::Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
 
-		arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
-		arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
-		arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
+	arma::vec * r0 =  vertices -> at(0) -> get_coordinates();
+	arma::vec * r1 =  vertices -> at(1) -> get_coordinates();
+	arma::vec * r2 =  vertices -> at(2) -> get_coordinates();
 
-		double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
-		double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
-		double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
+	double * r0d =  vertices -> at(0) -> get_coordinates() -> colptr(0);
+	double * r1d =  vertices -> at(1) -> get_coordinates() -> colptr(0);
+	double * r2d =  vertices -> at(2) -> get_coordinates() -> colptr(0);
 
-		double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
+	double dv = 1. / 6. * arma::dot(*r1, arma::cross(*r1 - *r0, *r2 - *r0));
 
-		double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
-		double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
-		double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
+	double dr_x = (r0d[0] + r1d[0] + r2d[0]) / 4.;
+	double dr_y = (r0d[1] + r1d[1] + r2d[1]) / 4.;
+	double dr_z = (r0d[2] + r1d[2] + r2d[2]) / 4.;
 
-		c_x = c_x + dv * dr_x / volume;
-		c_y = c_y + dv * dr_y / volume;
-		c_z = c_z + dv * dr_z / volume;
+	c_x = c_x + dv * dr_x / volume;
+	c_y = c_y + dv * dr_y / volume;
+	c_z = c_z + dv * dr_z / volume;
 
-	}
+}
 
-	arma::vec center_of_mass = {c_x, c_y, c_z};
+arma::vec center_of_mass = {c_x, c_y, c_z};
 
-	this -> cm =  center_of_mass ;
+this -> cm =  center_of_mass ;
 
 }
 
@@ -528,102 +530,102 @@ void ShapeModel::compute_inertia() {
 
 	#pragma omp parallel for reduction(+:P_xx,P_yy,P_zz,P_xy,P_xz,P_yz) if (USE_OMP_SHAPE_MODEL)
 	for (unsigned int facet_index = 0;
-	        facet_index < this -> facets.size();
-	        ++facet_index) {
+		facet_index < this -> facets.size();
+		++facet_index) {
 
 
 		std::vector<std::shared_ptr<Vertex > > * vertices = this -> facets[facet_index] -> get_vertices();
 
 		// Normalized coordinates
-		arma::vec r0 =  (*vertices -> at(0) -> get_coordinates()) / l;
-		arma::vec r1 =  (*vertices -> at(1) -> get_coordinates()) / l;
-		arma::vec r2 =  (*vertices -> at(2) -> get_coordinates()) / l;
+	arma::vec r0 =  (*vertices -> at(0) -> get_coordinates()) / l;
+	arma::vec r1 =  (*vertices -> at(1) -> get_coordinates()) / l;
+	arma::vec r2 =  (*vertices -> at(2) -> get_coordinates()) / l;
 
-		double * r0d =  r0. colptr(0);
-		double * r1d =  r1. colptr(0);
-		double * r2d =  r2. colptr(0);
+	double * r0d =  r0. colptr(0);
+	double * r1d =  r1. colptr(0);
+	double * r2d =  r2. colptr(0);
 
-		double dv = 1. / 6. * arma::dot(r1, arma::cross(r1 - r0, r2 - r0));
-
-
-
-		P_xx += dv / 20 * (2 * r0d[0] * r0d[0]
-		                   + 2 * r1d[0] * r1d[0]
-		                   + 2 * r2d[0] * r2d[0]
-		                   + r0d[0] * r1d[0]
-		                   + r0d[0] * r1d[0]
-		                   + r0d[0] * r2d[0]
-		                   + r0d[0] * r2d[0]
-		                   + r1d[0] * r2d[0]
-		                   + r1d[0] * r2d[0]);
+	double dv = 1. / 6. * arma::dot(r1, arma::cross(r1 - r0, r2 - r0));
 
 
-		P_yy += dv / 20 * (2 * r0d[1] * r0d[1]
-		                   + 2 * r1d[1] * r1d[1]
-		                   + 2 * r2d[1] * r2d[1]
-		                   + r0d[1] * r1d[1]
-		                   + r0d[1] * r1d[1]
-		                   + r0d[1] * r2d[1]
-		                   + r0d[1] * r2d[1]
-		                   + r1d[1] * r2d[1]
-		                   + r1d[1] * r2d[1]);
 
-		P_zz += dv / 20 * (2 * r0d[2] * r0d[2]
-		                   + 2 * r1d[2] * r1d[2]
-		                   + 2 * r2d[2] * r2d[2]
-		                   + r0d[2] * r1d[2]
-		                   + r0d[2] * r1d[2]
-		                   + r0d[2] * r2d[2]
-		                   + r0d[2] * r2d[2]
-		                   + r1d[2] * r2d[2]
-		                   + r1d[2] * r2d[2]);
+	P_xx += dv / 20 * (2 * r0d[0] * r0d[0]
+		+ 2 * r1d[0] * r1d[0]
+		+ 2 * r2d[0] * r2d[0]
+		+ r0d[0] * r1d[0]
+		+ r0d[0] * r1d[0]
+		+ r0d[0] * r2d[0]
+		+ r0d[0] * r2d[0]
+		+ r1d[0] * r2d[0]
+		+ r1d[0] * r2d[0]);
 
-		P_xy += dv / 20 * (2 * r0d[0] * r0d[1]
-		                   + 2 * r1d[0] * r1d[1]
-		                   + 2 * r2d[0] * r2d[1]
-		                   + r0d[0] * r1d[1]
-		                   + r0d[1] * r1d[0]
-		                   + r0d[0] * r2d[1]
-		                   + r0d[1] * r2d[0]
-		                   + r1d[0] * r2d[1]
-		                   + r1d[1] * r2d[0]);
 
-		P_xz += dv / 20 * (2 * r0d[0] * r0d[2]
-		                   + 2 * r1d[0] * r1d[2]
-		                   + 2 * r2d[0] * r2d[2]
-		                   + r0d[0] * r1d[2]
-		                   + r0d[2] * r1d[0]
-		                   + r0d[0] * r2d[2]
-		                   + r0d[2] * r2d[0]
-		                   + r1d[0] * r2d[2]
-		                   + r1d[2] * r2d[0]);
+	P_yy += dv / 20 * (2 * r0d[1] * r0d[1]
+		+ 2 * r1d[1] * r1d[1]
+		+ 2 * r2d[1] * r2d[1]
+		+ r0d[1] * r1d[1]
+		+ r0d[1] * r1d[1]
+		+ r0d[1] * r2d[1]
+		+ r0d[1] * r2d[1]
+		+ r1d[1] * r2d[1]
+		+ r1d[1] * r2d[1]);
 
-		P_yz += dv / 20 * (2 * r0d[1] * r0d[2]
-		                   + 2 * r1d[1] * r1d[2]
-		                   + 2 * r2d[1] * r2d[2]
-		                   + r0d[1] * r1d[2]
-		                   + r0d[2] * r1d[1]
-		                   + r0d[1] * r2d[2]
-		                   + r0d[2] * r2d[1]
-		                   + r1d[1] * r2d[2]
-		                   + r1d[2] * r2d[1]);
+	P_zz += dv / 20 * (2 * r0d[2] * r0d[2]
+		+ 2 * r1d[2] * r1d[2]
+		+ 2 * r2d[2] * r2d[2]
+		+ r0d[2] * r1d[2]
+		+ r0d[2] * r1d[2]
+		+ r0d[2] * r2d[2]
+		+ r0d[2] * r2d[2]
+		+ r1d[2] * r2d[2]
+		+ r1d[2] * r2d[2]);
 
-	}
+	P_xy += dv / 20 * (2 * r0d[0] * r0d[1]
+		+ 2 * r1d[0] * r1d[1]
+		+ 2 * r2d[0] * r2d[1]
+		+ r0d[0] * r1d[1]
+		+ r0d[1] * r1d[0]
+		+ r0d[0] * r2d[1]
+		+ r0d[1] * r2d[0]
+		+ r1d[0] * r2d[1]
+		+ r1d[1] * r2d[0]);
+
+	P_xz += dv / 20 * (2 * r0d[0] * r0d[2]
+		+ 2 * r1d[0] * r1d[2]
+		+ 2 * r2d[0] * r2d[2]
+		+ r0d[0] * r1d[2]
+		+ r0d[2] * r1d[0]
+		+ r0d[0] * r2d[2]
+		+ r0d[2] * r2d[0]
+		+ r1d[0] * r2d[2]
+		+ r1d[2] * r2d[0]);
+
+	P_yz += dv / 20 * (2 * r0d[1] * r0d[2]
+		+ 2 * r1d[1] * r1d[2]
+		+ 2 * r2d[1] * r2d[2]
+		+ r0d[1] * r1d[2]
+		+ r0d[2] * r1d[1]
+		+ r0d[1] * r2d[2]
+		+ r0d[2] * r2d[1]
+		+ r1d[1] * r2d[2]
+		+ r1d[2] * r2d[1]);
+
+}
 
 
 	// The inertia tensor is finally assembled
-	arma::mat I = {
-		{P_yy + P_zz, -P_xy, -P_xz},
-		{ -P_xy, P_xx + P_zz, -P_yz},
-		{ -P_xz, -P_yz, P_xx + P_yy}
-	};
+arma::mat I = {
+	{P_yy + P_zz, -P_xy, -P_xz},
+	{ -P_xy, P_xx + P_zz, -P_yz},
+	{ -P_xz, -P_yz, P_xx + P_yy}
+};
 
 	// The inertia tensor is centered at the barycenter
 	// The parallel axis theorem is used
 	// Recall that this inertia tensor is dimensionless
 
 
-	this -> inertia = I - RBK::tilde(this -> cm / l) * RBK::tilde(this -> cm / l).t();
+this -> inertia = I - RBK::tilde(this -> cm / l) * RBK::tilde(this -> cm / l).t();
 
 
 }
