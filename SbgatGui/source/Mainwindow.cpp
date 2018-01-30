@@ -128,11 +128,13 @@ void Mainwindow::update_GUI_changed_prop() {
         std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
         if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
-            auto active_shape_model  =  this -> wrapped_shape_data[name] -> get_shape_model();
+
+            auto active_shape_polydata  =  this -> wrapped_shape_data[name] -> get_polydata();
+            auto N_vertices = active_shape_polydata -> GetPoints() -> GetNumberOfPoints();
+            auto N_facets = active_shape_polydata -> GetNumberOfCells();
+            std::string message("Facets : " + std::to_string(N_facets) + " Vertices: " + std::to_string(N_vertices));
 
 
-            std::string message("Facets : " + std::to_string(active_shape_model -> get_NFacets()) + " Vertices: " + std::to_string(active_shape_model -> get_NVertices())
-                + " Edges: " + std::to_string(active_shape_model -> get_NEdges()));
             this -> statusBar() -> showMessage(QString::fromStdString(message));
         }
         else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
@@ -243,9 +245,9 @@ void Mainwindow::createActions() {
     this -> move_along_traj_action -> setStatusTip(tr("Move spacecraft along trajectory"));
     connect(this -> move_along_traj_action, &QAction::triggered, this, &Mainwindow::open_move_along_traj_window);
 
-    this -> open_camera_properties_window_action =new QAction(tr("Camera properties"), this);
-    this -> open_camera_properties_window_action -> setStatusTip(tr("Open window enabling one to change the camera properties"));
-    connect(this -> open_camera_properties_window_action, &QAction::triggered, this, &Mainwindow::open_camera_properties_window);
+    this -> open_rendering_properties_window_action =new QAction(tr("Rendering properties"), this);
+    this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
+    connect(this -> open_rendering_properties_window_action, &QAction::triggered, this, &Mainwindow::open_rendering_properties_window);
 
 
 }
@@ -506,20 +508,58 @@ void Mainwindow::load_small_body() {
             std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
 
 
-            std::shared_ptr<SBGAT_CORE::ShapeModel>  shape_model = std::make_shared<SBGAT_CORE::ShapeModel>(name, this -> frame_graph.get());
-            shape_io.load_shape_model(shape_model.get());
+            // std::shared_ptr<SBGAT_CORE::ShapeModel>  shape_model = std::make_shared<SBGAT_CORE::ShapeModel>(name, this -> frame_graph.get());
+            // shape_io.load_shape_model(shape_model.get());
 
             // A new ModelDataWrapper is created and stored under the name of the shape model
             std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-            model_data -> set_shape_model(shape_model);
+            // model_data -> set_shape_model(shape_model);
 
             // The camera is moved to be adjusted to the new shape
             this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
 
+            //*******************************************************
+            // NOT USED 
+            //*******************************************************
             // A VTK Polydata is created from the loaded shape model
             // and displayed on the QVTKWidget. The ModelDataWrapper
             // will stored the pointer to the associated polydata, mapper and actor
-            this -> create_vtkpolydata_from_shape_model(model_data);
+            // this -> create_vtkpolydata_from_shape_model(model_data);
+            //*******************************************************
+            // NOT USED 
+            //*******************************************************
+
+
+            vtkNew<vtkOBJReader> reader;
+            reader -> SetFileName(fileName.toStdString().c_str());
+            reader -> Update(); 
+
+
+             // Create a PolyData
+            vtkSmartPointer<vtkPolyData> polygonPolyData = reader -> GetOutput();
+            // Create a mapper and actor
+            vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+
+            mapper -> SetInputConnection(reader -> GetOutputPort());
+            mapper -> ScalarVisibilityOff();
+
+            vtkSmartPointer<vtkActor> actor =
+            vtkSmartPointer<vtkActor>::New();
+            actor -> SetMapper(mapper);
+
+            // Visualize
+            this -> renderer -> AddActor(actor);
+
+            // Render
+            this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+             // Store
+            model_data -> set_polydata(polygonPolyData);
+            model_data -> set_actor(actor);
+            model_data -> set_mapper(mapper);
+
+
 
             // The ModelDataWrapper pointer is stored. An exception
             // is thrown if the name read from the file is already
@@ -922,14 +962,33 @@ void Mainwindow::compute_geometry_measures(){
 
    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+
    if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
 
     std::string opening_line = "### Computing shape model geometry measures ###\n";
+
+    vtkSmartPointer<vtkMassProperties> mass_properties_filter = vtkSmartPointer<vtkMassProperties>::New();
+    mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+    mass_properties_filter -> Update();
+
     this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-    this -> compute_surface_area();
-    this -> compute_volume();
+
+    this -> log_console -> appendPlainText(QString::fromStdString("- Surface of " + name + " (m^2) :"));
+    this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
+
+    this -> log_console -> appendPlainText(QString::fromStdString("- Volume of " + name + " (m^3) :"));
+    this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
+
+
+    // Can't do inertia yet as it would require access to the 
+    // SbgatCore::ShapeModel which is not instantiated yet!
     this -> compute_inertia();
+
+    // Can't do center of mass yet as it would require access to the 
+    // SbgatCore::ShapeModel which is not instantiated yet!
     this -> compute_center_of_mass();
+
+
     std::string closing_line(opening_line.length() - 1, '#');
     closing_line.append("\n");
     this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
@@ -942,8 +1001,6 @@ else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajector
     std::string closing_line(opening_line.length() - 1, '#');
     closing_line.append("\n");
     this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-
-
 }
 
 
@@ -951,47 +1008,35 @@ else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajector
 }
 
 
-
-void Mainwindow::compute_volume() {
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-    auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
-
-    this -> log_console -> appendPlainText(QString::fromStdString("- Volume of " + name + " (m^3) :"));
-    this -> log_console -> appendPlainText(" " + QString::number(active_shape -> get_volume()));
-}
-
-
-
-void Mainwindow::compute_surface_area() {
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-    auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
-
-    this -> log_console -> appendPlainText(QString::fromStdString("- Surface of " + name + " (m^2) :"));
-    this -> log_console -> appendPlainText(" " + QString::number(active_shape -> get_surface_area()));
-}
 
 void Mainwindow::compute_inertia() {
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-    auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name + " :"));
-    std::stringstream ss;
-    active_shape -> get_inertia().print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+    std::cout << "Not implemented in VTK yet!" << std::endl;
+
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
+
+    // this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name + " :"));
+    // std::stringstream ss;
+    // active_shape -> get_inertia().print(ss);
+    // this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 }
 
 void Mainwindow::compute_center_of_mass() {
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-    auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Center of mass coordinates of " + name + " (m) :"));
-    std::stringstream ss;
-    active_shape -> get_center_of_mass().print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+    std::cout << "Not implemented in VTK yet!" << std::endl;
+
+
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // auto active_shape  =  this -> wrapped_shape_data[name] -> get_shape_model();
+
+    // this -> log_console -> appendPlainText(QString::fromStdString("- Center of mass coordinates of " + name + " (m) :"));
+    // std::stringstream ss;
+    // active_shape -> get_center_of_mass().print(ss);
+    // this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 }
 
 
@@ -1315,13 +1360,14 @@ void Mainwindow::open_move_along_traj_window(){
 }   
 
 
-void Mainwindow::open_camera_properties_window(){
+void Mainwindow::open_rendering_properties_window(){
 
-    CameraPropertiesWindow * camera_properties_window = new CameraPropertiesWindow(this);
-    connect(this,SIGNAL(prop_removed_signal()),camera_properties_window,SLOT(prop_removed_slot()));
-    connect(this,SIGNAL(prop_added_signal()),camera_properties_window,SLOT(prop_added_slot()));
+    RenderingPropertiesWindow * rendering_properties_window = new RenderingPropertiesWindow(this);
+
+    connect(this,SIGNAL(prop_removed_signal()),rendering_properties_window,SLOT(prop_removed_slot()));
+    connect(this,SIGNAL(prop_added_signal()),rendering_properties_window,SLOT(prop_added_slot()));
     
-    camera_properties_window -> show();
+    rendering_properties_window -> show();
 }   
 
 
@@ -1476,7 +1522,7 @@ void Mainwindow::createMenus() {
     this -> ResultsMenu -> addAction(this -> show_grav_slopes_action);
     this -> ResultsMenu -> addAction(this -> show_global_pgm_pot_action);
     this -> ResultsMenu -> addSeparator();
-    this -> ResultsMenu -> addAction(this -> open_camera_properties_window_action);
+    this -> ResultsMenu -> addAction(this -> open_rendering_properties_window_action);
 
 
     this -> ViewMenu = menuBar() -> addMenu(tr("&View"));

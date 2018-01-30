@@ -1,14 +1,30 @@
 
-#ifndef HEADER_CameraPropertiesWindow
-#define HEADER_CameraPropertiesWindow
+#ifndef HEADER_RenderingPropertiesWindow
+#define HEADER_RenderingPropertiesWindow
 
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QGroupBox>
 #include <QDialogButtonBox>
+#include <QTableWidget>
 #include <QLabel>
 #include <QComboBox>
 #include <vtkCamera.h>
+
+#include <vtkLightCollection.h>
+#include <vtkLight.h>
+#include <vtkShadowMapPass.h>
+
+#include <vtkSequencePass.h>
+#include <vtkRenderPassCollection.h>
+#include <vtkCameraPass.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkShadowMapBakerPass.h>
+
+
+
+
+
 
 #include <QVTKOpenGLWidget.h>
 
@@ -19,15 +35,14 @@ namespace SBGAT_GUI {
 	class Mainwindow;
 
 /*!
-@class MoveAlongTrajectoryWindow
+@class RenderingPropertiesWindow
 \author Benjamin Bercovici
 \date January 28, 2017
-\brief CameraPropertiesWindow
-
-\details 
+\brief RenderingPropertiesWindow
+\details A window where the user can set the camera focus, add/remove lights and enable/disable shadows
 */
 
-	class CameraPropertiesWindow : public QDialog {
+	class RenderingPropertiesWindow : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -36,7 +51,7 @@ namespace SBGAT_GUI {
 	Creates the window
 	@param parent pointer to parent window.
 	*/
-		CameraPropertiesWindow(Mainwindow * parent) ;
+		RenderingPropertiesWindow(Mainwindow * parent) ;
 
 
 		public slots:
@@ -55,16 +70,26 @@ namespace SBGAT_GUI {
 		private slots:
 
 		void change_focus();
+		void add_light();
+		void remove_light();
+		void enable_mutual_shadows(int state);
 
 
 
-		
 
 	protected:
 
 		Mainwindow * parent;
 		void init();
 		QComboBox * prop_combo_box;
+
+		QComboBox * current_light_combo_box;
+		QPushButton * remove_light_button;
+		QComboBox * new_light_combo_box ;
+
+		void make_light_box_consistent();
+		
+
 
 
 

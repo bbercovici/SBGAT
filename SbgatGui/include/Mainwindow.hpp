@@ -56,6 +56,7 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkMassProperties.h>
 
 #include <ShapeModelImporter.hpp>
 #include <ShapeModel.hpp>
@@ -68,7 +69,7 @@
 #include "SettingsWindow.hpp"
 #include "ModelDataWrapper.hpp"
 #include "MoveAlongTrajectoryWindow.hpp"
-#include "CameraPropertiesWindow.hpp"
+#include "RenderingPropertiesWindow.hpp"
 
 
 #include "Worker.hpp"
@@ -81,7 +82,7 @@ namespace SBGAT_GUI {
 	class InteractorStyle;
 
 
-typedef std::map<std::string , std::shared_ptr<ModelDataWrapper> > DataMap;
+	typedef std::map<std::string , std::shared_ptr<ModelDataWrapper> > DataMap;
 
 /*!
 @class Mainwindow
@@ -145,25 +146,25 @@ through the user interface layer brought by Qt.}
 	Getter to wrapped shape data
 	@return copy of wrapper shape data
 	*/
-	DataMap get_wrapped_shape_data() const;
+		DataMap get_wrapped_shape_data() const;
 
 	/**
 	Getter to wrapped trajectory data
 	@return copy of wrapper trajectory data
 	*/
-	DataMap get_wrapped_trajectory_data() const;
+		DataMap get_wrapped_trajectory_data() const;
 
 	/**
 	Getter to wrapped attitude data
 	@return copy of attitude shape data
 	*/
-	DataMap get_wrapped_attitude_data() const;
+		DataMap get_wrapped_attitude_data() const;
 
 	/**
 	Getter to wrapped spacecraft data
 	@return copy of wrapper spacecraft data
 	*/
-	DataMap get_wrapped_spacecraft_data() const;
+		DataMap get_wrapped_spacecraft_data() const;
 
 	/**
 	Returns to a pair storing the directory and vtkActor pointer to the current skybox
@@ -250,7 +251,7 @@ through the user interface layer brought by Qt.}
 		/**
 	When triggered, opens camera properties window.
 	*/
-		QAction * open_camera_properties_window_action;
+		QAction * open_rendering_properties_window_action;
 
 	/**
 	When triggered, starts global polyhedron gravity model accelerations evaluation. Queries the
@@ -327,7 +328,7 @@ through the user interface layer brought by Qt.}
 	/**
 	Opens a widget allowing the user edit the camera properties
 	*/
-		void open_camera_properties_window();
+		void open_rendering_properties_window();
 
 
 	/**

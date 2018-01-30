@@ -135,13 +135,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir,
 # Add source files in root directory
 add_executable(${EXE_NAME}
 source/main.cpp
-source/CameraPropertiesWindow.cpp
+source/RenderingPropertiesWindow.cpp
 source/Mainwindow.cpp
 source/ModelDataWrapper.cpp
 source/MoveAlongTrajectoryWindow.cpp
 source/SettingsWindow.cpp
 source/Worker.cpp
-include/CameraPropertiesWindow.hpp
+include/RenderingPropertiesWindow.hpp
 include/Mainwindow.hpp
 include/ModelDataWrapper.hpp
 include/MoveAlongTrajectoryWindow.hpp
