@@ -3,31 +3,9 @@
 #define HEADER_RenderingPropertiesWindow
 
 #include <QMainWindow>
-#include <QVBoxLayout>
-#include <QGroupBox>
-#include <QDialogButtonBox>
-#include <QTableWidget>
-#include <QLabel>
 #include <QComboBox>
-#include <vtkCamera.h>
-
-#include <vtkLightCollection.h>
-#include <vtkLight.h>
-#include <vtkShadowMapPass.h>
-
-#include <vtkSequencePass.h>
-#include <vtkRenderPassCollection.h>
-#include <vtkCameraPass.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkShadowMapBakerPass.h>
-
-
-
-
-
-
 #include <QVTKOpenGLWidget.h>
-
+#include <QDialog.h>
 #include "Mainwindow.hpp"
 
 namespace SBGAT_GUI {

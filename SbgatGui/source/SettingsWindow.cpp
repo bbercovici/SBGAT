@@ -1,5 +1,19 @@
 #include "SettingsWindow.hpp"
 
+
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QColorDialog>
+#include <QColor>
+#include <QDialogButtonBox>
+
+#include <vtkTexture.h>
+#include <vtkSkybox.h>
+#include <vtkImageFlip.h>
+#include <vtkPNGReader.h>
+#include <QVTKOpenGLWidget.h>
+
+
 using namespace SBGAT_GUI;
 
 SettingsWindow::SettingsWindow(Mainwindow * parent) {

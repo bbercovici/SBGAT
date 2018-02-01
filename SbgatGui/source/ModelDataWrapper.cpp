@@ -86,4 +86,11 @@ void ModelDataWrapper::set_grav_slopes(bool grav_slopes) {
 	this -> consistent_grav_slope = grav_slopes;
 }
 
+void ModelDataWrapper::shape_was_modified(){
+	this -> consistent_shape_model = false;
+}
+
+bool ModelDataWrapper::get_consistent_shape_model() const {
+	return this -> consistent_shape_model;
+}
 

@@ -1,5 +1,25 @@
 #include "RenderingPropertiesWindow.hpp"
 
+#include <QVBoxLayout>
+#include <QGroupBox>
+#include <QPushButton>
+#include <QCheckBox>
+
+#include <QDialogButtonBox>
+#include <QTableWidget>
+#include <QLabel>
+#include <vtkCamera.h>
+
+
+#include <vtkLightCollection.h>
+#include <vtkLight.h>
+#include <vtkShadowMapPass.h>
+
+#include <vtkSequencePass.h>
+#include <vtkRenderPassCollection.h>
+#include <vtkCameraPass.h>
+#include <vtkOpenGLRenderer.h>
+#include <vtkShadowMapBakerPass.h>
 
 using namespace SBGAT_GUI;
 

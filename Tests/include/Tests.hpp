@@ -27,7 +27,7 @@ void test_pgm_consistency_cube();
 void test_pgm_consistency_ellipsoid();
 void test_spherical_harmonics_consistency();
 void test_spherical_harmonics_invariance();
-
+void test_geometrical_measures();
 
 }
 

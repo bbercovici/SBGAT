@@ -143,7 +143,17 @@ public:
 
 	void set_grav_slopes(bool grav_slopes);
 
+	/**
+	Sets the internal flag consistent_shape_model to false, 
+	indicating that the VTK shape and the SbgatCore shape are different
+	*/
+	void shape_was_modified();
 
+	/**
+	Returns the internal flag consistent_shape_model
+	@return true if the VTK shape and the SbgatCore are identical, false otherwise
+	*/
+	bool get_consistent_shape_model() const;
 
 
 
@@ -156,9 +166,9 @@ protected:
 	vtkSmartPointer<vtkPoints>  points;
 
 
+	bool consistent_shape_model = false;
 	bool consistent_global_acceleration = false;
 	bool consistent_global_potential = false;
-
 	bool consistent_grav_slope = false;
 
 

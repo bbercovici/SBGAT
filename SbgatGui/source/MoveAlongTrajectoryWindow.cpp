@@ -1,4 +1,10 @@
 #include "MoveAlongTrajectoryWindow.hpp"
+#include <QVBoxLayout>
+#include <QDialogButtonBox>
+
+#include <QLabel>
+#include <QVTKOpenGLWidget.h>
+#include <vtkCamera.h>
 
 
 using namespace SBGAT_GUI;

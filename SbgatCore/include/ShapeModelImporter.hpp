@@ -41,7 +41,7 @@ public:
 	will be rotated to lign up with its principal axes after
 	it has been shited to its barycenter
 	*/
-	void load_shape_model(ShapeModel * shape_model,bool enforce_principal_axes = true) const;
+	void load_shape_model(ShapeModel * shape_model,bool enforce_principal_axes) const;
 
 protected:
 	std::string filename;

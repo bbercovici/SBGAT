@@ -4,6 +4,7 @@
 
 void TestsSBCore::run() {
 	TestsSBCore::test_loading_shape();
+	TestsSBCore::test_geometrical_measures();
 	TestsSBCore::test_pgm_consistency_cube();
 	TestsSBCore::test_pgm_consistency_ellipsoid();
 	TestsSBCore::test_spherical_harmonics_consistency();
@@ -24,13 +25,50 @@ void TestsSBCore::test_loading_shape() {
 
 	SBGAT_CORE::ShapeModel shape_model("", nullptr);
 	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
-	shape_io.load_shape_model(&shape_model);
+	shape_io.load_shape_model(&shape_model,false);
 
 	assert(shape_model.get_NFacets() == 12);
 	assert(shape_model.get_NVertices() == 8);
 	assert(shape_model.get_NEdges() == 18);
 
 	std::cout << "-- test_loading_shape successful" << std::endl;
+
+}
+
+
+
+
+/**
+This check ensures that the geometrical measures such as volume 
+ surface area, center of mass and inertia moments are properly computed
+*/
+void TestsSBCore::test_geometrical_measures() {
+
+	std::cout << "- Running test_geometrical_measures ..." << std::endl;
+
+	SBGAT_CORE::ShapeModel shape_model("", nullptr);
+	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 0.5);
+	shape_io.load_shape_model(&shape_model,false);
+
+
+	arma::vec cube_moments = {1,1,1};
+	arma::vec cube_com = {1,1,1};
+
+	cube_moments /= 6.;
+
+	cube_com /= 4.;
+
+	shape_model . update_mass_properties();
+
+	arma::mat inertia = shape_model . get_inertia();
+
+	assert(std::abs(1./8 - shape_model.get_volume()) < 1e-10);
+	assert(std::abs(6./4 - shape_model.get_surface_area()) < 1e-10);
+	assert(arma::norm(cube_com - shape_model.get_center_of_mass()) < 1e-10);
+	assert(arma::norm(cube_moments - arma::eig_sym(inertia)) / arma::norm(cube_moments) < 1e-10);
+
+
+	std::cout << "-- test_geometrical_measures successful" << std::endl;
 
 }
 
@@ -63,7 +101,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
-		shape_io.load_shape_model(&shape_model);
+		shape_io.load_shape_model(&shape_model,true);
 		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
 		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
 		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
@@ -74,7 +112,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube_50k.obj", 1);
-		shape_io.load_shape_model(&shape_model);
+		shape_io.load_shape_model(&shape_model,true);
 		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
 
 
@@ -89,7 +127,7 @@ void TestsSBCore::test_pgm_consistency_cube() {
 	{
 		SBGAT_CORE::ShapeModel shape_model("", nullptr);
 		SBGAT_CORE::ShapeModelImporter shape_io("../cube_200k.obj", 1);
-		shape_io.load_shape_model(&shape_model);
+		shape_io.load_shape_model(&shape_model,true);
 		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
 
 
@@ -127,7 +165,7 @@ void TestsSBCore::test_pgm_consistency_ellipsoid() {
 
 	SBGAT_CORE::ShapeModel shape_model("", nullptr);
 	SBGAT_CORE::ShapeModelImporter shape_io("../ellipsoid.obj", 1);
-	shape_io.load_shape_model(&shape_model);
+	shape_io.load_shape_model(&shape_model,false);
 
 	SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
 	double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
@@ -225,7 +263,7 @@ void TestsSBCore::test_spherical_harmonics_invariance(){
 		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
 		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
 
-		shape_io.load_shape_model(&eros);
+		shape_io.load_shape_model(&eros,false);
 		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
 
 		int degree = 10;
@@ -265,7 +303,7 @@ void TestsSBCore::test_spherical_harmonics_invariance(){
 		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
 		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1000);
 
-		shape_io.load_shape_model(&eros);
+		shape_io.load_shape_model(&eros,false);
 		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
 
 		int degree = 10;

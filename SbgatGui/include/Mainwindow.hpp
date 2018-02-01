@@ -9,70 +9,29 @@
 #define HEADER_MAINWINDOW
 
 #include <QMainWindow>
-#include <QFileDialog>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
 #include <QDockWidget>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
-#include <QColorDialog>
-#include <QColor>
 #include <QtWidgets/QWidget>
 #include <QStatusBar>
-#include <QInputDialog>
 #include <QPlainTextEdit>
-#include <QTextStream>
-#include <QMessageBox>
-#include <QRegularExpression>
-#include <QStringList>
 #include <QTableWidget>
-#include <QPushButton>
-#include <QHeaderView>
-#include <QThread>
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
-#include <vtkAreaPicker.h>
 #include <vtkOrientationMarkerWidget.h>
-#include <vtkAxesActor.h>
-#include <vtkPolygon.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkDoubleArray.h>
-#include <vtkCellData.h>
-#include <vtkScalarBarActor.h>
-#include <vtkActor2DCollection.h>
-#include <vtkLookupTable.h>
-#include <vtkTextProperty.h>
-#include <vtkCamera.h>
-#include <vtkInteractorStyleSwitch.h>
-#include <vtkParametricSpline.h>
-#include <vtkParametricFunctionSource.h>
-#include <vtkOBJReader.h>
-#include <vtkCenterOfMass.h>
 #include <QVTKOpenGLWidget.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkMassProperties.h>
 
-#include <ShapeModelImporter.hpp>
-#include <ShapeModel.hpp>
-#include <DynamicAnalyses.hpp>
 
 #include <map>
 #include <chrono>
 #include <sstream>
 
-#include "SettingsWindow.hpp"
 #include "ModelDataWrapper.hpp"
-#include "MoveAlongTrajectoryWindow.hpp"
-#include "RenderingPropertiesWindow.hpp"
 
-
-#include "Worker.hpp"
 
 
 
@@ -227,12 +186,21 @@ through the user interface layer brought by Qt.}
 	/**
 	When triggered, show/hides the lateral widget
 	*/
-		QAction * show_lateral_dockwidget_action;
+	QAction * show_lateral_dockwidget_action;
+
+	/**
+	When triggered, opens a window enabling the user
+	to align the displayed actors to a number of hook points
+	corresponding to the center of mass of any of loaded props 
+	*/
+	QAction * open_alignment_window_action;
+
+
 
 	/**
 	When triggered, prints geometry measures of the selected prop to the console
 	*/
-		QAction * compute_geometry_measures_action;
+		QAction * compute_geometric_measures_action;
 
 
 	/**
@@ -341,7 +309,7 @@ through the user interface layer brought by Qt.}
 		/**
 		Computes and displays a number of geometry measures associated with the selected prop 
 		*/
-		void compute_geometry_measures();
+		void compute_geometric_measures();
 
 		/**
 	Shows/hides the selected prop from the lateral widget.
@@ -368,6 +336,12 @@ through the user interface layer brought by Qt.}
 	Open settings window.
 	*/
 		void open_settings_window();
+
+
+	/**
+	Open alignment window.
+	*/
+		void open_alignment_window();
 
 
 	/**
@@ -454,31 +428,6 @@ through the user interface layer brought by Qt.}
 
 
 	/**
-	Prints dimensionless principal inertia tensor of the active shape (assuming constant density)
-	to the log console.
-	*/
-		void compute_inertia() ;
-
-
-	/**
-	Prints volume of active shape (m^3) to the log console.
-	*/
-		void compute_volume() ;
-
-
-	/**
-	Prints center of mass coordinates shape (m) to the log console.
-	*/
-		void compute_center_of_mass() ;
-
-
-	/**
-	Prints surface of active shape (m^2) to the log console.
-	*/
-		void compute_surface_area() ;
-
-
-	/**
 	Computes the polyhedron gravity model acceleration at the specified point in the
 	shape's principal body frame.
 	*/
@@ -518,7 +467,7 @@ through the user interface layer brought by Qt.}
 	@param model_data pointer to the ModelDataWrapper housing the data
 	related to the shape model being created
 	*/
-		void create_vtkpolydata_from_shape_model(std::shared_ptr<ModelDataWrapper> model_data);
+		void create_sbgatcore_shape_model_from_vtk(std::shared_ptr<ModelDataWrapper> model_data);
 
 	/**
 	Shows/hides lateral dockwidget.

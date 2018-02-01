@@ -1,4 +1,3 @@
-CMakeCache.txt
-Makefile
-CMakeFiles/*
-cmake_install.cmake
+*
+*/
+!.gitignore

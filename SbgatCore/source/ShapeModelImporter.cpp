@@ -81,7 +81,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model , bool enforc
 	// Vertices are added to the shape model
 	std::vector<std::shared_ptr<Vertex>> vertex_index_to_ptr(vertices.size(), nullptr);
 
-
 	for (unsigned int vertex_index = 0; vertex_index < vertices.size(); ++vertex_index) {
 
 		std::shared_ptr<arma::vec> coordinates = std::make_shared<arma::vec>(vertices[vertex_index]);
@@ -96,8 +95,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model , bool enforc
 	}
 
 
-
-
 	// Facets are added to the shape model
 	for (unsigned int facet_index = 0; facet_index < facet_vertices.size(); ++facet_index) {
 
@@ -110,10 +107,6 @@ void ShapeModelImporter::load_shape_model(ShapeModel * shape_model , bool enforc
 		vertices.push_back(v0);
 		vertices.push_back(v1);
 		vertices.push_back(v2);
-
-
-
-
 
 		// Was invariably getting the same memory address if using
 		// std::make_shared. The destructor of ShapeModel will take care

@@ -3,19 +3,12 @@
 #define HEADER_MOVEALONGTRAJECTORYWINDOW
 
 #include <QMainWindow>
-#include <QVBoxLayout>
-#include <QColorDialog>
-#include <QColor>
 #include <QGroupBox>
-#include <QDialogButtonBox>
 #include <QSpinBox>
-#include <QLabel>
 #include <QComboBox>
 #include <QCheckBox>
-#include <QDoubleValidator>
-#include <QCheckBox>
+#include <QDialog>
 
-#include <QVTKOpenGLWidget.h>
 
 #include "Mainwindow.hpp"
 

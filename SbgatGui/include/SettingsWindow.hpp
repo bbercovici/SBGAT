@@ -3,22 +3,15 @@
 #define HEADER_SETTINGSWINDOW
 
 #include <QMainWindow>
-#include <QVBoxLayout>
-#include <QColorDialog>
-#include <QColor>
 #include <QGroupBox>
-#include <QDialogButtonBox>
-#include <QLabel>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QPushButton>
+#include <QDialog>
+#include <QFileDialog>
+#include <QMessageBox>
 
-#include <QVTKOpenGLWidget.h>
-#include <vtkTexture.h>
-#include <vtkPNGReader.h>
-#include <vtkImageFlip.h>
-#include <vtkSkybox.h>
 #include "Mainwindow.hpp"
-
 namespace SBGAT_GUI {
 
 	class Mainwindow;
