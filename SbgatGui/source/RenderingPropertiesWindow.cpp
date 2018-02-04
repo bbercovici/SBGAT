@@ -145,14 +145,8 @@ void RenderingPropertiesWindow::prop_removed_slot(){
 		if (wrapped_spacecraft_data.find(prop_name.toStdString()) == wrapped_spacecraft_data.end()&& wrapped_shape_data.find(prop_name.toStdString()) == wrapped_shape_data.end()){
 			this -> prop_combo_box -> removeItem(i);
 			break;
-
 		}
-
 	}
-
-
-
-
 }
 
 
