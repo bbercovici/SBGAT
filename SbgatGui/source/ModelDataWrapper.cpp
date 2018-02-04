@@ -7,9 +7,6 @@ ModelDataWrapper::ModelDataWrapper() {
 
 }
 
-std::shared_ptr<SBGAT_CORE::ShapeModel> ModelDataWrapper::get_shape_model() const {
-	return this -> shape_model;
-}
 
 vtkSmartPointer<vtkPolyData> ModelDataWrapper::get_polydata() const {
 	return this -> polydata;
@@ -30,10 +27,14 @@ vtkSmartPointer<vtkPoints> ModelDataWrapper::get_points() const {
 	return this -> points;
 }
 
-
-void ModelDataWrapper::set_shape_model(std::shared_ptr<SBGAT_CORE::ShapeModel> shape_model) {
-	this -> shape_model = shape_model;
+void ModelDataWrapper::set_light(vtkSmartPointer<vtkLight> light){
+	this -> light;
 }
+
+vtkSmartPointer<vtkLight> ModelDataWrapper::get_light() const{
+	return this -> light;
+}
+
 
 
 void ModelDataWrapper::set_polydata(vtkSmartPointer<vtkPolyData> polydata) {

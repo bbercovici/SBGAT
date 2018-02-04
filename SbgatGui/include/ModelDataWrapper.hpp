@@ -4,7 +4,7 @@
 #ifndef HEADER_MODELDATAWRAPPER
 #define HEADER_MODELDATAWRAPPER
 
-#include <ShapeModel.hpp>
+#include <vtkLight.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 
@@ -31,12 +31,7 @@ class ModelDataWrapper {
 public:
 	ModelDataWrapper();
 
-	/**
-	Accessor to shape model.
-	@return pointer to shape model.
-	*/
-	std::shared_ptr<SBGAT_CORE::ShapeModel> get_shape_model() const;
-
+	
 	/**
 	Accessor to polydata.
 	@return pointer to polydata.
@@ -62,13 +57,6 @@ public:
 	@return pointer to points.
 	*/
 	vtkSmartPointer<vtkPoints> get_points() const;
-
-
-	/**
-	Setter of shape model.
-	@param shape_model pointer to shape model to assign.
-	*/
-	void set_shape_model(std::shared_ptr<SBGAT_CORE::ShapeModel> shape_model);
 
 
 	/**
@@ -156,14 +144,25 @@ public:
 	bool get_consistent_shape_model() const;
 
 
+	/**
+	Setter to light
+	*/
+	void set_light(vtkSmartPointer<vtkLight> light);
+
+	/**
+	Getter to light
+	*/
+	vtkSmartPointer<vtkLight> get_light() const;
+
+
 
 protected:
 
-	std::shared_ptr<SBGAT_CORE::ShapeModel>  shape_model;
 	vtkSmartPointer<vtkPolyData>  polydata;
 	vtkSmartPointer<vtkPolyDataMapper>  mapper;
 	vtkSmartPointer<vtkActor>  actor;
 	vtkSmartPointer<vtkPoints>  points;
+	vtkSmartPointer<vtkLight> light;
 
 
 	bool consistent_shape_model = false;
