@@ -29,8 +29,10 @@
 #include <map>
 #include <chrono>
 #include <sstream>
+#include <memory>
 
 #include "ModelDataWrapper.hpp"
+#include <FrameGraph.hpp>
 
 
 
@@ -504,6 +506,8 @@ through the user interface layer brought by Qt.}
 		DataMap wrapped_trajectory_data;
 		DataMap wrapped_attitude_data;
 		DataMap wrapped_spacecraft_data;
+		DataMap wrapped_light_data;
+
 
 
 

@@ -1156,162 +1156,53 @@ else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajector
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void Mainwindow::create_sbgatcore_shape_model_from_vtk(std::shared_ptr<ModelDataWrapper> model_data) {
-
-
-    // Add the polygon to a list of polygons
-    vtkSmartPointer<vtkCellArray> polygons =
-    vtkSmartPointer<vtkCellArray>::New();
-    vtkSmartPointer<vtkPoints> points =
-    vtkSmartPointer<vtkPoints>::New();
-
-    auto shape_model = model_data -> get_shape_model();
-
-
-    for (unsigned int facet_index = 0; facet_index < shape_model -> get_NFacets(); ++facet_index) {
-
-        auto vertices = shape_model -> get_facets() -> at(facet_index) -> get_vertices() ;
-
-        double * p0 = vertices -> at(0) -> get_coordinates() -> colptr(0);
-        double * p1 = vertices -> at(1) -> get_coordinates() -> colptr(0);
-        double * p2 = vertices -> at(2) -> get_coordinates() -> colptr(0);
-
-        points -> InsertNextPoint(p0);
-        points -> InsertNextPoint(p1);
-        points -> InsertNextPoint(p2);
-
-        // Create the polygon
-        vtkSmartPointer<vtkPolygon> polygon =
-        vtkSmartPointer<vtkPolygon>::New();
-        polygon -> GetPointIds() -> SetNumberOfIds(3); //make a triangle
-        polygon -> GetPointIds() -> SetId(0, 3 * facet_index);
-        polygon -> GetPointIds() -> SetId(1, 3 * facet_index + 1);
-        polygon -> GetPointIds() -> SetId(2, 3 * facet_index + 2);
-
-        polygons -> InsertNextCell(polygon);
-
-
-    }
-    
-    // Create a PolyData
-    vtkSmartPointer<vtkPolyData> polygonPolyData =
-    vtkSmartPointer<vtkPolyData>::New();
-    polygonPolyData -> SetPoints(points);
-    polygonPolyData -> SetPolys(polygons);
-
-    // Create a mapper and actor
-    vtkSmartPointer<vtkPolyDataMapper> mapper =
-    vtkSmartPointer<vtkPolyDataMapper>::New();
-
-    mapper -> SetInputData(polygonPolyData);
-    mapper -> ScalarVisibilityOff();
-
-    vtkSmartPointer<vtkActor> actor =
-    vtkSmartPointer<vtkActor>::New();
-    actor -> SetMapper(mapper);
-
-    // Visualize
-    this -> renderer -> AddActor(actor);
-
-    // Render
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
-
-    // Store
-    model_data -> set_polydata(polygonPolyData);
-    model_data -> set_actor(actor);
-    model_data -> set_mapper(mapper);
-
-}
-
-
-
-
-
-
-
-
 void Mainwindow::compute_global_pgm_acceleration() {
 
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-    auto dyn_analyses = std::make_shared<SBGAT_CORE::DynamicAnalyses>(this -> wrapped_shape_data[name] -> get_shape_model().get());
+    // auto dyn_analyses = std::make_shared<SBGAT_CORE::DynamicAnalyses>(this -> wrapped_shape_data[name] -> get_shape_model().get());
 
-    bool ok_density = false;
-
-
-    double density = QInputDialog::getDouble(this,
-     "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
-     5, &ok_density);
+    // bool ok_density = false;
 
 
+    // double density = QInputDialog::getDouble(this,
+    //  "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
+    //  5, &ok_density);
 
 
-    if (ok_density) {
-
-        double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
 
 
-        // Log in
-        this -> log_console -> appendPlainText(QString::fromStdString("- Computing global PGM facet accelerations of " + name + " ..."));
+    // if (ok_density) {
 
-        // The shape selection table is frozen
-        this -> prop_table -> setDisabled(true);
-        this -> menuBar() -> setDisabled(true);
+    //     double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
 
 
-        QThread * thread = new QThread;
-        Worker * worker = new Worker(dyn_analyses, mu, this -> wrapped_shape_data[name],
-         name);
-        worker ->  moveToThread(thread);
-        connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_acc()));
-        connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
-        connect(worker, SIGNAL(logging_out(QString)), this -> log_console, SLOT(insertPlainText(QString)));
-        connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
-        connect(worker, SIGNAL(free_shape_table(bool)), this -> prop_table, SLOT(setEnabled(bool)));
-        connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
+    //     // Log in
+    //     this -> log_console -> appendPlainText(QString::fromStdString("- Computing global PGM facet accelerations of " + name + " ..."));
 
-        thread -> start();
+    //     // The shape selection table is frozen
+    //     this -> prop_table -> setDisabled(true);
+    //     this -> menuBar() -> setDisabled(true);
 
 
-    }
+    //     QThread * thread = new QThread;
+    //     Worker * worker = new Worker(dyn_analyses, mu, this -> wrapped_shape_data[name],
+    //      name);
+    //     worker ->  moveToThread(thread);
+    //     connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_acc()));
+    //     connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+    //     connect(worker, SIGNAL(logging_out(QString)), this -> log_console, SLOT(insertPlainText(QString)));
+    //     connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    //     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    //     connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
+    //     connect(worker, SIGNAL(free_shape_table(bool)), this -> prop_table, SLOT(setEnabled(bool)));
+    //     connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
+
+    //     thread -> start();
+
+
+    // }
 
 }
 
@@ -1319,177 +1210,177 @@ void Mainwindow::compute_global_pgm_acceleration() {
 
 void Mainwindow::compute_global_pgm_potential() {
 
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-    auto dyn_analyses = std::make_shared<SBGAT_CORE::DynamicAnalyses>(this -> wrapped_shape_data[name] -> get_shape_model().get());
+    // auto dyn_analyses = std::make_shared<SBGAT_CORE::DynamicAnalyses>(this -> wrapped_shape_data[name] -> get_shape_model().get());
 
-    bool ok_density = false;
-
-
-    double density = QInputDialog::getDouble(this,
-     "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
-     5, &ok_density);
-
-    if (ok_density) {
+    // bool ok_density = false;
 
 
-        double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
+    // double density = QInputDialog::getDouble(this,
+    //  "Global Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
+    //  5, &ok_density);
+
+    // if (ok_density) {
+
+
+    //     double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
 
 
 
-        // Log int
-        this -> log_console -> appendPlainText(QString::fromStdString("- Computing global PGM facet potentials of " + name + " ..."));
+    //     // Log int
+    //     this -> log_console -> appendPlainText(QString::fromStdString("- Computing global PGM facet potentials of " + name + " ..."));
 
-        // The shape selection table is frozen
-        this -> prop_table -> setDisabled(true);
-        this -> menuBar()  -> setDisabled(true);
+    //     // The shape selection table is frozen
+    //     this -> prop_table -> setDisabled(true);
+    //     this -> menuBar()  -> setDisabled(true);
 
 
-        QThread * thread = new QThread;
-        Worker * worker = new Worker(dyn_analyses,
-         mu,
-         this -> wrapped_shape_data[name],
-         name);
-        worker ->  moveToThread(thread);
-        connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_pot()));
-        connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
-        connect(worker, SIGNAL(logging_out(QString)), this -> log_console, SLOT(insertPlainText(QString)));
-        connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
-        connect(worker, SIGNAL(finished()), this, SLOT(update_vtk_potentials()));
-        connect(worker, SIGNAL(free_shape_table(bool)), this -> prop_table, SLOT(setEnabled(bool)));
-        connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
+    //     QThread * thread = new QThread;
+    //     Worker * worker = new Worker(dyn_analyses,
+    //      mu,
+    //      this -> wrapped_shape_data[name],
+    //      name);
+    //     worker ->  moveToThread(thread);
+    //     connect(thread, SIGNAL(started()), worker, SLOT(process_pgm_pot()));
+    //     connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+    //     connect(worker, SIGNAL(logging_out(QString)), this -> log_console, SLOT(insertPlainText(QString)));
+    //     connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    //     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    //     connect(worker, SIGNAL(finished()), this, SLOT(update_actions_availability()));
+    //     connect(worker, SIGNAL(finished()), this, SLOT(update_vtk_potentials()));
+    //     connect(worker, SIGNAL(free_shape_table(bool)), this -> prop_table, SLOT(setEnabled(bool)));
+    //     connect(worker, SIGNAL(free_menu_bar(bool)), this -> menuBar() , SLOT(setEnabled(bool)));
 
-        thread -> start();
+    //     thread -> start();
 
-    }
+    // }
 
 }
 
 
 void Mainwindow::compute_gravity_slopes() {
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
 
-    SBGAT_CORE::DynamicAnalyses dynas(this -> wrapped_shape_data[name] -> get_shape_model().get());
+    // SBGAT_CORE::DynamicAnalyses dynas(this -> wrapped_shape_data[name] -> get_shape_model().get());
 
-    bool ok_spin_axis = true;
-    bool correct_format = false;
-    bool ok_spin_rate = false;
-    arma::vec spin_axis = {0, 0, 1};
-    arma::vec angles_arma = {0, 0, 0};
+    // bool ok_spin_axis = true;
+    // bool correct_format = false;
+    // bool ok_spin_rate = false;
+    // arma::vec spin_axis = {0, 0, 1};
+    // arma::vec angles_arma = {0, 0, 0};
 
-    while (ok_spin_axis == true && correct_format == false) {
+    // while (ok_spin_axis == true && correct_format == false) {
 
-        QString coords = QInputDialog::getText(this,
-           tr("Gravity slopes"),
-           tr("(Azimuth,Elevation) of spin axis (deg) . (0,0) : along z :"),
-           QLineEdit::Normal,
-           QString::fromStdString("Azimuth,Elevation") ,
-           &ok_spin_axis);
+    //     QString coords = QInputDialog::getText(this,
+    //        tr("Gravity slopes"),
+    //        tr("(Azimuth,Elevation) of spin axis (deg) . (0,0) : along z :"),
+    //        QLineEdit::Normal,
+    //        QString::fromStdString("Azimuth,Elevation") ,
+    //        &ok_spin_axis);
 
-        QStringList angles_split = coords.split(",");
+    //     QStringList angles_split = coords.split(",");
 
-        if (angles_split.count() != 2) {
-            correct_format = false;
-            continue;
-        }
+    //     if (angles_split.count() != 2) {
+    //         correct_format = false;
+    //         continue;
+    //     }
 
-        // Matching doubles
-        QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
+    //     // Matching doubles
+    //     QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
 
-        if (re.exactMatch(angles_split.at(0)) && re.exactMatch(angles_split.at(1))) {
-            angles_arma(0) = angles_split.at(0).toDouble();
-            angles_arma(1) = angles_split.at(1).toDouble();
+    //     if (re.exactMatch(angles_split.at(0)) && re.exactMatch(angles_split.at(1))) {
+    //         angles_arma(0) = angles_split.at(0).toDouble();
+    //         angles_arma(1) = angles_split.at(1).toDouble();
 
-            correct_format = true;
-
-
-        }
-        else {
-            correct_format = false;
-            continue;
-        }
-
-    }
-
-    if (ok_spin_axis) {
-        spin_axis = RBK::euler313_to_dcm(angles_arma).t() * spin_axis;
-
-        double period = QInputDialog::getDouble(this,
-            "Gravity slopes", "Rotation period (hours) :", 0, -1e9, 1e9,
-            5, &ok_spin_rate);
-
-        double spin_rate = arma::datum::pi * 2 / (period * 3600);
-
-        if (ok_spin_rate ) {
-
-            this -> log_console -> appendPlainText(QString::fromStdString("- Computing gravity slopes of " + name +  "..."));
-
-            std::chrono::time_point<std::chrono::system_clock> start, end;
-            start = std::chrono::system_clock::now();
-            arma::vec slope_stats = dynas.compute_gravity_slopes(spin_axis, spin_rate);
-
-            this -> update_vtk_slopes();
+    //         correct_format = true;
 
 
-            // A GUI flag is updated to indicate that this shape model has consistent slopes ready to be displayed
-            this -> wrapped_shape_data[name] -> set_grav_slopes(true);
+    //     }
+    //     else {
+    //         correct_format = false;
+    //         continue;
+    //     }
 
-            // The GUI actions are updated
-            this -> update_actions_availability();
+    // }
 
-            // The previously displayed slopes (if any) are removed
-            this -> remove_results_visual_props("", true);
+    // if (ok_spin_axis) {
+    //     spin_axis = RBK::euler313_to_dcm(angles_arma).t() * spin_axis;
 
-            // Some statistics regarding the slopes are printed
-            std::string message("-- Mean slope: " + std::to_string(slope_stats(1)) + " deg");
-            this -> log_console -> appendPlainText(QString::fromStdString(message));
-            message = ("-- Minimum slope: " + std::to_string(slope_stats(0)) + " deg");
-            this -> log_console -> appendPlainText(QString::fromStdString(message));
-            message = ("-- Maximum slope: " + std::to_string(slope_stats(2)) + " deg");
-            this -> log_console -> appendPlainText(QString::fromStdString(message));
+    //     double period = QInputDialog::getDouble(this,
+    //         "Gravity slopes", "Rotation period (hours) :", 0, -1e9, 1e9,
+    //         5, &ok_spin_rate);
 
-            end = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsed_seconds = end - start;
+    //     double spin_rate = arma::datum::pi * 2 / (period * 3600);
 
-            this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
-               + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+    //     if (ok_spin_rate ) {
 
-        }
+    //         this -> log_console -> appendPlainText(QString::fromStdString("- Computing gravity slopes of " + name +  "..."));
 
-    }
+    //         std::chrono::time_point<std::chrono::system_clock> start, end;
+    //         start = std::chrono::system_clock::now();
+    //         arma::vec slope_stats = dynas.compute_gravity_slopes(spin_axis, spin_rate);
+
+    //         this -> update_vtk_slopes();
+
+
+    //         // A GUI flag is updated to indicate that this shape model has consistent slopes ready to be displayed
+    //         this -> wrapped_shape_data[name] -> set_grav_slopes(true);
+
+    //         // The GUI actions are updated
+    //         this -> update_actions_availability();
+
+    //         // The previously displayed slopes (if any) are removed
+    //         this -> remove_results_visual_props("", true);
+
+    //         // Some statistics regarding the slopes are printed
+    //         std::string message("-- Mean slope: " + std::to_string(slope_stats(1)) + " deg");
+    //         this -> log_console -> appendPlainText(QString::fromStdString(message));
+    //         message = ("-- Minimum slope: " + std::to_string(slope_stats(0)) + " deg");
+    //         this -> log_console -> appendPlainText(QString::fromStdString(message));
+    //         message = ("-- Maximum slope: " + std::to_string(slope_stats(2)) + " deg");
+    //         this -> log_console -> appendPlainText(QString::fromStdString(message));
+
+    //         end = std::chrono::system_clock::now();
+    //         std::chrono::duration<double> elapsed_seconds = end - start;
+
+    //         this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
+    //            + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+    //     }
+
+    // }
 
 }
 
 void Mainwindow::update_vtk_potentials() {
 
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-    vtkSmartPointer<vtkPolyData> active_polydata =  this -> wrapped_shape_data[name] -> get_polydata();
-    vtkSmartPointer<vtkPolyDataMapper> active_mapper = this -> wrapped_shape_data[name] -> get_mapper();
-    std::shared_ptr<SBGAT_CORE::ShapeModel> active_shape_model = this -> wrapped_shape_data[name] -> get_shape_model();
+    // vtkSmartPointer<vtkPolyData> active_polydata =  this -> wrapped_shape_data[name] -> get_polydata();
+    // vtkSmartPointer<vtkPolyDataMapper> active_mapper = this -> wrapped_shape_data[name] -> get_mapper();
+    // std::shared_ptr<SBGAT_CORE::ShapeModel> active_shape_model = this -> wrapped_shape_data[name] -> get_shape_model();
 
-    vtkSmartPointer<vtkDoubleArray> potential_data =
-    vtkSmartPointer<vtkDoubleArray>::New();
-    potential_data -> SetNumberOfValues(active_shape_model -> get_NFacets());
-    potential_data -> SetName("PotentialData");
+    // vtkSmartPointer<vtkDoubleArray> potential_data =
+    // vtkSmartPointer<vtkDoubleArray>::New();
+    // potential_data -> SetNumberOfValues(active_shape_model -> get_NFacets());
+    // potential_data -> SetName("PotentialData");
 
-    for (unsigned int facet_index = 0; facet_index < active_shape_model -> get_NFacets(); ++facet_index) {
+    // for (unsigned int facet_index = 0; facet_index < active_shape_model -> get_NFacets(); ++facet_index) {
 
-        SBGAT_CORE::Facet * facet =  active_shape_model -> get_facets() -> at(facet_index);
+    //     SBGAT_CORE::Facet * facet =  active_shape_model -> get_facets() -> at(facet_index);
 
-        potential_data -> SetValue(facet_index, facet -> get_facet_results() -> get_grav_potential());
-    }
+    //     potential_data -> SetValue(facet_index, facet -> get_facet_results() -> get_grav_potential());
+    // }
 
-    // The array is added to the polydata
-    active_polydata -> GetCellData() -> SetActiveScalars("PotentialData");
-    active_polydata -> GetCellData() -> SetScalars(potential_data);
-    active_polydata -> Modified();
+    // // The array is added to the polydata
+    // active_polydata -> GetCellData() -> SetActiveScalars("PotentialData");
+    // active_polydata -> GetCellData() -> SetScalars(potential_data);
+    // active_polydata -> Modified();
 
 }
 
@@ -1518,113 +1409,113 @@ void Mainwindow::open_rendering_properties_window(){
 
 void Mainwindow::update_vtk_slopes() {
 
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-    vtkSmartPointer<vtkPolyData> active_polydata =  this -> wrapped_shape_data[name] -> get_polydata();
-    vtkSmartPointer<vtkPolyDataMapper> active_mapper = this -> wrapped_shape_data[name] -> get_mapper();
-    std::shared_ptr<SBGAT_CORE::ShapeModel> active_shape_model = this -> wrapped_shape_data[name] -> get_shape_model();
+    // vtkSmartPointer<vtkPolyData> active_polydata =  this -> wrapped_shape_data[name] -> get_polydata();
+    // vtkSmartPointer<vtkPolyDataMapper> active_mapper = this -> wrapped_shape_data[name] -> get_mapper();
+    // std::shared_ptr<SBGAT_CORE::ShapeModel> active_shape_model = this -> wrapped_shape_data[name] -> get_shape_model();
 
-    vtkSmartPointer<vtkDoubleArray> slope_data =
-    vtkSmartPointer<vtkDoubleArray>::New();
-    slope_data -> SetNumberOfValues(active_shape_model -> get_NFacets());
-    slope_data -> SetName("SlopeData");
+    // vtkSmartPointer<vtkDoubleArray> slope_data =
+    // vtkSmartPointer<vtkDoubleArray>::New();
+    // slope_data -> SetNumberOfValues(active_shape_model -> get_NFacets());
+    // slope_data -> SetName("SlopeData");
 
-    for (unsigned int facet_index = 0; facet_index < active_shape_model -> get_NFacets(); ++facet_index) {
+    // for (unsigned int facet_index = 0; facet_index < active_shape_model -> get_NFacets(); ++facet_index) {
 
-        SBGAT_CORE::Facet * facet =  active_shape_model -> get_facets() -> at(facet_index);
+    //     SBGAT_CORE::Facet * facet =  active_shape_model -> get_facets() -> at(facet_index);
 
-        slope_data -> SetValue(facet_index, facet -> get_facet_results() -> get_grav_slope());
-    }
+    //     slope_data -> SetValue(facet_index, facet -> get_facet_results() -> get_grav_slope());
+    // }
 
-    // The array is added to the polydata
-    active_polydata -> GetCellData() -> SetActiveScalars("SlopeData");
-    active_polydata -> GetCellData() -> SetScalars(slope_data);
-    active_polydata -> Modified();
+    // // The array is added to the polydata
+    // active_polydata -> GetCellData() -> SetActiveScalars("SlopeData");
+    // active_polydata -> GetCellData() -> SetScalars(slope_data);
+    // active_polydata -> Modified();
 
 }
 
 
 void Mainwindow::compute_pgm_acceleration() {
 
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
+    // int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    // std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
 
-    SBGAT_CORE::DynamicAnalyses dynas(this -> wrapped_shape_data[name] -> get_shape_model().get());
+    // SBGAT_CORE::DynamicAnalyses dynas(this -> wrapped_shape_data[name] -> get_shape_model().get());
 
-    bool ok_coords = true;
-    bool correct_format = false;
-    double point[3];
-    bool ok_density = false;
-    double density;
+    // bool ok_coords = true;
+    // bool correct_format = false;
+    // double point[3];
+    // bool ok_density = false;
+    // double density;
 
-    while (ok_coords == true && correct_format == false) {
+    // while (ok_coords == true && correct_format == false) {
 
-        QString coords = QInputDialog::getText(this,
-           tr("Polyhedron Gravity Model Acceleration"),
-           tr("Body-fixed frames coordinates (m) :"),
-           QLineEdit::Normal,
-           QString::fromStdString("x,y,z") ,
-           &ok_coords);
+    //     QString coords = QInputDialog::getText(this,
+    //        tr("Polyhedron Gravity Model Acceleration"),
+    //        tr("Body-fixed frames coordinates (m) :"),
+    //        QLineEdit::Normal,
+    //        QString::fromStdString("x,y,z") ,
+    //        &ok_coords);
 
-        QStringList coords_split = coords.split(",");
+    //     QStringList coords_split = coords.split(",");
 
-        if (coords_split.count() != 3) {
-            correct_format = false;
-            continue;
-        }
+    //     if (coords_split.count() != 3) {
+    //         correct_format = false;
+    //         continue;
+    //     }
 
-        // Matching doubles
-        QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
+    //     // Matching doubles
+    //     QRegExp re("[-+]?[0-9]*\\.?[0-9]+");
 
-        if (re.exactMatch(coords_split.at(0)) && re.exactMatch(coords_split.at(1)) && re.exactMatch(coords_split.at(2))) {
-            point[0] = coords_split.at(0).toDouble();
-            point[1] = coords_split.at(1).toDouble();
-            point[2] = coords_split.at(2).toDouble();
+    //     if (re.exactMatch(coords_split.at(0)) && re.exactMatch(coords_split.at(1)) && re.exactMatch(coords_split.at(2))) {
+    //         point[0] = coords_split.at(0).toDouble();
+    //         point[1] = coords_split.at(1).toDouble();
+    //         point[2] = coords_split.at(2).toDouble();
 
-            correct_format = true;
-
-
-        }
-        else {
-            correct_format = false;
-            continue;
-        }
-
-    }
+    //         correct_format = true;
 
 
+    //     }
+    //     else {
+    //         correct_format = false;
+    //         continue;
+    //     }
 
-    if (ok_coords) {
-        density = QInputDialog::getDouble(this,
-          "Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
-          5, &ok_density);
-
-
-        if (ok_density) {
-
-            double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
+    // }
 
 
 
-            // The PGM acceleration is computed at the provided point
-            arma::vec coords_arma = {point[0], point[1], point[2]};
-            std::stringstream ss_coords;
-            ss_coords.precision(10);
-            ss_coords << " " << point[0] << "\n" << " " << point[1] << "\n" << " " << point[2] << "\n";
+    // if (ok_coords) {
+    //     density = QInputDialog::getDouble(this,
+    //       "Polyhedron Gravity Model Acceleration", "Density (kg/m^3) :", 2000, 0, 1e9,
+    //       5, &ok_density);
 
-            arma::vec acc = dynas.pgm_acceleration(point , mu);
-            std::stringstream ss_acc;
-            ss_acc.precision(10);
-            ss_acc << " " << acc[0] << "\n" << " " << acc[1] << "\n" << " " << acc[2] << "\n";
 
-            this -> log_console -> appendPlainText(QString::fromStdString("\n- At body-fixed coordinates (m) : "));
-            this -> log_console -> appendPlainText(QString::fromStdString(ss_coords.str()));
-            this -> log_console -> appendPlainText(QString::fromStdString("- PGM acceleration (m/s^2): "));
-            this -> log_console -> appendPlainText(QString::fromStdString(ss_acc.str()));
+    //     if (ok_density) {
 
-        }
-    }
+    //         double mu = density * arma::datum::G * this -> wrapped_shape_data[name] -> get_shape_model() -> get_volume();
+
+
+
+    //         // The PGM acceleration is computed at the provided point
+    //         arma::vec coords_arma = {point[0], point[1], point[2]};
+    //         std::stringstream ss_coords;
+    //         ss_coords.precision(10);
+    //         ss_coords << " " << point[0] << "\n" << " " << point[1] << "\n" << " " << point[2] << "\n";
+
+    //         arma::vec acc = dynas.pgm_acceleration(point , mu);
+    //         std::stringstream ss_acc;
+    //         ss_acc.precision(10);
+    //         ss_acc << " " << acc[0] << "\n" << " " << acc[1] << "\n" << " " << acc[2] << "\n";
+
+    //         this -> log_console -> appendPlainText(QString::fromStdString("\n- At body-fixed coordinates (m) : "));
+    //         this -> log_console -> appendPlainText(QString::fromStdString(ss_coords.str()));
+    //         this -> log_console -> appendPlainText(QString::fromStdString("- PGM acceleration (m/s^2): "));
+    //         this -> log_console -> appendPlainText(QString::fromStdString(ss_acc.str()));
+
+    //     }
+    // }
 
 
 }
