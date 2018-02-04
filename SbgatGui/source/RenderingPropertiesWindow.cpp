@@ -289,22 +289,26 @@ void RenderingPropertiesWindow::make_light_box_consistent(){
 
 void RenderingPropertiesWindow::enable_mutual_shadows(int state){
 
-	vtkSmartPointer<vtkShadowMapPass> shadows = vtkSmartPointer<vtkShadowMapPass>::New();
+	std::cout << "RenderingPropertiesWindow::enable_mutual_shadows is not implemented" << std::endl;
 
-	vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
-	vtkSmartPointer<vtkRenderPassCollection> passes = vtkSmartPointer<vtkRenderPassCollection>::New();
+
+
+	// vtkSmartPointer<vtkShadowMapPass> shadows = vtkSmartPointer<vtkShadowMapPass>::New();
+
+	// vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
+	// vtkSmartPointer<vtkRenderPassCollection> passes = vtkSmartPointer<vtkRenderPassCollection>::New();
 	
-	passes -> AddItem(shadows -> GetShadowMapBakerPass());
-	passes -> AddItem(shadows);
-	seq -> SetPasses(passes);
+	// passes -> AddItem(shadows -> GetShadowMapBakerPass());
+	// passes -> AddItem(shadows);
+	// seq -> SetPasses(passes);
 
-	vtkSmartPointer<vtkCameraPass> cameraP = vtkSmartPointer<vtkCameraPass>::New();
-	cameraP->SetDelegatePass(seq);
+	// vtkSmartPointer<vtkCameraPass> cameraP = vtkSmartPointer<vtkCameraPass>::New();
+	// cameraP->SetDelegatePass(seq);
 
-	vtkOpenGLRenderer *glrenderer = vtkOpenGLRenderer::SafeDownCast(this -> parent -> get_renderer());
-	glrenderer->SetPass(cameraP);
+	// vtkOpenGLRenderer *glrenderer = vtkOpenGLRenderer::SafeDownCast(this -> parent -> get_renderer());
+	// glrenderer->SetPass(cameraP);
 
-	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
+	// this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
 }

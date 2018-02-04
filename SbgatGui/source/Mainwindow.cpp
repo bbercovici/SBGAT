@@ -106,8 +106,8 @@ void Mainwindow::setupUi() {
 
     // Actions and menus are created
     this -> createActions();
-    this -> update_actions_availability();
     this -> createMenus();
+    this -> update_actions_availability();
 
     // A VTK renderer is created and linked with the qvtk widget
     this -> renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -354,6 +354,11 @@ void Mainwindow::update_actions_availability() {
 
        }
    }
+
+
+
+
+
 
 }
 
@@ -1648,11 +1653,11 @@ void Mainwindow::createMenus() {
 
 
     this -> DynamicAnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
-    this -> DynamicAnalysesMenu -> addAction(this -> compute_pgm_acceleration_action);
-    this -> DynamicAnalysesMenu -> addSeparator();
-    this -> DynamicAnalysesMenu -> addAction(this -> compute_global_pgm_potential_action);
-    this -> DynamicAnalysesMenu -> addAction(this -> compute_global_pgm_acceleration_action);
-    this -> DynamicAnalysesMenu -> addAction(this -> compute_grav_slopes_action);
+    // this -> DynamicAnalysesMenu -> addAction(this -> compute_pgm_acceleration_action);
+    // this -> DynamicAnalysesMenu -> addSeparator();
+    // this -> DynamicAnalysesMenu -> addAction(this -> compute_global_pgm_potential_action);
+    // this -> DynamicAnalysesMenu -> addAction(this -> compute_global_pgm_acceleration_action);
+    // this -> DynamicAnalysesMenu -> addAction(this -> compute_grav_slopes_action);
 
 
     this -> ResultsMenu = menuBar() -> addMenu(tr("&Visualization"));
