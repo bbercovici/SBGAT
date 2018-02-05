@@ -48,9 +48,9 @@ namespace SBGAT_GUI {
 		private slots:
 
 		void change_focus();
-		void add_light();
-		void remove_light();
-		void enable_mutual_shadows(int state);
+		// void add_light();
+		// void remove_light();
+		// void enable_mutual_shadows(int state);
 
 
 
@@ -61,11 +61,11 @@ namespace SBGAT_GUI {
 		void init();
 		QComboBox * prop_combo_box;
 
-		QComboBox * current_light_combo_box;
-		QPushButton * remove_light_button;
-		QComboBox * new_light_combo_box ;
+		// QComboBox * current_light_combo_box;
+		// QPushButton * remove_light_button;
+		// QComboBox * new_light_combo_box ;
 
-		void make_light_box_consistent();
+		// void make_light_box_consistent();
 		
 
 

@@ -35,8 +35,6 @@
 #include <FrameGraph.hpp>
 
 
-
-
 namespace SBGAT_GUI {
 
 // Forward declaration of InteractorStyle
@@ -67,11 +65,19 @@ through the user interface layer brought by Qt.}
 	*/
 		QVTKOpenGLWidget * qvtkWidget;
 
+
 	/**
 	Lateral dockwidget hosting a log console and
 	shape selection options.
 	*/
-		QDockWidget * lateral_dockwidget;
+		QDockWidget * left_dockwidget;
+
+
+	/**
+	Lateral dockwidget hosting a log console and
+	shape selection options.
+	*/
+		QDockWidget * right_dockwidget;
 
 	/**
 	Info bar providing SbgatGUI status and information
@@ -160,12 +166,12 @@ through the user interface layer brought by Qt.}
 	/**
 	When triggered, starts shape model loading action sequence.
 	*/
-		QAction * load_small_body_action;
+		QAction * add_small_body_action;
 
 	/**
 	When triggered, starts trajectory loading action sequence.
 	*/
-		QAction * load_trajectory_action;
+		QAction * add_trajectory_action;
 
 
 	/**
@@ -184,18 +190,24 @@ through the user interface layer brought by Qt.}
 	*/
 		QAction * save_console_action;
 
+		
 
 	/**
-	When triggered, show/hides the lateral widget
+	When triggered, show/hides the left lateral widget
 	*/
-	QAction * show_lateral_dockwidget_action;
+		QAction * show_left_dockwidget_action;
+
+	/**
+	When triggered, show/hides the right lateral widget
+	*/
+		QAction * show_right_dockwidget_action;
 
 	/**
 	When triggered, opens a window enabling the user
 	to align the displayed actors to a number of hook points
 	corresponding to the center of mass of any of loaded props 
 	*/
-	QAction * open_alignment_window_action;
+		QAction * open_alignment_window_action;
 
 
 
@@ -264,13 +276,19 @@ through the user interface layer brought by Qt.}
 	When triggered, opens the dialog window
 	allowing one to load a spacecraft shape model
 	*/
-		QAction * load_spacecraft_action;
+		QAction * add_spacecraft_action;
 
 	/**
 	When triggered, opens the dialog window
 	allowing one to move a previously loaded spacecraft along a previously loaded trajectory
 	*/
 		QAction * move_along_traj_action;
+
+
+
+
+		
+
 		
 		signals:
 
@@ -284,8 +302,28 @@ through the user interface layer brought by Qt.}
 		*/
 		void prop_removed_signal();
 
+
+
+
+
 	// Slots
 		private slots:
+
+		/**
+		Adds a scene light to the rendering window at the current camera location
+		*/
+		void add_scene_light_slot();
+		/**
+		Adds a head light to the rendering window that will remain aligned with
+		the camera axis
+		*/
+		void add_head_light_slot();
+
+		/**
+		Adds a scene light to the rendering window that is
+		fixed in the camera frame
+		*/
+		void add_camera_light_slot();
 
 
 		/**
@@ -359,6 +397,29 @@ through the user interface layer brought by Qt.}
 
 	private:
 
+		/**
+		Add light of prescribed type to the renderer
+		@param light_type determines the light type (0: scene light , 1: Head light , 2: camera light)
+		*/
+		void add_light(int light_type);
+
+		/**
+		Initializes the rendering window and its props
+		*/
+		void init_rendering_window();
+
+		/**	
+		Initializes the right dockwidget. This widget holds information on loaded 
+		props and the log console
+		*/
+		void init_right_dockwidget();
+
+		/**	
+		Initializes the left dockwidget. This widget holds tools submenus for small body
+		creation / interaction and ligthing props creation / deletion
+		*/
+		void init_left_dockwidget();
+
 	/**
 	Creates the GUI actions enabling the user to interact with the software, and connects them to the
 	corresponding slots.
@@ -398,12 +459,12 @@ through the user interface layer brought by Qt.}
 	Load small body shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
 	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
-		void load_small_body();
+		void add_small_body();
 
 	/**
 	Load spacecraft shape model stored in a .obj file. A vtkPolydata is also constructed for visualization purposes
 	*/
-		void load_spacecraft();
+		void add_spacecraft();
 
 
 
@@ -413,7 +474,7 @@ through the user interface layer brought by Qt.}
 	/**
 	Load x/y/z trajectory expressed in a small body's body-fixed frame
 	*/
-		void load_trajectory();
+		void add_trajectory();
 
 
 	/**
@@ -472,9 +533,15 @@ through the user interface layer brought by Qt.}
 		void create_sbgatcore_shape_model_from_vtk(std::shared_ptr<ModelDataWrapper> model_data);
 
 	/**
-	Shows/hides lateral dockwidget.
+	Shows/hides right dockwidget (prop list widget)
 	*/
-		void show_lateral_dockwidget();
+		void show_right_dockwidget();
+
+	/**
+	Shows/hides left dockwidget (tools widget)
+	*/
+		void show_left_dockwidget();
+
 
 	/**
 	Clears the console.

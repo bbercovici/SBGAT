@@ -28,7 +28,7 @@ vtkSmartPointer<vtkPoints> ModelDataWrapper::get_points() const {
 }
 
 void ModelDataWrapper::set_light(vtkSmartPointer<vtkLight> light){
-	this -> light;
+	this -> light = light;
 }
 
 vtkSmartPointer<vtkLight> ModelDataWrapper::get_light() const{
@@ -93,5 +93,13 @@ void ModelDataWrapper::shape_was_modified(){
 
 bool ModelDataWrapper::get_consistent_shape_model() const {
 	return this -> consistent_shape_model;
+}
+
+void ModelDataWrapper::set_light_actor(vtkSmartPointer<vtkLightActor> light_actor){
+	this -> light_actor = light_actor;
+}
+
+vtkSmartPointer<vtkLightActor> ModelDataWrapper::get_light_actor() const{
+	return this -> light_actor;
 }
 

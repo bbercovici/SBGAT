@@ -19,8 +19,8 @@ void InteractorStyle::OnLeftButtonUp() {
 		// AND if the selection widget is not already open
 
 		if (this -> CurrentMode == INTERACTOR_IS_SELECT
-		         &&  dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> lateral_dockwidget -> widget()) != nullptr) {
-			if (dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> lateral_dockwidget -> widget()) -> is_set() == false) {
+		         &&  dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> right_dockwidget -> widget()) != nullptr) {
+			if (dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> right_dockwidget -> widget()) -> is_set() == false) {
 
 				this -> grab_area();
 
@@ -150,10 +150,10 @@ void InteractorStyle::grab_area() {
 		this -> mainwindow -> get_renderer() -> AddActor(unselected_actor);
 		this -> mainwindow -> get_renderer() -> GetRenderWindow() -> Render();
 
-		if (dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> lateral_dockwidget -> widget()) != nullptr) {
+		if (dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> right_dockwidget -> widget()) != nullptr) {
 
 
-			dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> lateral_dockwidget -> widget()) -> set_data(
+			dynamic_cast<ModifyAreaWidget *>(this -> mainwindow -> right_dockwidget -> widget()) -> set_data(
 			    selected_polydata,
 			    unselected_polydata,
 			    selected_actor,
@@ -171,8 +171,8 @@ void InteractorStyle::grab_area() {
 			    unselected_actor,
 			    boundary_vertex_ids_list);
 
-			this -> mainwindow -> lateral_dockwidget -> setWidget(modify_area_widget);
-			this -> mainwindow -> lateral_dockwidget -> show();
+			this -> mainwindow -> right_dockwidget -> setWidget(modify_area_widget);
+			this -> mainwindow -> right_dockwidget -> show();
 
 			// the actors owned by the mainwindow are hidden. They will be
 			// shown again once pc_editing widget is closed.

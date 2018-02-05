@@ -5,6 +5,7 @@
 #define HEADER_MODELDATAWRAPPER
 
 #include <vtkLight.h>
+#include <vtkLightActor.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 
@@ -155,6 +156,18 @@ public:
 	vtkSmartPointer<vtkLight> get_light() const;
 
 
+	/**
+	Getter to light actor
+	*/
+	vtkSmartPointer<vtkLightActor> get_light_actor() const;
+
+	/**
+	Set light actor
+	*/
+	void set_light_actor(vtkSmartPointer<vtkLightActor> light_actor);
+
+
+
 
 protected:
 
@@ -163,6 +176,8 @@ protected:
 	vtkSmartPointer<vtkActor>  actor;
 	vtkSmartPointer<vtkPoints>  points;
 	vtkSmartPointer<vtkLight> light;
+	vtkSmartPointer<vtkLightActor> light_actor;
+
 
 
 	bool consistent_shape_model = false;
