@@ -5,11 +5,12 @@ Public repository storing the source code of the implementation of the Small Bod
 
 The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository. The `develop` branch features code is undergoing active development or debugging New SBGAT releases pushed to `master` are announced hereunder, along with a succint changelog.
 
-### 1.02
-SbgatGUI is a first take at fully leveraging VTK data structures for visual props representation and operation. Current features of SbgatGUI includes 
+### SbgatGUI 1.02
+SbgatGUI 1.02 is a first take at fully leveraging VTK data structures for visual props representation and operation. Current features of SbgatGUI include: 
 * Small body shape model import from `.obj` files
 * Trajectory loaded from time-XYZ ascii files. This capability will eventually replaces by SPICE kernels
 * Spacecraft shape model import from `.obj` files
+* Spacecraft displacement along previously loaded trajectory
 * Addition/removal of light sources at arbitrary positions
 * Computation of geometric measures such as surface area, volume, bounding boxes, center-of-mass and inertia tensor, the last two assuming a constant density distribution
 
