@@ -677,6 +677,7 @@ void Mainwindow::add_small_body() {
          int dot_index = fileName.lastIndexOf(".");
          int slash_index = fileName.lastIndexOf("/");
          std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+         std::string basic_name = name;
 
             // A new ModelDataWrapper is created and stored under the name of the shape model
          std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
@@ -734,8 +735,13 @@ void Mainwindow::add_small_body() {
         }
             // otherwise, a suffix is added
         else{
-            std::string suffix = "(" + std::to_string(count) + ")";
-            name = name + suffix;
+
+
+            while( this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
+                std::string suffix = "(" + std::to_string(count) + ")";
+                name = basic_name + suffix;
+                ++count;
+            }
             this -> wrapped_shape_data[name] = model_data;
         }
 
@@ -804,6 +810,7 @@ void Mainwindow::add_spacecraft() {
          int dot_index = fileName.lastIndexOf(".");
          int slash_index = fileName.lastIndexOf("/");
          std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+         std::string basic_name = name;
 
          vtkSmartPointer<vtkOBJReader> reader =
          vtkSmartPointer<vtkOBJReader>::New();
@@ -868,9 +875,18 @@ void Mainwindow::add_spacecraft() {
         }
             // otherwise, a suffix is added
         else{
-            std::string suffix = "(" + std::to_string(count) + ")";
-            name = name + suffix;
+
+
+            while( this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
+                std::string suffix = "(" + std::to_string(count) + ")";
+                name = basic_name + suffix;
+                ++count;
+            }
             this -> wrapped_spacecraft_data[name] = model_data;
+
+
+
+
         }
 
 
@@ -939,6 +955,7 @@ void Mainwindow::add_trajectory() {
          int dot_index = fileName.lastIndexOf(".");
          int slash_index = fileName.lastIndexOf("/");
          std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+         std::string basic_name = name;
 
          arma::mat traj;
          traj.load(fileName.toStdString());
@@ -998,9 +1015,15 @@ void Mainwindow::add_trajectory() {
         }
             // otherwise, a suffix is added
         else{
-            std::string suffix = "(" + std::to_string(count) + ")";
-            name = name + suffix;
+
+            while( this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
+                std::string suffix = "(" + std::to_string(count) + ")";
+                name = basic_name + suffix;
+                ++count;
+            }
             this -> wrapped_trajectory_data[name] = model_data;
+
+
         }
 
 
@@ -1075,52 +1098,70 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
 
 
 void Mainwindow::toggle_prop_visibility(int row, int col) {
-
+    // Showing/hiding small body shape model actor
+    // Showing/hiding trajectory actor
+    // Showing/hiding light actor
+    // Showing/hiding spacecraft actor
 
     if (col == 1) {
+
         std::string name = this -> prop_table -> item(row, 0) -> text() .toStdString();
-
         auto item = this -> prop_table -> item(row, col);
-
 
         if ( this -> wrapped_shape_data.find(name)!= this -> wrapped_shape_data.end()){
             if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_shape_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_actor() -> VisibilityOn();
+                this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOn();
             }
 
             else {
-                this -> wrapped_shape_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_actor() -> VisibilityOff();
-                this -> remove_results_visual_props(this -> prop_table -> item(row, 0) -> text() . toStdString(), false);
+                this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOff();
+                this -> remove_results_visual_props(name, false);
             }
         }
+
         else if ( this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-         if (item -> checkState() == Qt::Checked) {
-            this -> wrapped_trajectory_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_actor() -> VisibilityOn();
+
+            if (item -> checkState() == Qt::Checked) {
+                this -> wrapped_trajectory_data[name] -> get_actor() -> VisibilityOn();
+            }
+
+            else {
+                this -> wrapped_trajectory_data[name] -> get_actor() -> VisibilityOff();
+                this -> remove_results_visual_props(name, false);
+            }
         }
 
-        else {
-            this -> wrapped_trajectory_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_actor() -> VisibilityOff();
-            this -> remove_results_visual_props(this -> prop_table -> item(row, 0) -> text() . toStdString(), false);
+
+
+        else if ( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
+
+            if (item -> checkState() == Qt::Checked) {
+                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(1);
+            }
+
+            else {
+                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(0);
+                this -> remove_results_visual_props(name, false);
+            }
         }
+
+
+        else if ( this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
+
+            if (item -> checkState() == Qt::Checked) {
+                this -> wrapped_spacecraft_data[name] -> get_actor() -> SetVisibility(1);
+            }
+
+            else {
+                this -> wrapped_spacecraft_data[name] -> get_actor() -> SetVisibility(0);
+                this -> remove_results_visual_props(name, false);
+            }
+        }
+
     }
-    else if ( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
-     if (item -> checkState() == Qt::Checked) {
-        this -> wrapped_light_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_light_actor() -> SetVisibility(1);
-    }
-
-    else {
-        this -> wrapped_light_data[this -> prop_table -> item(row, 0) -> text() . toStdString()] -> get_light_actor() -> SetVisibility(0);
-        this -> remove_results_visual_props(this -> prop_table -> item(row, 0) -> text() . toStdString(), false);
-    }
-}
-
-
-
-}
 
     // The Render window is updated
-this -> qvtkWidget -> GetRenderWindow() -> Render();
-
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
 
 }
 
@@ -1303,12 +1344,12 @@ void Mainwindow::add_light(int light_type){
 
     // At this stage, name does not account for repeated lights of the same type
     std::string name = light_names[light_type];
+    std::string basic_name = name;
 
     // A potential suffix to add to the light name is found by 
     // looking at lights that already exist
     int light_count = 0;
     for (auto light_it = this -> wrapped_light_data.begin(); light_it != this -> wrapped_light_data.end(); ++light_it){
-
         if (light_it -> second -> get_light() -> GetLightType() == light_type){
             ++light_count;
         }
@@ -1319,8 +1360,12 @@ void Mainwindow::add_light(int light_type){
     }
             // otherwise, a suffix is added
     else{
-        std::string suffix = "(" + std::to_string(light_count) + ")";
-        name = name + suffix;
+
+        while( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
+            std::string suffix = "(" + std::to_string(light_count) + ")";
+            name = basic_name + suffix;
+            ++light_count;
+        }
         this -> wrapped_light_data[name] = model_data;
     }
 
