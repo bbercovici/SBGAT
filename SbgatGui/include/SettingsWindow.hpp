@@ -12,6 +12,7 @@
 #include <QMessageBox>
 
 #include "Mainwindow.hpp"
+
 namespace SBGAT_GUI {
 
 	class Mainwindow;

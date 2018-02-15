@@ -139,16 +139,14 @@ source/RenderingPropertiesWindow.cpp
 source/Mainwindow.cpp
 source/ModelDataWrapper.cpp
 source/MoveAlongTrajectoryWindow.cpp
-source/SBGATMassProperties.cpp
 source/SettingsWindow.cpp
 source/Worker.cpp
 include/RenderingPropertiesWindow.hpp
 include/Mainwindow.hpp
 include/ModelDataWrapper.hpp
 include/MoveAlongTrajectoryWindow.hpp
-include/SettingsWindow.hpp
-include/SBGATMassProperties.hpp
 include/Worker.hpp
+include/SettingsWindow.hpp
 )
 
 set(library_dependencies

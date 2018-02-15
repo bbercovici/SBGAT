@@ -99,6 +99,10 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
+# Find VTK Package
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 # Add source files in root directory
 add_executable(${EXE_NAME}
 include/Tests.hpp
@@ -111,6 +115,7 @@ ${ARMADILLO_LIBRARIES}
 ${Boost_LIBRARIES}
 ${SBGATCORE_LIBRARY}
 ${RBK_LIBRARY}
+${VTK_LIBRARIES}
 )
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})

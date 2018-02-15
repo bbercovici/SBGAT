@@ -10,19 +10,12 @@
 #ifndef HEADER_TESTS
 #define HEADER_TESTS
 
-
-#include <ShapeModelImporter.hpp>
-#include <ShapeModel.hpp>
-#include <DynamicAnalyses.hpp>
-#include <Constants.hpp>
-#include <RigidBodyKinematics.hpp>
-
-#include <assert.h>
-
 namespace TestsSBCore {
 
 void run();
 void test_loading_shape();
+void test_sbgat_mass_properties();
+void test_sbgat_pgm();
 void test_pgm_consistency_cube();
 void test_pgm_consistency_ellipsoid();
 void test_spherical_harmonics_consistency();

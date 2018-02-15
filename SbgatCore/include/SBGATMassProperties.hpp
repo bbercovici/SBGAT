@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Small Body Geophysical Analysis
-  Module:    SBGATMassProperties.h
+  Module:    SBGATMassProperties.hpp
 
   Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 

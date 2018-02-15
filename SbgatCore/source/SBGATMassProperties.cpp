@@ -47,21 +47,19 @@ SBGATMassProperties::SBGATMassProperties()
 
 //----------------------------------------------------------------------------
 // Destroy any allocated memory.
-SBGATMassProperties::~SBGATMassProperties()
-{
+SBGATMassProperties::~SBGATMassProperties(){
 }
 
 //----------------------------------------------------------------------------
 // Description:
-// This method measures volume, surface area, normalized shape indexthe surface area, the
+// This method measures volume, surface area, normalized shape index, the surface area, the
 //  normalized shape index, center of mass (assuming constant density) and inertia tensor
 // (assuming constant density) of a triangle mesh.
 
 int SBGATMassProperties::RequestData(
   vtkInformation* vtkNotUsed( request ),
   vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector ))
-{
+  vtkInformationVector* vtkNotUsed( outputVector )){
   vtkInformation *inInfo =
   inputVector[0]->GetInformationObject(0);
 

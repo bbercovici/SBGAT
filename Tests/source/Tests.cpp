@@ -2,7 +2,40 @@
 
 #include "Tests.hpp"
 
+
+#include <ShapeModelImporter.hpp>
+#include <ShapeModel.hpp>
+#include <DynamicAnalyses.hpp>
+#include <Constants.hpp>
+#include <RigidBodyKinematics.hpp>
+
+#include <vtkObjectFactory.h>
+#include <SBGATPolyhedronGravityModel.hpp>
+#include <vtkCell.h>
+#include <vtkDataObject.h>
+#include <vtkIdList.h>
+#include <vtkMath.h>
+#include <vtkSmartPointer.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkPolyDataNormals.h>
+#include <RigidBodyKinematics.hpp>
+#include <vtkDoubleArray.h>
+#include <vtkFloatArray.h>
+#include <vtkCellData.h>
+#include <vtkSphereSource.h>
+#include <vtkCubeSource.h>
+#include <vtkPolyData.h>
+#include <assert.h>
+#include <vtkTriangleFilter.h>
+
+
 void TestsSBCore::run() {
+
+
+	TestsSBCore::test_sbgat_pgm();
+	TestsSBCore::test_sbgat_mass_properties();
+
 	TestsSBCore::test_loading_shape();
 	TestsSBCore::test_geometrical_measures();
 	TestsSBCore::test_pgm_consistency_cube();
@@ -10,6 +43,77 @@ void TestsSBCore::run() {
 	TestsSBCore::test_spherical_harmonics_consistency();
 	TestsSBCore::test_spherical_harmonics_invariance();
 
+
+}
+
+void TestsSBCore::test_sbgat_mass_properties(){
+
+
+
+}
+
+
+
+
+
+
+/**
+This check ensures that VTK properly computes the facet normals of a cube
+*/
+void TestsSBCore::test_sbgat_pgm() {
+
+	std::cout << "- Running test_vtk_normals ..." << std::endl;
+
+	vtkSmartPointer<vtkCubeSource> cube = 
+	vtkSmartPointer<vtkCubeSource>::New();
+
+	cube->SetCenter(0.0, 0.0, 0.0);
+
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(cube->GetOutputPort());
+	triangleFilter -> Update();
+	
+
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+
+	pgm_filter -> SetInputConnection(triangleFilter -> GetOutputPort());
+	pgm_filter -> Update();
+
+	double facet_dyad[9];
+	pgm_filter -> get_facet_dyad(0,facet_dyad);
+	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
+	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
+	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+
+
+	pgm_filter -> get_facet_dyad(1,facet_dyad);
+	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
+	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
+	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+
+
+	pgm_filter -> get_facet_dyad(2,facet_dyad);
+	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
+	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
+	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+
+
+	pgm_filter -> get_facet_dyad(3,facet_dyad);
+	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
+	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
+	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+
+
+	pgm_filter -> get_facet_dyad(4,facet_dyad);
+	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
+	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
+	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+
+
+
+
+	std::cout << "- Done running test_vtk_normals ..." << std::endl;
 
 
 }

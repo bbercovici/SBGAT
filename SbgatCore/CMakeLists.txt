@@ -101,6 +101,10 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
+# Find VTK Package
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
@@ -127,12 +131,15 @@ source/FrameGraph.cpp
 source/SyntheticObservations.cpp
 source/FacetResults.cpp
 source/PolyhedralSphericalHarmo.cpp
+source/SBGATPolyhedronGravityModel.cpp
+source/SBGATMassProperties.cpp
 )
 
 # Linking
 set(library_dependencies
 ${ARMADILLO_LIBRARIES}
 ${Boost_LIBRARIES}
+${VTK_LIBRARIES}
 ${RBK_LIBRARY})
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 

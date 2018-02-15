@@ -38,10 +38,12 @@
 #include <DynamicAnalyses.hpp>
 
 
+#include <SBGATPolyhedronGravityModel.hpp>
+#include <SBGATMassProperties.hpp>
+
 #include "SettingsWindow.hpp"
 #include "MoveAlongTrajectoryWindow.hpp"
 #include "RenderingPropertiesWindow.hpp"
-#include "SBGATMassProperties.hpp"
 #include "Worker.hpp"
 
 
