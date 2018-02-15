@@ -46,12 +46,27 @@ SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
 // Destroy any allocated memory.
 SBGATPolyhedronGravityModel::~SBGATPolyhedronGravityModel(){
 
-	//Free each sub-array
+	//Facet dyads
 	for(int i = 0; i < sizeof(this -> facet_dyads) / sizeof(this -> facet_dyads[0]); ++i) {
 		delete[] this -> facet_dyads[i];   
 	}
-    //Free the array of pointers
 	delete[] this -> facet_dyads;
+
+	//Facet normals
+	for(int i = 0; i < sizeof(this -> facet_normals) / sizeof(this -> facet_normals[0]); ++i) {
+		delete[] this -> facet_normals[i];   
+	}
+	delete[] this -> facet_normals;
+
+
+	//Edge dyads
+	for(int i = 0; i < sizeof(this -> edge_dyads) / sizeof(this -> edge_dyads[0]); ++i) {
+		delete[] this -> edge_dyads[i];   
+	}
+	delete[] this -> edge_dyads;
+
+
+
 }
 
 
@@ -105,19 +120,24 @@ int SBGATPolyhedronGravityModel::RequestData(
 	normalGenerator->ComputeCellNormalsOn();
 	normalGenerator->Update();
 
-	input = normalGenerator -> GetOutput();
-	// Required by vtkPolyData::GetPointCell	
+	vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
+	
+	// Required by vtkPolyData::GetPointCells	
 	input -> BuildLinks();
 
-	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input->GetCellData()->GetArray("Normals"));
+	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
 	
 	auto start = std::chrono::system_clock::now();
 
 	// The facet dyads are created
 	this -> facet_dyads = new double * [numCells];
+	this -> facet_normals = new double * [numCells];
+
 	#pragma omp parallel for
 	for(int i = 0; i < numCells; ++i) {
 		this -> facet_dyads[i] = new double[9];
+		this -> facet_normals[i] = new double[3];
+
 		double normal[3];
 		normals -> GetTuple(i,normal);
 		this -> facet_dyads[i][0] = normal[0] * normal[0];
@@ -129,20 +149,25 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> facet_dyads[i][6] = normal[2] * normal[0];
 		this -> facet_dyads[i][7] = normal[2] * normal[1];
 		this -> facet_dyads[i][8] = normal[2] * normal[2];
+		this -> facet_normals[i][0] = normal[0];
+		this -> facet_normals[i][1] = normal[1];
+		this -> facet_normals[i][2] = normal[2];
+
+		
 	}
 
-
-	// The edge dyads are created
+	// The edges are extracted
 
 	vtkSmartPointer<vtkExtractEdges> extractEdges = 
 	vtkSmartPointer<vtkExtractEdges>::New();
 	extractEdges->SetInputData(input);
 	extractEdges->Update();
 
-	// The output of extractEdges may contain duplicates. For this reason, 
-	// it is looped through
 	std::map<std::set<vtkIdType>,std::set<vtkIdType> > unique_edges;
-	
+
+	// Should get rid of this map and use a vector instead
+
+
 	for(vtkIdType i = 0; i < extractEdges->GetOutput()->GetNumberOfCells(); i++){
 
 		vtkSmartPointer<vtkLine> line = vtkLine::SafeDownCast(extractEdges->GetOutput()->GetCell(i));
@@ -150,55 +175,50 @@ int SBGATPolyhedronGravityModel::RequestData(
 		edge_points_ids.insert(line->GetPointIds()->GetId(0));
 		edge_points_ids.insert(line->GetPointIds()->GetId(1));
 
-		if (unique_edges.find(edge_points_ids) == unique_edges.end()){
-			
-			// This is a new unique edge
-			// We need to find the facets forming this edge
+		// We need to find the facets forming this edge
+		vtkSmartPointer<vtkIdList> facet_ids_point_1 = vtkSmartPointer<vtkIdList>::New();
+		vtkSmartPointer<vtkIdList> facet_ids_point_2 = vtkSmartPointer<vtkIdList>::New();
 
-			vtkSmartPointer<vtkIdList> facet_ids_point_1 = vtkSmartPointer<vtkIdList>::New();
-			vtkSmartPointer<vtkIdList> facet_ids_point_2 = vtkSmartPointer<vtkIdList>::New();
+		vtkIdType p1 = *edge_points_ids.begin() ;
+		vtkIdType p2 = *(++edge_points_ids.begin()) ;
 
-			vtkIdType p1 = *edge_points_ids.begin() ;
-			vtkIdType p2 = *(++edge_points_ids.begin()) ;
+		input -> GetPointCells	(	p1,facet_ids_point_1 );
+		input -> GetPointCells	(	p2,facet_ids_point_2 );
 
-			std::cout << p1 << " " << p2 << std::endl;
+		// Now, we find the two indices showing up in both facet_ids_point_1 and facet_ids_point_2
+		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
 
-			input -> GetPointCells	(	p1,facet_ids_point_1 );
-			input -> GetPointCells	(	p2,facet_ids_point_2 );
-
-			std::cout << " list 1 has " << facet_ids_point_1 -> GetNumberOfIds() << " facet ids " << std::endl;
-			for (unsigned int j = 0; j < facet_ids_point_1 -> GetNumberOfIds(); ++j){
-				std::cout << facet_ids_point_1 -> GetId(j) << std::endl;
-			}
-			std::cout << " first 2 list has " << facet_ids_point_2 -> GetNumberOfIds() << " facet ids " << std::endl;
-			for (unsigned int j = 0; j < facet_ids_point_2 -> GetNumberOfIds(); ++j){
-				std::cout << facet_ids_point_2 -> GetId(j) << std::endl;
-			}
-
-
-
-			// Now, we find the two indices showing up in both facet_ids_point_1 and facet_ids_point_2
-			facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
-
-			if (facet_ids_point_2 -> GetNumberOfIds() != 2){
-				throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: The intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_2 -> GetNumberOfIds())));
-			}
-
-			std::set<vtkIdType> edge_facet_ids;
-			edge_facet_ids.insert(facet_ids_point_1-> GetId(0));
-			edge_facet_ids.insert(facet_ids_point_1-> GetId(1));
-
-			unique_edges[edge_points_ids] = edge_facet_ids;
-
+		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
+			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_2 -> GetNumberOfIds())));
 		}
+
+		std::set<vtkIdType> edge_facet_ids;
+		edge_facet_ids.insert(facet_ids_point_1-> GetId(0));
+		edge_facet_ids.insert(facet_ids_point_1-> GetId(1));
+
+		unique_edges[edge_points_ids] = edge_facet_ids;
+
 
 	}
 
-	std::cout << "There are " << unique_edges.size() << " unique edges\n";
-
 	
+	// The edges dyads are created
+	this -> edge_dyads = new double * [unique_edges.size()];
+	#pragma omp parallel for
+	for(int i = 0; i < unique_edges.size(); ++i) {
+		this -> edge_dyads[i] = new double[9];
 
+		this -> edge_dyads[i][0] = 0;
+		this -> edge_dyads[i][1] = 0;
+		this -> edge_dyads[i][2] = 0;
+		this -> edge_dyads[i][3] = 0;
+		this -> edge_dyads[i][4] = 0;
+		this -> edge_dyads[i][5] = 0;
+		this -> edge_dyads[i][6] = 0;
+		this -> edge_dyads[i][7] = 0;
+		this -> edge_dyads[i][8] = 0;
 
+	}
 
 	auto end = std::chrono::system_clock::now();
 
@@ -206,9 +226,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
-
-
-  // this -> edge_dyads;
 }
 
 

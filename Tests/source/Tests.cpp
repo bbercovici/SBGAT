@@ -28,7 +28,7 @@
 #include <vtkPolyData.h>
 #include <assert.h>
 #include <vtkTriangleFilter.h>
-
+#include <vtkCleanPolyData.h>
 
 void TestsSBCore::run() {
 
@@ -73,11 +73,16 @@ void TestsSBCore::test_sbgat_pgm() {
 	vtkSmartPointer<vtkTriangleFilter>::New();
 	triangleFilter -> SetInputConnection(cube->GetOutputPort());
 	triangleFilter -> Update();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+	cleanPolyData->Update();
 	
 
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 
-	pgm_filter -> SetInputConnection(triangleFilter -> GetOutputPort());
+	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
 	pgm_filter -> Update();
 
 	double facet_dyad[9];

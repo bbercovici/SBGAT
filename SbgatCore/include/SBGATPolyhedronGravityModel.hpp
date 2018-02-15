@@ -67,6 +67,8 @@ protected:
 
   double ** facet_dyads;
   double ** edge_dyads;
+  double ** facet_normals;
+
 
 
 
