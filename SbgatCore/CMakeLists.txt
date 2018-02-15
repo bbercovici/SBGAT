@@ -23,6 +23,9 @@ set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
+# Path to RigidBodyKinematicsConfig.cmake (not mandatory if installed at a standard location)
+set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+
 
 ################################################################################
 #
@@ -37,7 +40,6 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 if (EXISTS /home/bebe0705/.am_fortuna)
 	set(IS_FORTUNA ON)
 	message("-- This is Fortuna")
-	set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 
 else()
 	set(IS_FORTUNA OFF)
