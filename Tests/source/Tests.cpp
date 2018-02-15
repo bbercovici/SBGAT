@@ -11,6 +11,8 @@
 
 #include <vtkObjectFactory.h>
 #include <SBGATPolyhedronGravityModel.hpp>
+#include <SBGATMassProperties.hpp>
+
 #include <vtkCell.h>
 #include <vtkDataObject.h>
 #include <vtkIdList.h>
@@ -53,72 +55,97 @@ void TestsSBCore::test_sbgat_mass_properties(){
 }
 
 
-
-
-
-
 /**
 This check ensures that VTK properly computes the facet normals of a cube
 */
 void TestsSBCore::test_sbgat_pgm() {
 
-	std::cout << "- Running test_vtk_normals ..." << std::endl;
-
-	vtkSmartPointer<vtkCubeSource> cube = 
-	vtkSmartPointer<vtkCubeSource>::New();
-
-	cube->SetCenter(0.0, 0.0, 0.0);
-
-	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-	vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter -> SetInputConnection(cube->GetOutputPort());
-	triangleFilter -> Update();
-
-	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-	cleanPolyData->Update();
-	
-
-	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-
-	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
-	pgm_filter -> Update();
-
-	double facet_dyad[9];
-	pgm_filter -> get_facet_dyad(0,facet_dyad);
-	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
-	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
-	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
 
 
-	pgm_filter -> get_facet_dyad(1,facet_dyad);
-	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
-	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
-	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+	{
+		vtkSmartPointer<vtkSphereSource> source = 
+		vtkSmartPointer<vtkSphereSource>::New();
+
+		source->SetCenter(0.0, 0.0, 0.0);
+		source->SetPhiResolution(100);
+		source->SetThetaResolution(100);
+
+		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+		vtkSmartPointer<vtkTriangleFilter>::New();
+		triangleFilter -> SetInputConnection(source->GetOutputPort());
+		triangleFilter -> Update();
+
+		vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+		cleanPolyData->Update();
+
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+
+		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+		pgm_filter -> Update();
 
 
-	pgm_filter -> get_facet_dyad(2,facet_dyad);
-	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
-	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
-	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+		
 
-
-	pgm_filter -> get_facet_dyad(3,facet_dyad);
-	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
-	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
-	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
-
-
-	pgm_filter -> get_facet_dyad(4,facet_dyad);
-	std::cout << facet_dyad[0] << " " << facet_dyad[1] << " " << facet_dyad[2] << std::endl;
-	std::cout << facet_dyad[3] << " " << facet_dyad[4] << " " << facet_dyad[5] << std::endl;
-	std::cout << facet_dyad[6] << " " << facet_dyad[7] << " " << facet_dyad[8] << std::endl;
+	}
 
 
 
+	{
+		vtkSmartPointer<vtkCubeSource> source = 
+		vtkSmartPointer<vtkCubeSource>::New();
 
-	std::cout << "- Done running test_vtk_normals ..." << std::endl;
+		source->SetCenter(0.0, 0.0, 0.0);
+
+
+		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+		vtkSmartPointer<vtkTriangleFilter>::New();
+		triangleFilter -> SetInputConnection(source->GetOutputPort());
+		triangleFilter -> Update();
+
+		vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+		cleanPolyData->Update();
+
+
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+		pgm_filter -> Update();
+
+		vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+		mass_filter -> Update();
+		
+
+		double * bounds =  mass_filter -> GetBoundingBox();
+
+		std::cout << bounds[0] << " "  << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << "\n";
+
+		// Points that should be outside
+		double p0[3] = {0.7,0,0};
+		double p1[3] = {0.50000001,0,0};
+		
+		// Points that should be inside
+		double p2[3] = {0.4,0,0};
+		double p3[3] = {0.49999999,0,0};
+		
+		assert(!pgm_filter -> Contains(p0));
+		assert(!pgm_filter -> Contains(p1));
+		assert(pgm_filter -> Contains(p2));
+		assert(pgm_filter -> Contains(p3));
+
+
+	}
+
+
+
+
+
+
+
+
 
 
 }

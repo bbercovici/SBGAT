@@ -20,8 +20,7 @@ set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
 set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 
-
-# Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
+# Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
 
