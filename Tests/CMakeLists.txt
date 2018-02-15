@@ -25,6 +25,9 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 # Path to RigidBodyKinematicsConfig.cmake (not used if installed at a standard location)
 set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 
+# Path to SbgatCoreConfig.cmake (not used if installed at a standard location)
+set(SbgatCore_LOC "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
+
 
 ################################################################################
 #
@@ -72,7 +75,6 @@ else()
 endif()
 
 
-
 project(${EXE_NAME})
 
 # Specify the version used
@@ -99,7 +101,7 @@ find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
-find_package(SbgatCore REQUIRED)
+find_package(SbgatCore REQUIRED PATHS ${SbgatCore_LOC})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
