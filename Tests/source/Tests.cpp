@@ -60,6 +60,7 @@ This check ensures that VTK properly computes the facet normals of a cube
 */
 void TestsSBCore::test_sbgat_pgm() {
 
+	std::cout << "- Running test_sbgat_pgm ..." << std::endl;
 
 
 	{
@@ -86,7 +87,7 @@ void TestsSBCore::test_sbgat_pgm() {
 		pgm_filter -> Update();
 
 
-		
+
 
 	}
 
@@ -141,6 +142,7 @@ void TestsSBCore::test_sbgat_pgm() {
 
 
 
+	std::cout << "- Done running test_sbgat_pgm ..." << std::endl;
 
 
 
