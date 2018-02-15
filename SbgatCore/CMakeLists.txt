@@ -21,6 +21,10 @@ set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
 set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
 
 
+# Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
+set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
+
+
 ################################################################################
 #
 #
@@ -102,7 +106,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 # Find VTK Package
-find_package(VTK REQUIRED)
+find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 

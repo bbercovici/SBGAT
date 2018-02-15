@@ -31,10 +31,11 @@
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
+#include "SBGATMassProperties.hpp"
 
 class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{
 public:
-  
+
   /**
    * Constructs with initial values of zero.
    */
@@ -46,12 +47,28 @@ public:
   void PrintHeader(std::ostream& os, vtkIndent indent) override;
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
+  
   /**
-  Get flattened facet dyad
-  @param facet_index index of queried facet
-  @param facet dyad
+  Evaluates the Polyhedron Gravity Model at the specified point assuming 
+  a constant density
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @param density constant density in kg/m^3
+  @return PGM potential evaluated at the queried point
   */
-  void get_facet_dyad(unsigned int facet_index,double * facet_dyad) const;
+  double ComputePgmPotential(double * point ,const double density);
+
+
+  /**
+  Determines whether the provided point lies inside or outside the shape
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @param tolerance
+  @return true if the polydata contains the point, false otherwise
+  */
+  bool Contains(double * point, double tol = 1e-7);
+
+
 
 protected:
   SBGATPolyhedronGravityModel();
@@ -61,13 +78,16 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
-  static bool GetCellNormals(vtkPolyData* polydata);
-
-
+  static void ComputeEdgeDyad(double * edge_dyad,
+    double * nA, double * nB,double * p1, double * p2);
 
   double ** facet_dyads;
   double ** edge_dyads;
   double ** facet_normals;
+  int ** edges;
+
+  vtkSmartPointer<SBGATMassProperties> mass_properties;
+
 
 
 
