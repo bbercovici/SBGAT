@@ -43,14 +43,12 @@ void TestsSBCore::run() {
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
 
-
-	TestsSBCore::test_spherical_harmonics_consistency();
-	TestsSBCore::test_spherical_harmonics_invariance();
+	// TODO: reimplement in SbgatCore
+	// TestsSBCore::test_spherical_harmonics_consistency();
+	// TestsSBCore::test_spherical_harmonics_invariance();
 
 
 }
-
-
 
 
 /**
@@ -255,7 +253,8 @@ void TestsSBCore::test_sbgat_pgm() {
 
 /**
 This test checks the consistency of the spherical harmonics coefficients computation 
-about a shape model of Eros against
+about a shape model of Eros against, evaluates the resulting acceleration, and compares
+it to one extracted from the polyhedron gravity model acceleration
 
 */
 
