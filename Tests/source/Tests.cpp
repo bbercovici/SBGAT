@@ -121,8 +121,8 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
 	// Reading
-	vtkNew<vtkOBJReader> reader;
-	reader -> SetFileName("../eros_64.obj");
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../KW4Alpha.obj");
 	reader -> Update(); 
 
 
