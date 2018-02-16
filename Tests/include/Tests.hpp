@@ -15,6 +15,7 @@ namespace TestsSBCore {
 void run();
 void test_loading_shape();
 void test_sbgat_mass_properties();
+void test_sbgat_pgm_speed();
 void test_sbgat_pgm();
 void test_pgm_consistency_cube();
 void test_pgm_consistency_ellipsoid();

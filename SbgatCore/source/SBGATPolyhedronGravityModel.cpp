@@ -47,11 +47,25 @@ SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
 // Destroy any allocated memory.
 SBGATPolyhedronGravityModel::~SBGATPolyhedronGravityModel(){
 
+	auto N_vertices = this -> N_edges - this -> N_facets + 2;
+
+	//Vertices
+	for(unsigned int i = 0; i < N_vertices; ++i) {
+		delete[] this -> vertices[i];   
+	}
+	delete[] this -> vertices;
+
 	//Facet dyads
 	for(unsigned int i = 0; i < this -> N_facets; ++i) {
 		delete[] this -> facet_dyads[i];   
 	}
 	delete[] this -> facet_dyads;
+
+	//Facets
+	for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		delete[] this -> facets[i];   
+	}
+	delete[] this -> facets;
 
 	//Facet normals
 	for(unsigned int i = 0; i < this -> N_facets; ++i) {
@@ -135,15 +149,36 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
 	
 
+
+	// The vertex coordinates are extracted
+
+	this -> vertices = new double * [input -> GetNumberOfPoints()];
+
+
+	#pragma omp parallel for
+	for(int i = 0; i < input -> GetNumberOfPoints(); ++i) {
+		this -> vertices[i] = new double[3];
+		input -> GetPoint(i,this -> vertices[i]);
+	}
+
+
 	// The facet dyads are created
 	this -> facet_dyads = new double * [numCells];
 	this -> facet_normals = new double * [numCells];
+	this -> facets = new int * [numCells];
 
 
 	#pragma omp parallel for
 	for(int i = 0; i < numCells; ++i) {
 		this -> facet_dyads[i] = new double[9];
 		this -> facet_normals[i] = new double[3];
+		this -> facets[i] = new int[3];
+
+		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+		ptIds -> Allocate(VTK_CELL_SIZE);
+
+		input -> GetCellPoints(i,ptIds);
+
 
 		double normal[3];
 		normals -> GetTuple(i,normal);
@@ -159,6 +194,10 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> facet_normals[i][0] = normal[0];
 		this -> facet_normals[i][1] = normal[1];
 		this -> facet_normals[i][2] = normal[2];
+		this -> facets[i][0] = ptIds -> GetId(0);
+		this -> facets[i][1] = ptIds -> GetId(1);
+		this -> facets[i][2] = ptIds -> GetId(2);
+
 
 		
 	}
@@ -203,12 +242,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 		
 	}
 
-	
+
 	// The edges dyads are created
 	this -> edge_dyads = new double * [edge_points_ids_facet_ids.size()];
 	this -> edges = new int * [edge_points_ids_facet_ids.size()];
 
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for(int i = 0; i < edge_points_ids_facet_ids.size(); ++i) {
 		this -> edge_dyads[i] = new double[9];
 		this -> edges[i] = new int[2];
@@ -278,6 +317,8 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	this -> N_edges = edge_count;
 	this -> N_facets = numCells;
+	this -> N_facets = numCells;
+
 
 	this -> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
 	this -> mass_properties -> SetInputData(input);
@@ -299,18 +340,11 @@ double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const do
 	#pragma omp parallel for reduction(+:potential)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds->Allocate(VTK_CELL_SIZE);
 
-		input->GetCellPoints(facet_index,ptIds);
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
 
-		double r0[3];
-		double r1[3];
-		double r2[3];
-
-		input -> GetPoint(ptIds -> GetId(0),r0);
-		input -> GetPoint(ptIds -> GetId(1),r1);
-		input -> GetPoint(ptIds -> GetId(2),r2);
 
 		double r0m[3];
 		double r1m[3];
@@ -348,11 +382,9 @@ double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const do
 	#pragma omp parallel for reduction(+:potential)
 	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
-		double r0[3];
-		double r1[3];
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+		double * r1 = this -> vertices[this -> edges[edge_index][1]];
 
-		input -> GetPoint(this -> edges[edge_index][0],r0);
-		input -> GetPoint(this -> edges[edge_index][1],r1);
 		
 		double r0m[3];
 		double r1m[3];
@@ -395,21 +427,12 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 	vtkPolyData * input = this -> GetPolyDataInput(0);
 
 	// Facet loop
-	// #pragma omp parallel for reduction(+:laplacian)
+	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < input -> GetNumberOfCells(); ++ facet_index) {
 
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds->Allocate(VTK_CELL_SIZE);
-
-		input->GetCellPoints(facet_index,ptIds);
-
-		double r0[3];
-		double r1[3];
-		double r2[3];
-
-		input -> GetPoint(ptIds -> GetId(0),r0);
-		input -> GetPoint(ptIds -> GetId(1),r1);
-		input -> GetPoint(ptIds -> GetId(2),r2);
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
 
 		double r0m[3];
 		double r1m[3];
@@ -434,7 +457,7 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 	}
 
-	if (std::abs(laplacian) < tol) {
+	if (std::abs(laplacian) / (4 * arma::datum::pi) < tol) {
 		return false;
 	}
 	else {
@@ -457,18 +480,11 @@ arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,co
 	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds->Allocate(VTK_CELL_SIZE);
+	
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
 
-		input->GetCellPoints(facet_index,ptIds);
-
-		double r0[3];
-		double r1[3];
-		double r2[3];
-
-		input -> GetPoint(ptIds -> GetId(0),r0);
-		input -> GetPoint(ptIds -> GetId(1),r1);
-		input -> GetPoint(ptIds -> GetId(2),r2);
 
 		double r0m[3];
 		double r1m[3];
@@ -502,11 +518,9 @@ arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,co
 	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z)
 	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
-		double r0[3];
-		double r1[3];
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+		double * r1 = this -> vertices[this -> edges[edge_index][1]];
 
-		input -> GetPoint(this -> edges[edge_index][0],r0);
-		input -> GetPoint(this -> edges[edge_index][1],r1);
 		
 		double r0m[3];
 		double r1m[3];

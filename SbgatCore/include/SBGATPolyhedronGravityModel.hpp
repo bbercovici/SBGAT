@@ -77,7 +77,7 @@ public:
   @param tolerance
   @return true if the polydata contains the point, false otherwise
   */
-  bool Contains(double * point, double tol = 1e-7);
+  bool Contains(double * point, double tol = 1e-8);
 
 
 
@@ -92,16 +92,17 @@ protected:
   double ** facet_dyads;
   double ** edge_dyads;
   double ** facet_normals;
+  double ** vertices;
+
   int ** edges;
+  int ** facets;
+
 
   unsigned int N_facets;
   unsigned int N_edges;
 
 
   vtkSmartPointer<SBGATMassProperties> mass_properties;
-
-
-
 
 
 private:

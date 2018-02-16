@@ -31,11 +31,16 @@
 #include <assert.h>
 #include <vtkTriangleFilter.h>
 #include <vtkCleanPolyData.h>
+#include <vtkOBJReader.h>
+#include <vtkCellCenters.h>
 
 void TestsSBCore::run() {
 
-
 	TestsSBCore::test_sbgat_pgm();
+
+	TestsSBCore::test_sbgat_pgm_speed();
+
+
 	TestsSBCore::test_sbgat_mass_properties();
 
 	TestsSBCore::test_loading_shape();
@@ -50,13 +55,67 @@ void TestsSBCore::run() {
 
 void TestsSBCore::test_sbgat_mass_properties(){
 
+}
 
+
+/**
+This test computes the surface accelerations at the center of each facet over a polydata
+of Eros
+*/
+void TestsSBCore::test_sbgat_pgm_speed(){
+	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
+	// Reading
+	vtkNew<vtkOBJReader> reader;
+	reader -> SetFileName("../eros_64.obj");
+	reader -> Update(); 
+
+
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(reader->GetOutputPort());
+	triangleFilter -> Update();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+	cleanPolyData->Update();
+
+	std::cout << "-- Creating dyads...\n";
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	pgm_filter -> Update();
+	std::cout << "-- Done creating dyads...\n";
+
+
+	vtkSmartPointer<vtkPolyData> polydata = cleanPolyData -> GetOutput();
+
+	vtkSmartPointer<vtkCellCenters> cellCentersFilter = 
+	vtkSmartPointer<vtkCellCenters>::New();
+	
+	cellCentersFilter->SetInputConnection(cleanPolyData -> GetOutputPort());
+	cellCentersFilter->Update();
+
+	arma::mat surface_accelerations(cellCentersFilter -> GetOutput() -> GetNumberOfPoints(),3);
+
+	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
+	auto start = std::chrono::system_clock::now();
+	std::cout << "-- Computing pgm accelerations over " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facets\n";
+	for (vtkIdType i = 0; i < cellCentersFilter -> GetOutput() -> GetNumberOfPoints(); ++i){
+		double p[3];
+		cellCentersFilter -> GetOutput() -> GetPoint(i, p);
+		surface_accelerations.row(i) = pgm_filter -> ComputePgmAcceleration(p ,2670.).t();
+	}
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "-- Done computing pgm accelerations in " << elapsed_seconds.count() << " s\n";
+
+	std::cout << "- Done running test_sbgat_pgm_speed ..." << std::endl;
 
 }
 
 
 /**
-This check ensures that VTK properly computes the facet normals of a cube
+This test ensures that VTK properly computes the facet normals of a cube
 */
 void TestsSBCore::test_sbgat_pgm() {
 
@@ -114,13 +173,12 @@ void TestsSBCore::test_sbgat_pgm() {
 			-2.548008881415967e-06,
 			-3.823026510474731e-06
 		};
-		double pot_true = 0.267266 * arma::datum::G * 1e6;
+		double pot_true = 0.26726619638669064 * arma::datum::G * 1e6;
 		arma::vec pgm_acc = pgm_filter -> ComputePgmAcceleration(p4,1e6);
 		double pgm_pot = pgm_filter -> ComputePgmPotential(p4,1e6);
-		std::cout << pot_true << " " << pgm_pot << std::endl;
 
-		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-7);
-		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-7);
+		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
+		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
 
 
 

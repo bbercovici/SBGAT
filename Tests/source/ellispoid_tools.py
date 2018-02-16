@@ -201,4 +201,52 @@ def acceleration(x,y,z,alpha,beta,gamma,mu):
 	return np.array([a_x,a_y,a_z]) * (max_axis / T ** 2)
 
 
+def gfun(x,args):
+	return args["y_min"]
 
+
+def hfun(x,args):
+	return args["y_max"]
+
+
+
+def qfun(x,y,args):
+	return args["z_min"]
+
+
+def rfun(x,y,args):
+	return args["z_max"]
+
+def integrand(z,y,x):
+	return 1./np.linalg.norm(np.array([x,y,z]))
+
+
+def compute_cube_potential():
+	h = 0.5
+	x_point = 1.
+	y_point = 2.
+	z_point = 3.
+
+	z_min = z_point - h
+	z_max = z_point + h
+
+	y_min = y_point - h
+	y_max = y_point + h
+
+	x_min = x_point - h
+	x_max = x_point + h
+
+
+
+	gfun = lambda x : y_min
+	hfun = lambda x : y_max
+	qfun = lambda x,y : z_min
+	rfun = lambda x,y : z_max
+
+	integral = integrate.tplquad(integrand,x_min,x_max,gfun, hfun, qfun, rfun)
+
+	print integral
+
+
+
+compute_cube_potential()
