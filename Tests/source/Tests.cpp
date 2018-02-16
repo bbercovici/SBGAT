@@ -33,37 +33,95 @@
 #include <vtkCleanPolyData.h>
 #include <vtkOBJReader.h>
 #include <vtkCellCenters.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkLinearSubdivisionFilter.h>
 
 void TestsSBCore::run() {
 
+	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
-
 	TestsSBCore::test_sbgat_pgm_speed();
 
 
-	TestsSBCore::test_sbgat_mass_properties();
-
-	TestsSBCore::test_loading_shape();
-	TestsSBCore::test_geometrical_measures();
-	TestsSBCore::test_pgm_consistency_cube();
-	TestsSBCore::test_pgm_consistency_ellipsoid();
 	TestsSBCore::test_spherical_harmonics_consistency();
 	TestsSBCore::test_spherical_harmonics_invariance();
 
 
 }
 
+
+
+
+/**
+This test compares some geometric measures as computed by SBGAT 
+to analytical values
+*/
 void TestsSBCore::test_sbgat_mass_properties(){
+
+
+	vtkSmartPointer<vtkCubeSource> source = 
+	vtkSmartPointer<vtkCubeSource>::New();
+	source -> SetCenter(0.0, 0.0, 0.0);
+
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(source->GetOutputPort());
+	triangleFilter -> Update();
+
+	vtkSmartPointer<vtkLinearSubdivisionFilter> subdivisionFilter = vtkSmartPointer<vtkLinearSubdivisionFilter>::New();
+
+	subdivisionFilter -> SetInputConnection(triangleFilter -> GetOutputPort());
+	subdivisionFilter -> SetNumberOfSubdivisions(6);
+	subdivisionFilter -> Update();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(subdivisionFilter->GetOutputPort());
+	cleanPolyData->Update();
+
+	vtkSmartPointer<vtkTransform> transform_rot = vtkSmartPointer<vtkTransform>::New();
+	transform_rot->RotateWXYZ(10, 0, 1, 0);
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter_rot = 
+	vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	transformFilter_rot->SetTransform(transform_rot);
+	transformFilter_rot->SetInputConnection(cleanPolyData->GetOutputPort());
+	transformFilter_rot->Update();
+
+
+	vtkSmartPointer<vtkTransform> transform_trans = vtkSmartPointer<vtkTransform>::New();
+	arma::vec translation_vector = { 1, 2, 3};
+	transform_trans->Translate (translation_vector.colptr(0));
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter_trans = 
+	vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	transformFilter_trans->SetTransform(transform_trans);
+	transformFilter_trans->SetInputConnection(transformFilter_rot->GetOutputPort());
+	transformFilter_trans->Update();
+
+	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_filter -> SetInputConnection(transformFilter_trans -> GetOutputPort());
+	mass_filter -> Update();
+
+	// the inertia moments are invariant by rotation/translation
+	arma::vec inertia_moments = {1./6,1./6,1./6}; 
+	auto inertia_moments_sbgat = mass_filter -> GetInertiaMoments();
+
+	// The center of mass should be right where the translation put it 
+	auto com_sbgat = mass_filter -> GetCenterOfMass();
+	
+	assert(arma::norm(inertia_moments - inertia_moments_sbgat)/arma::norm(inertia_moments_sbgat) < 1e-8);
+	assert(arma::norm(translation_vector - com_sbgat)/arma::norm(com_sbgat) < 1e-8);
 
 }
 
 
 /**
 This test computes the surface accelerations at the center of each facet over a polydata
-of Eros
+of Eros for benchmarking purposes
 */
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
+	
 	// Reading
 	vtkNew<vtkOBJReader> reader;
 	reader -> SetFileName("../eros_64.obj");
@@ -92,14 +150,14 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	vtkSmartPointer<vtkCellCenters> cellCentersFilter = 
 	vtkSmartPointer<vtkCellCenters>::New();
 	
-	cellCentersFilter->SetInputConnection(cleanPolyData -> GetOutputPort());
-	cellCentersFilter->Update();
+	cellCentersFilter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	cellCentersFilter -> Update();
 
 	arma::mat surface_accelerations(cellCentersFilter -> GetOutput() -> GetNumberOfPoints(),3);
 
 	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 	auto start = std::chrono::system_clock::now();
-	std::cout << "-- Computing pgm accelerations over " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facets\n";
+	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of Eros. This may take a few minutes ...\n";
 	for (vtkIdType i = 0; i < cellCentersFilter -> GetOutput() -> GetNumberOfPoints(); ++i){
 		double p[3];
 		cellCentersFilter -> GetOutput() -> GetPoint(i, p);
@@ -115,7 +173,8 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 
 /**
-This test ensures that VTK properly computes the facet normals of a cube
+This test computes the pgm acceleration and potential
+about a cube and compares the SBGAT outputs to analytical ones 
 */
 void TestsSBCore::test_sbgat_pgm() {
 
@@ -160,7 +219,7 @@ void TestsSBCore::test_sbgat_pgm() {
 
 
 
-	// The attracting shape is a cube of dimensions 1 x 1 x 1 m of density rhp = 1e6 kg/m^3
+	// The attracting shape is a cube of dimensions 1 x 1 x 1 m of density rho = 1e6 kg/m^3
 	// The analytic potential and acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
 	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
 
@@ -190,170 +249,6 @@ void TestsSBCore::test_sbgat_pgm() {
 
 
 
-
-}
-
-
-/**
-This check ensures that the loaded shape
-model has the proper number of facets, vertices and edges
-*/
-void TestsSBCore::test_loading_shape() {
-
-	std::cout << "- Running test_loading_shape ..." << std::endl;
-
-	SBGAT_CORE::ShapeModel shape_model("", nullptr);
-	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
-	shape_io.load_shape_model(&shape_model,false);
-
-	assert(shape_model.get_NFacets() == 12);
-	assert(shape_model.get_NVertices() == 8);
-	assert(shape_model.get_NEdges() == 18);
-
-	std::cout << "-- test_loading_shape successful" << std::endl;
-
-}
-
-
-
-
-/**
-This check ensures that the geometrical measures such as volume 
- surface area, center of mass and inertia moments are properly computed
-*/
-void TestsSBCore::test_geometrical_measures() {
-
-	std::cout << "- Running test_geometrical_measures ..." << std::endl;
-
-	SBGAT_CORE::ShapeModel shape_model("", nullptr);
-	SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 0.5);
-	shape_io.load_shape_model(&shape_model,false);
-
-
-	arma::vec cube_moments = {1,1,1};
-	arma::vec cube_com = {1,1,1};
-
-	cube_moments /= 6.;
-
-	cube_com /= 4.;
-
-	shape_model . update_mass_properties();
-
-	arma::mat inertia = shape_model . get_inertia();
-
-	assert(std::abs(1./8 - shape_model.get_volume()) < 1e-10);
-	assert(std::abs(6./4 - shape_model.get_surface_area()) < 1e-10);
-	assert(arma::norm(cube_com - shape_model.get_center_of_mass()) < 1e-10);
-	assert(arma::norm(cube_moments - arma::eig_sym(inertia)) / arma::norm(cube_moments) < 1e-10);
-
-
-	std::cout << "-- test_geometrical_measures successful" << std::endl;
-
-}
-
-
-/**
-This test checks that the Polyhedron Gravity Model
-computed around a cubic shape is not depending upon
-the cube resolution and consistent with the analytical expression
-*/
-void TestsSBCore::test_pgm_consistency_cube() {
-
-	std::cout << "- Running test_pgm_consistency_cube ..." << std::endl;
-
-
-	// The attracting shape is a cube of dimensions 1 x 1 x 1 m of density rhp = 1e6 kg/m^3
-	// The analytic acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
-	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
-	arma::vec X = {1, 2, 3};
-	arma::vec acc_true = {
-		-1.273782722739791e-06,
-		-2.548008881415967e-06,
-		-3.823026510474731e-06
-	};
-
-
-	// Shape models of increasing resolutions but still representative
-	// of a cube are loaded. They should all yield the same acceleration
-	// at the specified query point
-
-	{
-		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("../cube.obj", 1);
-		shape_io.load_shape_model(&shape_model,true);
-		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
-
-		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
-	}
-
-	{
-		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("../cube_50k.obj", 1);
-		shape_io.load_shape_model(&shape_model,true);
-		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
-
-
-
-
-		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
-
-		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
-	}
-
-	{
-		SBGAT_CORE::ShapeModel shape_model("", nullptr);
-		SBGAT_CORE::ShapeModelImporter shape_io("../cube_200k.obj", 1);
-		shape_io.load_shape_model(&shape_model,true);
-		double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
-
-
-		SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-		arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
-
-		assert(arma::norm(acc_true - acc) / arma::norm(acc) < 1e-12);
-	}
-
-	std::cout << "-- test_pgm_consistency_cube successful" << std::endl;
-
-
-}
-
-
-
-/**
-This test ensures that the Polyhedron Gravity Model
-computed around an ellispoid shape is consistent
-with the analytical expression
-*/
-void TestsSBCore::test_pgm_consistency_ellipsoid() {
-
-	std::cout << "- Running test_pgm_consistency_ellipsoid ..." << std::endl;
-
-	// The attracting shape is an ellipsoid of semi-major axes 3 x 2 x 1 m of density rho = 1e6 kg/m^3
-	// The analytic acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
-	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
-	arma::vec X = {1, 2, 3};
-	arma::vec acc_true = {
-		-2.19160852e-05,  
-		-5.18364044e-05,  
-		-8.79434337e-05
-	};
-
-	SBGAT_CORE::ShapeModel shape_model("", nullptr);
-	SBGAT_CORE::ShapeModelImporter shape_io("../ellipsoid.obj", 1);
-	shape_io.load_shape_model(&shape_model,false);
-
-	SBGAT_CORE::DynamicAnalyses dyn_an(&shape_model);
-	double mu = shape_model.get_volume() * 1e6 * arma::datum::G;
-
-	arma::vec acc = dyn_an.pgm_acceleration(X.colptr(0), mu);
-
-	assert(arma::norm(acc_true - acc) / arma::norm(acc) < 5e-5);
-
-	std::cout << "-- test_pgm_consistency_ellipsoid successful" << std::endl;
 
 }
 

@@ -236,8 +236,6 @@ def compute_cube_potential():
 	x_min = x_point - h
 	x_max = x_point + h
 
-
-
 	gfun = lambda x : y_min
 	hfun = lambda x : y_max
 	qfun = lambda x,y : z_min
