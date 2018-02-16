@@ -125,17 +125,8 @@ endif()
 # Add source files in root directory
 add_library(${LIB_NAME} 
 SHARED
-source/ShapeModel.cpp
-source/DynamicAnalyses.cpp
-source/ShapeModelImporter.cpp
-source/Facet.cpp
-source/Edge.cpp
-source/Vertex.cpp
 source/RefFrame.cpp
 source/FrameGraph.cpp
-source/SyntheticObservations.cpp
-source/FacetResults.cpp
-source/PolyhedralSphericalHarmo.cpp
 source/SBGATPolyhedronGravityModel.cpp
 source/SBGATMassProperties.cpp
 )

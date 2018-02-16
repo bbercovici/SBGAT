@@ -248,7 +248,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 	this -> edges = new int * [edge_points_ids_facet_ids.size()];
 
 	#pragma omp parallel for
-	for(int i = 0; i < edge_points_ids_facet_ids.size(); ++i) {
+	for(unsigned int i = 0; i < edge_points_ids_facet_ids.size(); ++i) {
 		this -> edge_dyads[i] = new double[9];
 		this -> edges[i] = new int[2];
 
@@ -327,14 +327,13 @@ int SBGATPolyhedronGravityModel::RequestData(
 	// Check that the Euler characteristic == 2
 	assert (input -> GetNumberOfPoints() - edge_count + numCells == 2);
 
+	return 1;
 }
 
 
 double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const double density,const double G) {
 
 	double potential = 0;
-
-	vtkPolyData * input = this -> GetPolyDataInput(0);
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:potential)
@@ -424,11 +423,10 @@ double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const do
 bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 	double laplacian = 0;
-	vtkPolyData * input = this -> GetPolyDataInput(0);
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:laplacian)
-	for (vtkIdType facet_index = 0; facet_index < input -> GetNumberOfCells(); ++ facet_index) {
+	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
 		double * r1 = this -> vertices[this -> facets[facet_index][1]];
@@ -473,8 +471,6 @@ arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,co
 	double acc_y = 0;
 	double acc_z = 0;
 
-
-	vtkPolyData * input = this -> GetPolyDataInput(0);
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z)
