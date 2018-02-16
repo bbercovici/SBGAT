@@ -62,37 +62,6 @@ void TestsSBCore::test_sbgat_pgm() {
 
 	std::cout << "- Running test_sbgat_pgm ..." << std::endl;
 
-
-	{
-		vtkSmartPointer<vtkSphereSource> source = 
-		vtkSmartPointer<vtkSphereSource>::New();
-
-		source->SetCenter(0.0, 0.0, 0.0);
-		source->SetPhiResolution(100);
-		source->SetThetaResolution(100);
-
-		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-		vtkSmartPointer<vtkTriangleFilter>::New();
-		triangleFilter -> SetInputConnection(source->GetOutputPort());
-		triangleFilter -> Update();
-
-		vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-		vtkSmartPointer<vtkCleanPolyData>::New();
-		cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-		cleanPolyData->Update();
-
-		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-
-		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
-		pgm_filter -> Update();
-
-
-
-
-	}
-
-
-
 	{
 		vtkSmartPointer<vtkCubeSource> source = 
 		vtkSmartPointer<vtkCubeSource>::New();
@@ -115,15 +84,7 @@ void TestsSBCore::test_sbgat_pgm() {
 		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
 		pgm_filter -> Update();
 
-		vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
-		mass_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
-		mass_filter -> Update();
 		
-
-		double * bounds =  mass_filter -> GetBoundingBox();
-
-		std::cout << bounds[0] << " "  << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5] << "\n";
-
 		// Points that should be outside
 		double p0[3] = {0.7,0,0};
 		double p1[3] = {0.50000001,0,0};
@@ -131,11 +92,36 @@ void TestsSBCore::test_sbgat_pgm() {
 		// Points that should be inside
 		double p2[3] = {0.4,0,0};
 		double p3[3] = {0.49999999,0,0};
-		
+
+
 		assert(!pgm_filter -> Contains(p0));
 		assert(!pgm_filter -> Contains(p1));
 		assert(pgm_filter -> Contains(p2));
 		assert(pgm_filter -> Contains(p3));
+
+
+
+	// The attracting shape is a cube of dimensions 1 x 1 x 1 m of density rhp = 1e6 kg/m^3
+	// The analytic potential and acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
+	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
+
+
+		// Queried point for pgm validation
+		double p4[3] = {1, 2, 3};
+
+		arma::vec acc_true = {
+			-1.273782722739791e-06,
+			-2.548008881415967e-06,
+			-3.823026510474731e-06
+		};
+		double pot_true = 0.267266 * arma::datum::G * 1e6;
+		arma::vec pgm_acc = pgm_filter -> ComputePgmAcceleration(p4,1e6);
+		double pgm_pot = pgm_filter -> ComputePgmPotential(p4,1e6);
+		std::cout << pot_true << " " << pgm_pot << std::endl;
+
+		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-7);
+		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-7);
+
 
 
 	}
@@ -143,9 +129,6 @@ void TestsSBCore::test_sbgat_pgm() {
 
 
 	std::cout << "- Done running test_sbgat_pgm ..." << std::endl;
-
-
-
 
 
 

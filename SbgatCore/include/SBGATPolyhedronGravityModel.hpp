@@ -49,17 +49,28 @@ public:
 
   
   /**
-  Evaluates the Polyhedron Gravity Model at the specified point assuming 
+  Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
   @param density constant density in kg/m^3
+  @param G Gravitational constant, by default set to 6.67408 × 10-11 m^3/(kg s^2)
   @return PGM potential evaluated at the queried point
   */
-  double ComputePgmPotential(double * point ,const double density);
-
+  double ComputePgmPotential(double * point ,const double density,const double G = arma::datum::G);
 
   /**
+  Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
+  a constant density
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @param density constant density in kg/m^3
+  @param G Gravitational constant, by default set to 6.67408 × 10-11 m^3/(kg s^2)
+  @return PGM acceleration evaluated at the queried point
+  */
+  arma::vec ComputePgmAcceleration(double * point ,const double density,const double G = arma::datum::G);
+
+  /** 
   Determines whether the provided point lies inside or outside the shape
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
@@ -78,13 +89,14 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
-  static void ComputeEdgeDyad(double * edge_dyad,
-    double * nA, double * nB,double * p1, double * p2);
-
   double ** facet_dyads;
   double ** edge_dyads;
   double ** facet_normals;
   int ** edges;
+
+  unsigned int N_facets;
+  unsigned int N_edges;
+
 
   vtkSmartPointer<SBGATMassProperties> mass_properties;
 
