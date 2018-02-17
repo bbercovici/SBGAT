@@ -17,8 +17,8 @@ It was generated with Doxygen and hosted on GitHub using the method described [h
 
 ## Changelog
 
-### Sbgat 1.03.1
-Sbgat 1.03.1 marks the transition to VTK as SBGAT's backbone. 
+### Sbgat 1.02.1
+Sbgat 1.02.1 marks the transition to VTK as SBGAT's backbone. 
 
 * Polyhedron Gravity Model potential and accelerations can be generated from an arbitrary closed vtkPolydata representing a polyhedron
 * SBGATMassProperties, a SBGAT filter computing the surface area, volume, inertia and center of mass of a constant density polyhedron
