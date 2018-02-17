@@ -16,7 +16,7 @@ The SBGAT code documentation can be found [here](https://bbercovici.github.io/sb
 It was generated with Doxygen and hosted on GitHub using the method described [here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
 
 ## Changelog
-<!-- 
+
 ### Sbgat 1.03.1
 Sbgat 1.03.1 marks the transition to VTK as SBGAT's backbone. 
 
@@ -24,7 +24,7 @@ Sbgat 1.03.1 marks the transition to VTK as SBGAT's backbone.
 * SBGATMassProperties, a SBGAT filter computing the surface area, volume, inertia and center of mass of a constant density polyhedron
 * SBGATPolyhedronGravityModel, a SBGAT filter computing the acceleration and potential of a constant density polyhedron. 
 * More comprehensive validation tests 
- -->
+
 ### Sbgat 1.02.0
 Sbgat 1.02 is a first take at fully leveraging VTK data structures for visual props representation and operation. 
 
