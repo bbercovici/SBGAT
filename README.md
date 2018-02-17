@@ -20,10 +20,9 @@ It was generated with Doxygen and hosted on GitHub using the method described [h
 ### Sbgat 1.02.1
 Sbgat 1.02.1 marks the transition to VTK as SBGAT's backbone. 
 
-* Polyhedron Gravity Model potential and accelerations can be generated from an arbitrary closed vtkPolydata representing a polyhedron
-* SBGATMassProperties, a SBGAT filter computing the surface area, volume, inertia and center of mass of a constant density polyhedron
-* SBGATPolyhedronGravityModel, a SBGAT filter computing the acceleration and potential of a constant density polyhedron. 
-* More comprehensive validation tests 
+* Created SBGATMassProperties, a SBGAT filter computing the surface area, volume, inertia and center of mass of a constant density polyhedron (see [Dobrovolskis, A. R. (1996). Inertia of Any Polyhedron. Icarus, 124, 698–704. ](https://doi.org/10.1006/icar.1996.0243])])
+* Created SBGATPolyhedronGravityModel, a SBGAT filter computing the acceleration and potential of a constant density, topologically-closed polyhedron polyhedron (see [Werner, R.A. & Scheeres, D.J. Celestial Mech Dyn Astr (1996) 65: 313.](https://doi.org/10.1007/BF00053511]))
+* Added validation tests for the newly created classes
 
 ### Sbgat 1.02.0
 Sbgat 1.02 is a first take at fully leveraging VTK data structures for visual props representation and operation. 
