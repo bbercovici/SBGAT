@@ -6,6 +6,8 @@
 #include <QVTKOpenGLWidget.h>
 #include <vtkCamera.h>
 
+#include <armadillo>
+
 
 using namespace SBGAT_GUI;
 

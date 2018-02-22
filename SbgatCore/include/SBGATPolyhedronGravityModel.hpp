@@ -17,12 +17,13 @@
 /**
  * @class  SBGATPolyhedronGravityModel
  * @author Benjamin Bercovici
- * @brief  computes the acceleration caused by a constant-density polyhedron
+ * @brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
  *
- * SBGATPolyhedronGravityModel.hpp evaluates the potential, acceleration caused by a polyhedron
- of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres 
+ * @details Computes the potential, acceleration caused by a polyhedron
+ of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres.
+ * The input must be a topologically-closed polyhedron.
  * See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
- * for more details
+ * for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 */
 
 #ifndef SBGATPolyhedronGravityModel_hpp

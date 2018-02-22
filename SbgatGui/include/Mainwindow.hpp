@@ -32,7 +32,7 @@
 #include <memory>
 
 #include "ModelDataWrapper.hpp"
-#include <FrameGraph.hpp>
+#include <SBGATFrameGraph.hpp>
 
 
 namespace SBGAT_GUI {
@@ -381,7 +381,7 @@ through the user interface layer brought by Qt.}
 	/**
 	Open alignment window.
 	*/
-		void open_alignment_window();
+		void open_actor_thickness_window();
 
 
 	/**
@@ -566,7 +566,7 @@ through the user interface layer brought by Qt.}
 		vtkSmartPointer<vtkOrientationMarkerWidget> orientation_widget;
 		std::pair<std::string ,vtkSmartPointer<vtkActor> > skybox_pair;
 
-		std::shared_ptr<SBGAT_CORE::FrameGraph> frame_graph;
+		std::shared_ptr<SBGATFrameGraph> frame_graph;
 
 
 		DataMap wrapped_shape_data;

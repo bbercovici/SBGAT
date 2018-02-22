@@ -17,13 +17,13 @@
 /**
  * @class  SBGATMassProperties
  * @author Benjamin Bercovici
- * @brief  compute volume, area, shape index, center of mass,
+ * @brief  Computes volume, area, shape index, center of mass,
  * inertia tensor and principal axes of a polyhedral mesh of constant density
  *
- * SBGATMassProperties estimates the volume, the surface area, and the
- * normalized shape index, center of mass (assuming constant density) and inertia tensor
- * of a triangle mesh. See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
- * for further details
+ * @details Computes the volume, the surface area, and the
+ * normalized shape index, center of mass and inertia tensor of a topologically-closed, constant-density polyhedron
+ * See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
+ * for further details.  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
  *
 */
 

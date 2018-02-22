@@ -8,12 +8,10 @@
 
 
 
-namespace SBGAT_CORE {
 
 
 
-
-class RefFrame {
+class SBGATRefFrame {
 
 public:
 
@@ -21,24 +19,24 @@ public:
 	Constructor
 	@param name Reference frame name
 	*/
-	RefFrame(std::string name);
+	SBGATRefFrame(std::string name);
 
 
 	/**
 	Copy constructor (RO3)
 	@param ref_frame Reference frame
 	*/
-	RefFrame( const RefFrame &ref_frame);
+	SBGATRefFrame( const SBGATRefFrame &ref_frame);
 
 	/**
 	Assignment operator (RO3)
 	*/
-	RefFrame& operator=(const RefFrame & other);
+	SBGATRefFrame& operator=(const SBGATRefFrame & other);
 
 	/**
 	Destructor (RO3)
 	*/
-	~RefFrame();
+	~SBGATRefFrame();
 
 	/**
 	Returns the reference frame name
@@ -94,7 +92,7 @@ protected:
 
 
 };
-}
+
 
 
 

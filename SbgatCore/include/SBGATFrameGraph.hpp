@@ -1,20 +1,18 @@
 #ifndef FRAMEGRAPH_HEADER
 #define FRAMEGRAPH_HEADER
 
-#include "RefFrame.hpp"
+#include "SBGATRefFrame.hpp"
 #include <memory>
 #include "Adjacency_List.hpp"
 
-namespace SBGAT_CORE {
-
-class FrameGraph {
+class SBGATFrameGraph {
 
 public:
 
 	/**
 	Constructor. Creates a undirected reference frame graph
 	*/
-	FrameGraph();
+	SBGATFrameGraph();
 
 	/**
 	Creates a frame and adds it to the graph
@@ -26,7 +24,7 @@ public:
 	/**
 	Converts the coordinates of the provided vector from frame
 	$from to frame $to. For this to work, $from and $to must be
-	in the FrameGraph and a path must be connecting them
+	in the SBGATFrameGraph and a path must be connecting them
 	@param input vector to convert
 	@param from name of reference frame to convert from
 	@param to name of reference frame to convert to
@@ -85,7 +83,7 @@ public:
 	@param frame_name Name of reference frame
 	@param Pointer to reference frame
 	*/
-	RefFrame * get_frame(std::string frame_name);
+	SBGATRefFrame * get_frame(std::string frame_name);
 
 
 	/**
@@ -109,18 +107,18 @@ public:
 
 
 protected:
-	Adjacency_List<std::shared_ptr <RefFrame> , std::pair< std::string, std::string > > adjacency_list;
-	std::map< std::string , std::shared_ptr <RefFrame> > ref_names_to_ref_ptrs;
+	Adjacency_List<std::shared_ptr <SBGATRefFrame> , std::pair< std::string, std::string > > adjacency_list;
+	std::map< std::string , std::shared_ptr <SBGATRefFrame> > ref_names_to_ref_ptrs;
 
 
-	void convert_to_parent_of_provided_child_frame(arma::vec & coords, RefFrame * ref_frame,
+	void convert_to_parent_of_provided_child_frame(arma::vec & coords, SBGATRefFrame * ref_frame,
 	        bool conserve_norm) const;
-	void convert_to_child_of_provided_parent_frame(arma::vec & coords, RefFrame * ref_frame,
+	void convert_to_child_of_provided_parent_frame(arma::vec & coords, SBGATRefFrame * ref_frame,
 	        bool conserve_norm) const;
 
 
 };
 
-}
+
 
 #endif

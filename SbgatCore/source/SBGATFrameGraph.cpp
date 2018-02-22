@@ -1,18 +1,16 @@
-#include "FrameGraph.hpp"
+#include "SBGATFrameGraph.hpp"
 
 
-using namespace SBGAT_CORE;
-
-FrameGraph::FrameGraph() {
+SBGATFrameGraph::SBGATFrameGraph() {
 
 }
 
 
 
-arma::vec FrameGraph::convert(arma::vec & input, std::string from, std::string to,
+arma::vec SBGATFrameGraph::convert(arma::vec & input, std::string from, std::string to,
                               bool conserve_norm) {
 
-	std::deque<std::shared_ptr<RefFrame > > path = this -> adjacency_list.dfs(
+	std::deque<std::shared_ptr<SBGATRefFrame > > path = this -> adjacency_list.dfs(
 	            ref_names_to_ref_ptrs[from], ref_names_to_ref_ptrs[to]);
 
 	arma::vec coords = input;
@@ -51,8 +49,8 @@ arma::vec FrameGraph::convert(arma::vec & input, std::string from, std::string t
 }
 
 
-void FrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
-        RefFrame * ref_frame, bool conserve_norm) const {
+void SBGATFrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
+        SBGATRefFrame * ref_frame, bool conserve_norm) const {
 
 	if (conserve_norm == false) {
 		coords = *ref_frame -> get_origin_from_parent() +  (*ref_frame -> get_dcm_from_parent()).t() * coords;
@@ -63,8 +61,8 @@ void FrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
 	}
 }
 
-void FrameGraph::convert_to_child_of_provided_parent_frame(arma::vec & coords,
-        RefFrame * ref_frame, bool conserve_norm) const {
+void SBGATFrameGraph::convert_to_child_of_provided_parent_frame(arma::vec & coords,
+        SBGATRefFrame * ref_frame, bool conserve_norm) const {
 
 	if (conserve_norm == false) {
 		coords = (*ref_frame -> get_dcm_from_parent()) * ( coords - (*ref_frame -> get_origin_from_parent()) );
@@ -76,11 +74,11 @@ void FrameGraph::convert_to_child_of_provided_parent_frame(arma::vec & coords,
 
 
 
-void FrameGraph::add_frame(std::string frame_name) {
+void SBGATFrameGraph::add_frame(std::string frame_name) {
 
-	std::shared_ptr<RefFrame> frame = std::make_shared<RefFrame>(RefFrame(frame_name));
+	std::shared_ptr<SBGATRefFrame> frame = std::make_shared<SBGATRefFrame>(SBGATRefFrame(frame_name));
 
-	std::set<std::shared_ptr<RefFrame> > frames = this -> adjacency_list.get_vertices();
+	std::set<std::shared_ptr<SBGATRefFrame> > frames = this -> adjacency_list.get_vertices();
 
 	for (auto const & existing_frame : frames) {
 		if (existing_frame -> get_name() == frame_name) {
@@ -94,7 +92,7 @@ void FrameGraph::add_frame(std::string frame_name) {
 }
 
 
-void FrameGraph::set_transform_mrp(std::string parent_name,
+void SBGATFrameGraph::set_transform_mrp(std::string parent_name,
                                    std::string child_name,
                                    arma::vec & mrp) {
 
@@ -118,7 +116,7 @@ void FrameGraph::set_transform_mrp(std::string parent_name,
 }
 
 
-void FrameGraph::set_transform_origin(std::string parent_name,
+void SBGATFrameGraph::set_transform_origin(std::string parent_name,
                                       std::string child_name,
                                       arma::vec & origin) {
 
@@ -146,16 +144,16 @@ void FrameGraph::set_transform_origin(std::string parent_name,
 	return;
 }
 
-RefFrame * FrameGraph::get_frame(std::string frame_name) {
+SBGATRefFrame * SBGATFrameGraph::get_frame(std::string frame_name) {
 	return this -> ref_names_to_ref_ptrs[frame_name].get();
 }
 
-void FrameGraph::add_transform(std::string parent_name, std::string child_name) {
+void SBGATFrameGraph::add_transform(std::string parent_name, std::string child_name) {
 
-	std::set<std::shared_ptr<RefFrame> > frames = this -> adjacency_list.get_vertices();
+	std::set<std::shared_ptr<SBGATRefFrame> > frames = this -> adjacency_list.get_vertices();
 
-	std::shared_ptr<RefFrame> child_frame;
-	std::shared_ptr<RefFrame> parent_frame;
+	std::shared_ptr<SBGATRefFrame> child_frame;
+	std::shared_ptr<SBGATRefFrame> parent_frame;
 
 	//########################################################################
 	//####################### Consistency checks #############################

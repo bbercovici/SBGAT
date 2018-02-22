@@ -139,13 +139,11 @@ source/RenderingPropertiesWindow.cpp
 source/Mainwindow.cpp
 source/ModelDataWrapper.cpp
 source/MoveAlongTrajectoryWindow.cpp
-source/SettingsWindow.cpp
-source/Worker.cpp
+source/SettingsWindow.cpp 
 include/RenderingPropertiesWindow.hpp
 include/Mainwindow.hpp
 include/ModelDataWrapper.hpp
 include/MoveAlongTrajectoryWindow.hpp
-include/Worker.hpp
 include/SettingsWindow.hpp
 )
 

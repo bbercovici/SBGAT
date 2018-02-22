@@ -21,6 +21,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkShadowMapBakerPass.h>
 
+
 using namespace SBGAT_GUI;
 
 RenderingPropertiesWindow::RenderingPropertiesWindow(Mainwindow * parent) : QDialog(parent,Qt::WindowStaysOnTopHint) {

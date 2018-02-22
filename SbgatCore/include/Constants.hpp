@@ -2,7 +2,7 @@
 #define HEADER_CONSTANTS
 
 
-namespace SBGAT_CORE::constants {
+namespace SBGATConstants {
 
 // Enumeration storing the average densities of a number of bodies of reference
 // All densities are expressed in kg/m^3

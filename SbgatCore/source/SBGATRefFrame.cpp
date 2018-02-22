@@ -1,11 +1,9 @@
-#include "RefFrame.hpp"
-
-
-using namespace SBGAT_CORE;
+#include "SBGATRefFrame.hpp"
 
 
 
-RefFrame::RefFrame(std::string name) {
+
+SBGATRefFrame::SBGATRefFrame(std::string name) {
 
 	this -> name = name;
 
@@ -20,7 +18,7 @@ RefFrame::RefFrame(std::string name) {
 }
 
 
-RefFrame& RefFrame::operator=(const RefFrame & other) {
+SBGATRefFrame& SBGATRefFrame::operator=(const SBGATRefFrame & other) {
 	this -> name = other.name;
 	*this -> mrp_from_parent = *(other.mrp_from_parent);
 	*this -> origin_from_parent = *(other.origin_from_parent);
@@ -30,7 +28,7 @@ RefFrame& RefFrame::operator=(const RefFrame & other) {
 	return *this;
 }
 
-RefFrame::RefFrame( const RefFrame &ref_frame) {
+SBGATRefFrame::SBGATRefFrame( const SBGATRefFrame &ref_frame) {
 	this -> name = ref_frame.get_name();
 
 	arma::vec mrp = {0, 0, 0};
@@ -49,39 +47,39 @@ RefFrame::RefFrame( const RefFrame &ref_frame) {
 }
 
 
-arma::vec * RefFrame::get_mrp_from_parent() {
+arma::vec * SBGATRefFrame::get_mrp_from_parent() {
 	return this -> mrp_from_parent.get();
 }
 
 
-arma::mat * RefFrame::get_dcm_from_parent() {
+arma::mat * SBGATRefFrame::get_dcm_from_parent() {
 	return this -> dcm_from_parent.get();
 }
 
 
 
-arma::vec * RefFrame::get_origin_from_parent() {
+arma::vec * SBGATRefFrame::get_origin_from_parent() {
 	return this -> origin_from_parent.get();
 }
 
 
-void RefFrame::set_mrp_from_parent(arma::vec & mrp) {
+void SBGATRefFrame::set_mrp_from_parent(arma::vec & mrp) {
 	*this -> mrp_from_parent = mrp;
 	*this -> dcm_from_parent = RBK::mrp_to_dcm(mrp);
 }
 
-void RefFrame::set_origin_from_parent(arma::vec & origin) {
+void SBGATRefFrame::set_origin_from_parent(arma::vec & origin) {
 	*this -> origin_from_parent = origin;
 }
 
 
-std::string RefFrame::get_name() const {
+std::string SBGATRefFrame::get_name() const {
 	return this -> name;
 };
 
 
 
 
-RefFrame::~RefFrame() {
+SBGATRefFrame::~SBGATRefFrame() {
 
 }

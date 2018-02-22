@@ -125,8 +125,8 @@ endif()
 # Add source files in root directory
 add_library(${LIB_NAME} 
 SHARED
-source/RefFrame.cpp
-source/FrameGraph.cpp
+source/SBGATRefFrame.cpp
+source/SBGATFrameGraph.cpp
 source/SBGATPolyhedronGravityModel.cpp
 source/SBGATMassProperties.cpp
 )

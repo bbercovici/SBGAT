@@ -151,9 +151,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 
 	// The vertex coordinates are extracted
-
 	this -> vertices = new double * [input -> GetNumberOfPoints()];
-
 
 	#pragma omp parallel for
 	for(int i = 0; i < input -> GetNumberOfPoints(); ++i) {
