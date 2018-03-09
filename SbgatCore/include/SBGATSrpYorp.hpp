@@ -47,26 +47,26 @@ public:
 
 
   /**
-  Setter to the longitude step
+  Setter to the longitude step. default is 1 deg
   @param lambdaDel longitude step (degrees)
   */
   void set_lambdaDel(double lambdaDel);
 
   /**
-  Setter to the declination step
+  Setter to the declination step. default is 1 deg
   @param deltaDel declination step (degrees)
   */
   void set_deltaDel(double deltaDel);
 
   /**
-  Setter to the maximum order of the Fourier decomposition
+  Setter to the maximum order of the Fourier decomposition. default is 2
   @param maxFourier maximum decomposition order
   */  
   void set_maxFourier(int maxFourier);
 
 
   /**
-  Setter to numrefine
+  Setter to numrefine. default is 5
   @param numrefine
   */  
   void set_numrefine(int numrefine);
@@ -74,15 +74,15 @@ public:
   
 
   /**
-  Setter voxel grid size
-  @param maxFourier maximum decomposition order
+  Setter to number of voxel per axis. default is 40
+  @param numVox voxel pex axis
   */  
   void set_numVox(int numVox);
 
 
 
   /**
-  Setter to number of ray "bounces" to be accounted for 
+  Setter to number of ray "bounces" to be accounted for. default is 3
   @param howManyBounces number of ray reflections to keep track of
   */  
   void set_howManyBounces(int howManyBounces);
@@ -103,8 +103,8 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
-  std::string objFileName, opticalFileName, outputFileBaseName, inFileName;
-  int numVox, opticalFlag;
+  std::string outputFileBaseName;
+  int numVox;
   double rho, spec;
   double lambdaDel;
   double deltaDel;

@@ -37,6 +37,17 @@ SBGATSrpYorp::SBGATSrpYorp()
 {
 
 
+  this -> numVox = 40;
+  this -> rho = 1;
+  this -> spec = 0;
+  this -> lambdaDel = 1;
+  this -> deltaDel = 1;
+  this -> maxFourier = 2;
+  this -> howManyBounces = 3;
+  this -> numrefine = 5;
+
+
+
   this->SetNumberOfOutputPorts(0);
 }
 
