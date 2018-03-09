@@ -26,6 +26,9 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 # Path to RigidBodyKinematicsConfig.cmake (not mandatory if installed at a standard location)
 set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 
+# Path to YORPLibConfig.cmake (not mandatory if installed at a standard location)
+set(YORPLIB_LOC "/home/bebe0705/libs/local/lib/cmake/YORPLib")
+
 
 ################################################################################
 #
@@ -111,6 +114,11 @@ find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 
+# Find YORPLib
+find_package(YORPLib REQUIRED PATHS ${YORPLIB_LOC})
+include_directories(${YORPLIB_INCLUDE_HEADER})
+
+
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
 include_directories(${RBK_INCLUDE_DIR})
@@ -129,6 +137,7 @@ source/SBGATRefFrame.cpp
 source/SBGATFrameGraph.cpp
 source/SBGATPolyhedronGravityModel.cpp
 source/SBGATMassProperties.cpp
+source/SBGATSrpYorp.cpp
 )
 
 # Linking
@@ -136,7 +145,8 @@ set(library_dependencies
 ${ARMADILLO_LIBRARIES}
 ${Boost_LIBRARIES}
 ${VTK_LIBRARIES}
-${RBK_LIBRARY})
+${RBK_LIBRARY}
+${YORPLIB_LIBRARY})
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing
