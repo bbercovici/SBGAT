@@ -140,11 +140,13 @@ source/Mainwindow.cpp
 source/ModelDataWrapper.cpp
 source/MoveAlongTrajectoryWindow.cpp
 source/SettingsWindow.cpp 
+source/YORPWindow.cpp
 include/RenderingPropertiesWindow.hpp
 include/Mainwindow.hpp
 include/ModelDataWrapper.hpp
 include/MoveAlongTrajectoryWindow.hpp
 include/SettingsWindow.hpp
+include/YORPWindow.hpp
 )
 
 set(library_dependencies

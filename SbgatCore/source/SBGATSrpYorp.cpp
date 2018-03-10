@@ -33,8 +33,7 @@ vtkStandardNewMacro(SBGATSrpYorp);
 
 //----------------------------------------------------------------------------
 // Constructs with initial 0 values.
-SBGATSrpYorp::SBGATSrpYorp()
-{
+SBGATSrpYorp::SBGATSrpYorp(){
 
 
   this -> numVox = 40;
@@ -95,6 +94,15 @@ void SBGATSrpYorp::set_numVox(int numVox){
   this -> numVox = numVox;
 }
 
+
+
+void SBGATSrpYorp::set_rho(double rho){
+  this -> rho = rho;
+}
+
+void SBGATSrpYorp::set_spec(double spec){
+  this -> rho = spec;
+}
 
 //----------------------------------------------------------------------------
 // Description:
@@ -166,14 +174,14 @@ int SBGATSrpYorp::RequestData(
 
     input -> GetCellPoints(i,ptIds);
 
-
     std::vector<int> facet = {ptIds -> GetId(0),ptIds -> GetId(1),ptIds -> GetId(2)};
+
     facets[i] = facet;
 
   }
 
 
-  Body targetObj(vertices,facets,rho,spec);
+  Body targetObj(vertices,facets,this -> rho,this -> spec);
 
   // Determine limits for voxel grid
   double xmax = 1.01 * targetObj.getMaxDim(1);
@@ -196,8 +204,6 @@ int SBGATSrpYorp::RequestData(
 
   return 1;
 }
-
-
 
 void SBGATSrpYorp::PrintHeader(ostream& os, vtkIndent indent) {
 

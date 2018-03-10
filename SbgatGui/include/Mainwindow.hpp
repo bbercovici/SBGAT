@@ -230,6 +230,13 @@ through the user interface layer brought by Qt.}
 		QAction * open_settings_window_action;
 
 
+	/**
+	When triggered, opens a window letting the user compute the 
+	Fourier coefficients of the YORP force/torque acting on a small body
+	*/
+		QAction * open_compute_yorp_window_action;
+
+
 		/**
 	When triggered, opens camera properties window.
 	*/
@@ -344,6 +351,14 @@ through the user interface layer brought by Qt.}
 	Using this name to remove the shape, mappers, polydatas and actors associated with it.
 	*/
 		void remove_prop();
+
+
+		/**
+		Open a dialog window where the user can specify the parameters for the 
+		computation of the Fourier expansion coefficients of the YORP force/torque 
+		acting on a body
+		*/
+		void open_compute_yorp_window();
 
 
 		/**
@@ -558,7 +573,7 @@ through the user interface layer brought by Qt.}
 		QMenu * MeasuresMenu;
 		QMenu * TrajectoryMenu;
 		QMenu * ViewMenu;
-		QMenu * DynamicAnalysesMenu;
+		QMenu * AnalysesMenu;
 		QMenu * ConsoleMenu;
 		QMenu * ResultsMenu;
 

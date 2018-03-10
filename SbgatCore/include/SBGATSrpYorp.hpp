@@ -79,6 +79,18 @@ public:
   */  
   void set_numVox(int numVox);
 
+  /**
+  Setter to reflectivity
+  @param rho
+  */
+  void set_rho(double rho);
+
+   /**
+  Setter to specular component
+  @param spec
+  */
+  void set_spec(double spec);
+
 
 
   /**
