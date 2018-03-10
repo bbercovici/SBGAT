@@ -31,8 +31,9 @@ namespace SBGAT_GUI {
 a YORP coefficients computation
 
 \details This class inherits from QDialog and enables the
-user to set a number of options. Default options values will eventually be
-saved to a hidden configuration file loaded anytime SbgatGui starts up.
+user to set a number of options used in the YORP coefficients calculation. The calculation 
+can only take place if a spacecraft or a small body shape model is available and if an output directory 
+has been specified
 */
 
 	class YORPWindow : public QDialog {

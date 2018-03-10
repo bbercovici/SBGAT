@@ -19,7 +19,9 @@
  * @author Benjamin Bercovici
  * @brief  Computation of Fourier decomposition of force/torques caused by SRP over a shape model
  *
- * @details to be completed
+ * @details Wrapper around YORPLib to allow VTK's Polydata to be utilized as shape containers.
+ see Scheeres, D. J. (2007). `The dynamical evolution of uniformly rotating asteroids subject to YORP`. Icarus, 188(2), 430–450. https://doi.org/10.1016/j.icarus.2006.12.015
+ for more details
 */
 
 #ifndef SBGATSrpYorp_HEADER
@@ -42,8 +44,6 @@ public:
   void PrintSelf(std::ostream& os, vtkIndent indent) override;
   void PrintHeader(std::ostream& os, vtkIndent indent) override;
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
-
-
 
 
   /**
@@ -100,8 +100,8 @@ public:
   void set_howManyBounces(int howManyBounces);
 
   /**
-  Setter to path where results are stored
-  @param outputFileBaseName save path
+  Setter to directory where results are stored
+  @param outputFileBaseName save directory
   */  
   void set_outputFileBaseName(std::string outputFileBaseName);
 
