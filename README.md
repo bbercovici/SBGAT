@@ -3,9 +3,7 @@ The Small Bodies Geophysical Analysis Tool implementation
 
 Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
 
-* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes into a backend SBGATCore and frontend SBGATGui libraries. 
-
-* All of SBGAT's functionality will be eventually available from within and without the GUI.
+* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SBGATCore* and a frontend component *SBGATGui* exposing SBGATCore's classes through a GUI.
 
 * The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository. 
 
@@ -28,7 +26,7 @@ SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new cap
 * Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the YORP force and torque  Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in [The dynamical evolution of uniformly rotating asteroids subject to YORP](https://doi.org/10.1016/j.icarus.2006.12.015) by Scheeres, D. J. (2007).
 * YORP coefficients computation can be performed from within SBGATGui through the *Analyses* drop-down menu.  
 
- **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui  [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#yorplib)** 
+ **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#yorplib)** 
 
 ### SBGAT 1.02.1
 SBGAT 1.02.1 marks the transition to VTK as SBGAT's backbone. 
