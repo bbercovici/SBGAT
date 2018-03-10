@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$class_s_b_g_a_t_mass_properties.html" title="Computes volume, area, shape index, center of mass, inertia tensor and principal axes of a polyhedral..." alt="" coords="5,31,164,56"/>
+<area shape="rect" id="node2" href="$class_s_b_g_a_t_polyhedron_gravity_model.html" title="Evaluation of potential, acceleration caused by a constant&#45;density polyhedron. " alt="" coords="212,5,423,31"/>
+<area shape="rect" id="node3" href="$class_s_b_g_a_t_srp_yorp.html" title="Computation of Fourier decomposition of force/torques caused by SRP over a shape model. " alt="" coords="261,55,374,80"/>
+</map>
