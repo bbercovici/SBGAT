@@ -25,7 +25,7 @@ It was generated with Doxygen and hosted on GitHub using the method described [h
 ### SBGAT 1.03.0
 SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new capability
 
-* Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the force and torque YORP Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in *The dynamical evolution of uniformly rotating asteroids subject to YORP* by Scheeres, D. J. (2007), Icarus, 188(2), 430–450. https://doi.org/10.1016/j.icarus.2006.12.015 
+* Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the YORP force and torque  Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in [The dynamical evolution of uniformly rotating asteroids subject to YORP by Scheeres, D. J. (2007)](https://doi.org/10.1016/j.icarus.2006.12.015} 
 * YORP coefficients computation can be performed from within SBGATGui through the *Analyses* drop-down menu.  
 
  **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui  [Instructions are provided on the corresponding wiki page](https://github.com/bbercovici/SBGAT/wiki/2)-Compile-and-install-SBGAT-dependencies#yorplib)** 
