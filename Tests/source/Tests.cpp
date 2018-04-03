@@ -36,6 +36,9 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkLinearSubdivisionFilter.h>
+#include <boost/progress.hpp>
+
+
 
 void TestsSBCore::run() {
 
@@ -47,6 +50,7 @@ void TestsSBCore::run() {
 	// TestsSBCore::test_spherical_harmonics_consistency();
 	// TestsSBCore::test_spherical_harmonics_invariance();
 
+	std::cout << "All tests passed.\n";
 
 }
 
@@ -159,11 +163,16 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 	auto start = std::chrono::system_clock::now();
 	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of Eros. This may take a few minutes ...\n";
+	
+	boost::progress_display progress(cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
+
 	for (vtkIdType i = 0; i < cellCentersFilter -> GetOutput() -> GetNumberOfPoints(); ++i){
 		double p[3];
 		cellCentersFilter -> GetOutput() -> GetPoint(i, p);
 		surface_accelerations.row(i) = pgm_filter -> ComputePgmAcceleration(p ,2670.).t();
+		++progress;
 	}
+
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "-- Done computing pgm accelerations in " << elapsed_seconds.count() << " s\n";
