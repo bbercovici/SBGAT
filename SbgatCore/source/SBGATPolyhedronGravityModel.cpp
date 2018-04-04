@@ -301,6 +301,13 @@ int SBGATPolyhedronGravityModel::RequestData(
 }
 
 
+
+
+double SBGATPolyhedronGravityModel::GetPotential(arma::vec point){
+	return this -> GetPotential(point.colptr(0));
+}
+
+
 double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 	double potential = 0;
@@ -434,6 +441,11 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 }
 
+
+
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(arma::vec point){
+	return this-> GetAcceleration(  point.colptr(0));
+}
 
 arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 

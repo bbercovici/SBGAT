@@ -52,16 +52,34 @@ public:
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame as
+  @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
   @return PGM potential evaluated at the queried point
   */
   double GetPotential(double * point);
 
   /**
+  Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
+  a constant density
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @return PGM potential evaluated at the queried point
+  */
+  double GetPotential( arma::vec point);
+
+  /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @return PGM acceleration evaluated at the queried point
+  */
+  arma::vec GetAcceleration(arma::vec point);
+
+   /**
+  Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
+  a constant density
+  @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
   @return PGM acceleration evaluated at the queried point
   */
@@ -102,6 +120,7 @@ public:
 protected:
   SBGATPolyhedronGravityModel();
   ~SBGATPolyhedronGravityModel() override;
+
 
   void Clear();
 

@@ -138,40 +138,29 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	reader -> SetFileName(filename.c_str());
 	reader -> Update(); 
 
-
-	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-	vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter -> SetInputConnection(reader->GetOutputPort());
-	triangleFilter -> Update();
-
-	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-	cleanPolyData->Update();
-
+	// Creating the PGM dyads
 	std::cout << "-- Creating dyads...\n";
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
-
-
+	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(2670. * 1e9);
 	pgm_filter -> SetScaleKiloMeters();
-
 	pgm_filter -> Update();
 	std::cout << "-- Done creating dyads...\n";
 
-
-	vtkSmartPointer<vtkPolyData> polydata = cleanPolyData -> GetOutput();
-
+	// Creating a filter that will extract the center of each facet
+	vtkSmartPointer<vtkPolyData> polydata = reader -> GetOutput();
 	vtkSmartPointer<vtkCellCenters> cellCentersFilter = 
 	vtkSmartPointer<vtkCellCenters>::New();
-	
-	cellCentersFilter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	cellCentersFilter -> SetInputConnection(reader -> GetOutputPort());
 	cellCentersFilter -> Update();
 
+
+	// Preallocating 
 	arma::mat surface_accelerations(cellCentersFilter -> GetOutput() -> GetNumberOfPoints(),3);
 
 	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
+
+
 	auto start = std::chrono::system_clock::now();
 	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of" << filename <<  " . This may take a few minutes ...\n";
 	
@@ -251,7 +240,7 @@ void TestsSBCore::test_sbgat_pgm() {
 	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
 
 		// Queried point for pgm validation
-		double p4[3] = {1, 2, 3};
+		arma::vec p4 = {1, 2, 3};
 
 		arma::vec acc_true = {
 			-1.273782722739791e-06,
@@ -261,22 +250,21 @@ void TestsSBCore::test_sbgat_pgm() {
 		double pot_true = 0.26726619638669064 * arma::datum::G * density;
 
 
-		arma::vec pgm_acc = pgm_filter -> GetAcceleration(p4);
-		double pgm_pot = pgm_filter -> GetPotential(p4);
+		arma::vec pgm_acc = pgm_filter -> GetAcceleration(p4.colptr(0));
+		double pgm_pot = pgm_filter -> GetPotential(p4.colptr(0));
 
 		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
 
+		pgm_acc = pgm_filter -> GetAcceleration(p4);
+		pgm_pot = pgm_filter -> GetPotential(p4);
 
+		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
+		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
 
 	}
 
-
-
 	std::cout << "- Done running test_sbgat_pgm" << std::endl;
-
-
-
 
 }
 
