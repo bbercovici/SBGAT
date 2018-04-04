@@ -19,9 +19,6 @@ It was generated with Doxygen and hosted on GitHub using the method described [h
 
 ## Changelog
 
-Werner, R. a. (1997). . Computers & Geosciences, 23(10), 1071–1077. https://doi.org/10.1016/S0098-3004(97)00110-6
-
-
 ### SBGAT 1.04.0
 SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the exterior gravity field about a constant-density polyhedron
 
