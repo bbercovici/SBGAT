@@ -3,6 +3,8 @@
   Program:   Visualization Toolkit
   Module:    SBGATSrpYorp.cxx
 
+  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
   See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
@@ -35,7 +37,6 @@ vtkStandardNewMacro(SBGATSrpYorp);
 // Constructs with initial 0 values.
 SBGATSrpYorp::SBGATSrpYorp(){
 
-
   this -> numVox = 40;
   this -> rho = 1;
   this -> spec = 0;
@@ -44,7 +45,6 @@ SBGATSrpYorp::SBGATSrpYorp(){
   this -> maxFourier = 2;
   this -> howManyBounces = 3;
   this -> numrefine = 5;
-
 
 
   this->SetNumberOfOutputPorts(0);

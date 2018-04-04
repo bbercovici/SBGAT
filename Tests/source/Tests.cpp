@@ -12,6 +12,7 @@
 #include <vtkObjectFactory.h>
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
+#include <SBGATSphericalHarmo.hpp>
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -45,9 +46,10 @@ void TestsSBCore::run() {
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
+	TestsSBCore::test_spherical_harmonics_coefs_consistency();
+
 
 	// TODO: reimplement in SbgatCore
-	// TestsSBCore::test_spherical_harmonics_consistency();
 	// TestsSBCore::test_spherical_harmonics_invariance();
 
 	std::cout << "All tests passed.\n";
@@ -127,9 +129,13 @@ of Eros for benchmarking purposes
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
+
+	std::string filename  = "../KW4Alpha.obj";
+
+
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../eros_64.obj");
+	reader -> SetFileName(filename.c_str());
 	reader -> Update(); 
 
 
@@ -146,6 +152,11 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "-- Creating dyads...\n";
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+
+
+	pgm_filter -> SetDensity(2670. * 1e9);
+	pgm_filter -> SetScaleKiloMeters();
+
 	pgm_filter -> Update();
 	std::cout << "-- Done creating dyads...\n";
 
@@ -162,14 +173,14 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 	auto start = std::chrono::system_clock::now();
-	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of Eros. This may take a few minutes ...\n";
+	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of" << filename <<  " . This may take a few minutes ...\n";
 	
 	boost::progress_display progress(cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 
 	for (vtkIdType i = 0; i < cellCentersFilter -> GetOutput() -> GetNumberOfPoints(); ++i){
 		double p[3];
 		cellCentersFilter -> GetOutput() -> GetPoint(i, p);
-		surface_accelerations.row(i) = pgm_filter -> ComputePgmAcceleration(p ,2670.).t();
+		surface_accelerations.row(i) = pgm_filter -> GetAcceleration(p ).t();
 		++progress;
 	}
 
@@ -196,6 +207,8 @@ void TestsSBCore::test_sbgat_pgm() {
 
 		source->SetCenter(0.0, 0.0, 0.0);
 
+		double density = 1e6;
+
 
 		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
 		vtkSmartPointer<vtkTriangleFilter>::New();
@@ -210,6 +223,10 @@ void TestsSBCore::test_sbgat_pgm() {
 
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+
+
+		pgm_filter -> SetDensity(density);
+		pgm_filter -> SetScaleMeters();
 		pgm_filter -> Update();
 
 		
@@ -233,7 +250,6 @@ void TestsSBCore::test_sbgat_pgm() {
 	// The analytic potential and acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
 	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
 
-
 		// Queried point for pgm validation
 		double p4[3] = {1, 2, 3};
 
@@ -242,9 +258,11 @@ void TestsSBCore::test_sbgat_pgm() {
 			-2.548008881415967e-06,
 			-3.823026510474731e-06
 		};
-		double pot_true = 0.26726619638669064 * arma::datum::G * 1e6;
-		arma::vec pgm_acc = pgm_filter -> ComputePgmAcceleration(p4,1e6);
-		double pgm_pot = pgm_filter -> ComputePgmPotential(p4,1e6);
+		double pot_true = 0.26726619638669064 * arma::datum::G * density;
+
+
+		arma::vec pgm_acc = pgm_filter -> GetAcceleration(p4);
+		double pgm_pot = pgm_filter -> GetPotential(p4);
 
 		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
@@ -265,74 +283,105 @@ void TestsSBCore::test_sbgat_pgm() {
 
 /**
 This test checks the consistency of the spherical harmonics coefficients computation 
-about a shape model of Eros against, evaluates the resulting acceleration, and compares
-it to one extracted from the polyhedron gravity model acceleration
-
+about a shape model of KW4 
 */
 
-// void TestsSBCore::test_spherical_harmonics_consistency() {
+void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
-// 	std::cout << "- Running test_spherical_harmonics_consistency ..." << std::endl;
+	std::cout << "- Running test_spherical_harmonics_coefs_consistency ..." << std::endl;
 
 
-// 	SBGAT_CORE::FrameGraph frame_graph;
-// 	SBGAT_CORE::ShapeModel eros("B", &frame_graph);
-// 	SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../KW4Alpha.obj");
+	reader -> Update(); 
 
-// 	shape_io.load_shape_model(&eros,false);
-// 	SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
 
-// 	// Harmonics up to degree five are computed
-// 	int degree = 5;
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(reader->GetOutputPort());
+	triangleFilter -> Update();
 
-// 	// Density of Eros (kg/km^3). The input shape model has 
-// 	// its coordinates expressed in km 
-// 	double density = 2670000000000.0;
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+	cleanPolyData->Update();
 
-// 	// Reference radius of Eros (km)
-// 	double ref_radius = 16;
 
-// 	// Flag set to true for normalized coefficients, false for unnormalized ones
-// 	bool normalized = true;
+	// Harmonics up to degree five are computed
+	int degree = 5;
 
-// 	arma::mat Cnm_total;
-// 	arma::mat Snm_total;
+	// Density of KW4 (kg/km^3). The input shape model has 
+	// its coordinates expressed in km 
+	double density = 2000000000000.0;
 
-// 	dynamic_analyses.compute_exterior_sh_coefs(
-// 		Cnm_total,
-// 		Snm_total,
-// 		degree,
-// 		ref_radius,
-// 		density,
-// 		normalized);
+	// Reference radius of KW4 (km)
+	double ref_radius = 1.317/2;
 
-// 	// The standard gravitational parameter of Eros is computed
-// 	double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
+	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
 
-// 	// The accelerations are evaluated at the query point
-// 	arma::vec pos = {10,10,10};
+	spherical_harmonics -> SetInputConnection(cleanPolyData -> GetOutputPort());
 
-// 	// Accelerations obtained from the legacy MEX implementation 
-// 	// of this spherical harmonics code by Yu Takahashi
-// 	// and Siamak Hesar
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
 
-// 	arma::vec acc_true = { -0.567824977098112e-6,
-// 		-0.846742135468519e-6,
-// 		-0.836664679681573e-6
-// 	};
+	spherical_harmonics -> SetDensity(density);
+	spherical_harmonics -> SetScaleKiloMeters();
+	spherical_harmonics -> SetReferenceRadius(ref_radius);
+	spherical_harmonics -> IsNormalized(); // can be skipped as normalized coefficients is the default parameter
+	spherical_harmonics -> SetDegree(degree);
+	spherical_harmonics -> Update();
 
-// 	arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
-// 		ref_radius,
-// 		mu,
-// 		pos, 
-// 		Cnm_total,
-// 		Snm_total);
 
-// 	assert(arma::norm(acc_true - acc_sph) / arma::norm(acc_sph) < 1e-10);
+	pgm_filter -> SetDensity(density);
+	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> Update();
 
-// 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
-// }
+	// The accelerations are evaluated at the query point
+	arma::vec pos = {3,5,-2};
+
+	arma::vec pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
+	arma::vec sharm_acc = spherical_harmonics -> GetAcceleration(pos);
+
+	assert(arma::norm(pgm_acc - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-4);
+
+
+
+
+	// dynamic_analyses.compute_exterior_sh_coefs(
+	// 	Cnm_total,
+	// 	Snm_total,
+	// 	degree,
+	// 	ref_radius,
+	// 	density,
+	// 	normalized);
+
+	// // The standard gravitational parameter of Eros is computed
+	// double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
+
+
+	// // Accelerations obtained from the legacy MEX implementation 
+	// // of this spherical harmonics code by Yu Takahashi
+	// // and Siamak Hesar
+
+	// arma::vec acc_true = { -0.567824977098112e-6,
+	// 	-0.846742135468519e-6,
+	// 	-0.836664679681573e-6
+	// };
+
+	// arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
+	// 	ref_radius,
+	// 	mu,
+	// 	pos, 
+	// 	Cnm_total,
+	// 	Snm_total);
+
+	// assert(arma::norm(acc_true - acc_sph) / arma::norm(acc_sph) < 1e-10);
+
+	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
+
+}
 
 // void TestsSBCore::test_spherical_harmonics_invariance(){
 

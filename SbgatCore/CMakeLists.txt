@@ -119,6 +119,11 @@ find_package(YORPLib REQUIRED PATHS ${YORPLIB_LOC})
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
 
+# Find SHARMLib
+find_package(SHARMLib REQUIRED PATHS ${SHARMLIB_LOC})
+include_directories(${SHARMLIB_INCLUDE_HEADER})
+
+
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
 include_directories(${RBK_INCLUDE_DIR})
@@ -138,6 +143,7 @@ source/SBGATFrameGraph.cpp
 source/SBGATPolyhedronGravityModel.cpp
 source/SBGATMassProperties.cpp
 source/SBGATSrpYorp.cpp
+source/SBGATSphericalHarmo.cpp
 )
 
 # Linking
@@ -146,7 +152,9 @@ ${ARMADILLO_LIBRARIES}
 ${Boost_LIBRARIES}
 ${VTK_LIBRARIES}
 ${RBK_LIBRARY}
-${YORPLIB_LIBRARY})
+${YORPLIB_LIBRARY}
+${SHARMLIB_LIBRARY}
+)
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing

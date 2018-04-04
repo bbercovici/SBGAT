@@ -3,6 +3,8 @@
   Program:   Visualization Toolkit
   Module:    SBGATMassProperties.cxx
 
+  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
   See Copyright.txt or http://www.kitware.com/Copyright.htm for details.

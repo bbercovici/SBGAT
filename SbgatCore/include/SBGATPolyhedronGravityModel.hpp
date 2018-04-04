@@ -54,22 +54,18 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @param density constant density in kg/m^3
-  @param G Gravitational constant, by default set to 6.67408 × 10-11 m^3/(kg s^2)
   @return PGM potential evaluated at the queried point
   */
-  double ComputePgmPotential(double * point ,const double density,const double G = arma::datum::G);
+  double GetPotential(double * point);
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @param density constant density in kg/m^3
-  @param G Gravitational constant, by default set to 6.67408 × 10-11 m^3/(kg s^2)
   @return PGM acceleration evaluated at the queried point
   */
-  arma::vec ComputePgmAcceleration(double * point ,const double density,const double G = arma::datum::G);
+  arma::vec GetAcceleration(double * point);
 
   /** 
   Determines whether the provided point lies inside or outside the shape
@@ -81,10 +77,34 @@ public:
   bool Contains(double * point, double tol = 1e-8);
 
 
+  /**
+  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
+  */
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
+
+  /**
+  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
+  */
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+
+  /**
+  Sets polyhedron density
+  @param density bulk density of polyhedron
+  */
+  void SetDensity(const double density){
+    this -> density = density;
+    this -> densitySet = true;
+  }
+
+
+
 
 protected:
   SBGATPolyhedronGravityModel();
   ~SBGATPolyhedronGravityModel() override;
+
+  void Clear();
+
 
   int RequestData(vtkInformation* request,
     vtkInformationVector** inputVector,
@@ -95,12 +115,17 @@ protected:
   double ** facet_normals;
   double ** vertices;
 
+  double scaleFactor;
+  double density;
+
   int ** edges;
   int ** facets;
 
+  bool scaleFactorSet;
+  bool densitySet;
 
-  unsigned int N_facets;
-  unsigned int N_edges;
+  int N_facets;
+  int N_edges;
 
 
   vtkSmartPointer<SBGATMassProperties> mass_properties;

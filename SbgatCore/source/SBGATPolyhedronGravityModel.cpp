@@ -3,6 +3,8 @@
   Program:   Visualization Toolkit
   Module:    SBGATMassProperties.cxx
 
+  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
   See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
@@ -39,6 +41,10 @@ vtkStandardNewMacro(SBGATPolyhedronGravityModel);
 //----------------------------------------------------------------------------
 // Constructs with initial 0 values.
 SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
+
+	this -> N_facets = 0;
+	this -> N_edges = 0;
+
 	
 	this->SetNumberOfOutputPorts(0);
 }
@@ -47,45 +53,7 @@ SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
 // Destroy any allocated memory.
 SBGATPolyhedronGravityModel::~SBGATPolyhedronGravityModel(){
 
-	auto N_vertices = this -> N_edges - this -> N_facets + 2;
-
-	//Vertices
-	for(unsigned int i = 0; i < N_vertices; ++i) {
-		delete[] this -> vertices[i];   
-	}
-	delete[] this -> vertices;
-
-	//Facet dyads
-	for(unsigned int i = 0; i < this -> N_facets; ++i) {
-		delete[] this -> facet_dyads[i];   
-	}
-	delete[] this -> facet_dyads;
-
-	//Facets
-	for(unsigned int i = 0; i < this -> N_facets; ++i) {
-		delete[] this -> facets[i];   
-	}
-	delete[] this -> facets;
-
-	//Facet normals
-	for(unsigned int i = 0; i < this -> N_facets; ++i) {
-		delete[] this -> facet_normals[i];   
-	}
-	delete[] this -> facet_normals;
-
-
-	//Edge dyads
-	for(unsigned int i = 0; i < this -> N_edges; ++i) {
-		delete[] this -> edge_dyads[i];   
-	}
-	delete[] this -> edge_dyads;
-
-	//Edges 
-	for(unsigned int i = 0; i < this -> N_edges; ++i) {
-		delete[] this -> edges[i];   
-	}
-	delete[] this -> edges;
-
+	this -> Clear();
 
 
 }
@@ -102,6 +70,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkInformationVector* vtkNotUsed( outputVector )){
 	vtkInformation *inInfo =
 	inputVector[0]->GetInformationObject(0);
+
+
+
+	if (!(this -> densitySet && this -> scaleFactorSet)){
+		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor may have not been properly set"));
+	}
 
   // call ExecuteData
 	vtkPolyData * input = vtkPolyData::SafeDownCast(
@@ -148,7 +122,8 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
 	
-
+	// Any data previously owned is erased
+	this -> Clear();
 
 	// The vertex coordinates are extracted
 	this -> vertices = new double * [input -> GetNumberOfPoints()];
@@ -158,7 +133,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> vertices[i] = new double[3];
 		input -> GetPoint(i,this -> vertices[i]);
 	}
-
 
 	// The facet dyads are created
 	this -> facet_dyads = new double * [numCells];
@@ -196,8 +170,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> facets[i][1] = ptIds -> GetId(1);
 		this -> facets[i][2] = ptIds -> GetId(2);
 
-
-		
 	}
 
 	// The edges are extracted
@@ -329,7 +301,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 }
 
 
-double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const double density,const double G) {
+double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 	double potential = 0;
 
@@ -411,7 +383,7 @@ double SBGATPolyhedronGravityModel::ComputePgmPotential(double * point ,const do
 
 	}
 
-	potential *= 0.5 * G * density;
+	potential *= 0.5 * arma::datum::G / std::pow(this -> scaleFactor,3) * this ->density;
 
 	return potential;
 
@@ -463,7 +435,7 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 }
 
 
-arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,const double density,const double G) {
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 
 	double acc_x = 0;
 	double acc_y = 0;
@@ -474,11 +446,9 @@ arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,co
 	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-	
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
 		double * r1 = this -> vertices[this -> facets[facet_index][1]];
 		double * r2 = this -> vertices[this -> facets[facet_index][2]];
-
 
 		double r0m[3];
 		double r1m[3];
@@ -539,7 +509,7 @@ arma::vec SBGATPolyhedronGravityModel::ComputePgmAcceleration(double * point ,co
 	}
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
-	acc *= G * density;
+	acc *= arma::datum::G  / std::pow(this -> scaleFactor,3)* this -> density;
 
 	return acc;
 
@@ -553,6 +523,52 @@ void SBGATPolyhedronGravityModel::PrintTrailer(ostream& os, vtkIndent indent) {
 
 }
 
+
+void SBGATPolyhedronGravityModel::Clear(){
+	if (this -> N_facets > 0){
+		int N_vertices = this -> N_edges - this -> N_facets + 2;
+
+	//Vertices
+		for(unsigned int i = 0; i < N_vertices; ++i) {
+			delete[] this -> vertices[i];   
+		}
+		delete[] this -> vertices;
+
+	//Facet dyads
+		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+			delete[] this -> facet_dyads[i];   
+		}
+		delete[] this -> facet_dyads;
+
+	//Facets
+		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+			delete[] this -> facets[i];   
+		}
+		delete[] this -> facets;
+
+	//Facet normals
+		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+			delete[] this -> facet_normals[i];   
+		}
+		delete[] this -> facet_normals;
+
+
+	//Edge dyads
+		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+			delete[] this -> edge_dyads[i];   
+		}
+		delete[] this -> edge_dyads;
+
+	//Edges 
+		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+			delete[] this -> edges[i];   
+		}
+		delete[] this -> edges;
+	}
+}
+
+
+
 //----------------------------------------------------------------------------
 void SBGATPolyhedronGravityModel::PrintSelf(std::ostream& os, vtkIndent indent){
 
@@ -561,21 +577,6 @@ void SBGATPolyhedronGravityModel::PrintSelf(std::ostream& os, vtkIndent indent){
 	{
 		return;
 	}
-  //   os << "\tVolumeX: " << this->GetVolumeX () << "\n";
-  //   os << "\tVolumeY: " << this->GetVolumeY () << "\n";
-  //   os << "\tVolumeZ: " << this->GetVolumeZ () << "\n";
-  //   os << "\tKx: " << this->GetKx () << "\n";
-  //   os << "\tKy: " << this->GetKy () << "\n";
-  //   os << "\tKz: " << this->GetKz () << "\n";
-  //   os << "\tVolume:  " << this->GetVolume  () << "\n";
-  // //os << indent << "Volume Projected:  " << this->GetVolumeProjected  () << "\n";
-  // //os << indent << "Volume Error:  " <<
-  // //  fabs(this->GetVolume() - this->GetVolumeProjected())   << "\n";
-  //   os << "\tSurface Area: " << this->GetSurfaceArea () << "\n";
-  //   os << "\tMin Cell Area: " << this->GetMinCellArea () << "\n";
-  //   os << "\tMax Cell Area: " << this->GetMaxCellArea () << "\n";
-  //   os << "\tNormalized Shape Index: "
-  //   << this->GetNormalizedShapeIndex () << "\n";
 }
 
 

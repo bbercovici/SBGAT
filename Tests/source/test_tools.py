@@ -1,4 +1,4 @@
-# @file   ellispoid_tools.py
+# @file   test_tools.py
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   August, 2017
 # @brief  Python routines enabling computation of the analytical gravity acceleration created by an ellispoidal shape

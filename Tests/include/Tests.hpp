@@ -16,8 +16,8 @@ void test_sbgat_mass_properties();
 void test_sbgat_pgm_speed();
 void test_sbgat_pgm();
 
-void test_spherical_harmonics_consistency();
-void test_spherical_harmonics_invariance();
+void test_spherical_harmonics_coefs_consistency();
+// void test_spherical_harmonics_invariance();
 
 }
 
