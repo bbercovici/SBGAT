@@ -85,6 +85,7 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	cleanPolyData->SetInputConnection(subdivisionFilter->GetOutputPort());
 	cleanPolyData->Update();
 
+
 	vtkSmartPointer<vtkTransform> transform_rot = vtkSmartPointer<vtkTransform>::New();
 	transform_rot->RotateWXYZ(10, 0, 1, 0);
 	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter_rot = 
@@ -106,6 +107,8 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
 	mass_filter -> SetInputConnection(transformFilter_trans -> GetOutputPort());
 	mass_filter -> Update();
+
+	assert(mass_filter -> CheckClosed());
 
 	// the inertia moments are invariant by rotation/translation
 	arma::vec inertia_moments = {1./6,1./6,1./6}; 
@@ -129,9 +132,7 @@ of Eros for benchmarking purposes
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
-
 	std::string filename  = "../KW4Alpha.obj";
-
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -155,7 +156,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	cellCentersFilter -> Update();
 
 
-	// Preallocating 
+	// Preallocating
 	arma::mat surface_accelerations(cellCentersFilter -> GetOutput() -> GetNumberOfPoints(),3);
 
 	assert(polydata -> GetNumberOfCells() == cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
