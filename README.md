@@ -19,6 +19,16 @@ It was generated with Doxygen and hosted on GitHub using the method described [h
 
 ## Changelog
 
+Werner, R. a. (1997). . Computers & Geosciences, 23(10), 1071–1077. https://doi.org/10.1016/S0098-3004(97)00110-6
+
+
+### SBGAT 1.04.0
+SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the exterior gravity field about a constant-density polyhedron
+
+* Added *SBGATSphericalHarmo*, a SBGAT filter enabling the computation and evaluation of the spherical harmonics coefficients of the exterior gravity field caused by a constant density shape represented by a VTK Polydata. This class effectively provides a wrapper around *SHARMLib*, a library developed by Benjamin Bercovici from the original works of Yu Takahashi and Siamak Hesar at the University of Colorado Boulder. For more details, see [Spherical harmonic coefficients for the potential of a constant-density polyhedron](https://www.sciencedirect.com/science/article/pii/S0098300497001106) by Werner, R. a. (1997).
+
+ **Note that *SHARMLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#sharmlib)** 
+
 
 ### SBGAT 1.03.0
 SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new capability
