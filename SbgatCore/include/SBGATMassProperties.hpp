@@ -91,6 +91,13 @@ public:
    */
   double GetMaxCellArea() {this->Update(); return this->MaxCellArea;}
 
+
+  /**
+  Checks whether the polydata is topologically closed or open
+  If closed, the sum of the oriented surface area should be equal to zero
+  */
+  bool CheckClosed(){this -> Update(); return this -> IsClosed;}
+
   /**
    * Compute and return the normalized shape index. This characterizes the
    * deviation of the shape of an object from a sphere. A sphere's NSI
@@ -168,19 +175,21 @@ public:
           double  MinCellArea;
           double  MaxCellArea;
           double  Volume;
-  double  VolumeProjected; // == Projected area of triangles * average z values
-  double  VolumeX;
-  double  VolumeY;
-  double  VolumeZ;
-  double  Kx;
-  double  Ky;
-  double  Kz;
-  double  NormalizedShapeIndex;
-  double bounds[6];
-private:
-  SBGATMassProperties(const SBGATMassProperties&) = delete;
-  void operator=(const SBGATMassProperties&) = delete;
-};
+          double  VolumeProjected; 
+          double  VolumeX;
+          double  VolumeY;
+          double  VolumeZ;
+          double  Kx;
+          double  Ky;
+          double  Kz;
+          double  NormalizedShapeIndex;
+          double bounds[6];
+          bool IsClosed;
+
+        private:
+          SBGATMassProperties(const SBGATMassProperties&) = delete;
+          void operator=(const SBGATMassProperties&) = delete;
+        };
 
 #endif
 

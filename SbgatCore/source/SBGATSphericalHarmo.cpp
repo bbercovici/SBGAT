@@ -89,6 +89,10 @@ int SBGATSphericalHarmo::RequestData(
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(input);
   mass_properties -> Update();
+
+  // Check that the shape is topologically closed
+  assert(mass_properties -> CheckClosed());
+
   this -> totalMass = mass_properties -> GetVolume() * this -> density;
 
   // Looping over all facets

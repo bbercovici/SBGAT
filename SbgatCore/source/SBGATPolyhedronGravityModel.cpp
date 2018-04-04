@@ -297,6 +297,9 @@ int SBGATPolyhedronGravityModel::RequestData(
 	// Check that the Euler characteristic == 2
 	assert (input -> GetNumberOfPoints() - edge_count + numCells == 2);
 
+	// Check that the shape is topologically closed
+	assert(this -> mass_properties -> CheckClosed());
+
 	return 1;
 }
 

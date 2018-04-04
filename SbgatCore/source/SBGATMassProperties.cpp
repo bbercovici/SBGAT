@@ -29,8 +29,7 @@ vtkStandardNewMacro(SBGATMassProperties);
 
 //----------------------------------------------------------------------------
 // Constructs with initial 0 values.
-SBGATMassProperties::SBGATMassProperties()
-{
+SBGATMassProperties::SBGATMassProperties(){
   this->SurfaceArea = 0.0;
   this->MinCellArea = 0.0;
   this->MaxCellArea = 0.0;
@@ -89,6 +88,7 @@ int SBGATMassProperties::RequestData(
   double    xp[3]; // to compute volumeproj
   double    munc[3],wxyz,wxy,wxz,wyz;
   double    area,surfacearea;
+  double sum_surface[3];
   double    volumeproj;
   double    mincellarea, maxcellarea;
   double    a,b,c,s;
@@ -105,6 +105,7 @@ int SBGATMassProperties::RequestData(
   double P_xz;
   double P_yz;
   double l; //normalizing length
+  double average_surface;
 
   vtkIdType idx;
 
@@ -118,14 +119,18 @@ int SBGATMassProperties::RequestData(
   P_xx = 0;   P_yy = 0;   P_zz = 0;
   P_xy = 0;   P_yz = 0;   P_xz = 0;
 
+  sum_surface[0] = 0;
+  sum_surface[1] = 0;
+  sum_surface[2] = 0;
+  average_surface = 0;
+
 
   input -> GetBounds(this -> bounds);
   arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
   arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
   l = arma::norm(bbox_max - bbox_min);
 
-  for ( idx = 0; idx < 3 ; idx++ )
-  {
+  for ( idx = 0; idx < 3 ; idx++ ){
     munc[idx] = 0.0;
     vol[idx]  = 0.0;
     kxyz[idx] = 0.0;
@@ -229,6 +234,11 @@ int SBGATMassProperties::RequestData(
     s = 0.5 * (a + b + c);
     area = sqrt( fabs(s*(s-a)*(s-b)*(s-c)));
     surfacearea += area;
+
+    average_surface += area / numCells;
+
+
+
     if( area < mincellarea )
     {
       mincellarea = area;
@@ -329,6 +339,12 @@ int SBGATMassProperties::RequestData(
       + y[1] * z[2]
       + z[1] * y[2]);
 
+
+
+    // Sum of oriented surface
+    vtkMath::MultiplyScalar(u,area);
+    vtkMath::Add(u,sum_surface,sum_surface);
+
   }
 
   // Surface Area ...
@@ -411,6 +427,15 @@ int SBGATMassProperties::RequestData(
 
     } 
 
+
+    // Closeness of topology given sum of oriented surface
+    if (vtkMath::Norm(sum_surface) / average_surface < 1e-8){
+      this -> IsClosed = true;
+    }
+    else{
+      this -> IsClosed = false;
+    }
+
     return 1;
   }
 
@@ -428,8 +453,7 @@ int SBGATMassProperties::RequestData(
   void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
 
     vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
-    if (!input)
-    {
+    if (!input){
       return;
     }
     os << "\tVolumeX: " << this->GetVolumeX () << "\n";
