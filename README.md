@@ -1,4 +1,5 @@
 # SBGAT
+
 The Small Bodies Geophysical Analysis Tool implementation
 
 Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
@@ -10,16 +11,23 @@ Public repository storing the source code of the implementation of the Small Bod
 * The `develop` branch features code is undergoing active development or debugging.
 
 ## Wiki
+
 The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki)
 
 ## Documentation
-The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html) 
 
+The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html) 
 It was generated with Doxygen and hosted on GitHub using the method described [here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
+
+## License
+
+[This software is distributed under the MIT License](https://choosealicense.com/licenses/mit/)
+
 
 ## Changelog
 
 ### SBGAT 1.04.0
+
 SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the exterior gravity field about a constant-density polyhedron
 
 * Added *SBGATSphericalHarmo*, a SBGAT filter enabling the computation and evaluation of the spherical harmonics coefficients of the exterior gravity field caused by a constant density shape represented by a VTK Polydata. This class effectively provides a wrapper around *SHARMLib*, a library developed by Benjamin Bercovici from the original works of Yu Takahashi and Siamak Hesar at the University of Colorado Boulder. For more details, see [Spherical harmonic coefficients for the potential of a constant-density polyhedron](https://www.sciencedirect.com/science/article/pii/S0098300497001106) by Werner, R. a. (1997).
@@ -29,6 +37,7 @@ SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the
 
 
 ### SBGAT 1.03.0
+
 SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new capability
 
 * Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the YORP force and torque  Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in [The dynamical evolution of uniformly rotating asteroids subject to YORP](https://doi.org/10.1016/j.icarus.2006.12.015) by Scheeres, D. J. (2007).
@@ -37,6 +46,7 @@ SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new cap
  **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#yorplib)** 
 
 ### SBGAT 1.02.1
+
 SBGAT 1.02.1 marks the transition to VTK as SBGAT's backbone. 
 
 * Added *SBGATMassProperties*, a SBGAT filter computing the surface area, volume, inertia and center of mass of a constant density polyhedron (see [Dobrovolskis, A. R. (1996). Inertia of Any Polyhedron. Icarus, 124, 698–704. ](https://doi.org/10.1006/icar.1996.0243]))
@@ -44,6 +54,7 @@ SBGAT 1.02.1 marks the transition to VTK as SBGAT's backbone.
 * Added validation tests 
 
 ### SBGAT 1.02.0
+
 SBGAT 1.02 is a first take at fully leveraging VTK data structures for visual props representation and operation. 
 
 Current features of SBGATGui include: 
