@@ -36,7 +36,8 @@ and type
 
 ### SBGAT 1.04.1
 
-* No new functionalities besides updated license information. [SBGAT and its dependencies are now distributed under the MIT license](https://choosealicense.com/licenses/mit/)
+* [SBGAT and its dependencies are now distributed under the MIT license](https://choosealicense.com/licenses/mit/). 
+* No new functionalities besides updated license information. 
 
 ### SBGAT 1.04.0
 
