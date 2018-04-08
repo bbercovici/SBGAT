@@ -33,6 +33,11 @@ and type
 
 ## Changelog
 
+
+### SBGAT 1.04.1
+
+* No new functionalities besides updated license information.
+
 ### SBGAT 1.04.0
 
 * SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the exterior gravity field about a constant-density polyhedron
