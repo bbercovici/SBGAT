@@ -22,7 +22,6 @@ void ComputePolyhedralCS(arma::mat & Cnm2f,
 	double vertical1Factors [nmDim + 1] [nmDim + 1];
 	double vertical2Factors [nmDim + 1] [nmDim + 1];
 
-
 	double x0 = r0[0];
 	double y0 = r0[1];
 	double z0 = r0[2];
@@ -34,8 +33,6 @@ void ComputePolyhedralCS(arma::mat & Cnm2f,
 	double x2 = r2[0];
 	double y2 = r2[1];
 	double z2 = r2[2];
-
-
 
 	/*** set overall problem size ***/
 	if (n_degree < 0 || n_degree > nmDim) {
