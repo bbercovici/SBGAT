@@ -114,8 +114,6 @@ include_directories(include)
 
 # Widgets finds its own dependencies (QtGui and QtCore)
 find_package(Qt5Widgets REQUIRED)
-
-# The Qt5Widgets_INCLUDES also includes the include directories for dependencies QtCore and QtGui
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
@@ -166,12 +164,14 @@ source/ModelDataWrapper.cpp
 source/MoveAlongTrajectoryWindow.cpp
 source/SettingsWindow.cpp 
 source/YORPWindow.cpp
+source/SHARMWindow.cpp
 include/RenderingPropertiesWindow.hpp
 include/Mainwindow.hpp
 include/ModelDataWrapper.hpp
 include/MoveAlongTrajectoryWindow.hpp
 include/SettingsWindow.hpp
 include/YORPWindow.hpp
+include/SHARMWindow.hpp
 )
 
 set(library_dependencies

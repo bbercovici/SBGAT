@@ -260,6 +260,13 @@ through the user interface layer brought by Qt.}
 		QAction * open_compute_yorp_window_action;
 
 
+	/**
+	When triggered, opens a window letting the user compute the spherical
+	harmonics coeffients of the gravity acceleration
+	*/
+		QAction * open_compute_sharm_window_action;
+
+
 		/**
 	When triggered, opens camera properties window.
 	*/
@@ -382,6 +389,13 @@ through the user interface layer brought by Qt.}
 		acting on a body
 		*/
 		void open_compute_yorp_window();
+
+
+		/**
+		Open a dialog window where the user can specify the parameters for the 
+		computation of the spherical harmonics coefficients of the exterior gravity field
+		*/
+		void open_compute_sharm_window();
 
 
 		/**

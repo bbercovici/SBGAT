@@ -58,13 +58,14 @@ SOFTWARE.
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkProperty.h>
 
-#include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
 
 #include "SettingsWindow.hpp"
 #include "MoveAlongTrajectoryWindow.hpp"
 #include "RenderingPropertiesWindow.hpp"
 #include "YORPWindow.hpp"
+#include "SHARMWindow.hpp"
+
 
 
 
@@ -368,6 +369,11 @@ void Mainwindow::createActions() {
     connect(this -> open_compute_yorp_window_action, &QAction::triggered, this, &Mainwindow::open_compute_yorp_window);
 
 
+    this -> open_compute_sharm_window_action = new QAction(tr("Compute Spherical Harmonics Coefficients"), this);
+    this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
+    connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
+
+
     this -> save_console_action = new QAction(tr("Save Log Console"), this);
     this -> save_console_action -> setStatusTip(tr("Saves log console to a file"));
     connect(this -> save_console_action, &QAction::triggered, this, &Mainwindow::save_console);
@@ -492,6 +498,14 @@ void Mainwindow::open_compute_yorp_window(){
 
     YORPWindow yorp_window(this);
     yorp_window.exec();
+
+}
+
+
+void Mainwindow::open_compute_sharm_window(){
+
+    SHARMWindow sharm_window(this);
+    sharm_window.exec();
 
 }
 
@@ -1809,6 +1823,8 @@ void Mainwindow::createMenus() {
 
     this -> AnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
     this -> AnalysesMenu -> addAction(this -> open_compute_yorp_window_action);
+    this -> AnalysesMenu -> addAction(this -> open_compute_sharm_window_action);
+
     
     // this -> AnalysesMenu -> addSeparator();
     // this -> AnalysesMenu -> addAction(this -> compute_global_pgm_potential_action);
