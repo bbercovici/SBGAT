@@ -38,8 +38,8 @@ and type
 * SBGAT 1.04.2 enables the computation of the spherical harmonics expansion directly from SbgatGUI
 
 	* Added an action *Compute Gravity Spherical Harmonics* under *Analyses*
-	* Added an action *Align Shape* under *Small Body*. This action aligns the barycenter of the selected shape with (0,0,0) and its principal axes with the rendering window axes
-	* Added an action *Save Shape Model* under *Small Body*. This action exports the selected shape model in its current state to an .obj file of choice
+	* Added an action *Align Shape* under *Small Body*. This action aligns the barycenter of the selected shape with (0,0,0) and its principal axes with the rendering window axes. This is a prerequisite for meaningful YORP or gravity spherical harmonics computations.
+	* Added an action *Save Shape Model* under *Small Body*. This action exports the selected shape model in its current state to an .obj file of choice.
 
  [**Users should update their versions of RigidBodyKinematics to reflect the latest changes**](https://github.com/bbercovici/RigidBodyKinematics) 
 
