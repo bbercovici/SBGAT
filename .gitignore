@@ -2,3 +2,5 @@
 Doxyfile
 doxygen_script.sh
 doc/
+.add_license.sh
+.LICENSE.hpp
