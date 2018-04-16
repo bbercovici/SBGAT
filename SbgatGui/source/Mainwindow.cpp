@@ -379,7 +379,7 @@ void Mainwindow::createActions() {
     connect(this -> open_compute_yorp_window_action, &QAction::triggered, this, &Mainwindow::open_compute_yorp_window);
 
 
-    this -> open_compute_sharm_window_action = new QAction(tr("Compute Spherical Harmonics Coefficients"), this);
+    this -> open_compute_sharm_window_action = new QAction(tr("Compute Gravity Spherical Harmonics"), this);
     this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
     connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
 
