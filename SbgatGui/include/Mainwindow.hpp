@@ -186,6 +186,12 @@ through the user interface layer brought by Qt.}
 
 	// Actions
 
+
+	/**
+	When triggered, starts shape model saving action sequence.
+	*/
+		QAction * save_small_body_action;
+
 	/**
 	When triggered, starts shape model loading action sequence.
 	*/
@@ -213,7 +219,12 @@ through the user interface layer brought by Qt.}
 	*/
 		QAction * save_console_action;
 
-		
+		/**
+		When triggered, calls slot aligning the loaded small body shape
+		with its bodycenter/principal axes
+		*/
+		QAction * align_shape_action;
+
 
 	/**
 	When triggered, show/hides the left lateral widget
@@ -397,6 +408,11 @@ through the user interface layer brought by Qt.}
 		*/
 		void open_compute_sharm_window();
 
+		/**
+		Aligns the selected small body shape
+		with its bodycenter/principal axes
+		*/
+		void align_shape();
 
 		/**
 		Computes and displays a number of geometry measures associated with the selected prop 
@@ -512,6 +528,11 @@ through the user interface layer brought by Qt.}
 	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
 		void add_small_body();
+
+		/**
+	Save small body shape model to a .obj file.
+	*/
+		void save_small_body();
 
 	/**
 	Load spacecraft shape model stored in a .obj file. A vtkPolydata is also constructed for visualization purposes

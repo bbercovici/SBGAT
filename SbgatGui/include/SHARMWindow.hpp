@@ -38,6 +38,7 @@ SOFTWARE.
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QRadioButton>
 
 #include "Mainwindow.hpp"
 
@@ -85,7 +86,10 @@ has been specified
 		void open_output_file_dialog();
 
 
-
+		/**
+		Called when another shape model is selected
+		*/		
+		void changed_selected_shape();
 
 	protected:
 
@@ -101,7 +105,8 @@ has been specified
 		QDoubleSpinBox * ref_radius_sbox;
 		QComboBox * degree_combo_box;
 
-
+		QRadioButton * normalized_button;
+		QRadioButton * non_normalized_button;
 		QPushButton * open_output_file_dialog_button;
 		std::string output_path;
 

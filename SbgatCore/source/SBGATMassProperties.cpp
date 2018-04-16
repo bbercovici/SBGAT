@@ -429,26 +429,29 @@ int SBGATMassProperties::RequestData(
 
     // Note that M1,M4,M6,M7 and M2,M3,M5,M8 have the same determinant respectively
 
-    if (arma::det(eig_vec) > 0){
-      // If that is the case then we are looking for M among M1,M4,M6,M7
-      // M1: (v0,v1,v2) 
-      // M4: (v0,-v1,-v2)
-      // M6: (-v0,v1,-v2)
-      // M7: (-v0,-v1,v2)
-      // A proper principal axis matrix is extracted
-      this -> principal_axes = eig_vec;
-
+    if (arma::det(eig_vec) < 0){
+      eig_vec = - eig_vec;
     }
-    else{
-      // Otherwise  we are looking for M among M2,M3,M5,M8
-      // M2: (v0,v1,-v2)
-      // M3: (v0,-v1,v2)
-      // M5: (-v0,v1,v2)
-      // M8: (-v0,-v1,-v2)
-      // A proper principal axis matrix is extracted
-      this -> principal_axes = - eig_vec;
 
-    } 
+    if(eig_vec(0,0) > 0 && eig_vec(1,1) < 0){
+
+      eig_vec.col(1) = - eig_vec.col(1);
+      eig_vec.col(2) = - eig_vec.col(2);
+    }
+
+    else if(eig_vec(0,0) < 0 && eig_vec(2,2) < 0){
+
+      eig_vec.col(0) = - eig_vec.col(0);
+      eig_vec.col(2) = - eig_vec.col(2);
+    }
+
+    else if(eig_vec(0,0) < 0 && eig_vec(1,1) < 0){
+
+      eig_vec.col(0) = - eig_vec.col(0);
+      eig_vec.col(1) = - eig_vec.col(1);
+    }
+
+    this -> principal_axes = eig_vec;
 
 
     // Closeness of topology given sum of oriented surface

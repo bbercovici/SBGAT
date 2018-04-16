@@ -49,6 +49,7 @@ SOFTWARE.
 #include <vtkLightCollection.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBJReader.h>
+
 #include <vtkCenterOfMass.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkActor2DCollection.h>
@@ -59,14 +60,14 @@ SOFTWARE.
 #include <vtkProperty.h>
 
 #include <SBGATMassProperties.hpp>
+#include <SBGATObjWriter.hpp>
+
 
 #include "SettingsWindow.hpp"
 #include "MoveAlongTrajectoryWindow.hpp"
 #include "RenderingPropertiesWindow.hpp"
 #include "YORPWindow.hpp"
 #include "SHARMWindow.hpp"
-
-
 
 
 using namespace SBGAT_GUI;
@@ -105,7 +106,7 @@ void Mainwindow::setupUi() {
     this -> statusBar() -> showMessage("Ready");
 
     // Headers are added to the shape table
-    QStringList header_lists = {"Name", "Show", "Properties" , "Erase"};
+    QStringList header_lists = {"Name", "State" , "Show", "Erase"};
     this -> prop_table -> setHorizontalHeaderLabels(header_lists);
     this -> prop_table -> horizontalHeader()->setStretchLastSection(true);
     this -> prop_table -> setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -113,6 +114,9 @@ void Mainwindow::setupUi() {
     // Selecting an item in the table highlights the entire row
     this -> prop_table -> setSelectionBehavior(QAbstractItemView::SelectRows);
     this -> prop_table -> setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // Prevents edition of labels
+    this -> prop_table -> setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 
     // Central window
@@ -302,6 +306,7 @@ void Mainwindow::update_GUI_changed_prop() {
             std::string message("Facets : " + std::to_string(N_facets) + " Vertices: " + std::to_string(N_vertices));
 
 
+
             this -> statusBar() -> showMessage(QString::fromStdString(message));
         }
         else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
@@ -337,6 +342,11 @@ void Mainwindow::open_settings_window() {
 void Mainwindow::createActions() {
 
 
+    this -> save_small_body_action = new QAction(tr("Save Shape Model"), this);
+    this -> save_small_body_action -> setStatusTip(tr("Save vtkPolyData to OBJ shape model"));
+    connect(this -> save_small_body_action, &QAction::triggered, this, &Mainwindow::save_small_body);
+
+
     this -> add_small_body_action = new QAction(tr("Load Shape Model"), this);
     this -> add_small_body_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
     connect(this -> add_small_body_action, &QAction::triggered, this, &Mainwindow::add_small_body);
@@ -359,7 +369,7 @@ void Mainwindow::createActions() {
     connect(this ->show_left_dockwidget_action, &QAction::triggered, this, &Mainwindow::show_left_dockwidget);
 
 
-    this -> clear_console_action = new QAction(tr("Clear log console"), this);
+    this -> clear_console_action = new QAction(tr("Clear Log Console"), this);
     this -> clear_console_action -> setStatusTip(tr("Clears the log console"));
     connect(this -> clear_console_action, &QAction::triggered, this, &Mainwindow::clear_console);
 
@@ -372,6 +382,12 @@ void Mainwindow::createActions() {
     this -> open_compute_sharm_window_action = new QAction(tr("Compute Spherical Harmonics Coefficients"), this);
     this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
     connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
+
+
+
+    this -> align_shape_action = new QAction(tr("Align Shape"), this);
+    this -> align_shape_action -> setStatusTip(tr("Align selected shape model with barycenter/principal axis"));
+    connect(this -> align_shape_action, &QAction::triggered, this, &Mainwindow::align_shape);
 
 
     this -> save_console_action = new QAction(tr("Save Log Console"), this);
@@ -425,7 +441,7 @@ void Mainwindow::createActions() {
     this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
     connect(this -> open_rendering_properties_window_action, &QAction::triggered, this, &Mainwindow::open_rendering_properties_window);
 
-    this -> open_alignment_window_action = new QAction(tr("Set line thickness"),this);
+    this -> open_alignment_window_action = new QAction(tr("Set Line Thickness"),this);
     this -> open_alignment_window_action -> setStatusTip(tr("Set thickness of selected actor "));
     connect(this -> open_alignment_window_action, &QAction::triggered, this, &Mainwindow::open_actor_thickness_window);
     
@@ -457,6 +473,10 @@ void Mainwindow::update_actions_availability() {
         this -> compute_global_pgm_potential_action -> setEnabled(false);
         this -> compute_global_pgm_acceleration_action -> setEnabled(false);
         this -> compute_grav_slopes_action -> setEnabled(false);
+        this -> align_shape_action -> setEnabled(false);
+        this -> save_small_body_action -> setEnabled(false);
+
+
     }
     else {
 
@@ -468,6 +488,8 @@ void Mainwindow::update_actions_availability() {
             this -> compute_pgm_acceleration_action -> setEnabled(true);
             this -> compute_global_pgm_acceleration_action -> setEnabled(true);
             this -> compute_global_pgm_potential_action -> setEnabled(true);
+            this -> align_shape_action -> setEnabled(true);
+            this -> save_small_body_action -> setEnabled(true);
 
             if (this -> wrapped_shape_data[name] -> get_global_pgm_acc() == true) {
                 this -> compute_grav_slopes_action -> setEnabled(true);
@@ -479,12 +501,15 @@ void Mainwindow::update_actions_availability() {
         }
         else{
 
-         this -> compute_pgm_acceleration_action -> setEnabled(false);
-         this -> compute_global_pgm_acceleration_action -> setEnabled(false);
-         this -> compute_global_pgm_potential_action -> setEnabled(false);
+           this -> compute_pgm_acceleration_action -> setEnabled(false);
+           this -> compute_global_pgm_acceleration_action -> setEnabled(false);
+           this -> compute_global_pgm_potential_action -> setEnabled(false);
+           this -> align_shape_action -> setEnabled(false);
+           this -> save_small_body_action -> setEnabled(false);
 
-     }
- }
+
+       }
+   }
 
 
 
@@ -657,7 +682,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-     tr("Text file (*.txt)"));
+       tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -701,92 +726,126 @@ void Mainwindow::show_left_dockwidget() {
     }
 }
 
+void Mainwindow::save_small_body(){
+
+    QString fileName = QFileDialog::getSaveFileName(this,tr("Save Small Body Shape Model"), "~/", tr("Wavefront file (*.obj)"));
+
+    if (fileName.isEmpty() == false) {
+     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+     std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+
+     vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+
+     writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
+
+
+     writer -> SetFileName(fileName.toStdString().c_str());
+     writer -> Update();
+     this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
+
+
+
+ }
+
+}
+
 void Mainwindow::add_small_body() {
 
     QString fileName = QFileDialog::getOpenFileName(this,tr("Load Small Body Shape Model"), "~/", tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
 
+        QStringList items;
+        items << tr("Meters") << tr("Kilometers");
+
         bool ok;
-        double scaling_factor = QInputDialog::getDouble(this,"Scaling factor", "Enter scaling factor :", 1, 1e-6, 1e6,5, &ok);
+        QString item = QInputDialog::getItem(this, tr("Shape Units:"),tr("Shape Units:"), items, 0, false, &ok);
+
+
         if (ok) {
 
+            double scaling_factor;
+            if (item == "Meters"){
+                scaling_factor = 1;
+            }
+            else{
+               scaling_factor = 1000;
+           }
 
+           std::stringstream ss;
+           ss.str(std::string());
 
-         std::stringstream ss;
-         ss.str(std::string());
+           std::string opening_line = "### Loading shape model ###";
+           this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+           this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape model from ") + fileName);
 
-         std::string opening_line = "### Loading shape model ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape model from ") + fileName);
+           std::chrono::time_point<std::chrono::system_clock> start, end;
 
-         std::chrono::time_point<std::chrono::system_clock> start, end;
-
-         start = std::chrono::system_clock::now();
+           start = std::chrono::system_clock::now();
 
             // The name of the shape model is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
+           int dot_index = fileName.lastIndexOf(".");
+           int slash_index = fileName.lastIndexOf("/");
+           std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+           std::string basic_name = name;
 
             // A new ModelDataWrapper is created and stored under the name of the shape model
-         std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+           std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
 
             // The camera is moved to be adjusted to the new shape
-         this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
+           this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
 
             // Reading
-         vtkNew<vtkOBJReader> reader;
-         reader -> SetFileName(fileName.toStdString().c_str());
-         reader -> Update(); 
+           vtkNew<vtkOBJReader> reader;
+           reader -> SetFileName(fileName.toStdString().c_str());
+           reader -> Update(); 
 
             // Scaling
-         vtkSmartPointer<vtkTransform> transform =
-         vtkSmartPointer<vtkTransform>::New();
-         transform->Scale(scaling_factor,scaling_factor,scaling_factor);
+           vtkSmartPointer<vtkTransform> transform =
+           vtkSmartPointer<vtkTransform>::New();
+           transform->Scale(scaling_factor,scaling_factor,scaling_factor);
 
 
-         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         transformFilter->SetInputConnection(reader -> GetOutputPort());
-         transformFilter->SetTransform(transform);
-         transformFilter -> Update();
+           vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+           transformFilter->SetInputConnection(reader -> GetOutputPort());
+           transformFilter->SetTransform(transform);
+           transformFilter -> Update();
 
             // Create a PolyData
-         vtkSmartPointer<vtkPolyData> polygonPolyData = transformFilter -> GetOutput();
+           vtkSmartPointer<vtkPolyData> polygonPolyData = transformFilter -> GetOutput();
 
             // Create a mapper and actor
-         vtkSmartPointer<vtkPolyDataMapper> mapper =
-         vtkSmartPointer<vtkPolyDataMapper>::New();
+           vtkSmartPointer<vtkPolyDataMapper> mapper =
+           vtkSmartPointer<vtkPolyDataMapper>::New();
 
-         mapper -> SetInputConnection(reader -> GetOutputPort());
-         mapper -> ScalarVisibilityOff();
+           mapper -> SetInputConnection(transformFilter -> GetOutputPort());
+           mapper -> ScalarVisibilityOff();
 
-         vtkSmartPointer<vtkActor> actor =
-         vtkSmartPointer<vtkActor>::New();
-         actor -> SetMapper(mapper);
+           vtkSmartPointer<vtkActor> actor =
+           vtkSmartPointer<vtkActor>::New();
+           actor -> SetMapper(mapper);
 
             // Visualize
-         this -> renderer -> AddActor(actor);
+           this -> renderer -> AddActor(actor);
 
             // Render
-         this -> qvtkWidget -> GetRenderWindow() -> Render();
+           this -> qvtkWidget -> GetRenderWindow() -> Render();
 
              // Store
-         model_data -> set_polydata(polygonPolyData);
-         model_data -> set_actor(actor);
-         model_data -> set_mapper(mapper);
+           model_data -> set_polydata(polygonPolyData);
+           model_data -> set_actor(actor);
+           model_data -> set_mapper(mapper);
 
             // The ModelDataWrapper pointer is stored. 
             // If the name is not already taken, nothing special
-         unsigned int count = this -> wrapped_shape_data.count(name);
-         if(count == 0){
+           unsigned int count = this -> wrapped_shape_data.count(name);
+           if(count == 0){
             this -> wrapped_shape_data[name] = model_data;
         }
-            // otherwise, a suffix is added
         else{
 
+            // otherwise, a suffix is added
 
             while( this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
                 std::string suffix = "(" + std::to_string(count) + ")";
@@ -819,7 +878,7 @@ void Mainwindow::add_small_body() {
 
             // The log console displays the name and content of the loaded shape model
         this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+           + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
         std::string closing_line(opening_line.length() - 1, '#');
         closing_line.append("\n");
@@ -830,6 +889,55 @@ void Mainwindow::add_small_body() {
 
     }
 }
+}
+
+void Mainwindow::align_shape(){
+
+    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+
+
+    vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
+    vtkSmartPointer<SBGATMassProperties>::New();
+
+    center_of_mass_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+    center_of_mass_filter -> Update();
+
+    double center[3];
+    center_of_mass_filter -> GetCenterOfMass(center);
+    arma::mat::fixed<3,3> principal_axes = center_of_mass_filter -> GetPrincipalAxes();
+    auto prv = RBK::dcm_to_prv(principal_axes);
+    double angle = 180 / arma::datum::pi * prv.first;
+    arma::vec axis = prv.second;
+    
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    transform -> RotateWXYZ(angle,axis.colptr(0));
+    
+    transform -> Translate( - center[0],  - center[1],  - center[2]);
+
+    vtkSmartPointer<vtkTransformPolyDataFilter> filter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+    
+
+    filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+    filter -> SetTransform(transform);
+    filter -> Update();
+
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = 
+    vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper -> SetInputConnection(filter -> GetOutputPort());
+
+    
+    this -> wrapped_shape_data[name] -> set_polydata(filter -> GetOutput());
+    this -> wrapped_shape_data[name] -> get_polydata() -> Modified();
+    this -> wrapped_shape_data[name] -> get_actor() -> SetMapper(mapper);
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+    this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem("Modified"));
+
+
+
 }
 
 
@@ -844,84 +952,84 @@ void Mainwindow::add_spacecraft() {
         if (ok) {
 
 
-         std::stringstream ss;
-         ss.str(std::string());
+           std::stringstream ss;
+           ss.str(std::string());
 
-         std::string opening_line = "### Loading spacecraft model ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading spacecraft model from ") + fileName);
+           std::string opening_line = "### Loading spacecraft model ###";
+           this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+           this -> log_console -> appendPlainText(QString::fromStdString("- Loading spacecraft model from ") + fileName);
 
 
-         std::chrono::time_point<std::chrono::system_clock> start, end;
+           std::chrono::time_point<std::chrono::system_clock> start, end;
 
-         start = std::chrono::system_clock::now();
+           start = std::chrono::system_clock::now();
 
 
             // The name of the shape model is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
+           int dot_index = fileName.lastIndexOf(".");
+           int slash_index = fileName.lastIndexOf("/");
+           std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+           std::string basic_name = name;
 
-         vtkSmartPointer<vtkOBJReader> reader =
-         vtkSmartPointer<vtkOBJReader>::New();
-         reader -> SetFileName(fileName.toStdString().c_str());
-         reader -> Update();
+           vtkSmartPointer<vtkOBJReader> reader =
+           vtkSmartPointer<vtkOBJReader>::New();
+           reader -> SetFileName(fileName.toStdString().c_str());
+           reader -> Update();
 
-         vtkSmartPointer<vtkPolyData> spacecraft_polydata;
+           vtkSmartPointer<vtkPolyData> spacecraft_polydata;
 
 
 
             // The spacececraft actor is aligned with 
            // the center of mass of the loaded spacecraft shape model
 
-         vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
-         vtkSmartPointer<SBGATMassProperties>::New();
+           vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
+           vtkSmartPointer<SBGATMassProperties>::New();
 
-         center_of_mass_filter -> SetInputConnection(reader -> GetOutputPort());
-         center_of_mass_filter -> Update();
+           center_of_mass_filter -> SetInputConnection(reader -> GetOutputPort());
+           center_of_mass_filter -> Update();
 
-         double center[3];
-         center_of_mass_filter -> GetCenterOfMass(center);
+           double center[3];
+           center_of_mass_filter -> GetCenterOfMass(center);
 
-         vtkSmartPointer<vtkTransform> translation = vtkSmartPointer<vtkTransform>::New();
-         translation -> Translate( - center[0],  - center[1],  - center[2]);
-         vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         translation_filter -> SetInputConnection(reader -> GetOutputPort());
-         translation_filter -> SetTransform(translation);
-         translation_filter -> Update();
+           vtkSmartPointer<vtkTransform> translation = vtkSmartPointer<vtkTransform>::New();
+           translation -> Translate( - center[0],  - center[1],  - center[2]);
+           vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
+           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+           translation_filter -> SetInputConnection(reader -> GetOutputPort());
+           translation_filter -> SetTransform(translation);
+           translation_filter -> Update();
 
-         vtkSmartPointer<vtkTransform> scaling = vtkSmartPointer<vtkTransform>::New();
-         scaling -> Scale( scaling_factor,  scaling_factor,  scaling_factor);
-         vtkSmartPointer<vtkTransformPolyDataFilter> scaling_filter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         scaling_filter -> SetInputConnection(translation_filter -> GetOutputPort());
-         scaling_filter -> SetTransform(scaling);
-         scaling_filter -> Update();
+           vtkSmartPointer<vtkTransform> scaling = vtkSmartPointer<vtkTransform>::New();
+           scaling -> Scale( scaling_factor,  scaling_factor,  scaling_factor);
+           vtkSmartPointer<vtkTransformPolyDataFilter> scaling_filter =
+           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+           scaling_filter -> SetInputConnection(translation_filter -> GetOutputPort());
+           scaling_filter -> SetTransform(scaling);
+           scaling_filter -> Update();
 
 
 
 
             // Set the actor and mapper
-         vtkSmartPointer<vtkPolyDataMapper> mapper = 
-         vtkSmartPointer<vtkPolyDataMapper>::New();
-         mapper -> SetInputConnection(scaling_filter->GetOutputPort());
-         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-         actor -> SetMapper(mapper);
-         this -> renderer -> AddActor(actor);
+           vtkSmartPointer<vtkPolyDataMapper> mapper = 
+           vtkSmartPointer<vtkPolyDataMapper>::New();
+           mapper -> SetInputConnection(scaling_filter->GetOutputPort());
+           vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+           actor -> SetMapper(mapper);
+           this -> renderer -> AddActor(actor);
 
             // A new ModelDataWrapper is created and stored under the name of the spacecraft
-         std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-         model_data -> set_polydata(mapper -> GetInput());
-         model_data -> set_actor(actor);
-         model_data -> set_mapper(mapper);
+           std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+           model_data -> set_polydata(mapper -> GetInput());
+           model_data -> set_actor(actor);
+           model_data -> set_mapper(mapper);
 
 
             // The ModelDataWrapper pointer is stored. 
             // If the name is not already taken, nothing special
-         unsigned int count = this -> wrapped_spacecraft_data.count(name);
-         if(count == 0){
+           unsigned int count = this -> wrapped_spacecraft_data.count(name);
+           if(count == 0){
             this -> wrapped_spacecraft_data[name] = model_data;
         }
             // otherwise, a suffix is added
@@ -960,7 +1068,7 @@ void Mainwindow::add_spacecraft() {
 
                   // The log console displays the name and content of the loaded shape model
         this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+           + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
         std::string closing_line(opening_line.length() - 1, '#');
         closing_line.append("\n");
@@ -979,7 +1087,7 @@ void Mainwindow::add_spacecraft() {
 void Mainwindow::add_trajectory() {
 
     QString fileName = QFileDialog::getOpenFileName(this,
-     tr("Load trajectory"), "~/", tr("(*.txt)"));
+       tr("Load trajectory"), "~/", tr("(*.txt)"));
 
     if (fileName.isEmpty() == false) {
 
@@ -990,30 +1098,30 @@ void Mainwindow::add_trajectory() {
         if (ok) {
 
 
-         std::stringstream ss;
-         ss.str(std::string());
+           std::stringstream ss;
+           ss.str(std::string());
 
-         std::string opening_line = "### Loading spacecraft model ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading trajectory from ") + fileName);
+           std::string opening_line = "### Loading spacecraft model ###";
+           this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+           this -> log_console -> appendPlainText(QString::fromStdString("- Loading trajectory from ") + fileName);
 
-         std::chrono::time_point<std::chrono::system_clock> start, end;
+           std::chrono::time_point<std::chrono::system_clock> start, end;
 
-         start = std::chrono::system_clock::now();
+           start = std::chrono::system_clock::now();
 
 
             // The name of the trajectory is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
+           int dot_index = fileName.lastIndexOf(".");
+           int slash_index = fileName.lastIndexOf("/");
+           std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+           std::string basic_name = name;
 
-         arma::mat traj;
-         traj.load(fileName.toStdString());
+           arma::mat traj;
+           traj.load(fileName.toStdString());
 
-         traj *= scaling_factor;
+           traj *= scaling_factor;
 
-         if(traj.n_cols < traj.n_rows){
+           if(traj.n_cols < traj.n_rows){
             arma::inplace_trans(traj);
         }
 
@@ -1091,7 +1199,7 @@ void Mainwindow::add_trajectory() {
 
             // The log console displays the name and content of the loaded shape model
         this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+           + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
             // A signal is emitted to warn potential dependents
         emit prop_added_signal();
@@ -1119,7 +1227,7 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
     QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
     checkBoxItem -> setCheckState(Qt::Checked);
     
-    this -> prop_table -> setItem(this -> prop_table -> rowCount() - 1, 1, checkBoxItem);
+    this -> prop_table -> setItem(this -> prop_table -> rowCount() - 1, 2, checkBoxItem);
 
     QWidget * button_container = new QWidget(this -> prop_table -> cellWidget(this -> prop_table -> rowCount() - 1, 0));
     QHBoxLayout* layout = new QHBoxLayout(button_container);
@@ -1154,7 +1262,7 @@ void Mainwindow::toggle_prop_visibility(int row, int col) {
     // Showing/hiding light actor
     // Showing/hiding spacecraft actor
 
-    if (col == 1) {
+    if (col == 2) {
 
         std::string name = this -> prop_table -> item(row, 0) -> text() .toStdString();
         auto item = this -> prop_table -> item(row, col);
@@ -1285,10 +1393,10 @@ void Mainwindow::remove_prop() {
 
 void Mainwindow::compute_geometric_measures(){
 
- int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
- std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
- if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
+   if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
 
     std::stringstream ss;
 
@@ -1351,7 +1459,7 @@ void Mainwindow::compute_geometric_measures(){
 
 
     this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
-     + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+       + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
     std::string closing_line(opening_line.length() - 1, '#');
     closing_line.append("\n");
@@ -1805,9 +1913,9 @@ void Mainwindow::createMenus() {
 
     this -> SmallBodyMenu = this -> menuBar() -> addMenu(tr("&Small Body"));
     this -> SmallBodyMenu -> addAction(this -> add_small_body_action);
+    this -> SmallBodyMenu -> addAction(this -> save_small_body_action);
     this -> SmallBodyMenu -> addSeparator();
-    this -> SmallBodyMenu -> addAction(this -> open_settings_window_action);
-
+    this -> SmallBodyMenu -> addAction(this -> align_shape_action);
 
     this -> TrajectoryMenu = this -> menuBar() -> addMenu(tr("&Trajectory"));
     this -> TrajectoryMenu -> addAction(this -> add_trajectory_action);

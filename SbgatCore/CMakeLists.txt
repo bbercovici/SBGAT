@@ -168,6 +168,7 @@ source/SBGATPolyhedronGravityModel.cpp
 source/SBGATMassProperties.cpp
 source/SBGATSrpYorp.cpp
 source/SBGATSphericalHarmo.cpp
+source/SBGATObjWriter.cpp
 )
 
 # Linking

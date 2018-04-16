@@ -199,8 +199,6 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
       pos,
       this -> referenceRadius);
 
-
-
     double G = arma::datum::G / std::pow(this -> scaleFactor,3); 
     double mu = this -> totalMass * G;
 
