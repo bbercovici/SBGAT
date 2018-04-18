@@ -129,12 +129,9 @@ set(library_dependencies
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing
-
-if(NOT BREW)
-	install (TARGETS ${LIB_NAME} DESTINATION /home/bebe0705/libs/local/lib)
-	install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /home/bebe0705/libs/local/lib/cmake/SbgatCore/)
-	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /home/bebe0705/libs/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
-endif()
+install (TARGETS ${LIB_NAME} DESTINATION /home/bebe0705/libs/local/lib)
+install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /home/bebe0705/libs/local/lib/cmake/SbgatCore/)
+install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /home/bebe0705/libs/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
 
 
 
