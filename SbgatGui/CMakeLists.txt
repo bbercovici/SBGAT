@@ -60,39 +60,23 @@ set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.10.0/gcc_64/lib/cmake/")
 #
 ################################################################################
 
-if (EXISTS /home/bebe0705/.am_fortuna)
-	set(IS_FORTUNA ON)
-	message("-- This is Fortuna")
-	set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
-
-else()
-	set(IS_FORTUNA OFF)
-	message("-- This is not Fortuna")
-
-endif()
-
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-if (${IS_FORTUNA})
-	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
-else()
-	if(APPLE)
-		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-			message("Switching to OMP-friendly GCC ")
-	    	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
+if(APPLE)
+	if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
+	message("Switching to OMP-friendly GCC ")
+	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
 
-		else()# no OMP-compliant compiler was found on this mac. 
-			message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
-		endif()
-	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
-				message("Switching to /usr/local/gcc ")
-		    	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
-	endif()
+	else()# no OMP-compliant compiler was found on this mac. 
+	message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
+endif()
+else() # Running on Linux. Will switch back to compiler in /usr/local/bin
+message("Switching to /usr/local/gcc ")
+set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 endif()
 
 
@@ -144,9 +128,11 @@ find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
-find_package(OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+find_package(OpenMP)
+if (OpenMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 
 # Tell CMake to run moc when necessary:
@@ -157,31 +143,31 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir,
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
-source/main.cpp
-source/RenderingPropertiesWindow.cpp
-source/Mainwindow.cpp
-source/ModelDataWrapper.cpp
-source/MoveAlongTrajectoryWindow.cpp
-source/SettingsWindow.cpp 
-source/YORPWindow.cpp
-source/SHARMWindow.cpp
-include/RenderingPropertiesWindow.hpp
-include/Mainwindow.hpp
-include/ModelDataWrapper.hpp
-include/MoveAlongTrajectoryWindow.hpp
-include/SettingsWindow.hpp
-include/YORPWindow.hpp
-include/SHARMWindow.hpp
-)
+	source/main.cpp
+	source/RenderingPropertiesWindow.cpp
+	source/Mainwindow.cpp
+	source/ModelDataWrapper.cpp
+	source/MoveAlongTrajectoryWindow.cpp
+	source/SettingsWindow.cpp 
+	source/YORPWindow.cpp
+	source/SHARMWindow.cpp
+	include/RenderingPropertiesWindow.hpp
+	include/Mainwindow.hpp
+	include/ModelDataWrapper.hpp
+	include/MoveAlongTrajectoryWindow.hpp
+	include/SettingsWindow.hpp
+	include/YORPWindow.hpp
+	include/SHARMWindow.hpp
+	)
 
 set(library_dependencies
-${Qt5Widgets_LIBRARIES}
-${VTK_LIBRARIES}
-${ARMADILLO_LIBRARIES}
-${Boost_LIBRARIES}
-${SBGATCORE_LIBRARY}
-${RBK_LIBRARY}
-)
+	${Qt5Widgets_LIBRARIES}
+	${VTK_LIBRARIES}
+	${ARMADILLO_LIBRARIES}
+	${Boost_LIBRARIES}
+	${SBGATCORE_LIBRARY}
+	${RBK_LIBRARY}
+	)
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
 
