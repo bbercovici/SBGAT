@@ -81,18 +81,18 @@ if (${IS_FORTUNA})
 else()
 	if(APPLE)
 		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-			message("Switching to OMP-friendly GCC ")
-	    	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
+		message("Switching to OMP-friendly GCC ")
+		set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+		set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
 
 		else()# no OMP-compliant compiler was found on this mac. 
-			message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
-		endif()
-	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
-				message("Switching to /usr/local/gcc ")
-		    	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+		message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
 	endif()
+	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
+	message("Switching to /usr/local/gcc ")
+	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+endif()
 endif()
 
 project(${LIB_NAME})
@@ -149,42 +149,45 @@ include_directories(${RBK_INCLUDE_DIR})
 # Fortran compiler, required by Armadillo on Linux/Ubuntu
 if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0 AND NOT ${IS_FORTUNA})
 	find_library(GFORTRAN_LIBRARY gfortran
-	    PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
+		PATHS /usr/lib/gcc/x86_64-linux-gnu/5/ /usr/lib/gcc/x86_64-redhat-linux/4.4.7/32/)
 	list(APPEND ARMADILLO_LIBRARIES "${GFORTRAN_LIBRARY}")
 endif()
 
 # Add source files in root directory
 add_library(${LIB_NAME} 
-SHARED
-source/SBGATRefFrame.cpp
-source/SBGATFrameGraph.cpp
-source/SBGATPolyhedronGravityModel.cpp
-source/SBGATMassProperties.cpp
-source/SBGATSrpYorp.cpp
-source/SBGATSphericalHarmo.cpp
-source/SBGATObjWriter.cpp
-)
+	SHARED
+	source/SBGATRefFrame.cpp
+	source/SBGATFrameGraph.cpp
+	source/SBGATPolyhedronGravityModel.cpp
+	source/SBGATMassProperties.cpp
+	source/SBGATSrpYorp.cpp
+	source/SBGATSphericalHarmo.cpp
+	source/SBGATObjWriter.cpp
+	)
 
 # Linking
 set(library_dependencies
-${ARMADILLO_LIBRARIES}
-${Boost_LIBRARIES}
-${VTK_LIBRARIES}
-${RBK_LIBRARY}
-${YORPLIB_LIBRARY}
-${SHARMLIB_LIBRARY}
-)
+	${ARMADILLO_LIBRARIES}
+	${Boost_LIBRARIES}
+	${VTK_LIBRARIES}
+	${RBK_LIBRARY}
+	${YORPLIB_LIBRARY}
+	${SHARMLIB_LIBRARY}
+	)
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 
 # Installing
-if (NOT ${IS_FORTUNA})
-	install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
-	install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SbgatCore/)
-	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
-else()
-	install (TARGETS ${LIB_NAME} DESTINATION /home/bebe0705/libs/local/lib)
-	install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /home/bebe0705/libs/local/lib/cmake/SbgatCore/)
-	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /home/bebe0705/libs/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+
+if(NOT BREW)
+	if (NOT ${IS_FORTUNA})
+		install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
+		install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /usr/local/lib/cmake/SbgatCore/)
+		install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+	else()
+		install (TARGETS ${LIB_NAME} DESTINATION /home/bebe0705/libs/local/lib)
+		install (FILES ${PROJECT_SOURCE_DIR}/SbgatCoreConfig.cmake DESTINATION /home/bebe0705/libs/local/lib/cmake/SbgatCore/)
+		install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /home/bebe0705/libs/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+	endif()
 endif()
 
 
