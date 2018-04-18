@@ -42,7 +42,7 @@
 set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
 
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
+set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.3.0_/bin/)
 
 # Path to VTKConfig.cmake (not used if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
@@ -52,7 +52,6 @@ set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 
 # Path to SbgatCoreConfig.cmake (not used if installed at a standard location)
 set(SbgatCore_LOC "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
-
 
 ################################################################################
 #
@@ -78,24 +77,26 @@ endif()
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-
 if (${IS_FORTUNA})
 	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
 	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 else()
 	if(APPLE)
-		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) # Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
+		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
+			# Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
 			message("Switching to OMP-friendly GCC ")
-	    	set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
+			set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
 			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
 
-		else()# no OMP-compliant compiler was found on this mac. 
-			message(FATAL_ERROR "No OMP-compliant compiler was found on this Mac.")
+		else()
+			# no OMP-compliant compiler was found on this mac. 
+			message("No OMP-compliant compiler was found on this Mac.")
 		endif()
-	else() # Running on Linux. Will switch back to compiler in /usr/local/bin
-				message("Switching to /usr/local/gcc ")
-		    	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-				set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+	else() 
+		# Running on Linux. Will switch back to compiler in /usr/local/bin
+		message("Switching to /usr/local/gcc ")
+		set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
+		set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 	endif()
 endif()
 
@@ -130,28 +131,29 @@ find_package(SbgatCore REQUIRED PATHS ${SbgatCore_LOC})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
-find_package(OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-
+find_package(OpenMP)
+if (OpenMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
-include/Tests.hpp
-source/main.cpp
-source/Tests.cpp
-)
+	include/Tests.hpp
+	source/main.cpp
+	source/Tests.cpp
+	)
 
 set(library_dependencies
-${ARMADILLO_LIBRARIES}
-${Boost_LIBRARIES}
-${SBGATCORE_LIBRARY}
-${RBK_LIBRARY}
-${VTK_LIBRARIES}
-)
+	${ARMADILLO_LIBRARIES}
+	${Boost_LIBRARIES}
+	${SBGATCORE_LIBRARY}
+	${RBK_LIBRARY}
+	${VTK_LIBRARIES}
+	)
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
 

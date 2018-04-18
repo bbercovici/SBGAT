@@ -42,16 +42,10 @@
 set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
 
 # Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.2.0/bin/)
+set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.3.0_1/bin/)
 
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
-
-# Path to RigidBodyKinematicsConfig.cmake (not mandatory if installed at a standard location)
-set(RBK_LOC "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
-
-# Path to YORPLibConfig.cmake (not mandatory if installed at a standard location)
-set(YORPLIB_LOC "/home/bebe0705/libs/local/lib/cmake/YORPLib")
 
 
 ################################################################################
@@ -139,17 +133,17 @@ include(${VTK_USE_FILE})
 
 
 # Find YORPLib
-find_package(YORPLib REQUIRED PATHS ${YORPLIB_LOC})
+find_package(YORPLib REQUIRED)
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
 
 # Find SHARMLib
-find_package(SHARMLib REQUIRED PATHS ${SHARMLIB_LOC})
+find_package(SHARMLib REQUIRED)
 include_directories(${SHARMLIB_INCLUDE_HEADER})
 
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
+find_package(RigidBodyKinematics REQUIRED )
 include_directories(${RBK_INCLUDE_DIR})
 
 # Fortran compiler, required by Armadillo on Linux/Ubuntu

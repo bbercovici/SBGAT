@@ -51,6 +51,7 @@ SOFTWARE.
 
 
 // Should prefix those or wrap them within a namespace
+// TODO: prefix the YORPLib headers with YORPLib
 #include <Body.h>
 #include <SRPModel.h>
 
@@ -204,7 +205,7 @@ int SBGATSrpYorp::RequestData(
   }
 
 
-  Body targetObj(vertices,facets,this -> rho,this -> spec);
+  YORPLib::Body targetObj(vertices,facets,this -> rho,this -> spec);
 
   // Determine limits for voxel grid
   double xmax = 1.01 * targetObj.getMaxDim(1);
@@ -215,7 +216,7 @@ int SBGATSrpYorp::RequestData(
   targetObj.setVoxelGrid(xmax, ymax, zmax, this -> numVox);
 
   // Compute and save SRP Fourier coefficients
-  SRPModel targetSRP(this -> lambdaDel, 
+  YORPLib::SRPModel targetSRP(this -> lambdaDel, 
     this -> deltaDel, 
     this -> maxFourier, 
     &targetObj, 
@@ -223,7 +224,6 @@ int SBGATSrpYorp::RequestData(
     this -> numrefine);
 
   targetSRP.writeSRPCoeffsFile(this -> outputFileBaseName, 2*(90.0/this -> deltaDel) + 1);
-
 
   return 1;
 }

@@ -152,7 +152,7 @@ int SBGATSphericalHarmo::RequestData(
     arma::mat Snm2f ;
 
     // Call to SHARMLib here
-    ComputePolyhedralCS(
+    SHARMLib::ComputePolyhedralCS(
       Cnm2f,
       Snm2f,
       this -> degree,
@@ -193,7 +193,7 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
     arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
     arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
 
-    GetBnmNormalizedExterior(this -> degree,
+    SHARMLib::GetBnmNormalizedExterior(this -> degree,
       b_bar_real,
       b_bar_imag,
       pos,
