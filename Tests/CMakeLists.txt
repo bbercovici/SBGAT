@@ -83,6 +83,7 @@ if (${IS_FORTUNA})
 else()
 	if(APPLE)
 		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
+			
 			# Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
 			message("Switching to OMP-friendly GCC ")
 			set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
@@ -136,6 +137,7 @@ if (OpenMP_FOUND)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
