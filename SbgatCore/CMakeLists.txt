@@ -143,7 +143,7 @@ target_link_libraries(${LIB_NAME} ${library_dependencies})
 if(NOT BREW)
 	install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
 	install (DIRECTORY ${PROJECT_SOURCE_DIR}/${LIB_NAME} DESTINATION /usr/local/share)
-	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/SbgatCore DESTINATION /usr/local/include/ FILES_MATCHING PATTERN "*.hpp")
 endif()
 
 
