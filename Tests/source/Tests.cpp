@@ -26,12 +26,6 @@ SOFTWARE.
 #include "Tests.hpp"
 
 
-#include <ShapeModelImporter.hpp>
-#include <ShapeModel.hpp>
-#include <DynamicAnalyses.hpp>
-#include <Constants.hpp>
-#include <RigidBodyKinematics.hpp>
-
 #include <vtkObjectFactory.h>
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
@@ -361,138 +355,9 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 
 
-	// dynamic_analyses.compute_exterior_sh_coefs(
-	// 	Cnm_total,
-	// 	Snm_total,
-	// 	degree,
-	// 	ref_radius,
-	// 	density,
-	// 	normalized);
-
-	// // The standard gravitational parameter of Eros is computed
-	// double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
-
-
-	// // Accelerations obtained from the legacy MEX implementation 
-	// // of this spherical harmonics code by Yu Takahashi
-	// // and Siamak Hesar
-
-	// arma::vec acc_true = { -0.567824977098112e-6,
-	// 	-0.846742135468519e-6,
-	// 	-0.836664679681573e-6
-	// };
-
-	// arma::vec acc_sph = dynamic_analyses.spherical_harmo_acc(degree,
-	// 	ref_radius,
-	// 	mu,
-	// 	pos, 
-	// 	Cnm_total,
-	// 	Snm_total);
-
-	// assert(arma::norm(acc_true - acc_sph) / arma::norm(acc_sph) < 1e-10);
-
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
-
-// void TestsSBCore::test_spherical_harmonics_invariance(){
-
-// 	std::cout << "- Running test_spherical_harmonics_invariance ..." << std::endl;
-
-// 	arma::vec acc_sph_km(3);
-// 	arma::vec acc_sph_m(3);
-
-
-// 	{
-
-// 		SBGAT_CORE::FrameGraph frame_graph;
-// 		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
-// 		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1);
-
-// 		shape_io.load_shape_model(&eros,false);
-// 		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
-
-// 		int degree = 10;
-
-// 		double density = 2670000000000.0;
-
-// 		double ref_radius = 16;
-
-// 		bool normalized = true;
-
-// 		arma::mat Cnm_total;
-// 		arma::mat Snm_total;
-
-// 		dynamic_analyses.compute_exterior_sh_coefs(
-// 			Cnm_total,
-// 			Snm_total,
-// 			degree,
-// 			ref_radius,
-// 			density,
-// 			normalized);
-
-// 		arma::vec pos = {10,10,10};
-
-// 		double mu = eros.get_volume() * (density * arma::datum::G / 1e9);
-
-// 		acc_sph_km = dynamic_analyses.spherical_harmo_acc(degree,
-// 			ref_radius,
-// 			mu,
-// 			pos, 
-// 			Cnm_total,
-// 			Snm_total);
-// 	}
-
-// 	{
-
-// 		SBGAT_CORE::FrameGraph frame_graph;
-// 		SBGAT_CORE::ShapeModel eros("B", &frame_graph);
-// 		SBGAT_CORE::ShapeModelImporter shape_io("../eros_64.obj", 1000);
-
-// 		shape_io.load_shape_model(&eros,false);
-// 		SBGAT_CORE::DynamicAnalyses dynamic_analyses(&eros);
-
-// 		int degree = 10;
-
-// 		double density = 2670;
-
-// 		double ref_radius = 16000;
-
-// 		bool normalized = true;
-
-// 		arma::mat Cnm_total;
-// 		arma::mat Snm_total;
-
-// 		dynamic_analyses.compute_exterior_sh_coefs(
-// 			Cnm_total,
-// 			Snm_total,
-// 			degree,
-// 			ref_radius,
-// 			density,
-// 			normalized);
-
-// 		arma::vec pos = {10000,10000,10000};
-
-// 		double mu = eros.get_volume() * (density * arma::datum::G);
-
-// 		acc_sph_m = dynamic_analyses.spherical_harmo_acc(degree,
-// 			ref_radius,
-// 			mu,
-// 			pos, 
-// 			Cnm_total,
-// 			Snm_total);
-// 	}
-
-// 	assert(arma::norm(acc_sph_m - 1e3 * acc_sph_km)/arma::norm(acc_sph_km) < 1e-10);
-
-
-// 	std::cout << "-- test_spherical_harmonics_invariance successful" << std::endl;
-
-
-// }
-
-
-
 
 
 
