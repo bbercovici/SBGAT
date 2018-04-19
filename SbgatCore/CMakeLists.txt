@@ -40,7 +40,6 @@
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
-
 ################################################################################
 #
 #
@@ -91,7 +90,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
-
 
 # Find YORPLib
 find_package(YORPLib REQUIRED)
