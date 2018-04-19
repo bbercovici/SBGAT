@@ -63,44 +63,11 @@ set(SbgatCore_LOC "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 ################################################################################
 
 
-if (EXISTS /home/bebe0705/.am_fortuna)
-	set(IS_FORTUNA ON)
-	message("-- This is Fortuna")
-
-else()
-	set(IS_FORTUNA OFF)
-	message("-- This is not Fortuna")
-
-endif()
-
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-if (${IS_FORTUNA})
-	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
-else()
-	if(APPLE)
-		if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
-			
-			# Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-			message("Switching to OMP-friendly GCC ")
-			set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-			set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
-
-		else()
-			# no OMP-compliant compiler was found on this mac. 
-			message("No OMP-compliant compiler was found on this Mac.")
-		endif()
-	else() 
-		# Running on Linux. Will switch back to compiler in /usr/local/bin
-		message("Switching to /usr/local/gcc ")
-		set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-		set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
-	endif()
-endif()
-
+include(cmake/FindOmpGcc.cmake)
 
 project(${EXE_NAME})
 
