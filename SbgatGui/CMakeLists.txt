@@ -38,10 +38,10 @@
 ################################################################################
 
 # Path to Qt5 cmake config file (author's mac configuration)
-set (QT_CMAKE_CONFIG_MAC "~/Qt/5.10.0/clang_64/lib/cmake")
+set (QT_CMAKE_CONFIG_MAC "$ENV{HOME}/Qt/5.10.0/clang_64/lib/cmake")
 
 # Path to Qt5 cmake config file (author's ubuntu configuration)
-set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.10.0/gcc_64/lib/cmake/")
+set (QT_CMAKE_CONFIG_LINUX "$ENV{HOME}/Qt/5.10.0/gcc_64/lib/cmake/")
 
 
 ################################################################################
