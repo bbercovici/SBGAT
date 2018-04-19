@@ -38,7 +38,7 @@
 ################################################################################
 
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
-set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
+# set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
 ################################################################################
 #

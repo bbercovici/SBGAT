@@ -21,22 +21,9 @@
 # SOFTWARE.
 #
 
-# Proceeds to find the Qt install at some current locations
+# Proceeds to find the Qt install where Homebrew put it
+# Note that Qt is not symlinked to /usr/local/lib
 
-# if (${HOME_DIR})
+set (QT_CMAKE_CONFIG_MAC "/usr/local/opt/qt")
 
-# 	# Path to Qt5 cmake config file (author's mac configuration)
-# 	set (QT_CMAKE_CONFIG_MAC "${HOME_DIR}/Qt/5.10.0/clang_64/lib/cmake")
-
-# 	# Path to Qt5 cmake config file (author's ubuntu configuration)
-# 	set (QT_CMAKE_CONFIG_LINUX "${HOME_DIR}/Qt/5.10.0/gcc_64/lib/cmake/")
-
-# else()
-	# Path to Qt5 cmake config file (author's mac configuration)
-	set (QT_CMAKE_CONFIG_MAC "/usr/local/opt/qt")
-
-	# Path to Qt5 cmake config file (author's ubuntu configuration)
-	# set (QT_CMAKE_CONFIG_LINUX "~/Qt/5.10.0/gcc_64/lib/cmake/")
-
-# endif()
 
