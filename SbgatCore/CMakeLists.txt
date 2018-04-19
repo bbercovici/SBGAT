@@ -37,13 +37,6 @@
 #
 ################################################################################
 
-
-# OMP-friendly GCC Major version (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
-
-# Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.3.0_1/bin/)
-
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
@@ -61,24 +54,7 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(LIB_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-
-if(APPLE)
-	if(EXISTS ${OMP_FRIENDLY_GCC_PATH}) 
-		# Else running on a MAC. Will attempt to switch compiler to get the OMP-friendly GCC 6.3.0_1 from Homebrew
-		message("Switching to OMP-friendly GCC ")
-		set(CMAKE_C_COMPILER ${OMP_FRIENDLY_GCC_PATH}gcc-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C Compiler" FORCE)
-		set(CMAKE_CXX_COMPILER ${OMP_FRIENDLY_GCC_PATH}g++-${OMP_FRIENDLY_GCC_MAJOR_VERSION} CACHE STRING "C++ Compiler" FORCE)
-
-	else()
-		# no OMP-compliant compiler was found on this mac. 
-		message("No OMP-compliant compiler was found on this Mac.")
-	endif()
-else() 
-	# Running on Linux. Will switch back to compiler in /usr/local/bin
-	message("Switching to /usr/local/gcc ")
-	set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
-endif()
+include(cmake/FindOmpGcc.cmake)
 
 project(${LIB_NAME})
 
@@ -167,7 +143,7 @@ target_link_libraries(${LIB_NAME} ${library_dependencies})
 if(NOT BREW)
 	install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
 	install (DIRECTORY ${PROJECT_SOURCE_DIR}/${LIB_NAME} DESTINATION /usr/local/share)
-	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION /usr/local/include/SbgatCore FILES_MATCHING PATTERN "*.hpp")
+	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/SbgatCore DESTINATION /usr/local/include/ FILES_MATCHING PATTERN "*.hpp")
 endif()
 
 
