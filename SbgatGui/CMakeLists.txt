@@ -62,7 +62,8 @@ include(cmake/FindOmpGcc.cmake)
 if(APPLE)
 
 set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
-	
+message("${CMAKE_PREFIX_PATH}")
+
 endif()
 
 project(${EXE_NAME})
