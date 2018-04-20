@@ -1,8 +1,6 @@
-# SBGAT
+# Small Bodies Geophysical Analysis Tool
 
-The Small Bodies Geophysical Analysis Tool implementation
-
-Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
+The Small Bodies Geophysical Analysis Tool (SBGAT) implementation.
 
 * SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing SBGATCore's classes through a GUI.
 
@@ -12,7 +10,7 @@ Public repository storing the source code of the implementation of the Small Bod
 
 ## Wiki
 
-The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki)
+The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki).
 
 
 ## Installation: 
@@ -36,25 +34,25 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Linux & Mac users
 
-[Refer to the detailed installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies)
+[Refer to the detailed installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies).
 
 ## Getting updates
 
 ### Mac users
 
-Assuming that Sbgat was installed with Homebrew
+Assuming that SbgatCore was installed with Homebrew:
 
     brew update
     brew upgrade sbgat-core
 
-If installed,
+If installed, after updating brew, SbgatGui can be also upgraded:
 
-    brew install sbgat-gui
+    brew upgrade sbgat-gui
 
 
 ### Linux & Mac users
 
-Check each of SBGAT's dependencies repository and SBGAT's repository itself for updates. Assuming that the current directory is the original Git local repository for the component you wish to update, run 
+Check each of SBGAT's dependencies repository and SBGAT's repository itself for updates. Assuming that the current directory is the original Git local repository for the component you wish to update, run :
 
     git pull
     cd build
@@ -62,7 +60,7 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
     make
     make install
 
-to apply the update (if any)
+to apply the update (if any).
 
 ## Changelog
 
