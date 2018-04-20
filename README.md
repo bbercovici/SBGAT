@@ -14,21 +14,41 @@ Public repository storing the source code of the implementation of the Small Bod
 
 The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki)
 
-## Documentation
 
-The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html). It was generated with Doxygen and hosted on GitHub using the method described [here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
+## Installation: 
 
-## License
+### Mac users
 
-[This software is distributed under the MIT License](https://choosealicense.com/licenses/mit/)
+Homebrew is heavily recommended
+
+    brew tap bbercovici/self
+    brew update
+    brew install sbgat
+
+### Linux & Mac users
+
+[Refer to the installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies)
 
 ## Getting updates
-Assuming you have cloned this repository and did not apply any local changes to the library, cd to the corresponding folder
-and type
-1. `git pull origin master`
-2. `make`
-3. `make install`
 
+### Mac users
+
+Assuming that sbgat was installed with Homebrew
+
+    brew update
+    brew upgrade sbgat
+
+### Linux & Mac users
+
+Check each of SBGAT's dependencies repository and SBGAT's repository itself for updates. Assuming that the current directory is the original Git local repository for the component you wish to update, run 
+
+    git pull
+    cd build
+    cmake ..
+    make
+    make install
+
+to apply the update (if any)
 
 ## Changelog
 
@@ -90,5 +110,12 @@ and type
 ![Visualization of a trajectory in Itokawa's body-fixed frame](https://i.imgur.com/xXRy1DY.png)
 
 
+## Documentation
+
+The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html). It was generated with Doxygen and hosted on GitHub using the method described [here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
+
+## License
+
+[This software is distributed under the MIT License](https://choosealicense.com/licenses/mit/)
 
 Created by Benjamin Bercovici
