@@ -4,7 +4,7 @@ The Small Bodies Geophysical Analysis Tool implementation
 
 Public repository storing the source code of the implementation of the Small Body Geophysical Analysis Tool (SBGAT). 
 
-* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SBGATCore* and a frontend component *SBGATGui* exposing SBGATCore's classes through a GUI.
+* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing SBGATCore's classes through a GUI.
 
 * The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository. 
 
@@ -19,32 +19,38 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Mac users
 
-Homebrew can be used to retrieve SBGAT and its dependencies.
+Homebrew is heavily recommended to install SBGAT's components and dependencies. Homebrew install commands differ whether you want to use SbgatGui or just the core classes of SbgatCore. This is justified by the dependence of SbgatCore to VTK, which needs to know whether it must be linked against Qt at build time.
+
+#### Without SbgatGui
 
     brew tap bbercovici/self
     brew update
-    brew install sbgat
-    
-  
+    brew install sbgat-core
 
-The VTK formula used within `sbgat.rb` is a custom one passing Qt-specific flags to CMake. Note that `sbgat.rb` will use only one thread to compile VTK by default. More threads can be dedicated to building VTK if it is installed prior to SBGAT. The following example dedicates all available threads to the compile job. Note that Qt must be installed prior to installing VTK. 
-	
-    brew install qt
-    brew install bbercovici/self/vtk --with-all-threads
-    brew install sbgat
+#### With SbgatGui
+
+    brew tap bbercovici/self
+    brew update
+    brew install sbgat-core --with-qt
+    brew install sbgat-gui
 
 ### Linux & Mac users
 
-[Refer to the installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies)
+[Refer to the detailed installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies)
 
 ## Getting updates
 
 ### Mac users
 
-Assuming that sbgat was installed with Homebrew
+Assuming that Sbgat was installed with Homebrew
 
     brew update
-    brew upgrade sbgat
+    brew upgrade sbgat-core
+
+If installed,
+
+    brew install sbgat-gui
+
 
 ### Linux & Mac users
 
