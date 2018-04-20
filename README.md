@@ -29,6 +29,7 @@ The `sbgat.rb` formula will use only one thread to compile VTK by default.
 More threads can be dedicated to building VTK if it is installed prior to sbgat. The following example dedicates all available threads to the compile job.
 
     brew install bbercovici/self/vtk --with-all-threads
+    brew install sbgat
 
 ### Linux & Mac users
 
