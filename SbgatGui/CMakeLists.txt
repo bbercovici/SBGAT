@@ -44,12 +44,15 @@ set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-# include(cmake/FindOmpGcc.cmake)
+
+if (${USE_GCC})
+	include(cmake/FindOmpGcc.cmake)
+endif()
+
 include(cmake/FindQt.cmake)
 
 if(APPLE)
 	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
-	message("${CMAKE_PREFIX_PATH}")
 endif()
 
 project(${EXE_NAME})
@@ -68,11 +71,6 @@ include_directories(include)
 find_package(Qt5 5.10.0 COMPONENTS Widgets REQUIRED)
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 add_definitions(${Qt5Widgets_DEFINITIONS})
-
-
-message(${Qt5Widgets_DEFINITIONS})
-message(${Qt5Widgets_INCLUDE_DIRS})
-message(${Qt5Widgets_LIBRARIES})
 
 
 # Find VTK Package
