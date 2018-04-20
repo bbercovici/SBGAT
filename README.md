@@ -24,10 +24,12 @@ Homebrew can be used to retrieve SBGAT and its dependencies.
     brew tap bbercovici/self
     brew update
     brew install sbgat
+    
+  
 
-The `sbgat.rb` formula will use only one thread to compile VTK by default. 
-More threads can be dedicated to building VTK if it is installed prior to sbgat. The following example dedicates all available threads to the compile job.
-
+The VTK formula used within `sbgat.rb` is a custom one passing Qt-specific flags to CMAke. Note that `sbgat.rb` formula will use only one thread to compile VTK by default. More threads can be dedicated to building VTK if it is installed prior to SBGAT. The following example dedicates all available threads to the compile job. Note that Qt must be installed prior to installing VTK. 
+	
+    brew install qt
     brew install bbercovici/self/vtk --with-all-threads
     brew install sbgat
 
