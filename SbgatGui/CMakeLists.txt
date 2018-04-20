@@ -55,7 +55,6 @@ include(cmake/FindQt.cmake)
 
 if(APPLE)
 	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
->>>>>>> develop
 endif()
 
 project(${EXE_NAME})
