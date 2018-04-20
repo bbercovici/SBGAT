@@ -44,9 +44,6 @@ set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-
-set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
-
 if (${USE_GCC})
 	include(cmake/FindOmpGcc.cmake)
 endif()
