@@ -198,7 +198,7 @@ int SBGATSrpYorp::RequestData(
 
     input -> GetCellPoints(i,ptIds);
 
-    std::vector<int> facet = {ptIds -> GetId(0),ptIds -> GetId(1),ptIds -> GetId(2)};
+    std::vector<int> facet = {static_cast<int>(ptIds -> GetId(0)),static_cast<int>(ptIds -> GetId(1)),static_cast<int>(ptIds -> GetId(2))};
 
     facets[i] = facet;
 

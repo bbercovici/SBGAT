@@ -907,8 +907,8 @@ void Mainwindow::align_shape(){
     center_of_mass_filter -> GetCenterOfMass(center);
     arma::mat::fixed<3,3> principal_axes = center_of_mass_filter -> GetPrincipalAxes();
     auto prv = RBK::dcm_to_prv(principal_axes);
-    double angle = 180 / arma::datum::pi * prv.first;
-    arma::vec axis = prv.second;
+    double angle = 180 / arma::datum::pi * arma::norm(prv);
+    arma::vec axis = arma::normalise(prv);
     
     vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
     transform -> RotateWXYZ(angle,axis.colptr(0));

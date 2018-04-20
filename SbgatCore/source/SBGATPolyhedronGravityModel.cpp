@@ -58,6 +58,7 @@ SOFTWARE.
 #include <vtkLine.h>
 #include <set>
 #include <vtkMath.h>
+#include <array>
 
 vtkStandardNewMacro(SBGATPolyhedronGravityModel);
 

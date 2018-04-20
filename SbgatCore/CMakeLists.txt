@@ -38,7 +38,7 @@
 ################################################################################
 
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
-set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
+# set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
 ################################################################################
 #
@@ -53,7 +53,9 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(LIB_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-include(cmake/FindOmpGcc.cmake)
+if (${USE_GCC})
+	include(cmake/FindOmpGcc.cmake)
+endif()
 
 project(${LIB_NAME})
 
@@ -69,7 +71,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall -O2 )
 
 # Enable C++17 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 # Include directories
 include_directories(include/SbgatCore)
@@ -83,10 +85,11 @@ find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find OpenMP
-find_package(OpenMP REQUIRED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-
+find_package(OpenMP)
+if(OpenMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})

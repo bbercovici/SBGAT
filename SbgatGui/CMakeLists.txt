@@ -20,28 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-
-
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
 # @brief  CMake listing enabling compilation and installation of SBgatGui
-
-
-################################################################################
-#
-# 								User-defined paths
-#						Should be checked for consistency
-#						Before running 'cmake ..' in build dir
-#
-################################################################################
-
-# Path to Qt5 cmake config file (author's mac configuration)
-set (QT_CMAKE_CONFIG_MAC "$ENV{HOME}/Qt/5.10.0/clang_64/lib/cmake")
-
-# Path to Qt5 cmake config file (author's ubuntu configuration)
-set (QT_CMAKE_CONFIG_LINUX "$ENV{HOME}/Qt/5.10.0/gcc_64/lib/cmake/")
 
 
 ################################################################################
@@ -57,13 +39,23 @@ set (QT_CMAKE_CONFIG_LINUX "$ENV{HOME}/Qt/5.10.0/gcc_64/lib/cmake/")
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-include(cmake/FindOmpGcc.cmake)
+# Will use the most recent version of 
+# Qt
+SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
-if(APPLE)
 
 set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
-message("${CMAKE_PREFIX_PATH}")
 
+if (${USE_GCC})
+	include(cmake/FindOmpGcc.cmake)
+endif()
+
+include(cmake/FindQt.cmake)
+
+if(APPLE)
+	set (CMAKE_PREFIX_PATH ${QT_CMAKE_CONFIG_MAC})
+>>>>>>> develop
 endif()
 
 project(${EXE_NAME})
@@ -79,15 +71,13 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall -O2 )
 include_directories(include)
 
-# Widgets finds its own dependencies (QtGui and QtCore)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5 5.10.0 COMPONENTS Widgets REQUIRED)
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
-
-# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
+
 # Find VTK Package
-find_package(VTK REQUIRED)
+find_package(VTK REQUIRED )
 include(${VTK_USE_FILE})
 
 # Find Boost
