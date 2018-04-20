@@ -19,7 +19,7 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Mac users
 
-Homebrew is heavily recommended to install SBGAT's components and dependencies. Homebrew install commands differ whether you want to use SbgatGui or just the core classes of SbgatCore. This is justified by the dependence of SbgatCore to VTK, which needs to know whether it must be linked against Qt at build time.
+[Homebrew](https://brew.sh/) is heavily recommended to install SBGAT's components and dependencies. Homebrew install commands differ whether you want to use SbgatGui or just the core classes of SbgatCore. This is justified by SbgatCore's dependency to VTK, as VTK needs to know whether it must be linked against Qt at build time.
 
 #### Without SbgatGui
 
