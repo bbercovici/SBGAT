@@ -37,7 +37,7 @@
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
+set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 
 # Will use the most recent version of 
 # Qt
