@@ -44,6 +44,9 @@ set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 
+set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "C Compiler" FORCE)
+set(CMAKE_CXX_COMPILER "/usr/bin/c++" CACHE STRING "C++ Compiler" FORCE)
+
 if (${USE_GCC})
 	include(cmake/FindOmpGcc.cmake)
 endif()
