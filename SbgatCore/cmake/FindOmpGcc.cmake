@@ -91,6 +91,7 @@ if(APPLE)
 		endif()
 	else()
 		message("No OMP-compliant compiler was found on this Mac.")
+		
 	endif()
 
 else() 

@@ -25,6 +25,8 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
     brew install sbgat-core --with-qt
     brew install sbgat-gui
 
+SbgatGui will be simlinked to `/usr/local/bin` .
+
 #### Without SbgatGui
 
     brew tap bbercovici/self

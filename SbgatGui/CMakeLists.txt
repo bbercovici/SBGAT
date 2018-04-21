@@ -43,6 +43,8 @@ set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 # Qt
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
+
+# Enforcing clang as default compiler to prevent Homebrew from picking shim'd clang
 set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "C Compiler" FORCE)
 set(CMAKE_CXX_COMPILER "/usr/bin/c++" CACHE STRING "C++ Compiler" FORCE)
 
@@ -105,22 +107,11 @@ if (OpenMP_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# Debug
-
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-foreach(dir ${dirs})
-  message(STATUS "dir='${dir}'")
-endforeach()
-
-
-
-
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-# set(CMAKE_INCLUDE_CURRENT_DIR ON)# As moc files are generated in the binary dir, tell CMake to always look for includes there
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
