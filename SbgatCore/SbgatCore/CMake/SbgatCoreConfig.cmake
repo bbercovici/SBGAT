@@ -31,4 +31,5 @@ else()
 endif()
 
 
-message("-- Found SbgatCore: " ${SBGATCORE_LIBRARY})
+message("-- Found SbgatCore:  ${SBGATCORE_LIBRARY} ; ${SBGATCORE_INCLUDE_HEADER}")
+

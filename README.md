@@ -2,9 +2,9 @@
 
 The Small Bodies Geophysical Analysis Tool (SBGAT) implementation.
 
-* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing SBGATCore's classes through a GUI.
+* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing SbgatCore's classes through a GUI.
 
-* The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository. 
+* The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository, or by using Homebrew as described below.
 
 * The `develop` branch features code is undergoing active development or debugging.
 
@@ -12,18 +12,11 @@ The Small Bodies Geophysical Analysis Tool (SBGAT) implementation.
 
 The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki).
 
-
 ## Installation: 
 
 ### Mac users
 
 [Homebrew](https://brew.sh/) is heavily recommended to install SBGAT's components and dependencies. Homebrew install commands differ whether you want to use SbgatGui or just the core classes of SbgatCore. This is justified by SbgatCore's dependency to VTK, as VTK needs to know whether it must be linked against Qt at build time.
-
-#### Without SbgatGui
-
-    brew tap bbercovici/self
-    brew update
-    brew install sbgat-core
 
 #### With SbgatGui
 
@@ -31,6 +24,20 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
     brew update
     brew install sbgat-core --with-qt
     brew install sbgat-gui
+
+#### Without SbgatGui
+
+    brew tap bbercovici/self
+    brew update
+    brew install sbgat-core
+
+If you change your mind and decide you want the SbgatGui component, make sure to run:
+
+    brew uninstall sbgat-core
+    brew uninstall vtk
+    
+before reinstalling.
+
 
 ### Linux & Mac users
 

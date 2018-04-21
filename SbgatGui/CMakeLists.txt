@@ -103,6 +103,16 @@ if (OpenMP_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+# Debug
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+  message(STATUS "dir='${dir}'")
+endforeach()
+
+
+
+
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -139,4 +149,5 @@ set(library_dependencies
 	)
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})
+
 
