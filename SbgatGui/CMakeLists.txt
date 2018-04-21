@@ -43,7 +43,6 @@ set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 # Qt
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
-
 set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "C Compiler" FORCE)
 set(CMAKE_CXX_COMPILER "/usr/bin/c++" CACHE STRING "C++ Compiler" FORCE)
 
