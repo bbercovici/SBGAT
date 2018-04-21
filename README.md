@@ -77,7 +77,7 @@ to apply the update (if any).
 
 ### SBGAT 1.04.3
 
-* SBGAT 1.04.3 marks the shift to the Homebrew package manager as a way to greatly facilitate SBGAT's distribution and update. It is of course still possible to download each of SBGAT's dependencies separatly and manually build from source (see above instructions).
+* SBGAT 1.04.3 marks the shift to the Homebrew package manager as a way to greatly facilitate SBGAT's distribution and update. It is of course still possible to download each of SBGAT's dependencies separatly and manually build from source.
 
 ### SBGAT 1.04.2
 
