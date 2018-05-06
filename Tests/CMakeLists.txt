@@ -37,8 +37,9 @@
 #
 ################################################################################
 
-# Path to VTKConfig.cmake (not used if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
+set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 
 ################################################################################
 #
@@ -53,7 +54,7 @@ set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
 set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 
-project(${EXE_NAME})
+project(Tests)
 
 # Specify the version used
 if (${CMAKE_MAJOR_VERSION} LESS 3)
@@ -75,11 +76,11 @@ find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_LOC})
+find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATHS})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
-find_package(SbgatCore REQUIRED PATHS ${SbgatCore_LOC})
+find_package(SbgatCore REQUIRED PATHS ${SBGAT_PATH})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
