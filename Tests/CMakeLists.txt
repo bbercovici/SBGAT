@@ -99,7 +99,6 @@ include(${VTK_USE_FILE})
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
-	include/Tests.hpp
 	source/main.cpp
 	source/Tests.cpp
 	)
