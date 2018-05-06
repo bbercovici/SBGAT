@@ -40,6 +40,8 @@
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
+set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
+
 
 ################################################################################
 #
@@ -98,6 +100,11 @@ endif()
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
+
+
+# Find nlohmann_json
+find_package(nlohmann_json REQUIRED PATHS ${NLOHMANN_JSON_PATH})
+
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
