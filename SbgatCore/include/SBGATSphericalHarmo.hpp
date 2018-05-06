@@ -61,6 +61,7 @@ SOFTWARE.
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
+#include <nlohmann/json.hpp>
 
 class VTKFILTERSCORE_EXPORT SBGATSphericalHarmo : public vtkPolyDataAlgorithm{
 public:
@@ -84,7 +85,8 @@ public:
   }
 
   /**
-  Sets reference radius in spherical harmonics expansion
+  Sets reference radius in spherical harmonics expansion. Units must be consistent 
+  with the units in which the shape coordinates are expressed
   @param ref_radius reference radius in spherical harmonics expansion
   */
   void SetReferenceRadius(const double ref_radius){
@@ -93,7 +95,8 @@ public:
   }
 
   /**
-  Sets polyhedron density
+  Sets polyhedron density. Units must be consistent 
+  with the units in which the shape coordinates are expressed
   @param density bulk density of polyhedron
   */
   void SetDensity(const double density){
@@ -160,6 +163,19 @@ public:
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
 
 
+  /**
+  Exports the computed spherical harmonics expansion to 
+  a JSON file
+  */
+  void SaveToJson(std::string path) const;
+
+  /**
+  Loads a previously computed spherical harmonics expansion
+  from a JSON file. Will set the appropriate fields in the SBGATSphericalHarmo object to
+  allow calls to other methods. 
+  */
+  void LoadFromJson(std::string path);
+
 protected:
   SBGATSphericalHarmo();
   ~SBGATSphericalHarmo() override;
@@ -179,11 +195,14 @@ protected:
   bool normalized;
   unsigned int degree;
 
+  int n_facets;
+  int n_vertices;
+
   bool degreeSet;
   bool densitySet;
   bool referenceRadiusSet;
   bool scaleFactorSet;
-
+  bool setFromJSON;
 
 
 
