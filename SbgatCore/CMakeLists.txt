@@ -103,6 +103,9 @@ include_directories(${YORPLIB_INCLUDE_HEADER})
 find_package(SHARMLib REQUIRED)
 include_directories(${SHARMLIB_INCLUDE_HEADER})
 
+# Find nlohmann_json
+find_package(nlohmann_json REQUIRED)
+
 
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED )

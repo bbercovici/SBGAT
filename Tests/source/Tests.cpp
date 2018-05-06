@@ -323,13 +323,19 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// Reference radius of KW4 (km)
 	double ref_radius = 1.317/2;
 
-	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
 
-	spherical_harmonics -> SetInputConnection(cleanPolyData -> GetOutputPort());
-
+	// An instance of SBGATPolyhedronGravityModel is created to evaluate the PGM of 
+	// the considered polytdata
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	pgm_filter -> SetDensity(density);
+	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> Update();
 
+	// An instance of SBGATSphericalHarmo is created to compute and evaluate the spherical 
+	// expansion of the gravity field about the considered shape model
+	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
+	spherical_harmonics -> SetInputConnection(cleanPolyData -> GetOutputPort());
 	spherical_harmonics -> SetDensity(density);
 	spherical_harmonics -> SetScaleKiloMeters();
 	spherical_harmonics -> SetReferenceRadius(ref_radius);
@@ -337,10 +343,8 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> SetDegree(degree);
 	spherical_harmonics -> Update();
 
-
-	pgm_filter -> SetDensity(density);
-	pgm_filter -> SetScaleKiloMeters();
-	pgm_filter -> Update();
+	// The spherical harmonics are saved to a file
+	spherical_harmonics -> SaveToJson("harmo.json");
 
 
 	// The accelerations are evaluated at the query point
@@ -350,6 +354,20 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	arma::vec sharm_acc = spherical_harmonics -> GetAcceleration(pos);
 
 	assert(arma::norm(pgm_acc - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-4);
+
+
+	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
+	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
+	spherical_harmonics_from_file -> LoadFromJson("harmo.json");
+	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
+
+
+	// The accelerations should be consisted with the one previously computed
+	assert(arma::norm(pgm_acc - sharm_acc_from_file) / arma::norm(sharm_acc_from_file) * 100 < 1e-4);
+	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
+
+
+
 
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
