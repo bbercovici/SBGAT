@@ -39,6 +39,12 @@
 
 # Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
+set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+set (YORPLIB_PATH "/home/bebe0705/libs/local/lib/cmake/YORPLib")
+set (SHARMLIB_PATH "/home/bebe0705/libs/local/lib/cmake/SHARMLib")
+set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
+
+
 
 ################################################################################
 #
@@ -93,18 +99,18 @@ find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 # Find YORPLib
-find_package(YORPLib REQUIRED)
+find_package(YORPLib REQUIRED ${YORPLIB_PATH})
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
 # Find SHARMLib
-find_package(SHARMLib REQUIRED)
+find_package(SHARMLib REQUIRED ${SHARMLIB_PATH})
 include_directories(${SHARMLIB_INCLUDE_HEADER})
 
 # Find nlohmann_json
-find_package(nlohmann_json REQUIRED)
+find_package(nlohmann_json REQUIRED ${NLOHMANN_JSON_PATH})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED )
+find_package(RigidBodyKinematics REQUIRED ${RBK_PATH})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Add source files in root directory
