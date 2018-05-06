@@ -99,18 +99,18 @@ find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 # Find YORPLib
-find_package(YORPLib REQUIRED ${YORPLIB_PATH})
+find_package(YORPLib REQUIRED PATHS ${YORPLIB_PATH})
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
 # Find SHARMLib
-find_package(SHARMLib REQUIRED ${SHARMLIB_PATH})
+find_package(SHARMLib REQUIRED PATHS ${SHARMLIB_PATH})
 include_directories(${SHARMLIB_INCLUDE_HEADER})
 
 # Find nlohmann_json
-find_package(nlohmann_json REQUIRED ${NLOHMANN_JSON_PATH})
+find_package(nlohmann_json REQUIRED PATHS ${NLOHMANN_JSON_PATH})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED ${RBK_PATH})
+find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATH})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Add source files in root directory
