@@ -76,7 +76,7 @@ find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATHS})
+find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATH})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
