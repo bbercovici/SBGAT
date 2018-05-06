@@ -54,7 +54,7 @@ set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
 set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 
-project(Tests)
+project(TestsSbgat)
 
 # Specify the version used
 if (${CMAKE_MAJOR_VERSION} LESS 3)
