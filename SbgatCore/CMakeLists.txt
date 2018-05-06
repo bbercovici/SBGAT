@@ -96,10 +96,12 @@ include(${VTK_USE_FILE})
 find_package(YORPLib REQUIRED)
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
-
 # Find SHARMLib
 find_package(SHARMLib REQUIRED)
 include_directories(${SHARMLIB_INCLUDE_HEADER})
+
+# Find nlohmann_json
+find_package(nlohmann_json REQUIRED)
 
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED )

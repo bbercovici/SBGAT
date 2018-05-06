@@ -60,6 +60,8 @@ SBGATSphericalHarmo::SBGATSphericalHarmo(){
   this -> densitySet = false;
   this -> referenceRadiusSet = false;
   this -> scaleFactorSet = false;
+  this -> setFromJSON = false;
+
 
   this->SetNumberOfOutputPorts(0);
 }
@@ -79,6 +81,12 @@ int SBGATSphericalHarmo::RequestData(
   vtkInformation* vtkNotUsed( request ),
   vtkInformationVector** inputVector,
   vtkInformationVector* vtkNotUsed( outputVector )){
+
+  if (this -> setFromJSON){
+    return 1;
+  }
+
+
   vtkInformation *inInfo =
   inputVector[0]->GetInformationObject(0);
 
@@ -107,6 +115,9 @@ int SBGATSphericalHarmo::RequestData(
   // Initialize variables 
   this -> Cnm.clear();
   this -> Snm.clear();
+  this -> n_facets = numCells;
+  this -> n_vertices = numPts;
+
   this -> Cnm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
   this -> Snm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
@@ -182,7 +193,6 @@ int SBGATSphericalHarmo::RequestData(
 
 
 arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
-
 
   try{
 
@@ -266,6 +276,142 @@ void SBGATSphericalHarmo::PrintHeader(ostream& os, vtkIndent indent) {
 void SBGATSphericalHarmo::PrintTrailer(ostream& os, vtkIndent indent) {
 
 }
+
+
+
+void SBGATSphericalHarmo::SaveToJson(std::string path) const{
+
+
+  // The spherical harmonics are saved to a JSON file
+  // The JSON fieds are:
+  // - facets == number of facets
+  // - vertices == number of vertices
+  // - density : {value, unit}
+  // - reference_radius : {value, unit}
+  // - normalized == true if the coefficient are normalized
+  // - degree == degree of the spherical expansion
+  // - Cnm_coefs - vector of coefficients triplets
+  // - Snm_coefs - vector of coefficients triplets
+
+
+
+  nlohmann::json spherical_harmo_json;
+
+  spherical_harmo_json["facets"] = this -> n_facets;
+  spherical_harmo_json["vertices"] = this -> n_vertices;
+  spherical_harmo_json["totalMass"]["value"] = this -> totalMass;
+  spherical_harmo_json["totalMass"]["unit"] = "kg";
+
+
+  spherical_harmo_json["density"]["value"] = this -> density;
+
+  spherical_harmo_json["referenceRadius"]["value"] = this -> referenceRadius;
+  
+  if (this -> scaleFactor == 1){
+    spherical_harmo_json["density"]["unit"] = "kg/m^3";
+    spherical_harmo_json["referenceRadius"]["unit"] = "m";
+
+  }
+  else{
+    spherical_harmo_json["density"]["unit"] = "kg/km^3";
+    spherical_harmo_json["referenceRadius"]["unit"] = "km";
+
+  }
+
+  spherical_harmo_json["normalized"] = this -> normalized;
+  spherical_harmo_json["degree"] = this -> degree;
+
+  nlohmann::json Cnm_coefs;
+  nlohmann::json Snm_coefs;
+
+
+  for (unsigned int nn = 0; nn<=this -> degree; nn++){
+    for (unsigned int mm = 0; mm<=nn; mm++){
+
+      nlohmann::json coef_C = { {"n", nn}, {"m", mm}, {"value", this -> Cnm(nn,mm)} };
+      nlohmann::json coef_S = { {"n", nn}, {"m", mm},{"value", this -> Snm(nn,mm)} };
+
+      Cnm_coefs.push_back(coef_C);
+      Snm_coefs.push_back(coef_S);
+    }
+  }
+
+  spherical_harmo_json["Cnm_coefs"] = Cnm_coefs;
+  spherical_harmo_json["Snm_coefs"] = Snm_coefs;
+
+
+  std::ofstream o(path);
+  o << std::setw(4) << spherical_harmo_json << std::endl;
+
+
+
+}
+
+void SBGATSphericalHarmo::LoadFromJson(std::string path){
+
+  // The JSON container is created
+  nlohmann::json spherical_harmo_json;
+
+  // The file is loaded into the container
+  std::ifstream i(path);  
+  i >> spherical_harmo_json;
+
+  // There should be a total of 9 objects in the container
+  if (spherical_harmo_json.size() != 9){
+    throw(std::runtime_error("Parsed JSON file should contain 7 objects, but SBGAT found " + std::to_string(spherical_harmo_json.size()) ));
+  }
+
+
+  // The fields are parsed and used to set the SBGATSphericalHarmo state
+  this -> density = spherical_harmo_json.at("density").at("value");
+  this -> referenceRadius = spherical_harmo_json.at("referenceRadius").at("value");
+  this -> totalMass = spherical_harmo_json.at("totalMass").at("value");
+
+  if (spherical_harmo_json.at("density").at("unit") == "kg/m^3" ){
+    this -> scaleFactor = 1;
+  }
+  else{
+    this -> scaleFactor = 1000;
+  }
+
+  this -> normalized = spherical_harmo_json.at("normalized");
+  this -> degree = spherical_harmo_json.at("degree");
+
+  this -> Cnm.clear();
+  this -> Snm.clear();
+  this -> Cnm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
+  this -> Snm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
+
+
+  nlohmann::json Cnm_coefs = spherical_harmo_json.at("Cnm_coefs");
+  nlohmann::json Snm_coefs = spherical_harmo_json.at("Snm_coefs");
+
+
+  for (nlohmann::json::iterator it = Cnm_coefs.begin(); it != Cnm_coefs.end(); ++it) {
+    int n = it -> at("n");
+    int m = it -> at("m");
+    double value = it -> at("value");
+    this -> Cnm(n,m) = value;
+  }
+
+  for (nlohmann::json::iterator it = Snm_coefs.begin(); it != Snm_coefs.end(); ++it) {
+    int n = it -> at("n");
+    int m = it -> at("m");
+    double value = it -> at("value");
+    this -> Snm(n,m) = value;
+  }  
+
+  this -> setFromJSON = true;
+
+  // Will silence a warning thrown when Update() is called while the spherical harmonics 
+  // were loaded from a JSON file since no vtkPolydata was effectively connected
+  // to this
+  vtkSmartPointer<vtkPolyData> empty_polydata = vtkSmartPointer<vtkPolyData>::New();
+  this -> SetInputData(empty_polydata);
+
+}
+
+
 
 
 //----------------------------------------------------------------------------
