@@ -165,7 +165,18 @@ public:
 
   /**
   Exports the computed spherical harmonics expansion to 
-  a JSON file
+  a JSON file. The saved fields are:
+  - facets == number of facets
+  - vertices == number of vertices
+  - totalMass : {value, unit}
+  - density : {value, unit}
+  - reference_radius : {value, unit}
+  - normalized == true if the coefficients are normalized
+  - degree == degree of the spherical expansion
+  - Cnm_coefs - vector of coefficients triplets {n,m,Cnm}
+  - Snm_coefs - vector of coefficients triplets {n,m,Snm}
+  @param path JSON file where the spherical harmonics model will be saved
+
   */
   void SaveToJson(std::string path) const;
 
@@ -173,6 +184,17 @@ public:
   Loads a previously computed spherical harmonics expansion
   from a JSON file. Will set the appropriate fields in the SBGATSphericalHarmo object to
   allow calls to other methods. 
+  The loadable fields are:
+  - facets == number of facets (not needed for evaluation)
+  - vertices == number of vertices (not needed for evaluation)
+  - totalMass : {value, unit}
+  - density : {value, unit}
+  - reference_radius : {value, unit}
+  - normalized == true if the coefficients are normalized
+  - degree == degree of the spherical expansion
+  - Cnm_coefs - vector of coefficients triplets {n,m,Cnm}
+  - Snm_coefs - vector of coefficients triplets {n,m,Snm}
+  @param path JSON file storing the spherical harmonics model
   */
   void LoadFromJson(std::string path);
 

@@ -286,6 +286,7 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   // The JSON fieds are:
   // - facets == number of facets
   // - vertices == number of vertices
+  // - totalMass : {value, unit}
   // - density : {value, unit}
   // - reference_radius : {value, unit}
   // - normalized == true if the coefficient are normalized
@@ -358,9 +359,8 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // There should be a total of 9 objects in the container
   if (spherical_harmo_json.size() != 9){
-    throw(std::runtime_error("Parsed JSON file should contain 7 objects, but SBGAT found " + std::to_string(spherical_harmo_json.size()) ));
+    throw(std::runtime_error("Parsed JSON file should contain 9 objects, but SBGAT found " + std::to_string(spherical_harmo_json.size()) ));
   }
-
 
   // The fields are parsed and used to set the SBGATSphericalHarmo state
   this -> density = spherical_harmo_json.at("density").at("value");
@@ -403,9 +403,9 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   this -> setFromJSON = true;
 
-  // Will silence a warning thrown when Update() is called while the spherical harmonics 
+  // Will silence a warning thrown when Update() is called after the spherical harmonics 
   // were loaded from a JSON file since no vtkPolydata was effectively connected
-  // to this
+  // to $this. Obviously $empty_polydata should not (and will not) be used 
   vtkSmartPointer<vtkPolyData> empty_polydata = vtkSmartPointer<vtkPolyData>::New();
   this -> SetInputData(empty_polydata);
 
