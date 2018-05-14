@@ -2,11 +2,11 @@
 
 The Small Bodies Geophysical Analysis Tool (SBGAT) implementation.
 
-* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing SbgatCore's classes through a GUI.
+* SBGAT's classes inherit from VTK's filters so as to facilitate manipulation and visualization tasks. SBGAT comes in the form of a backend library *SbgatCore* and a frontend component *SbgatGui* exposing *SbgatCore*'s classes through a GUI.
 
 * The latest stable release of SBGAT can be retrieved from the `master` branch of the present repository, or by using Homebrew as described below.
 
-* The `develop` branch features code is undergoing active development or debugging.
+* The `develop` branch features code that is undergoing active development or debugging.
 
 ## Wiki
 
@@ -16,7 +16,7 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Mac users
 
-[Homebrew](https://brew.sh/) is heavily recommended to install SBGAT's components and dependencies. Homebrew install commands differ whether you want to use SbgatGui or just the core classes of SbgatCore. This is justified by SbgatCore's dependency on VTK, as VTK needs to know whether it must be linked against Qt at build time.
+[Homebrew](https://brew.sh/) can be used to install SBGAT's components and dependencies. Homebrew install options differ whether you want to use *SbgatGui* or just the core classes of *SbgatCore*. This is justified by *SbgatCore*'s dependency on *VTK*, as *VTK* needs to know whether it must be linked against *Qt* at build time.
 
 #### With SbgatGui
 
@@ -25,7 +25,7 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
     brew install sbgat-core --with-qt
     brew install sbgat-gui
 
-SbgatGui will be simlinked to `/usr/local/bin` .
+The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
 
 #### Without SbgatGui
 
@@ -33,13 +33,12 @@ SbgatGui will be simlinked to `/usr/local/bin` .
     brew update
     brew install sbgat-core
 
-If you change your mind and decide you want the SbgatGui component, make sure to run:
+If you change your mind and decide you want the *SbgatGui* component, run:
 
     brew uninstall sbgat-core
     brew uninstall vtk
     
 before reinstalling.
-
 
 ### Linux & Mac users
 
@@ -49,12 +48,12 @@ before reinstalling.
 
 ### Mac users
 
-Assuming that SbgatCore was installed with Homebrew:
+Assuming that *SbgatCore* was installed with Homebrew:
 
     brew update
     brew upgrade sbgat-core
 
-If installed, after updating brew, SbgatGui can be also upgraded:
+If installed, after updating Homebrew, *SbgatGui* can be also upgraded:
 
     brew upgrade sbgat-gui
 
@@ -87,7 +86,7 @@ to apply the update (if any).
 	* Added an action *Align Shape* under *Small Body*. This action aligns the barycenter of the selected shape with (0,0,0) and its principal axes with the rendering window axes. This is a prerequisite for meaningful YORP or gravity spherical harmonics computations.
 	* Added an action *Save Shape Model* under *Small Body*. This action exports the selected shape model in its current state to an .obj file of choice.
 
- [**Users should update their versions of RigidBodyKinematics to reflect the latest changes**](https://github.com/bbercovici/RigidBodyKinematics) 
+ [**Users must update their versions of RigidBodyKinematics to reflect the latest changes**](https://github.com/bbercovici/RigidBodyKinematics) 
 
 ### SBGAT 1.04.1
 
@@ -98,20 +97,20 @@ to apply the update (if any).
 
 * SBGAT 1.04.0 can now be used to compute the spherical harmonics expansion of the exterior gravity field about a constant-density polyhedron
 
-	* Added *SBGATSphericalHarmo*, a SBGAT filter enabling the computation and evaluation of the spherical harmonics coefficients of the exterior gravity field caused by a constant density shape represented by a VTK Polydata. This class effectively provides a wrapper around *SHARMLib*, a library developed by Benjamin Bercovici from the original works of Yu Takahashi and Siamak Hesar at the University of Colorado Boulder. For more details, see [Spherical harmonic coefficients for the potential of a constant-density polyhedron](https://www.sciencedirect.com/science/article/pii/S0098300497001106) by Werner, R. a. (1997).
+	* Added *SBGATSphericalHarmo*, a SBGAT filter enabling the computation and evaluation of the spherical harmonics coefficients of the exterior gravity field caused by a constant density shape represented by a `vtkPolydata`. This class effectively provides a wrapper around *SHARMLib*, a library developed by Benjamin Bercovici from the original works of Yu Takahashi and Siamak Hesar at the University of Colorado Boulder. For more details, see [Spherical harmonic coefficients for the potential of a constant-density polyhedron](https://www.sciencedirect.com/science/article/pii/S0098300497001106) by Werner, R. a. (1997).
 	* Added a test where the spherical harmonics expansion is computed and evaluated around KW4. The test succeeds if the acceleration error relative to the polyhedron gravity model is less that 0.0001 %
 
- **Note that *SHARMLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#sharmlib)** 
+ **Note that *SHARMLib* is now a dependency of SBGAT and should be installed prior to compiling the newest *SBGATCore* and *SBGATGui*. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#sharmlib)** 
 
 
 ### SBGAT 1.03.0
 
-* SBGAT 1.03.0 sees the introduction of YORP coefficients computation as a new capability
+* SBGAT 1.03.0 sees the introduction of YORP coefficients computation
 
-	* Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the YORP force and torque  Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in [The dynamical evolution of uniformly rotating asteroids subject to YORP](https://doi.org/10.1016/j.icarus.2006.12.015) by Scheeres, D. J. (2007).
-	* YORP coefficients computation can be performed from within SBGATGui through the *Analyses* drop-down menu.  
+	* Added *SBGATSrpYorp*, a SBGAT filter enabling the computation of the YORP force and torque Fourier coefficients from a VTK Polydata. This class effectively provides a wrapper around *YORPLib*, a library developed by Jay W. McMahon at the University of Colorado Boulder that implements the analytical results derived in [The dynamical evolution of uniformly rotating asteroids subject to YORP](https://doi.org/10.1016/j.icarus.2006.12.015) by Scheeres, D. J. (2007).
+	* YORP coefficients computation can be performed from within *SBGATGui* through the *Analyses* drop-down menu.  
 
- **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the newest SBGATCore and SBGATGui. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#yorplib)** 
+ **Note that *YORPLib* is now a dependency of SBGAT and should be installed prior to compiling the latest *SBGATCore* and *SBGATGui*. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies#yorplib)** 
 
 ### SBGAT 1.02.1
 
@@ -123,9 +122,9 @@ to apply the update (if any).
 
 ### SBGAT 1.02.0
 
-* SBGAT 1.02 is a first take at fully leveraging VTK data structures for visual props representation and operation. Current features of SBGATGui include: 
+* SBGAT 1.02 is a first take at fully leveraging *VTK* data structures for visual props representation and operation. Current features of *SBGATGui* include: 
 	* Small body shape model import from `.obj` files
-	* Trajectory loaded from time-XYZ ascii files. This capability will eventually replaces by SPICE kernels
+	* Trajectory loaded from time-XYZ ascii files. This capability may eventually be replaced by SPICE kernels
 	* Spacecraft shape model import from `.obj` files
 	* Spacecraft displacement along previously loaded trajectory
 	* Addition/removal of light sources at arbitrary positions
@@ -139,7 +138,7 @@ to apply the update (if any).
 
 ## Documentation
 
-The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html). It was generated with Doxygen and hosted on GitHub using the method described [here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
+The SBGAT code documentation can be found [here](https://bbercovici.github.io/sbgat-doc/index.html). [It was generated with Doxygen and hosted on GitHub using the method described here](https://visualstudiomagazine.com/articles/2015/03/01/github-pages.aspx) 
 
 ## License
 

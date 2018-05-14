@@ -61,6 +61,7 @@ SOFTWARE.
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
+#include <json.hpp>
 
 class VTKFILTERSCORE_EXPORT SBGATSphericalHarmo : public vtkPolyDataAlgorithm{
 public:
@@ -84,7 +85,8 @@ public:
   }
 
   /**
-  Sets reference radius in spherical harmonics expansion
+  Sets reference radius in spherical harmonics expansion. Units must be consistent 
+  with the units in which the shape coordinates are expressed
   @param ref_radius reference radius in spherical harmonics expansion
   */
   void SetReferenceRadius(const double ref_radius){
@@ -93,7 +95,8 @@ public:
   }
 
   /**
-  Sets polyhedron density
+  Sets polyhedron density. Units must be consistent 
+  with the units in which the shape coordinates are expressed
   @param density bulk density of polyhedron
   */
   void SetDensity(const double density){
@@ -160,6 +163,41 @@ public:
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
 
 
+  /**
+  Exports the computed spherical harmonics expansion to 
+  a JSON file. The saved fields are:
+  - facets == number of facets
+  - vertices == number of vertices
+  - totalMass : {value, unit}
+  - density : {value, unit}
+  - reference_radius : {value, unit}
+  - normalized == true if the coefficients are normalized
+  - degree == degree of the spherical expansion
+  - Cnm_coefs - vector of coefficients triplets {n,m,Cnm}
+  - Snm_coefs - vector of coefficients triplets {n,m,Snm}
+  @param path JSON file where the spherical harmonics model will be saved
+
+  */
+  void SaveToJson(std::string path) const;
+
+  /**
+  Loads a previously computed spherical harmonics expansion
+  from a JSON file. Will set the appropriate fields in the SBGATSphericalHarmo object to
+  allow calls to other methods. 
+  The loadable fields are:
+  - facets == number of facets (not needed for evaluation)
+  - vertices == number of vertices (not needed for evaluation)
+  - totalMass : {value, unit}
+  - density : {value, unit}
+  - reference_radius : {value, unit}
+  - normalized == true if the coefficients are normalized
+  - degree == degree of the spherical expansion
+  - Cnm_coefs - vector of coefficients triplets {n,m,Cnm}
+  - Snm_coefs - vector of coefficients triplets {n,m,Snm}
+  @param path JSON file storing the spherical harmonics model
+  */
+  void LoadFromJson(std::string path);
+
 protected:
   SBGATSphericalHarmo();
   ~SBGATSphericalHarmo() override;
@@ -179,11 +217,14 @@ protected:
   bool normalized;
   unsigned int degree;
 
+  int n_facets;
+  int n_vertices;
+
   bool degreeSet;
   bool densitySet;
   bool referenceRadiusSet;
   bool scaleFactorSet;
-
+  bool setFromJSON;
 
 
 

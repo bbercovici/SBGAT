@@ -37,13 +37,6 @@
 #
 ################################################################################
 
-
-# OMP-friendly GCC Major version (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_MAJOR_VERSION 7)
-
-# Path to OMP-Friendly GCC Compiler (will only be used on Mac OS systems)
-set (OMP_FRIENDLY_GCC_PATH /usr/local/Cellar/gcc/7.3.0_/bin/)
-
 # Path to VTKConfig.cmake (not used if VTK is installed at a standard location)
 set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
@@ -67,7 +60,7 @@ set(SbgatCore_LOC "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
-include(cmake/FindOmpGcc.cmake)
+# include(cmake/FindOmpGcc.cmake)
 
 project(${EXE_NAME})
 

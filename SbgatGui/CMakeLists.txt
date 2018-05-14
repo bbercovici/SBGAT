@@ -96,9 +96,10 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 find_package(RigidBodyKinematics REQUIRED)
 include_directories(${RBK_INCLUDE_DIR})
 
-# Find SBGAT 
+# Find SBGAT and the JSON parsing library
 find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
+include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 
 # Find OpenMP
 find_package(OpenMP)

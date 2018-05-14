@@ -252,13 +252,6 @@ through the user interface layer brought by Qt.}
 
 
 	/**
-	When triggered, starts polyhedron gravity model computation sequence by
-	querying point coordinates in the
-	principal body frame and bulk density of attracting body.
-	*/
-		QAction * compute_pgm_acceleration_action;
-
-	/**
 	When triggered, opens settings window.
 	*/
 		QAction * open_settings_window_action;
@@ -283,39 +276,6 @@ through the user interface layer brought by Qt.}
 	*/
 		QAction * open_rendering_properties_window_action;
 
-	/**
-	When triggered, starts global polyhedron gravity model accelerations evaluation. Queries the
-	bulk density of attracting body before computing pgm accelerations at the center of each facet.
-	*/
-		QAction * compute_global_pgm_acceleration_action;
-
-
-	/**
-	When triggered, starts global polyhedron gravity model potential evaluation. Queries the
-	bulk density of attracting body before computing pgm potential at the center of each facet.
-	*/
-		QAction * compute_global_pgm_potential_action;
-
-	/**
-	When triggered, starts evaluation sequence of gravitational slope at the center of each facet.
-	Will query orientation of spin axis along with spin rate. Only available if the
-	global PGM accelerations of the selected shape have already been computed
-	*/
-		QAction * compute_grav_slopes_action;
-
-
-	/**
-	When triggered, opens up a widget where visibility of
-	computed gravitational slopes can be turned on/off.
-	*/
-		QAction * show_grav_slopes_action;
-
-
-	/**
-	When triggered, opens up a widget where visibility of
-	computed gravitational potentials can be turned on/off.
-	*/
-		QAction * show_global_pgm_pot_action;
 
 
 
@@ -349,8 +309,6 @@ through the user interface layer brought by Qt.}
 		Sends the signal that a prop has been removed
 		*/
 		void prop_removed_signal();
-
-
 
 
 
@@ -452,16 +410,6 @@ through the user interface layer brought by Qt.}
 		void open_actor_thickness_window();
 
 
-	/**
-	Transfer results of gravity slopes computation into VTK.
-	*/
-		void update_vtk_slopes() ;
-
-	/**
-	Transfer results of gravity potential computation into VTK.
-	*/
-		void update_vtk_potentials();
-
 
 	private:
 
@@ -548,53 +496,6 @@ through the user interface layer brought by Qt.}
 	Load x/y/z trajectory expressed in a small body's body-fixed frame
 	*/
 		void add_trajectory();
-
-
-	/**
-	Show gravitational slopes by choosing one shape model for which gravitational slopes are available.
-	*/
-		void show_grav_slopes();
-
-
-	/**
-	Show gravitational potentials by choosing one shape model for which gravitational potentials are available.
-	*/
-		void show_global_pgm_pot();
-
-
-
-	/**
-	Computes the polyhedron gravity model acceleration at the specified point in the
-	shape's principal body frame.
-	*/
-		void compute_pgm_acceleration();
-
-
-
-
-	/**
-	Computes the polyhedron gravity model acceleration at the center of each facet,
-	expressed in the shape's principal body frame.
-	*/
-		void compute_global_pgm_acceleration() ;
-
-
-	/**
-	Computes the polyhedron gravity model potential at the center of each facet
-	*/
-		void compute_global_pgm_potential() ;
-
-
-	/**
-	Computes the gravity slopes at the center of each facet.
-	The gravity acceleration at each facet must have been computed first, so this
-	method is not accessible before it is the case for the currently selected
-	shape model.
-	*/
-		void compute_gravity_slopes() ;
-
-
-
 
 
 	/**

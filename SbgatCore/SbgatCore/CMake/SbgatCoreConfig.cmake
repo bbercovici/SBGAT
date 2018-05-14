@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 set(SBGATCORE_INCLUDE_HEADER /usr/local/include/SbgatCore/)
+set(NLOHMANN_JSON_INCLUDE_HEADER /usr/local/include/nlohmann/)
 
 if (APPLE)
 	set(SBGATCORE_LIBRARY /usr/local/lib/libSbgatCore.dylib)
