@@ -87,7 +87,9 @@ has been specified
 
 
 		/**
-		Called when another shape model is selected
+		Called when another shape model is selected. Will update the reference
+		radius to a conservative estimate based on the greatest diagonal of the 
+		shape's bounding box
 		*/		
 		void changed_selected_shape();
 

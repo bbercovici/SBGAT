@@ -37,7 +37,7 @@ SHARMWindow::SHARMWindow(Mainwindow * parent) {
 	QGroupBox * shape_model_group = new QGroupBox(tr("Shape"));
 	QGroupBox * properties_group = new QGroupBox(tr("Shape properties"));
 	QGroupBox * settings_group = new QGroupBox(tr("Expansion settings"));
-	QGroupBox * output_group = new QGroupBox(tr("Output directory"));
+	QGroupBox * output_group = new QGroupBox(tr("JSON output"));
 
 	
 	QGridLayout * shape_model_group_layout = new QGridLayout(shape_model_group);
@@ -62,7 +62,7 @@ SHARMWindow::SHARMWindow(Mainwindow * parent) {
 	this -> ref_radius_sbox = new QDoubleSpinBox(this);
 	this -> degree_combo_box = new QComboBox (this);
 
-	this ->  open_output_file_dialog_button = new QPushButton("Select output directory",this);
+	this ->  open_output_file_dialog_button = new QPushButton("Select output file",this);
 
 	shape_model_group_layout -> addWidget(shape_label,0,0,1,1);
 	shape_model_group_layout -> addWidget(this -> prop_combo_box,0,1,1,1);
@@ -140,8 +140,21 @@ void SHARMWindow::init(){
 
 void SHARMWindow::open_output_file_dialog(){
 
-	QString path = QFileDialog::getExistingDirectory(this, tr("Save directory"), "~");
+	std::string default_name;
+
+	std::string name = this -> prop_combo_box -> currentText().toStdString();
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	
+	if ( shape_data.find(name)!= shape_data.end()){
+		default_name = name;
+	}
+
+	QString path = QFileDialog::getSaveFileName(this, tr("Save Spherical Harmonics To File"),
+		 QString::fromStdString(default_name),
+		tr("JSON file (*.json)"));
+
 	this -> output_path = path.toStdString();
+
 	if (this -> output_path.size() > 0){
 		this -> button_box -> button(QDialogButtonBox::Ok) -> setEnabled(true);
 
@@ -158,10 +171,6 @@ void SHARMWindow::accept(){
 		spherical_harmonics -> SetInputData(shape_data[name] -> get_polydata());
 	}
 
-
-	// The shape should be barycentered/principal axis aligned somewhere here
-
-
 	spherical_harmonics -> SetDensity(this -> density_sbox -> value());
 	spherical_harmonics -> SetScaleMeters();
 	spherical_harmonics -> SetReferenceRadius(this -> ref_radius_sbox -> value());
@@ -175,18 +184,7 @@ void SHARMWindow::accept(){
 
 	spherical_harmonics -> SetDegree(this -> degree_combo_box -> currentText().toInt());
 	spherical_harmonics -> Update();
-
-	auto Cnm = spherical_harmonics -> GetCnm();
-	auto Snm = spherical_harmonics -> GetSnm();
-
-	if (this -> output_path.size() != 0){
-		Cnm.save(this -> output_path + "/Cnm.txt",arma::raw_ascii);
-		Snm.save(this -> output_path + "/Snm.txt",arma::raw_ascii);
-	}
-	else{
-		Cnm.save("Cnm.txt",arma::raw_ascii);
-		Snm.save("Snm.txt",arma::raw_ascii);
-	}
+	spherical_harmonics -> SaveToJson(this -> output_path );
 
 	QDialog::accept();
 }
@@ -207,8 +205,8 @@ void SHARMWindow::changed_selected_shape(){
 
 	double r_max[3] = {x_max,y_max,z_max};
 	double radius_max = vtkMath::Norm(r_max);
-	this -> ref_radius_sbox -> setValue(radius_max);
 
+	this -> ref_radius_sbox -> setValue(radius_max);
 
 }
 
