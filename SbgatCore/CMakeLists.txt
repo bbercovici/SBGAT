@@ -21,12 +21,10 @@
 # SOFTWARE.
 
 
-
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
 # @brief  CMake listing enabling compilation and installation of the SbgatCore library
-
 
 
 ################################################################################
@@ -37,8 +35,6 @@
 #
 ################################################################################
 
-# Path to VTKConfig.cmake (not mandatory if VTK is installed at a standard location)
-# set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
 
 ################################################################################
 #
@@ -75,6 +71,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 # Include directories
 include_directories(include/SbgatCore)
+include_directories(include/nlohmann)
 
 # Find Boost
 find_package(Boost COMPONENTS filesystem system REQUIRED) 
@@ -90,22 +87,18 @@ if(OpenMP_FOUND)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
 # Find VTK Package
-find_package(VTK REQUIRED PATHS ${VTK_PATH})
+find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
 # Find YORPLib
 find_package(YORPLib REQUIRED)
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
-
 # Find SHARMLib
 find_package(SHARMLib REQUIRED)
 include_directories(${SHARMLIB_INCLUDE_HEADER})
-
-# Find nlohmann_json
-find_package(nlohmann_json REQUIRED)
-
 
 # Find RBK 
 find_package(RigidBodyKinematics REQUIRED )
@@ -148,6 +141,7 @@ if(NOT BREW)
 	install (TARGETS ${LIB_NAME} DESTINATION /usr/local/lib/)
 	install (DIRECTORY ${PROJECT_SOURCE_DIR}/${LIB_NAME} DESTINATION /usr/local/share)
 	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/SbgatCore DESTINATION /usr/local/include/ FILES_MATCHING PATTERN "*.hpp")
+	install (DIRECTORY ${PROJECT_SOURCE_DIR}/include/nlohmann DESTINATION /usr/local/include/ FILES_MATCHING PATTERN "*.hpp")
 endif()
 
 
