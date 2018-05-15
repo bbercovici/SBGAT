@@ -73,6 +73,9 @@ to apply the update (if any).
 ## Changelog
 
 
+### [SBGAT 1.05.1](https://github.com/bbercovici/SBGAT/releases/tag/1.05.1)
+
+This new release of SBGAT allows import/export of gravity spherical harmonics from/into SBGAT by means of Niels Lohmann's Modern C++ JSON library. This functionality is available from SbgatCore's classes and SbgatGui as well.
 
 ### SBGAT 1.04.3
 
