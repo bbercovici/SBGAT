@@ -40,6 +40,7 @@ SOFTWARE.
 #include <SBGATSphericalHarmo.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SHARMLib.hpp>
+#include <json.hpp>
 #include <vtkObjectFactory.h>
 #include <vtkCell.h>
 #include <vtkDataObject.h>
