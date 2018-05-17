@@ -22,7 +22,8 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
     brew tap bbercovici/self
     brew update
-    brew install sbgat-core --with-qt
+    brew install vtk --with-qt
+    brew install sbgat-core
     brew install sbgat-gui
 
 The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
@@ -31,6 +32,7 @@ The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
 
     brew tap bbercovici/self
     brew update
+    brew install vtk
     brew install sbgat-core
 
 If you change your mind and decide you want the *SbgatGui* component, run:
