@@ -225,8 +225,6 @@ protected:
   bool scaleFactorSet;
   bool setFromJSON;
 
-
-
 private:
   SBGATSphericalHarmo(const SBGATSphericalHarmo&) = delete;
   void operator=(const SBGATSphericalHarmo&) = delete;
