@@ -29,6 +29,8 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SBGATSphericalHarmo.hpp>
+#include <SBGATObsRadar.hpp>
+
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -63,10 +65,8 @@ void TestsSBCore::run() {
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
 	TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	TestsSBCore::test_radar_obs();
 
-
-	// TODO: reimplement in SbgatCore
-	// TestsSBCore::test_spherical_harmonics_invariance();
 
 	std::cout << "All tests passed.\n";
 
@@ -302,15 +302,6 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	reader -> Update(); 
 
 
-	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-	vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter -> SetInputConnection(reader->GetOutputPort());
-	triangleFilter -> Update();
-
-	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-	cleanPolyData->Update();
 
 
 	// Harmonics up to degree five are computed
@@ -327,7 +318,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// An instance of SBGATPolyhedronGravityModel is created to evaluate the PGM of 
 	// the considered polytdata
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(density);
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
@@ -335,7 +326,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// An instance of SBGATSphericalHarmo is created to compute and evaluate the spherical 
 	// expansion of the gravity field about the considered shape model
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
-	spherical_harmonics -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	spherical_harmonics -> SetInputConnection(reader -> GetOutputPort());
 	spherical_harmonics -> SetDensity(density);
 	spherical_harmonics -> SetScaleKiloMeters();
 	spherical_harmonics -> SetReferenceRadius(ref_radius);
@@ -367,9 +358,56 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
 
 
-
-
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
+
+}
+
+
+
+
+/**
+This test computes simulated radar images for benchmarking purposes
+*/
+void TestsSBCore::test_radar_obs(){
+
+	std::cout << "- Running test_radar_obs ..." << std::endl;
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../KW4Alpha.obj");
+	reader -> Update(); 
+
+	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
+	radar -> SetInputConnection(reader -> GetOutputPort());
+	radar -> Update();
+
+
+	std::vector<std::array<double, 2> > measurements;
+		
+	// Arguments
+	arma::vec spin = {0,0,1};
+	arma::vec dir = {1,0,0};
+	double period = 4; // 4 hours
+	double dt = 0;
+	int N = 30;
+
+	double r_bin = 10;
+	double rr_bin = 1e-4;
+
+	radar -> CollectMeasurementsSimpleSpin(measurements,dt,N,dir,spin,period);
+	// radar -> SaveImage(measurements,r_bin,rr_bin,savepath);
+
+
+	std::cout << " Measurements collected : " << measurements.size() << std::endl;
+
+
+
+
+
+
+
+	std::cout << "-- test_radar_obs successful" << std::endl;
+
 
 }
 
