@@ -44,6 +44,8 @@
 #
 #
 ################################################################################
+	
+cmake_minimum_required(VERSION 3.0.0)
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -123,6 +125,8 @@ add_library(${LIB_NAME}
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
+	source/SBGATObsRadar.cpp
+
 	)
 
 # Linking
