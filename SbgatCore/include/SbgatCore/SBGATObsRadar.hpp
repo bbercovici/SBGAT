@@ -24,7 +24,7 @@ SOFTWARE.
 /*=========================================================================
 
   Program:   Small Body Geophysical Analysis
-  Module:    SBGATObsDoppler.hpp
+  Module:    SBGATObsRadar.hpp
 
   Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
@@ -38,54 +38,74 @@ SOFTWARE.
 
 =========================================================================*/
 /**
- * @class  SBGATObsDoppler
+ * @class  SBGATObsRadar
  * @author Benjamin Bercovici
- * @brief  Computes volume, area, shape index, center of mass,
- * inertia tensor and principal axes of a polyhedral mesh of constant density
+ * @brief  Computes range/range-rate Doppler images over the surface of
+ provided small body
  *
  * @details Computes range/range-rate Doppler images over the surface of
  provided small body
  *
 */
 
-#ifndef SBGATOBSDOPPLER_H
-#define SBGATOBSDOPPLER_H
+#ifndef SBGATObsRadar_H
+#define SBGATObsRadar_H
 
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
+#include <array>
 
-class VTKFILTERSCORE_EXPORT SBGATObsDoppler : public vtkPolyDataAlgorithm{
+#include <vtkModifiedBSPTree.h>
+
+class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm{
 public:
   /**
    * Constructs with initial values of zero.
    */
-  static SBGATObsDoppler *New();
+  static SBGATObsRadar *New();
 
-  vtkTypeMacro(SBGATObsDoppler,vtkPolyDataAlgorithm);
+  vtkTypeMacro(SBGATObsRadar,vtkPolyDataAlgorithm);
   void PrintSelf(std::ostream& os, vtkIndent indent) override;
   void PrintHeader(std::ostream& os, vtkIndent indent) override;
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
+  /**
+  Collects range/range-rate samples over the surface of the small body at the 
+  specified time after epoch
+  @param measurements reference to std::vector holding collected range/range-rate measurements
+  @param dt time since epoch (hours)
+  @param N maximum number of measurements to produce per illuminated facet
+  @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
+  @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
+  @param period rotation period of target (hours)
+  */
+  void CollectMeasurementsSimpleSpin(
+    std::vector<std::array<double, 2> > & measurements,
+    const double & dt,
+    const int & N,
+    const arma::vec & dir,
+    const arma::vec & spin,
+    const double & period);
+
+protected:
+  SBGATObsRadar();
+  ~SBGATObsRadar() override;
+
+  int RequestData(vtkInformation* request,
+    vtkInformationVector** inputVector,
+    vtkInformationVector* outputVector) override;
 
 
-  
-
-
-        protected:
-          SBGATObsDoppler();
-          ~SBGATObsDoppler() override;
-
-          int RequestData(vtkInformation* request,
-            vtkInformationVector** inputVector,
-            vtkInformationVector* outputVector) override;
+  vtkSmartPointer<vtkModifiedBSPTree> bspTree;
+  arma::vec center_of_mass;
 
 
 
-        private:
-          SBGATObsDoppler(const SBGATObsDoppler&) = delete;
-          void operator=(const SBGATObsDoppler&) = delete;
-        };
+private:
+  SBGATObsRadar(const SBGATObsRadar&) = delete;
+  void operator=(const SBGATObsRadar&) = delete;
+};
 
 #endif
 
