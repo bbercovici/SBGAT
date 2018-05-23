@@ -372,39 +372,37 @@ void TestsSBCore::test_radar_obs(){
 
 	std::cout << "- Running test_radar_obs ..." << std::endl;
 
-	// Reading
+	// Loading in the shape model
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 	reader -> SetFileName("../KW4Alpha.obj");
 	reader -> Update(); 
 
+	// Creating the radar object
 	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
 	radar -> SetInputConnection(reader -> GetOutputPort());
+	radar -> SetScaleKiloMeters();
 	radar -> Update();
 
 
-	std::vector<std::array<double, 2> > measurements;
-		
 	// Arguments
 	arma::vec spin = {0,0,1};
 	arma::vec dir = {1,0,0};
 	double period = 4; // 4 hours
-	double dt = 0;
-	int N = 30;
+	int images = 24; 
+	int N = 100;
 
-	double r_bin = 10;
-	double rr_bin = 1e-4;
-
-	radar -> CollectMeasurementsSimpleSpin(measurements,dt,N,dir,spin,period);
-	// radar -> SaveImage(measurements,r_bin,rr_bin,savepath);
+	double r_bin = 7.5;//(m)
+	double rr_bin = 7.9e-3;//(m/s)
 
 
-	std::cout << " Measurements collected : " << measurements.size() << std::endl;
-
-
-
-
-
-
+	// A sequence of images is collected
+	for (unsigned int i  = 0; i < images; ++i){
+		double dt = i * 2 * arma::datum::pi / (period * 3600  * (images - 1));
+		std::vector<std::array<double, 2> > measurements;
+		
+		radar -> CollectMeasurementsSimpleSpin(measurements,N,dt,period,dir,spin);
+		radar -> SaveImage(measurements,r_bin,rr_bin,"image_" +std::to_string(i) +  ".png");
+	}
 
 	std::cout << "-- test_radar_obs successful" << std::endl;
 

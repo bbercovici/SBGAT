@@ -72,21 +72,48 @@ public:
 
   /**
   Collects range/range-rate samples over the surface of the small body at the 
-  specified time after epoch
+  specified time after epoch.
+  The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
+  l is a measure of the object's diagonal
   @param measurements reference to std::vector holding collected range/range-rate measurements
-  @param dt time since epoch (hours)
   @param N maximum number of measurements to produce per illuminated facet
+  @param dt time since epoch (hours)
+  @param period rotation period of target (hours)
   @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
   @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
-  @param period rotation period of target (hours)
   */
   void CollectMeasurementsSimpleSpin(
     std::vector<std::array<double, 2> > & measurements,
-    const double & dt,
     const int & N,
+    const double & dt,
+    const double & period,
     const arma::vec & dir,
-    const arma::vec & spin,
-    const double & period);
+    const arma::vec & spin);
+
+  /**
+  Collects range/range-rate samples over the surface of the small body at the 
+  specified time after epoch
+  @param measurements reference to std::vector holding collected range/range-rate measurements
+  @param r_bin range bin size (m)
+  @param rr_bin range-rate bin size (m/s)
+  @param savepath path where resulting image is to be saved
+  */
+  void SaveImage(
+    std::vector<std::array<double, 2> > & measurements,
+    const double & r_bin,
+    const double & rr_bin,
+    std::string savepath);
+
+  /**
+  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
+  */
+  void SetScaleMeters() { this -> scaleFactor = 1; }
+
+  /**
+  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
+  */
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
+ 
 
 protected:
   SBGATObsRadar();
@@ -100,7 +127,7 @@ protected:
   vtkSmartPointer<vtkModifiedBSPTree> bspTree;
   arma::vec center_of_mass;
 
-
+  double scaleFactor = 1;
 
 private:
   SBGATObsRadar(const SBGATObsRadar&) = delete;

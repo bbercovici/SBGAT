@@ -48,6 +48,12 @@ SOFTWARE.
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
 #include <SBGATMassProperties.hpp>
+#include <vtkExtractHistogram2D.h>
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+#include <vtkImageData.h>
+#include <vtkPNGWriter.h>
+#include <vtkImageCast.h>
 
 
 vtkStandardNewMacro(SBGATObsRadar);
@@ -112,11 +118,11 @@ int SBGATObsRadar::RequestData(
 
 void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   std::vector<std::array<double, 2> > & measurements,
-  const double & dt,
   const int & N,
+  const double & dt,
+  const double & period,
   const arma::vec & dir,
-  const arma::vec & spin,
-  const double & period){
+  const arma::vec & spin){
 
   // Containers
   std::vector<int> facets_in_view;
@@ -127,15 +133,19 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   numCells = input->GetNumberOfCells();
   numPts = input->GetNumberOfPoints();
 
-  // Body-frame to inertial matrix
-  arma::mat BN = RBK::prv_to_dcm(spin * dt * 2 * arma::datum::pi / period );
 
   // Angular velocity 
-  arma::vec omega = spin * 2 * arma::datum::pi / (3600 * period);
+  double w = 2 * arma::datum::pi / (3600 * period);
+  arma::vec omega = spin * w;
+
+  // Body-frame to inertial matrix
+  arma::mat BN = RBK::prv_to_dcm(spin * dt * w );
 
   // Radar direction in body frame
   arma::vec dir_body_frame = BN * dir;
 
+  std::cout << dir_body_frame << std::endl;
+  
   // Ray-tracing tolerance
   double tol = input -> GetLength()/1E6;
 
@@ -215,7 +225,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
 
       // All the detected intersections are checked.
       for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
-        
+
         double intersect[3];
         double intersect_to_origin[3];
         verts -> GetPoint(intersect_index,intersect);
@@ -246,6 +256,72 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   }
 
 }
+
+
+void SBGATObsRadar::SaveImage(
+  std::vector<std::array<double, 2> > & measurements,
+  const double & r_bin,
+  const double & rr_bin,
+  std::string savepath){
+
+  vtkSmartPointer<vtkExtractHistogram2D> extract_histogram =  vtkSmartPointer<vtkExtractHistogram2D>::New();
+  vtkSmartPointer<vtkTable> table =  vtkSmartPointer<vtkTable>::New();
+
+  vtkSmartPointer<vtkFloatArray>  arr_range = vtkSmartPointer<vtkFloatArray>::New();
+  vtkSmartPointer<vtkFloatArray>  arr_range_rate = vtkSmartPointer<vtkFloatArray>::New();
+
+  arr_range->SetName("Range (m)");
+  table -> AddColumn(arr_range);
+
+  arr_range_rate->SetName("Range-rate (m/s)");
+  table -> AddColumn(arr_range_rate);
+  table -> SetNumberOfRows(measurements.size());
+
+  // Using arma::vec to get statistics
+  arma::vec ranges(measurements.size());
+  arma::vec range_rates(measurements.size());
+
+  for (int i = 0; i < measurements.size(); ++i){
+    ranges(i) = measurements[i][0];
+    range_rates(i) = measurements[i][1];
+  }
+
+  // Subtracting the mean range
+  ranges -= arma::mean(ranges);
+
+  // The extent of the data is extracted
+  double r_extent = std::abs(ranges.max() - ranges.min()) * this -> scaleFactor;
+  double rr_extent = std::abs(range_rates.max() - range_rates.min()) * this -> scaleFactor;
+
+  // The bin counts are determined from the specified bin sizes and data extent
+  int n_bin_r = (int)(r_extent / r_bin);
+  int n_bin_rr = (int)(rr_extent / rr_bin);
+
+  // The data is added to the table. Note the (-) required so as to have the closest range pointing "up".
+  for (int i = 0; i < measurements.size(); ++i){
+    table -> SetValue(i, 1, -ranges(i));
+    table -> SetValue(i, 0, -range_rates(i));
+  }
+
+  extract_histogram -> SetInputData(table);
+  extract_histogram -> AddColumnPair("Range-rate (m/s)","Range (m)");
+
+  extract_histogram -> SetNumberOfBins(n_bin_r,n_bin_rr);
+  extract_histogram -> Update();
+
+  vtkImageData * image = extract_histogram -> GetOutputHistogramImage() ;
+  vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
+
+  cast -> SetInputData(image);
+  cast -> SetOutputScalarTypeToUnsignedChar();
+
+  vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter> ::New();
+  writer -> SetFileName(savepath.c_str());
+  writer -> SetInputConnection(cast->GetOutputPort());
+  writer -> Write();
+
+}
+
 
 
 
