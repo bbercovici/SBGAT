@@ -122,7 +122,7 @@ void Mainwindow::setupUi() {
 
 
     // Central window
-    this -> setCentralWidget(qvtkWidget);
+    this -> setCentralWidget(this -> qvtkWidget);
     this -> setWindowTitle(QStringLiteral("SBGAT (WIP)"));
 
     // Actions and menus are created

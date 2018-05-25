@@ -22,8 +22,8 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_RADAR
-#define HEADER_RADAR
+#ifndef HEADER_RADAR_WINDOW
+#define HEADER_RADAR_WINDOW
 
 #include <QMainWindow>
 #include <QGroupBox>
@@ -42,6 +42,8 @@ SOFTWARE.
 #include <QRadioButton>
 
 #include "Mainwindow.hpp"
+#include <SBGATObsRadar.hpp>
+
 
 
 namespace SBGAT_GUI {
@@ -79,10 +81,17 @@ data simulating the output of a range/range-rate doppler radar
 		void collect_observations();
 
 		/**
-		Opens a dialog letting the user choose the output directory for the computed images
+		Save radar observations to PNG files
 		*/
 
-		void open_output_file_dialog();
+		void save_observations();
+
+
+		/**
+		Opens the visualizer to view computed radar images
+		*/
+		void open_visualizer();
+
 
 
 
@@ -98,22 +107,27 @@ data simulating the output of a range/range-rate doppler radar
 
 		QDoubleSpinBox * r_bin_sbox;
 		QDoubleSpinBox * rr_bin_sbox;
-		QDoubleSpinBox * spin_az_sbox;
-		QDoubleSpinBox * spin_el_sbox;
+		QDoubleSpinBox * spin_raan_sbox;
+		QDoubleSpinBox * spin_inc_sbox;
+
+		QDoubleSpinBox * radar_az_sbox;
+		QDoubleSpinBox * radar_el_sbox;
+
 		QDoubleSpinBox * rotation_period_sbox;
 		QDoubleSpinBox * imaging_period_sbox;
-
-
-
 
 		QSpinBox * N_samples_sbox;
 		QSpinBox * N_images_sbox;
 
-
-		QPushButton * open_output_file_dialog_button;
+		QPushButton * save_observations_button;
 		QPushButton * collect_observations_button;
+		QPushButton * open_visualizer_button;
+
 
 		std::string output_path;
+
+		SBGATMeasurementsSequence measurement_sequence;
+		vtkSmartPointer<SBGATObsRadar> radar;
 
 	};
 }

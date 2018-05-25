@@ -61,7 +61,6 @@ vtkStandardNewMacro(SBGATObsRadar);
 // Constructs with initial 0 values.
 SBGATObsRadar::SBGATObsRadar(){
 
-  this -> image = vtkSmartPointer<vtkImageData>::New();
   this -> SetNumberOfOutputPorts(0);
 }
 
@@ -117,7 +116,7 @@ int SBGATObsRadar::RequestData(
 }
 
 void SBGATObsRadar::CollectMeasurementsSimpleSpin(
-  std::vector<std::array<double, 2> > & measurements,
+  SBGATMeasurementsSequence & measurements_sequence,
   const int & N,
   const double & dt,
   const double & period,
@@ -229,7 +228,6 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
     // Origin of ray tracing is input -> GetLength() * 1e6 away from the center of mass in the target's frame
     arma::vec origin = this -> center_of_mass + input -> GetLength() * 1e6 * (-dir_body_frame);
     
-
     this -> bspTree -> IntersectWithLine(impact.colptr(0), 
       origin.colptr(0), 
       tol, 
@@ -269,86 +267,110 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
 }
 
 // The final measurements are kept
+// and added to the sequence
+std::vector<std::array<double, 2> > measurements;
 for (int i = 0; i < measurements_temp.size(); ++i) {
   if (measurements_temp[i][0] > 0){
     measurements.push_back(measurements_temp[i]);
   }
 }
-
+measurements_sequence.push_back(measurements);
 
 
 }
 
 
-void SBGATObsRadar::BinObs(
-  std::vector<std::array<double, 2> > & measurements,
+void SBGATObsRadar::BinObservations(
+  const SBGATMeasurementsSequence & measurements_sequence,
   const double & r_bin,
   const double & rr_bin){
 
-  vtkSmartPointer<vtkExtractHistogram2D> extract_histogram =  vtkSmartPointer<vtkExtractHistogram2D>::New();
-  
-  vtkSmartPointer<vtkTable> table =  vtkSmartPointer<vtkTable>::New();
 
-  vtkSmartPointer<vtkFloatArray>  arr_range = vtkSmartPointer<vtkFloatArray>::New();
-  vtkSmartPointer<vtkFloatArray>  arr_range_rate = vtkSmartPointer<vtkFloatArray>::New();
+  // The container holding the images is pre-allocated
+  this -> images.clear();
 
-  arr_range->SetName("Range (m)");
-  table -> AddColumn(arr_range);
+  for (int i = 0; i < measurements_sequence.size(); ++i){
 
-  arr_range_rate->SetName("Range-rate (m/s)");
-  table -> AddColumn(arr_range_rate);
-  table -> SetNumberOfRows(measurements.size());
+    auto measurements = measurements_sequence[i];
+
+    this -> images.push_back(vtkSmartPointer<vtkImageData>::New());
+
+    vtkSmartPointer<vtkExtractHistogram2D> extract_histogram =  vtkSmartPointer<vtkExtractHistogram2D>::New();
+    vtkSmartPointer<vtkTable> table =  vtkSmartPointer<vtkTable>::New();
+    vtkSmartPointer<vtkFloatArray>  arr_range = vtkSmartPointer<vtkFloatArray>::New();
+    vtkSmartPointer<vtkFloatArray>  arr_range_rate = vtkSmartPointer<vtkFloatArray>::New();
+
+    arr_range->SetName("Range (m)");
+    arr_range_rate->SetName("Range-rate (m/s)");
+
+    table -> AddColumn(arr_range);
+    table -> AddColumn(arr_range_rate);
+
+    table -> SetNumberOfRows(measurements.size());
 
   // Using arma::vec to get statistics
-  arma::vec ranges(measurements.size());
-  arma::vec range_rates(measurements.size());
+    arma::vec ranges(measurements.size());
+    arma::vec range_rates(measurements.size());
 
-  for (int i = 0; i < measurements.size(); ++i){
-    ranges(i) = measurements[i][0];
-    range_rates(i) = measurements[i][1];
-  }
+    for (int i = 0; i < measurements.size(); ++i){
+      ranges(i) = measurements[i][0];
+      range_rates(i) = measurements[i][1];
+    }
 
   // Subtracting the mean range
-  ranges -= arma::mean(ranges);
+    ranges -= arma::mean(ranges);
 
   // The extent of the data is extracted
-  double r_extent = std::abs(ranges.max() - ranges.min()) * this -> scaleFactor;
-  double rr_extent = std::abs(range_rates.max() - range_rates.min()) * this -> scaleFactor;
+    double r_extent = std::abs(ranges.max() - ranges.min()) * this -> scaleFactor;
+    double rr_extent = std::abs(range_rates.max() - range_rates.min()) * this -> scaleFactor;
 
   // The bin counts are determined from the specified bin sizes and data extent
-  int n_bin_r = (int)(r_extent / r_bin);
-  int n_bin_rr = (int)(rr_extent / rr_bin);
+    int n_bin_r = (int)(r_extent / r_bin);
+    int n_bin_rr = (int)(rr_extent / rr_bin);
 
   // The data is added to the table. Note the (-) required so as to have the closest range pointing "up".
-  for (int i = 0; i < measurements.size(); ++i){
-    table -> SetValue(i, 1, -ranges(i));
-    table -> SetValue(i, 0, -range_rates(i));
+    for (int i = 0; i < measurements.size(); ++i){
+      table -> SetValue(i, 1, -ranges(i));
+      table -> SetValue(i, 0, -range_rates(i));
+    }
+
+    extract_histogram -> SetInputData(table);
+    extract_histogram -> AddColumnPair("Range-rate (m/s)","Range (m)");
+
+    extract_histogram -> SetNumberOfBins(n_bin_rr,n_bin_r);
+    extract_histogram -> Update();
+
+    this -> images[i] -> DeepCopy(extract_histogram -> GetOutputHistogramImage());
   }
 
-  extract_histogram -> SetInputData(table);
-  extract_histogram -> AddColumnPair("Range-rate (m/s)","Range (m)");
-
-  extract_histogram -> SetNumberOfBins(n_bin_rr,n_bin_r);
-  extract_histogram -> Update();
-  
-  this -> image -> DeepCopy(extract_histogram -> GetOutputHistogramImage());
 }
 
 
 
-void SBGATObsRadar::SaveImage( std::string savepath){
+void SBGATObsRadar::SaveImages( std::string savepath){
 
   vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
-
-  cast -> SetInputData(this -> image);
-  cast -> SetOutputScalarTypeToUnsignedChar();
-
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter> ::New();
-  writer -> SetFileName(savepath.c_str());
-  writer -> SetInputConnection(cast->GetOutputPort());
-  writer -> Write();
+
+  for (int i = 0; i < this -> images.size(); ++i){
+
+    cast -> SetInputData(this -> images[i]);
+    cast -> SetOutputScalarTypeToUnsignedChar();
+    std::string complete_save_path = savepath + "image_" + std::to_string(i) + ".png";
+
+    writer -> SetFileName(complete_save_path.c_str());
+    writer -> SetInputConnection(cast->GetOutputPort());
+    writer -> Write();
+  }
 
 }
+
+
+std::vector<vtkSmartPointer<vtkImageData>> SBGATObsRadar::GetImages() const{
+  return this -> images;
+
+}
+
 
 
 void SBGATObsRadar::PrintHeader(ostream& os, vtkIndent indent) {

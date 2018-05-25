@@ -22,7 +22,9 @@ SOFTWARE.
 */
 
 #include "RadarWindow.hpp"
-#include <SBGATObsRadar.hpp>
+#include "RadarVisualizer.hpp"
+#include <QMessageBox>
+
 
 using namespace SBGAT_GUI;
 
@@ -31,18 +33,35 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	this -> parent = parent;
 	this -> setWindowTitle("Generate Doppler Radar Observations");
 
+	this -> save_observations_button = new QPushButton("Save observations",this);
+	this -> collect_observations_button = new QPushButton("Collect observations",this);
+	this -> open_visualizer_button = new QPushButton("Visualize observations",this);
+
+
+	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
+	
+	if (wrapped_shape_data.size() == 0){
+		QMessageBox::warning(this, "Generate Doppler Radar Observations", "You must first load a shape model in order to compute radar observations");
+		collect_observations_button -> setDisabled(1);
+	}
+
+	else{
+		collect_observations_button -> setEnabled(1);
+	}
+
+
+	
+
 
 	QVBoxLayout * radar_window_layout = new QVBoxLayout(this);
 
 	QGroupBox * target_group = new QGroupBox(tr("Shape"));
 	QGroupBox * target_properties_group = new QGroupBox(tr("Shape properties"));
 	QGroupBox * radar_settings_group = new QGroupBox(tr("Radar settings"));
-	QGroupBox * output_group = new QGroupBox(tr("Radar output"));
 	
 	QGridLayout * target_group_layout = new QGridLayout(target_group);
 	QGridLayout * radar_settings_group_layout = new QGridLayout(radar_settings_group);
 	QGridLayout * target_properties_group_layout = new QGridLayout(target_properties_group);
-	QGridLayout * output_group_layout = new QGridLayout(output_group);
 
 	QLabel * shape_label = new QLabel("Targeted shape model",this);
 	QLabel * range_label = new QLabel("Range resolution (m)",this);
@@ -50,8 +69,12 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	QLabel * N_samples_label = new QLabel("Max samples per facet",this);
 
 
-	QLabel * spin_az_label = new QLabel("Spin azimuth (deg)",this);
-	QLabel * spin_el_label = new QLabel("Spin elevation (deg)",this);
+	QLabel * spin_raan_label = new QLabel("Spin RAAN (deg)",this);
+	QLabel * spin_inc_label = new QLabel("Spin inclination (deg)",this);
+
+	QLabel * radar_az_label = new QLabel("Radar azimuth (deg)",this);
+	QLabel * radar_el_label = new QLabel("Radar elevation (deg)",this);
+
 	QLabel * period_label = new QLabel("Rotation period (hours)",this);
 	QLabel * imaging_period_label = new QLabel("Imaging period (hours)",this);
 	QLabel * N_images_label = new QLabel("Images to collect",this);
@@ -61,25 +84,28 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	this -> prop_combo_box = new QComboBox (this);
 	this -> r_bin_sbox = new QDoubleSpinBox(this);
 	this -> rr_bin_sbox = new QDoubleSpinBox(this);
-	this -> spin_az_sbox = new QDoubleSpinBox(this);
-	this -> spin_el_sbox = new QDoubleSpinBox(this);
+	this -> spin_raan_sbox = new QDoubleSpinBox(this);
+	this -> spin_inc_sbox = new QDoubleSpinBox(this);
+
+	this -> radar_az_sbox = new QDoubleSpinBox(this);
+	this -> radar_el_sbox = new QDoubleSpinBox(this);
+
 	this -> rotation_period_sbox = new QDoubleSpinBox(this);
 	this -> imaging_period_sbox = new QDoubleSpinBox(this);
 
 	this -> N_samples_sbox = new QSpinBox (this);
 	this -> N_images_sbox = new QSpinBox (this);
 
-	this ->  open_output_file_dialog_button = new QPushButton("Select output folder",this);
-	this -> collect_observations_button = new QPushButton("Collect observations",this);
+	
 
 	target_group_layout -> addWidget(shape_label,0,0,1,1);
 	target_group_layout -> addWidget(this -> prop_combo_box,0,1,1,1);
 
-	target_properties_group_layout -> addWidget(spin_az_label,0,0,1,1);
-	target_properties_group_layout -> addWidget(this -> spin_az_sbox,0,1,1,1);
+	target_properties_group_layout -> addWidget(spin_raan_label,0,0,1,1);
+	target_properties_group_layout -> addWidget(this -> spin_raan_sbox,0,1,1,1);
 
-	target_properties_group_layout -> addWidget(spin_el_label,1,0,1,1);
-	target_properties_group_layout -> addWidget(this -> spin_el_sbox,1,1,1,1);
+	target_properties_group_layout -> addWidget(spin_inc_label,1,0,1,1);
+	target_properties_group_layout -> addWidget(this -> spin_inc_sbox,1,1,1,1);
 
 	target_properties_group_layout -> addWidget(period_label,2,0,1,1);
 	target_properties_group_layout -> addWidget(this -> rotation_period_sbox,2,1,1,1);
@@ -96,12 +122,15 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_settings_group_layout -> addWidget(imaging_period_label,3,0,1,1);
 	radar_settings_group_layout -> addWidget(this -> imaging_period_sbox,3,1,1,1);
 
-
 	radar_settings_group_layout -> addWidget(N_images_label,4,0,1,1);
 	radar_settings_group_layout -> addWidget(this -> N_images_sbox,4,1,1,1);
-	
-	output_group_layout -> addWidget(this -> open_output_file_dialog_button, 0, 0, 1, 2);
 
+	radar_settings_group_layout -> addWidget(radar_az_label,5,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> radar_az_sbox,5,1,1,1);
+
+	radar_settings_group_layout -> addWidget(radar_el_label,6,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,6,1,1,1);
+	
 
 	// Creating the button box
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
@@ -109,16 +138,23 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_window_layout -> addWidget(target_group);
 	radar_window_layout -> addWidget(target_properties_group);
 	radar_window_layout -> addWidget(radar_settings_group);
-	radar_window_layout -> addWidget(output_group);
 	radar_window_layout -> addWidget(collect_observations_button);
+	radar_window_layout -> addWidget(open_visualizer_button);
+	radar_window_layout -> addWidget(save_observations_button);
+
+
+	open_visualizer_button -> setDisabled(1);
+	save_observations_button -> setDisabled(1);
+
+
 	radar_window_layout -> addWidget(button_box);
 
-
 	connect(collect_observations_button, SIGNAL(clicked()), this, SLOT(collect_observations()));
+	connect(open_visualizer_button, SIGNAL(clicked()), this, SLOT(open_visualizer()));
+
 
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
-	connect(this -> open_output_file_dialog_button,SIGNAL(clicked()),this,
-		SLOT(open_output_file_dialog()));
+	connect(this -> save_observations_button,SIGNAL(clicked()),this,SLOT(save_observations()));
 
 	this -> init();
 
@@ -130,15 +166,20 @@ void RadarWindow::init(){
 
 	this -> r_bin_sbox -> setDecimals(6);
 	this -> rr_bin_sbox -> setDecimals(6);
-	this -> spin_az_sbox -> setDecimals(6);
-	this -> spin_el_sbox -> setDecimals(6);
+	this -> spin_raan_sbox -> setDecimals(6);
+	this -> spin_inc_sbox -> setDecimals(6);
+	this -> radar_az_sbox -> setDecimals(6);
+	this -> radar_el_sbox -> setDecimals(6);
 	this -> rotation_period_sbox -> setDecimals(6);
 	this -> imaging_period_sbox -> setDecimals(6);
 
 	this -> r_bin_sbox -> setRange(1e-10,1e10);
 	this -> rr_bin_sbox -> setRange(1e-10,1e10);
-	this -> spin_az_sbox -> setRange(-180,180);
-	this -> spin_el_sbox -> setRange(-180,180);
+	this -> spin_raan_sbox -> setRange(-180,180);
+	this -> spin_inc_sbox -> setRange(-180,180);
+	this -> radar_az_sbox -> setRange(-180,180);
+	this -> radar_el_sbox -> setRange(-180,180);
+
 	this -> N_samples_sbox -> setRange(1,1000);
 	this -> N_images_sbox -> setRange(1,1000);
 
@@ -149,8 +190,12 @@ void RadarWindow::init(){
 
 	this -> r_bin_sbox -> setValue(2);
 	this -> rr_bin_sbox -> setValue(1e-3);
-	this -> spin_az_sbox -> setValue(0);
-	this -> spin_el_sbox -> setValue(0);
+	this -> spin_raan_sbox -> setValue(0);
+	this -> spin_inc_sbox -> setValue(0);
+
+	this -> radar_az_sbox -> setValue(0);
+	this -> radar_el_sbox -> setValue(0);
+
 	this -> N_samples_sbox -> setValue(100);
 	this -> N_images_sbox -> setValue(10);
 
@@ -166,45 +211,34 @@ void RadarWindow::init(){
 	}
 
 	
-	this -> collect_observations_button -> setEnabled(false);
-
 	if (wrapped_shape_data.size() == 0 ){
-		this -> open_output_file_dialog_button -> setEnabled(false);
+		this -> save_observations_button -> setEnabled(false);
 	}
+
+	this ->  radar = vtkSmartPointer<SBGATObsRadar>::New();
 
 
 }
 
-void RadarWindow::open_output_file_dialog(){
 
-	std::string default_name;
+void RadarWindow::open_visualizer(){
 
-	std::string name = this -> prop_combo_box -> currentText().toStdString();
-	auto shape_data = this -> parent -> get_wrapped_shape_data();
-	
-	if ( shape_data.find(name)!= shape_data.end()){
-		default_name = name;
-	}
+	RadarVisualizer radar_visualizer(this,this -> radar -> GetImages());
+	radar_visualizer.exec();
 
-	QString path = QFileDialog::getExistingDirectory(this, tr("Select radar output folder"),
-		QString::fromStdString(default_name));
-
-
-	this -> output_path = path.toStdString();
-
-	if (this -> output_path.size() > 0){
-		this -> collect_observations_button -> setEnabled(true);
-	}
 }
+
 
 void RadarWindow::collect_observations(){
 
 	double d2r = arma::datum::pi /180;
 	arma::vec spin = {0,0,1};
-	spin = (RBK::M2(this -> spin_el_sbox -> value() * d2r) 
-		* RBK::M3(this -> spin_az_sbox -> value() * d2r)).t() * spin;
+	spin = (RBK::M2(this -> spin_inc_sbox -> value() * d2r) 
+		* RBK::M3(this -> spin_raan_sbox -> value() * d2r)).t() * spin;
 	
-	arma::vec dir = {-1,0,0};
+	arma::vec radar_to_target_dir = {-1,0,0};
+	radar_to_target_dir = (RBK::M2(this -> radar_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_to_target_dir;
 
 	double rotation_period = this -> rotation_period_sbox -> value() * 3600; 
 	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
@@ -220,22 +254,38 @@ void RadarWindow::collect_observations(){
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 
-	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
-	radar -> SetInputData(shape_data[name] -> get_polydata());
-	radar -> SetScaleMeters();
-	radar -> Update();
+	this -> radar -> SetInputData(shape_data[name] -> get_polydata());
+	this -> radar -> SetScaleMeters();
+	this -> radar -> Update();
 
+	this -> measurement_sequence.clear();
 
 	for (int i  = 0; i < N_images; ++i){
 
 		double t = i * imaging_period;
 
-		std::vector<std::array<double, 2> > measurements;
+		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,N_samples,t,rotation_period,radar_to_target_dir,spin);
+		
+	}
 
-		radar -> CollectMeasurementsSimpleSpin(measurements,N_samples,t,rotation_period,dir,spin);
-		radar -> BinObs(measurements,r_bin,rr_bin);
-		radar -> SaveImage( this -> output_path + "/" + std::to_string(i) +  ".png");
+	this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
 
+	open_visualizer_button -> setEnabled(1);
+	save_observations_button -> setEnabled(1);
+
+	open_visualizer_button -> repaint();
+	save_observations_button -> repaint();
+	
+
+	
+
+}
+
+void RadarWindow::save_observations(){
+
+	QString path = QFileDialog::getExistingDirectory(this, tr("Select radar output folder"));
+	if (path.size() != 0){
+		this -> radar -> SaveImages( path.toStdString() + "/");
 	}
 
 }

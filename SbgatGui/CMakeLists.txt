@@ -126,6 +126,7 @@ add_executable(${EXE_NAME}
 	source/YORPWindow.cpp
 	source/SHARMWindow.cpp
 	source/RadarWindow.cpp
+	source/RadarVisualizer.cpp
 
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
@@ -135,6 +136,7 @@ add_executable(${EXE_NAME}
 	include/YORPWindow.hpp
 	include/SHARMWindow.hpp
 	include/RadarWindow.hpp
+	include/RadarVisualizer.hpp
 
 	)
 
