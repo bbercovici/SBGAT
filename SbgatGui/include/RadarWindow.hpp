@@ -22,8 +22,8 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_SHARMWINDOW
-#define HEADER_SHARMWINDOW
+#ifndef HEADER_RADAR
+#define HEADER_RADAR
 
 #include <QMainWindow>
 #include <QGroupBox>
@@ -38,6 +38,7 @@ SOFTWARE.
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
+#include <QSpinBox>
 #include <QRadioButton>
 
 #include "Mainwindow.hpp"
@@ -48,19 +49,16 @@ namespace SBGAT_GUI {
 	class Mainwindow;
 
 /*!
-@class SHARMWindow
+@class RadarWindow
 \author Benjamin Bercovici
 \date March, 2018
-\brief SHARMWindow class defining a window where a user can specificy the inputs to 
-a spherical harmonics gravity coefficients computation
+\brief RadarWindow class defining a window where a user can generate emulated radar 
+data simulating the output of a range/range-rate doppler radar
 
-\details This class inherits from QDialog and enables the
-user to set a number of options used in the spherical harmonics gravity coefficients calculation.
-The calculation can only take place if a spacecraft or a small body shape model is available and if an output directory 
-has been specified
+\details TODO
 */
 
-	class SHARMWindow : public QDialog {
+	class RadarWindow : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -69,29 +67,24 @@ has been specified
 	Creates the settings window
 	@param parent pointer to parent window.
 	*/
-		SHARMWindow(Mainwindow * parent) ;
+		RadarWindow(Mainwindow * parent) ;
 
 
 		private slots:
 
-	/**
-	Applies the currently seleted options to SbgatGUI
-	*/
-		void accept();
 
 		/**
-		Opens a dialog letting the user choose the output directory for the computed spherical harmonics coefficients
+		Collect radar observations with specified inputs
+		*/	
+		void collect_observations();
+
+		/**
+		Opens a dialog letting the user choose the output directory for the computed images
 		*/
 
 		void open_output_file_dialog();
 
 
-		/**
-		Called when another shape model is selected. Will update the reference
-		radius to a conservative estimate based on the greatest diagonal of the 
-		shape's bounding box
-		*/		
-		void changed_selected_shape();
 
 	protected:
 
@@ -103,13 +96,23 @@ has been specified
 
 		QDialogButtonBox * button_box;
 
-		QDoubleSpinBox * density_sbox;
-		QDoubleSpinBox * ref_radius_sbox;
-		QComboBox * degree_combo_box;
+		QDoubleSpinBox * r_bin_sbox;
+		QDoubleSpinBox * rr_bin_sbox;
+		QDoubleSpinBox * spin_az_sbox;
+		QDoubleSpinBox * spin_el_sbox;
+		QDoubleSpinBox * rotation_period_sbox;
+		QDoubleSpinBox * imaging_period_sbox;
 
-		QRadioButton * normalized_button;
-		QRadioButton * non_normalized_button;
+
+
+
+		QSpinBox * N_samples_sbox;
+		QSpinBox * N_images_sbox;
+
+
 		QPushButton * open_output_file_dialog_button;
+		QPushButton * collect_observations_button;
+
 		std::string output_path;
 
 	};

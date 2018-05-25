@@ -53,10 +53,12 @@ SOFTWARE.
 
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
-#include <armadillo>
-#include <array>
 
 #include <vtkModifiedBSPTree.h>
+#include <vtkImageData.h>
+
+#include <armadillo>
+#include <array>
 
 class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm{
 public:
@@ -77,8 +79,8 @@ public:
   l is a measure of the object's diagonal
   @param measurements reference to std::vector holding collected range/range-rate measurements
   @param N maximum number of measurements to produce per illuminated facet
-  @param dt time since epoch (hours)
-  @param period rotation period of target (hours)
+  @param dt time since epoch (s)
+  @param period rotation period of target (s)
   @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
   @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
   */
@@ -90,19 +92,23 @@ public:
     const arma::vec & dir,
     const arma::vec & spin);
 
+
   /**
-  Collects range/range-rate samples over the surface of the small body at the 
-  specified time after epoch
+  Bins the provided measurement into a 2d-histogram
   @param measurements reference to std::vector holding collected range/range-rate measurements
   @param r_bin range bin size (m)
   @param rr_bin range-rate bin size (m/s)
-  @param savepath path where resulting image is to be saved
   */
-  void SaveImage(
+  void BinObs(
     std::vector<std::array<double, 2> > & measurements,
     const double & r_bin,
-    const double & rr_bin,
-    std::string savepath);
+    const double & rr_bin);
+
+  /**
+  Save the binned radar image to file
+  @param savepath path where resulting image is to be saved
+  */
+  void SaveImage(std::string savepath);
 
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
@@ -125,6 +131,8 @@ protected:
 
 
   vtkSmartPointer<vtkModifiedBSPTree> bspTree;
+  vtkSmartPointer<vtkImageData> image;
+  
   arma::vec center_of_mass;
 
   double scaleFactor = 1;

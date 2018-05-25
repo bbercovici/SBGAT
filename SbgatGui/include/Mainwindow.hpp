@@ -277,7 +277,12 @@ through the user interface layer brought by Qt.}
 		QAction * open_rendering_properties_window_action;
 
 
+		/**
+		When triggered, opens the dialog window allowing
+		one to compute simulated radar images over a targeted shape model
+		*/
 
+		QAction * open_radar_window_action;
 
 
 	/**
@@ -343,6 +348,18 @@ through the user interface layer brought by Qt.}
 	Opens a widget allowing the user edit the camera properties
 	*/
 		void open_rendering_properties_window();
+
+
+
+
+		/**
+		Opens the dialog window allowing
+		one to compute simulated radar images over a targeted shape model
+		*/
+
+		void open_radar_window();
+
+
 
 
 	/**
@@ -527,11 +544,13 @@ through the user interface layer brought by Qt.}
 	*/
 		void save_console() ;
 
+		QMenu * SettingsMenu;
 		QMenu * SmallBodyMenu;
 		QMenu * SpacecraftMenu;
 		QMenu * MeasuresMenu;
 		QMenu * TrajectoryMenu;
 		QMenu * ViewMenu;
+		QMenu * ObservationsMenu;
 		QMenu * AnalysesMenu;
 		QMenu * ConsoleMenu;
 		QMenu * ResultsMenu;

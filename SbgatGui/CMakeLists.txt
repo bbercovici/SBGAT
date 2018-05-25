@@ -35,6 +35,15 @@
 #
 ################################################################################
 
+cmake_minimum_required(VERSION 3.0.0)
+
+if (${USE_GCC})
+	include(cmake/FindOmpGcc.cmake)
+else()
+	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
+	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
+endif()
+
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
@@ -43,14 +52,6 @@ set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 # Qt
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
-
-# Enforcing clang as default compiler to prevent Homebrew from picking shim'd clang
-set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "C Compiler" FORCE)
-set(CMAKE_CXX_COMPILER "/usr/bin/c++" CACHE STRING "C++ Compiler" FORCE)
-
-if (${USE_GCC})
-	include(cmake/FindOmpGcc.cmake)
-endif()
 
 include(cmake/FindQt.cmake)
 
@@ -124,6 +125,8 @@ add_executable(${EXE_NAME}
 	source/SettingsWindow.cpp 
 	source/YORPWindow.cpp
 	source/SHARMWindow.cpp
+	source/RadarWindow.cpp
+
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
@@ -131,6 +134,8 @@ add_executable(${EXE_NAME}
 	include/SettingsWindow.hpp
 	include/YORPWindow.hpp
 	include/SHARMWindow.hpp
+	include/RadarWindow.hpp
+
 	)
 
 set(library_dependencies

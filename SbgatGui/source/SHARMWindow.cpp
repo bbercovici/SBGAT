@@ -78,6 +78,11 @@ SHARMWindow::SHARMWindow(Mainwindow * parent) {
 	settings_group_layout -> addWidget(this -> normalized_button,1,0,1,1);
 	settings_group_layout -> addWidget(this -> non_normalized_button,1,1,1,1);
 
+
+	this -> non_normalized_button -> setDisabled(1);
+
+
+
 	output_group_layout -> addWidget(this -> open_output_file_dialog_button, 0, 0, 1, 2);
 
 

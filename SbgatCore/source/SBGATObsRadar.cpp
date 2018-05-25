@@ -51,7 +51,6 @@ SOFTWARE.
 #include <vtkExtractHistogram2D.h>
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
-#include <vtkImageData.h>
 #include <vtkPNGWriter.h>
 #include <vtkImageCast.h>
 
@@ -62,7 +61,8 @@ vtkStandardNewMacro(SBGATObsRadar);
 // Constructs with initial 0 values.
 SBGATObsRadar::SBGATObsRadar(){
 
-  this->SetNumberOfOutputPorts(0);
+  this -> image = vtkSmartPointer<vtkImageData>::New();
+  this -> SetNumberOfOutputPorts(0);
 }
 
 //----------------------------------------------------------------------------
@@ -130,12 +130,12 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   vtkIdType cellId, numCells, numPts, numIds;
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
-  numCells = input->GetNumberOfCells();
-  numPts = input->GetNumberOfPoints();
+  numCells = input -> GetNumberOfCells();
+  numPts = input -> GetNumberOfPoints();
 
 
   // Angular velocity 
-  double w = 2 * arma::datum::pi / (3600 * period);
+  double w = 2 * arma::datum::pi / period;
   arma::vec omega = spin * w;
 
   // Body-frame to inertial matrix
@@ -144,8 +144,6 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   // Radar direction in body frame
   arma::vec dir_body_frame = BN * dir;
 
-  std::cout << dir_body_frame << std::endl;
-  
   // Ray-tracing tolerance
   double tol = input -> GetLength()/1E6;
 
@@ -189,82 +187,106 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   }
 
 
-  // The kept facets are then sampled and reverse ray-traced
-  for (auto facet_index = facets_in_view.begin(); facet_index != facets_in_view.end(); ++facet_index){
 
+  // The vector holding the kept-facets is initialized
+  std::vector<std::array<double, 2> > measurements_temp;
+  for (int i = 0; i < facets_in_view.size() * N; ++i){
+   std::array<double, 2> measurement = {{-1,0}};
+   measurements_temp.push_back(measurement);
+ }
+
+  // The kept facets are then sampled and reverse ray-traced
+ for (int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
+
+
+  double p0[3];
+  double p1[3];
+  double p2[3];
+
+  input -> GetCellPoints(facets_in_view[facet_index],ptIds);
+  input -> GetPoint(ptIds->GetId(0), p0);
+  input -> GetPoint(ptIds->GetId(1), p1);
+  input -> GetPoint(ptIds->GetId(2), p2);
+
+  arma::vec P0 = {p0[0],p0[1],p0[2]};
+  arma::vec P1 = {p1[0],p1[1],p1[2]};
+  arma::vec P2 = {p2[0],p2[1],p2[2]};
+
+    // A maximum of N points are sampled from this facet
+  // #pragma omp parallel for
+  for (int i = 0; i < N; ++i){
+
+    bool keep_point = true;
     vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
     vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
 
-    double p0[3];
-    double p1[3];
-    double p2[3];
-
-    input -> GetCellPoints(*facet_index,ptIds);
-    input -> GetPoint(ptIds->GetId(0), p0);
-    input -> GetPoint(ptIds->GetId(1), p1);
-    input -> GetPoint(ptIds->GetId(2), p2);
-
-    arma::vec P0 = {p0[0],p0[1],p0[2]};
-    arma::vec P1 = {p1[0],p1[1],p1[2]};
-    arma::vec P2 = {p2[0],p2[1],p2[2]};
-
-    // A maximum of N points are sampled from this facet
-    for (int i = 0; i < N; ++i){
-
-      bool keep_point = true;
-
       // A random impact point is uniformly drawn from this facet
-      arma::vec random = arma::randu<arma::vec>(2);
-      double u = random(0);
-      double v = random(1);
-      arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v) * P1 + std::sqrt(u) * v * P2 ;
+    arma::vec random = arma::randu<arma::vec>(2);
+    double u = random(0);
+    double v = random(1);
+    arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v) * P1 + std::sqrt(u) * v * P2 ;
 
-      // Origin of ray tracing is input -> GetLength() * 1e6 away from the center of mass in the target's frame
-      arma::vec origin = this -> center_of_mass + input -> GetLength() * 1e6 * (-dir_body_frame);
-      this -> bspTree -> IntersectWithLine(impact.colptr(0), origin.colptr(0), tol, verts, cellIds);
+    // Origin of ray tracing is input -> GetLength() * 1e6 away from the center of mass in the target's frame
+    arma::vec origin = this -> center_of_mass + input -> GetLength() * 1e6 * (-dir_body_frame);
+    
+
+    this -> bspTree -> IntersectWithLine(impact.colptr(0), 
+      origin.colptr(0), 
+      tol, 
+      verts, 
+      cellIds);
 
       // All the detected intersections are checked.
-      for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
+    for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
 
-        double intersect[3];
-        double intersect_to_origin[3];
-        verts -> GetPoint(intersect_index,intersect);
-        vtkMath::Subtract(intersect,origin.colptr(0),intersect_to_origin);
+      double intersect[3];
+      double intersect_to_origin[3];
+      verts -> GetPoint(intersect_index,intersect);
+      vtkMath::Subtract(intersect,origin.colptr(0),intersect_to_origin);
 
         // If the intersect is between the radar and the impact point
-        if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - origin)){
+      if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - origin)){
 
         // Reject this point
-          keep_point = false;
-          break;
-        }
-
-      }
-
-      if (keep_point){
-
-        // Store the range/range-rate measurements
-        arma::vec velocity = arma::cross(omega,impact - this -> center_of_mass);
-        double range = arma::norm(impact - origin);
-        double range_rate = arma::dot(impact - origin,velocity) / range;
-
-        std::array<double, 2> measurement = {{range,range_rate}};
-        measurements.push_back(measurement);
+        keep_point = false;
+        break;
       }
 
     }
+
+    if (keep_point){
+
+        // Store the range/range-rate measurements
+      arma::vec velocity = arma::cross(omega,impact - this -> center_of_mass);
+      double range = arma::norm(impact - origin);
+      double range_rate = arma::dot(impact - origin,velocity) / range;
+
+      std::array<double, 2> measurement = {{range,range_rate}};
+      measurements_temp[facet_index * N + i] = measurement;
+    }
+
   }
+}
+
+// The final measurements are kept
+for (int i = 0; i < measurements_temp.size(); ++i) {
+  if (measurements_temp[i][0] > 0){
+    measurements.push_back(measurements_temp[i]);
+  }
+}
+
+
 
 }
 
 
-void SBGATObsRadar::SaveImage(
+void SBGATObsRadar::BinObs(
   std::vector<std::array<double, 2> > & measurements,
   const double & r_bin,
-  const double & rr_bin,
-  std::string savepath){
+  const double & rr_bin){
 
   vtkSmartPointer<vtkExtractHistogram2D> extract_histogram =  vtkSmartPointer<vtkExtractHistogram2D>::New();
+  
   vtkSmartPointer<vtkTable> table =  vtkSmartPointer<vtkTable>::New();
 
   vtkSmartPointer<vtkFloatArray>  arr_range = vtkSmartPointer<vtkFloatArray>::New();
@@ -306,13 +328,19 @@ void SBGATObsRadar::SaveImage(
   extract_histogram -> SetInputData(table);
   extract_histogram -> AddColumnPair("Range-rate (m/s)","Range (m)");
 
-  extract_histogram -> SetNumberOfBins(n_bin_r,n_bin_rr);
+  extract_histogram -> SetNumberOfBins(n_bin_rr,n_bin_r);
   extract_histogram -> Update();
+  
+  this -> image -> DeepCopy(extract_histogram -> GetOutputHistogramImage());
+}
 
-  vtkImageData * image = extract_histogram -> GetOutputHistogramImage() ;
+
+
+void SBGATObsRadar::SaveImage( std::string savepath){
+
   vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
 
-  cast -> SetInputData(image);
+  cast -> SetInputData(this -> image);
   cast -> SetOutputScalarTypeToUnsignedChar();
 
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter> ::New();
@@ -321,8 +349,6 @@ void SBGATObsRadar::SaveImage(
   writer -> Write();
 
 }
-
-
 
 
 void SBGATObsRadar::PrintHeader(ostream& os, vtkIndent indent) {
