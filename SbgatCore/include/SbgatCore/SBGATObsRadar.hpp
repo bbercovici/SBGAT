@@ -98,7 +98,9 @@ public:
 
   /**
   Bins the provided measurements sequence into a series of 2d-histogram
+  Will throw an std::runtime_error exception if ither of the provided bin sizes are invalid (i.e <= 0)
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
+
   @param r_bin range bin size (m)
   @param rr_bin range-rate bin size (m/s)
   */
@@ -129,6 +131,12 @@ public:
   */
   std::vector<vtkSmartPointer<vtkImageData>> GetImages() const;
 
+  /**
+  Clears images, if any
+  */
+
+  void ClearImages() { this -> images.clear();}
+
 
 protected:
   SBGATObsRadar();
@@ -146,6 +154,7 @@ protected:
   arma::vec center_of_mass;
 
   double scaleFactor = 1;
+  double max_value;
 
 private:
   SBGATObsRadar(const SBGATObsRadar&) = delete;

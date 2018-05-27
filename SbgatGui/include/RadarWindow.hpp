@@ -80,8 +80,15 @@ data simulating the output of a range/range-rate doppler radar
 		*/	
 		void collect_observations();
 
+
 		/**
-		Save radar observations to PNG files
+		Bins raw range/range-rate measurements to binned imaged
+		*/
+
+		void bin_observations();
+
+		/**
+		Save binned radar observations to PNG files
 		*/
 
 		void save_observations();
@@ -121,6 +128,7 @@ data simulating the output of a range/range-rate doppler radar
 
 		QPushButton * save_observations_button;
 		QPushButton * collect_observations_button;
+		QPushButton * bin_observations_button;
 		QPushButton * open_visualizer_button;
 
 

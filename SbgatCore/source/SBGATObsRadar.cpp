@@ -53,6 +53,7 @@ SOFTWARE.
 #include <vtkTable.h>
 #include <vtkPNGWriter.h>
 #include <vtkImageCast.h>
+#include <vtkPointData.h>
 
 
 vtkStandardNewMacro(SBGATObsRadar);
@@ -288,6 +289,7 @@ void SBGATObsRadar::BinObservations(
 
   // The container holding the images is pre-allocated
   this -> images.clear();
+  this -> max_value = -1;
 
   for (int i = 0; i < measurements_sequence.size(); ++i){
 
@@ -328,6 +330,10 @@ void SBGATObsRadar::BinObservations(
     int n_bin_r = (int)(r_extent / r_bin);
     int n_bin_rr = (int)(rr_extent / rr_bin);
 
+    if (r_bin == 0 || rr_bin == 0){
+      throw(std::runtime_error("Zero bin size"));
+    }
+
   // The data is added to the table. Note the (-) required so as to have the closest range pointing "up".
     for (int i = 0; i < measurements.size(); ++i){
       table -> SetValue(i, 1, -ranges(i));
@@ -341,10 +347,29 @@ void SBGATObsRadar::BinObservations(
     extract_histogram -> Update();
 
     this -> images[i] -> DeepCopy(extract_histogram -> GetOutputHistogramImage());
+
+    // The maximum image value is extracted
+    vtkDataArray * scalars = this -> images[i] -> GetPointData() -> GetScalars();
+
+    for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+     this -> max_value = std::max(max_value,scalars -> GetTuple1(tupleIdx));
+   }
+
+
+ }
+
+
+  // Now that the maximum value has been extracted, the luminosity of each image is normalized
+ for (int i = 0; i < this -> images.size(); ++i){
+  vtkDataArray * scalars = this -> images[i] -> GetPointData() -> GetScalars();
+
+  for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) *  this -> images[i] -> GetScalarTypeMax() / (max_value * 1e6 ));
   }
 
 }
 
+}
 
 
 void SBGATObsRadar::SaveImages( std::string savepath){
@@ -354,14 +379,26 @@ void SBGATObsRadar::SaveImages( std::string savepath){
 
   for (int i = 0; i < this -> images.size(); ++i){
 
-    cast -> SetInputData(this -> images[i]);
-    cast -> SetOutputScalarTypeToUnsignedChar();
-    std::string complete_save_path = savepath + "image_" + std::to_string(i) + ".png";
+   // Each image is de-normalized before being saved
 
-    writer -> SetFileName(complete_save_path.c_str());
-    writer -> SetInputConnection(cast->GetOutputPort());
-    writer -> Write();
+   vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+   image -> DeepCopy(this -> images[i]);
+   
+   vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
+
+   for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) * std::pow(this -> images[i] -> GetScalarTypeMax() / (max_value * 3e6 ),-1) );
   }
+
+
+  cast -> SetInputData(image);
+  cast -> SetOutputScalarTypeToUnsignedChar();
+  std::string complete_save_path = savepath + "image_" + std::to_string(i) + ".png";
+
+  writer -> SetFileName(complete_save_path.c_str());
+  writer -> SetInputConnection(cast->GetOutputPort());
+  writer -> Write();
+}
 
 }
 

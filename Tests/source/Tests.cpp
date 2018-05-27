@@ -148,7 +148,7 @@ of Eros for benchmarking purposes
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
-	std::string filename  = "../KW4Alpha.obj";
+	std::string filename  = "../input/KW4Alpha.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -179,7 +179,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 
 	auto start = std::chrono::system_clock::now();
-	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of" << filename <<  " . This may take a few minutes ...\n";
+	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of " << filename <<  " . This may take a few minutes ...\n";
 	
 	boost::progress_display progress(cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 
@@ -298,11 +298,8 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../KW4Alpha.obj");
+	reader -> SetFileName("../input/KW4Alpha.obj");
 	reader -> Update(); 
-
-
-
 
 	// Harmonics up to degree five are computed
 	int degree = 5;
@@ -335,7 +332,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> Update();
 
 	// The spherical harmonics are saved to a file
-	spherical_harmonics -> SaveToJson("harmo.json");
+	spherical_harmonics -> SaveToJson("../gravity_output/harmo.json");
 
 
 	// The accelerations are evaluated at the query point
@@ -349,7 +346,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
-	spherical_harmonics_from_file -> LoadFromJson("harmo.json");
+	spherical_harmonics_from_file -> LoadFromJson("../gravity_output/harmo.json");
 	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 
@@ -374,7 +371,7 @@ void TestsSBCore::test_radar_obs(){
 
 	// Loading in the shape model
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../KW4Alpha.obj");
+	reader -> SetFileName("../input/KW4Alpha.obj");
 	reader -> Update(); 
 
 	// Creating the radar object
@@ -387,25 +384,37 @@ void TestsSBCore::test_radar_obs(){
 	// Arguments
 	arma::vec spin = {0,0,1};
 	arma::vec dir = {1,0,0};
-	double period = 4; // 4 hours
-	int images = 24; 
+	double period = 4 * 3600; // 4 hours
+	int images = 48; 
 	int N = 100;
 
 	double r_bin = 7.5;//(m)
 	double rr_bin = 7.9e-3;//(m/s)
 
-
 	// A sequence of images is collected
-	for (unsigned int i  = 0; i < images; ++i){
-		double dt = i * 2 * arma::datum::pi / (period * 3600  * (images - 1));
-		std::vector<std::array<double, 2> > measurements;
-		
-		radar -> CollectMeasurementsSimpleSpin(measurements,N,dt,period,dir,spin);
-		radar -> SaveImage(measurements,r_bin,rr_bin,"image_" +std::to_string(i) +  ".png");
+	SBGATMeasurementsSequence measurement_sequence;
+	auto start = std::chrono::system_clock::now();
+
+	for (int i  = 0; i < images; ++i){
+		double dt = 1.5 * double(i) / ((images - 1)) * period;
+
+		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
+
+		radar -> CollectMeasurementsSimpleSpin(measurement_sequence,N,dt,period,dir,spin);
 	}
 
-	std::cout << "-- test_radar_obs successful" << std::endl;
+	radar -> BinObservations(measurement_sequence,r_bin,rr_bin);
+	std::cout << " --- Done binning ...\n";
 
+	radar -> SaveImages("../radar_output/");
+	std::cout << " --- Done saving ...\n";
+
+	
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "-- Done collecting radar images in " << elapsed_seconds.count() << " s\n";
+	std::cout << "-- test_radar_obs successful" << std::endl;
 
 }
 

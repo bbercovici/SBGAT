@@ -35,6 +35,9 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 
 	this -> save_observations_button = new QPushButton("Save observations",this);
 	this -> collect_observations_button = new QPushButton("Collect observations",this);
+	
+	this -> bin_observations_button = new QPushButton("Bin observations",this);
+
 	this -> open_visualizer_button = new QPushButton("Visualize observations",this);
 
 
@@ -58,10 +61,14 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	QGroupBox * target_group = new QGroupBox(tr("Shape"));
 	QGroupBox * target_properties_group = new QGroupBox(tr("Shape properties"));
 	QGroupBox * radar_settings_group = new QGroupBox(tr("Radar settings"));
+	QGroupBox * binning_settings_group = new QGroupBox(tr("Binning settings"));
+
 	
 	QGridLayout * target_group_layout = new QGridLayout(target_group);
 	QGridLayout * radar_settings_group_layout = new QGridLayout(radar_settings_group);
 	QGridLayout * target_properties_group_layout = new QGridLayout(target_properties_group);
+	QGridLayout * binning_settings_group_layout = new QGridLayout(binning_settings_group);
+
 
 	QLabel * shape_label = new QLabel("Targeted shape model",this);
 	QLabel * range_label = new QLabel("Range resolution (m)",this);
@@ -78,8 +85,6 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	QLabel * period_label = new QLabel("Rotation period (hours)",this);
 	QLabel * imaging_period_label = new QLabel("Imaging period (hours)",this);
 	QLabel * N_images_label = new QLabel("Images to collect",this);
-
-
 
 	this -> prop_combo_box = new QComboBox (this);
 	this -> r_bin_sbox = new QDoubleSpinBox(this);
@@ -110,26 +115,30 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	target_properties_group_layout -> addWidget(period_label,2,0,1,1);
 	target_properties_group_layout -> addWidget(this -> rotation_period_sbox,2,1,1,1);
 
-	radar_settings_group_layout -> addWidget(range_label,0,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> r_bin_sbox,0,1,1,1);
 
-	radar_settings_group_layout -> addWidget(range_rate_label,1,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> rr_bin_sbox,1,1,1,1);
+	radar_settings_group_layout -> addWidget(N_samples_label,0,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> N_samples_sbox,0,1,1,1);
 
-	radar_settings_group_layout -> addWidget(N_samples_label,2,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> N_samples_sbox,2,1,1,1);
+	radar_settings_group_layout -> addWidget(imaging_period_label,1,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> imaging_period_sbox,1,1,1,1);
 
-	radar_settings_group_layout -> addWidget(imaging_period_label,3,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> imaging_period_sbox,3,1,1,1);
+	radar_settings_group_layout -> addWidget(N_images_label,2,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> N_images_sbox,2,1,1,1);
 
-	radar_settings_group_layout -> addWidget(N_images_label,4,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> N_images_sbox,4,1,1,1);
+	radar_settings_group_layout -> addWidget(radar_az_label,3,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> radar_az_sbox,3,1,1,1);
 
-	radar_settings_group_layout -> addWidget(radar_az_label,5,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> radar_az_sbox,5,1,1,1);
+	radar_settings_group_layout -> addWidget(radar_el_label,4,0,1,1);
+	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,4,1,1,1);
 
-	radar_settings_group_layout -> addWidget(radar_el_label,6,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,6,1,1,1);
+
+
+
+	binning_settings_group_layout -> addWidget(range_label,0,0,1,1);
+	binning_settings_group_layout -> addWidget(this -> r_bin_sbox,0,1,1,1);
+
+	binning_settings_group_layout -> addWidget(range_rate_label,1,0,1,1);
+	binning_settings_group_layout -> addWidget(this -> rr_bin_sbox,1,1,1,1);
 	
 
 	// Creating the button box
@@ -139,6 +148,8 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_window_layout -> addWidget(target_properties_group);
 	radar_window_layout -> addWidget(radar_settings_group);
 	radar_window_layout -> addWidget(collect_observations_button);
+	radar_window_layout -> addWidget(binning_settings_group);
+	radar_window_layout -> addWidget(bin_observations_button);
 	radar_window_layout -> addWidget(open_visualizer_button);
 	radar_window_layout -> addWidget(save_observations_button);
 
@@ -150,6 +161,8 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_window_layout -> addWidget(button_box);
 
 	connect(collect_observations_button, SIGNAL(clicked()), this, SLOT(collect_observations()));
+	connect(bin_observations_button, SIGNAL(clicked()), this, SLOT(bin_observations()));
+
 	connect(open_visualizer_button, SIGNAL(clicked()), this, SLOT(open_visualizer()));
 
 
@@ -162,7 +175,6 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 }
 
 void RadarWindow::init(){
-
 
 	this -> r_bin_sbox -> setDecimals(6);
 	this -> rr_bin_sbox -> setDecimals(6);
@@ -197,7 +209,7 @@ void RadarWindow::init(){
 	this -> radar_el_sbox -> setValue(0);
 
 	this -> N_samples_sbox -> setValue(100);
-	this -> N_images_sbox -> setValue(10);
+	this -> N_images_sbox -> setValue(1);
 
 	this -> rotation_period_sbox -> setValue(1);
 	this -> imaging_period_sbox -> setValue(1);
@@ -247,8 +259,6 @@ void RadarWindow::collect_observations(){
 	int N_images = this -> N_images_sbox -> value(); 
 	int N_samples = this -> N_samples_sbox -> value() ;
 
-	double r_bin = this -> r_bin_sbox -> value();
-	double rr_bin = this -> rr_bin_sbox -> value();
 
 	// Querying the selected small body
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
@@ -268,16 +278,47 @@ void RadarWindow::collect_observations(){
 		
 	}
 
-	this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
-
-	open_visualizer_button -> setEnabled(1);
-	save_observations_button -> setEnabled(1);
-
-	open_visualizer_button -> repaint();
-	save_observations_button -> repaint();
 	
 
+	this -> bin_observations_button -> setEnabled(1);
+	this -> bin_observations_button -> repaint();
+
+
 	
+
+}
+
+
+void RadarWindow::bin_observations(){
+
+
+	double r_bin = this -> r_bin_sbox -> value();
+	double rr_bin = this -> rr_bin_sbox -> value();
+
+	if (r_bin == 0 || rr_bin == 0){
+
+		this -> radar -> ClearImages();
+
+		QMessageBox::warning(this, "Generate Doppler Radar Observations", "Invalid bin size");
+		this -> open_visualizer_button -> setEnabled(0);
+		this -> save_observations_button -> setEnabled(0);
+
+		this -> open_visualizer_button -> repaint();
+		this -> save_observations_button -> repaint();
+
+	}
+	else{
+
+		this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
+
+		this -> open_visualizer_button -> setEnabled(1);
+		this -> save_observations_button -> setEnabled(1);
+
+		this -> open_visualizer_button -> repaint();
+		this -> save_observations_button -> repaint();
+		
+	}
+
 
 }
 

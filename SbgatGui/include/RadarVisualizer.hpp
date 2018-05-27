@@ -67,7 +67,7 @@ images previously computed
 		void init();
 
 		private slots:
-		
+
 		void next_image();
 		void previous_image();
 
@@ -85,7 +85,7 @@ images previously computed
 		std::vector<vtkSmartPointer<vtkImageData>> images;
 
 		vtkSmartPointer<vtkRenderer> renderer;
-
+		QDialogButtonBox * button_box;
 
 		
 	};

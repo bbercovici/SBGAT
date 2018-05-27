@@ -75,6 +75,13 @@ to apply the update (if any).
 ## Changelog
 
 
+
+### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.1)
+
+- Adds `SBGATObsRadar` to `SbgatCore`, a class emulating range/range-rate radar measurements. The corresponding menu and action are also available in `SbgatGui`
+- If `gcc` exists in Homebrew's Cellar, SBGAT and its dependencies will be compiled using this OpenMP compliant compiler, giving better performance on multithreaded platforms. [This functionality had to be postponed due to Qt 5.10 incompability with recent gcc versions](https://bugreports.qt.io/browse/QTBUG-66585). 
+
+
 ### [SBGAT 1.05.1](https://github.com/bbercovici/SBGAT/releases/tag/1.05.1)
 
 This new release of SBGAT allows import/export of gravity spherical harmonics from/into SBGAT by means of Niels Lohmann's Modern C++ JSON library. This functionality is available from SbgatCore's classes and SbgatGui as well.
