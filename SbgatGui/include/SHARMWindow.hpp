@@ -80,7 +80,7 @@ has been specified
 		void accept();
 
 		/**
-		Opens a dialog letting the user choose the output directory for the YORP coefficients
+		Opens a dialog letting the user choose the output directory for the computed spherical harmonics coefficients
 		*/
 
 		void open_output_file_dialog();

@@ -29,6 +29,8 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SBGATSphericalHarmo.hpp>
+#include <SBGATObsRadar.hpp>
+
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -63,10 +65,8 @@ void TestsSBCore::run() {
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
 	TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	TestsSBCore::test_radar_obs();
 
-
-	// TODO: reimplement in SbgatCore
-	// TestsSBCore::test_spherical_harmonics_invariance();
 
 	std::cout << "All tests passed.\n";
 
@@ -148,7 +148,7 @@ of Eros for benchmarking purposes
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
-	std::string filename  = "../KW4Alpha.obj";
+	std::string filename  = "../input/KW4Alpha.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -179,7 +179,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 
 	auto start = std::chrono::system_clock::now();
-	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of" << filename <<  " . This may take a few minutes ...\n";
+	std::cout << "-- Computing pgm accelerations at " << cellCentersFilter -> GetOutput() -> GetNumberOfPoints() << " facet centers over the surface of " << filename <<  " . This may take a few minutes ...\n";
 	
 	boost::progress_display progress(cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
 
@@ -298,20 +298,8 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../KW4Alpha.obj");
+	reader -> SetFileName("../input/KW4Alpha.obj");
 	reader -> Update(); 
-
-
-	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-	vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter -> SetInputConnection(reader->GetOutputPort());
-	triangleFilter -> Update();
-
-	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-	cleanPolyData->Update();
-
 
 	// Harmonics up to degree five are computed
 	int degree = 5;
@@ -327,7 +315,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// An instance of SBGATPolyhedronGravityModel is created to evaluate the PGM of 
 	// the considered polytdata
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(density);
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
@@ -335,7 +323,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// An instance of SBGATSphericalHarmo is created to compute and evaluate the spherical 
 	// expansion of the gravity field about the considered shape model
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
-	spherical_harmonics -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	spherical_harmonics -> SetInputConnection(reader -> GetOutputPort());
 	spherical_harmonics -> SetDensity(density);
 	spherical_harmonics -> SetScaleKiloMeters();
 	spherical_harmonics -> SetReferenceRadius(ref_radius);
@@ -344,7 +332,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> Update();
 
 	// The spherical harmonics are saved to a file
-	spherical_harmonics -> SaveToJson("harmo.json");
+	spherical_harmonics -> SaveToJson("../gravity_output/harmo.json");
 
 
 	// The accelerations are evaluated at the query point
@@ -358,7 +346,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
-	spherical_harmonics_from_file -> LoadFromJson("harmo.json");
+	spherical_harmonics_from_file -> LoadFromJson("../gravity_output/harmo.json");
 	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 
@@ -367,9 +355,66 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
 
 
-
-
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
+
+}
+
+
+
+
+/**
+This test computes simulated radar images for benchmarking purposes
+*/
+void TestsSBCore::test_radar_obs(){
+
+	std::cout << "- Running test_radar_obs ..." << std::endl;
+
+	// Loading in the shape model
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../input/KW4Alpha.obj");
+	reader -> Update(); 
+
+	// Creating the radar object
+	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
+	radar -> SetInputConnection(reader -> GetOutputPort());
+	radar -> SetScaleKiloMeters();
+	radar -> Update();
+
+
+	// Arguments
+	arma::vec spin = {0,0,1};
+	arma::vec dir = {1,0,0};
+	double period = 4 * 3600; // 4 hours
+	int images = 48; 
+	int N = 100;
+
+	double r_bin = 7.5;//(m)
+	double rr_bin = 7.9e-3;//(m/s)
+
+	// A sequence of images is collected
+	SBGATMeasurementsSequence measurement_sequence;
+	auto start = std::chrono::system_clock::now();
+
+	for (int i  = 0; i < images; ++i){
+		double dt = 1.5 * double(i) / ((images - 1)) * period;
+
+		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
+
+		radar -> CollectMeasurementsSimpleSpin(measurement_sequence,N,dt,period,dir,spin);
+	}
+
+	radar -> BinObservations(measurement_sequence,r_bin,rr_bin);
+	std::cout << " --- Done binning ...\n";
+
+	radar -> SaveImages("../radar_output/");
+	std::cout << " --- Done saving ...\n";
+
+	
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "-- Done collecting radar images in " << elapsed_seconds.count() << " s\n";
+	std::cout << "-- test_radar_obs successful" << std::endl;
 
 }
 

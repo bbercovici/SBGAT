@@ -159,12 +159,9 @@ int SBGATMassProperties::RequestData(
     kxyz[idx] = 0.0;
   }
 
-  for (cellId=0; cellId < numCells; cellId++)
-  {
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE)
-    {
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "
-        << input->GetCellType(cellId));
+  for (cellId=0; cellId < numCells; cellId++){
+    if ( input->GetCellType(cellId) != VTK_TRIANGLE){
+      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "<< input->GetCellType(cellId));
       continue;
     }
     input->GetCellPoints(cellId,ptIds);
@@ -173,8 +170,7 @@ int SBGATMassProperties::RequestData(
 
     // store current vertex (x,y,z) coordinates ...
     // Note that the coordinates are normalized!
-    for (idx=0; idx < numIds; idx++)
-    {
+    for (idx=0; idx < numIds; idx++){
       input->GetPoint(ptIds->GetId(idx), p);
       x[idx] = p[0] / l; y[idx] = p[1] / l; z[idx] = p[2] / l;
     }

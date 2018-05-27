@@ -68,6 +68,8 @@ SOFTWARE.
 #include "RenderingPropertiesWindow.hpp"
 #include "YORPWindow.hpp"
 #include "SHARMWindow.hpp"
+#include "RadarWindow.hpp"
+
 
 
 using namespace SBGAT_GUI;
@@ -120,7 +122,7 @@ void Mainwindow::setupUi() {
 
 
     // Central window
-    this -> setCentralWidget(qvtkWidget);
+    this -> setCentralWidget(this -> qvtkWidget);
     this -> setWindowTitle(QStringLiteral("SBGAT (WIP)"));
 
     // Actions and menus are created
@@ -339,7 +341,19 @@ void Mainwindow::open_settings_window() {
 
 }
 
+void Mainwindow::open_radar_window(){
+    RadarWindow radar_window(this);
+    radar_window.exec();
+}
+
+
 void Mainwindow::createActions() {
+
+
+    this -> open_settings_window_action = new QAction(tr("Preferences"), this);
+    this -> open_settings_window_action -> setStatusTip(tr("Open settings window"));
+    connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
+
 
 
     this -> save_small_body_action = new QAction(tr("Save Shape Model"), this);
@@ -354,11 +368,6 @@ void Mainwindow::createActions() {
     this -> add_trajectory_action = new QAction(tr("Load Trajectory"), this);
     this -> add_trajectory_action -> setStatusTip(tr("Load a text file storing the x/y/z components a body-fixed trajectory "));
     connect(this -> add_trajectory_action, &QAction::triggered, this, &Mainwindow::add_trajectory);
-
-
-    this -> open_settings_window_action = new QAction(tr("Settings"), this);
-    this -> open_settings_window_action -> setStatusTip(tr("Open settings window where SbgatGUI settings can be set"));
-    connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
 
     this -> show_right_dockwidget_action = new QAction(tr("Show Right Prop Widget"), this);
     this -> show_right_dockwidget_action -> setStatusTip(tr("Shows/hides the right lateral widget holding prop information"));
@@ -383,6 +392,10 @@ void Mainwindow::createActions() {
     this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
     connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
 
+
+    this -> open_radar_window_action = new QAction(tr("Generate Simulated Radar Observations"), this);
+    this -> open_radar_window_action -> setStatusTip(tr("Generates simulated range/range-rate observations emulating a doppler radar"));
+    connect(this -> open_radar_window_action, &QAction::triggered, this, &Mainwindow::open_radar_window);
 
 
     this -> align_shape_action = new QAction(tr("Align Shape"), this);
@@ -436,7 +449,7 @@ void Mainwindow::update_actions_availability() {
         this -> move_along_traj_action -> setEnabled(false);
     }
 
-    else if (this -> wrapped_trajectory_data.size()  != 0 && this -> wrapped_spacecraft_data.size() != 0){
+    else {
         this -> move_along_traj_action -> setEnabled(true);
     }
 
@@ -1390,9 +1403,6 @@ void Mainwindow::add_light(int light_type){
 
 }
 
-
-
-
 void Mainwindow::open_move_along_traj_window(){
 
     MoveAlongTrajectoryWindow * move_along_traj_window = new MoveAlongTrajectoryWindow(this);
@@ -1413,13 +1423,13 @@ void Mainwindow::open_rendering_properties_window(){
     rendering_properties_window -> show();
 }   
 
-
-
-
-
-
-
 void Mainwindow::createMenus() {
+
+
+
+    this -> SettingsMenu = this -> menuBar() -> addMenu(tr("&Settings"));
+    this -> SettingsMenu -> addAction(this -> open_settings_window_action);
+
 
     this -> SmallBodyMenu = this -> menuBar() -> addMenu(tr("&Small Body"));
     this -> SmallBodyMenu -> addAction(this -> add_small_body_action);
@@ -1434,16 +1444,18 @@ void Mainwindow::createMenus() {
     this -> SpacecraftMenu -> addAction(this -> add_spacecraft_action);
     this -> SpacecraftMenu -> addAction(this -> move_along_traj_action);
 
-    
     this -> MeasuresMenu = menuBar() -> addMenu(tr("&Measures"));
     this -> MeasuresMenu -> addAction(this -> compute_geometric_measures_action);
+
+
+    this -> ObservationsMenu = menuBar() -> addMenu(tr("&Observations"));
+    this -> ObservationsMenu -> addAction(this -> open_radar_window_action);
 
 
     this -> AnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
     this -> AnalysesMenu -> addAction(this -> open_compute_yorp_window_action);
     this -> AnalysesMenu -> addAction(this -> open_compute_sharm_window_action);
 
-    
 
     this -> ResultsMenu = menuBar() -> addMenu(tr("&Visualization"));
     this -> ResultsMenu -> addAction(this -> open_rendering_properties_window_action);
