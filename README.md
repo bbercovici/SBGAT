@@ -76,10 +76,15 @@ to apply the update (if any).
 
 
 
-### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.1)
+### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)
+
+- Fixed bug in `SbgatGui` that was allowing users to bin radar observations before effectively collecting them.
+
+
+### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.2)
 
 - Adds `SBGATObsRadar` to `SbgatCore`, a class emulating range/range-rate radar measurements. The corresponding menu and action are also available in `SbgatGui`
-- If `gcc` exists in Homebrew's Cellar, SBGAT and its dependencies will be compiled using this OpenMP compliant compiler, giving better performance on multithreaded platforms. [This functionality had to be postponed due to Qt 5.10 incompability with recent gcc versions](https://bugreports.qt.io/browse/QTBUG-66585). 
+- If `gcc` exists in Homebrew's Cellar, SBGAT and its dependencies will be compiled using this OpenMP compliant compiler, giving better performance on multithreaded platforms. [This functionality had to be postponed due to Qt 5.10 incompability with recent gcc versions on MacOS](https://bugreports.qt.io/browse/QTBUG-66585). 
 
 
 ### [SBGAT 1.05.1](https://github.com/bbercovici/SBGAT/releases/tag/1.05.1)

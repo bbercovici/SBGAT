@@ -156,7 +156,7 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 
 	open_visualizer_button -> setDisabled(1);
 	save_observations_button -> setDisabled(1);
-
+	bin_observations_button -> setDisabled(1);
 
 	radar_window_layout -> addWidget(button_box);
 
