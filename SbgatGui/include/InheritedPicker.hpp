@@ -24,7 +24,6 @@ SOFTWARE.
 #ifndef HEADER_INHERITEDPICKER
 #define HEADER_INHERITEDPICKER
 
-
 /**
 Definition of the InheritedPicker class. This class directly inherits from vtkAreaPicker.
 Used as an interface that allows the user to get access to the dimensions of the picking area.

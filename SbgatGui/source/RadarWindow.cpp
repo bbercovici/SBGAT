@@ -208,13 +208,11 @@ void RadarWindow::init(){
 	this -> radar_az_sbox -> setValue(0);
 	this -> radar_el_sbox -> setValue(0);
 
-	this -> N_samples_sbox -> setValue(100);
+	this -> N_samples_sbox -> setValue(30);
 	this -> N_images_sbox -> setValue(1);
 
 	this -> rotation_period_sbox -> setValue(1);
 	this -> imaging_period_sbox -> setValue(1);
-
-
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 

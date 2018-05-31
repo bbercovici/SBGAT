@@ -45,7 +45,6 @@ else()
 endif()
 
 # Building procedure
-get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 
 # Will use the most recent version of 
@@ -72,7 +71,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall -O2 )
 include_directories(include)
 
-find_package(Qt5 5.10.0 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 5.11.0 COMPONENTS Widgets REQUIRED)
 include_directories(${Qt5Widgets_INCLUDE_DIRS})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 

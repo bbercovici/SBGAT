@@ -32,6 +32,8 @@ SOFTWARE.
 #include <vtkImageData.h>
 #include <QPushButton>
 
+#include <vtkContextView.h>
+#include <QVTKWidget.h>
 
 
 namespace SBGAT_GUI {
@@ -68,7 +70,10 @@ images previously computed
 
 		private slots:
 
+		// Shows the next radar image in the series
 		void next_image();
+
+		// Shows the previous radar image in the series
 		void previous_image();
 
 
@@ -77,6 +82,7 @@ images previously computed
 
 
 		QVTKOpenGLWidget * qvtkWidget;
+
 		QPushButton * previous_image_button;
 		QPushButton * next_image_button;
 
@@ -84,8 +90,11 @@ images previously computed
 		RadarWindow * parent;
 		std::vector<vtkSmartPointer<vtkImageData>> images;
 
+		vtkSmartPointer<vtkContextView>  view;
+
 		vtkSmartPointer<vtkRenderer> renderer;
 		QDialogButtonBox * button_box;
+		int current_image_index = 0;
 
 		
 	};

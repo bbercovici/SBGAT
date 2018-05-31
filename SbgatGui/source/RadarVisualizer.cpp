@@ -32,10 +32,19 @@ SOFTWARE.
 #include <vtkPointData.h>
 #include <vtkImageData.h>
 
+#include <vtkChartHistogram2D.h>
+#include <vtkContextScene.h>
+#include <vtkStringArray.h>
+#include <vtkPlot.h>
+#include <vtkColorTransferFunction.h>
 
+#include <vtkImageGridSource.h>
+#include <vtkImageCast.h>
+#include <vtkUnicodeString.h>
+
+#include <vtkAxis.h>
 
 #include <QLabel>
-
 
 
 using namespace SBGAT_GUI;
@@ -47,8 +56,9 @@ RadarVisualizer::RadarVisualizer(RadarWindow * parent,
 	this -> setWindowTitle("Visualize Radar Images");
 
 	this -> qvtkWidget = new QVTKOpenGLWidget(this);
-	this -> images = images;
+	// this -> qvtkWidget = new QVTKWidget(this);
 
+	this -> images = images;
 	this -> previous_image_button = new QPushButton("<", this);
 	this -> next_image_button = new QPushButton(">", this);
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
@@ -57,7 +67,6 @@ RadarVisualizer::RadarVisualizer(RadarWindow * parent,
 
 	QWidget * navigation_widget = new QWidget(this);
 	QHBoxLayout * navigation_widget_layout = new QHBoxLayout(navigation_widget);
-
 
 	navigation_widget_layout -> addWidget(this -> previous_image_button);
 	navigation_widget_layout -> addWidget(this -> next_image_button);
@@ -73,94 +82,143 @@ RadarVisualizer::RadarVisualizer(RadarWindow * parent,
 
 	this -> init();
 
-
 	
 }
 
 
 void RadarVisualizer::init(){
 
-	vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
-	imageMapper -> SetInputData(this -> images[0]);
-
-	vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
-	imageActor -> SetMapper(imageMapper);
-
-   // Setup renderer
-	this -> renderer = vtkSmartPointer<vtkRenderer>::New();
-
-   // Setup render window
+	// Creating view, histogram, transfer function and rendering window.
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> render_window = vtkSmartPointer< vtkGenericOpenGLRenderWindow>::New();
+	
+	vtkSmartPointer<vtkChartHistogram2D> histo = vtkSmartPointer<vtkChartHistogram2D>::New();
+	vtkSmartPointer<vtkColorTransferFunction> fun = vtkSmartPointer<vtkColorTransferFunction>::New();
+
+	this -> view = vtkSmartPointer<vtkContextView>::New ();
+	this -> view -> SetRenderWindow(render_window);
 	this -> qvtkWidget -> SetRenderWindow(render_window);
-	this -> qvtkWidget -> GetRenderWindow() -> AddRenderer(this -> renderer);
 
-	render_window -> AddRenderer(renderer);
-	this -> renderer -> AddActor2D(imageActor);
+	// Creating the image
+	vtkSmartPointer<vtkImageData> image = this -> images[this -> current_image_index];
 
-	int dimensions[3];
-	int max_x = -1;
-	int max_y = -1;
+	// Normalizing the image
+	vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
+	double max_val = -1;
 
-	for (int i = 0; i < this -> images.size(); ++i){
-		this -> images[i] -> GetDimensions(dimensions);
-		max_x = std::max(max_x,dimensions[0]);
-		max_y = std::max(max_y,dimensions[1]);
+	for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+		max_val = std::max(scalars -> GetTuple1(tupleIdx),max_val);
 	}
 
-	this -> qvtkWidget -> setMinimumSize(int((double)(max_x)/2),int((double)(max_y)/2));
+	this -> resize(500, 500);
+
+	// Setting the transfer function
+	fun -> AddRGBPoint(0,0.0, 0.0, 0.0);
+	fun -> AddRGBPoint(max_val,  1.0, 1.0, 1.0);
+	fun -> Build();
+
+	// Computing the histogram and setting axes titles
+	histo -> SetInputData(image);
+	histo -> SetTransferFunction(fun);
+
+	std::string yAxisLabel = "Range bin";
+	std::string xAxisLabel = "Range-rate bin";
+
+	assert(vtkUnicodeString::is_utf8(yAxisLabel));
+
+
+
+	histo -> GetAxis( vtkAxis::LEFT) -> SetTitle(yAxisLabel);
+	histo -> GetAxis( vtkAxis::BOTTOM) -> SetTitle(xAxisLabel);
+	histo -> GetAxis( vtkAxis::LEFT) -> SetVisible(1);
+	histo -> GetAxis( vtkAxis::BOTTOM) -> SetVisible(1);
+
+
+    // this -> view -> GetScene() -> ClearItems();
+	this -> view -> GetScene() -> AddItem(histo);
+	
+	// this -> qvtkWidget -> setMinimumSize(int((double)(max_x)/2),int((double)(max_y)/2));
 	this -> qvtkWidget -> update();
-	this -> qvtkWidget -> repaint();
+	this -> view -> GetRenderWindow() -> Render();
 	this -> qvtkWidget -> GetRenderWindow() -> Render();
+	this -> qvtkWidget -> repaint();
+	this -> view->GetInteractor()->Start();
+
 
 }
 
 void RadarVisualizer::next_image(){
 
-	vtkActor2DCollection * collection = this -> renderer -> GetActors2D();
-	collection -> InitTraversal();
 
-	vtkActor2D * actor =  collection -> GetNextActor2D();
-	vtkImageMapper * mapper = vtkImageMapper::SafeDownCast(actor -> GetMapper());
-	vtkSmartPointer<vtkImageData> current_image = mapper -> GetInput();
-
-	auto current_image_iterator = std::find(this -> images.begin(), this -> images.end(), current_image);
-
-	if (current_image_iterator != --this -> images.end()){
-		mapper -> SetInputData(*(++current_image_iterator));	
+	if (this -> current_image_index == this -> images.size() - 1){
+		this -> current_image_index = 0;
 	}
 	else{
-		mapper -> SetInputData(*this -> images.begin());	
+		++this -> current_image_index;
 	}
 
+	auto image = this -> images[this -> current_image_index];
+	auto histo = vtkChartHistogram2D::SafeDownCast(this -> view -> GetScene() -> GetItem(0));
 
-	mapper -> Update();
-	
+
+	vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
+	double max_val = -1;
+
+	for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+		max_val = std::max(scalars -> GetTuple1(tupleIdx),max_val);
+	}
+
+	// Setting the transfer function
+	vtkSmartPointer<vtkColorTransferFunction> fun = vtkSmartPointer<vtkColorTransferFunction>::New();
+
+	fun -> AddRGBPoint(0,0.0, 0.0, 0.0);
+	fun -> AddRGBPoint(max_val,  1.0, 1.0, 1.0);
+	fun -> Build();
+
+	// Computing the histogram and setting axes titles
+	histo -> SetInputData(image);
+	histo -> SetTransferFunction(fun);
+
 	this -> qvtkWidget -> update();
 	this -> qvtkWidget -> GetRenderWindow() -> Render();
+
 
 }
 
 void RadarVisualizer::previous_image(){
 
-	vtkActor2DCollection * collection = this -> renderer -> GetActors2D();
-	collection -> InitTraversal();
-	vtkActor2D * actor =  collection -> GetNextActor2D();
 
-	vtkImageMapper * mapper = vtkImageMapper::SafeDownCast(actor -> GetMapper());
-	vtkSmartPointer<vtkImageData> current_image = mapper -> GetInput();
-	auto current_image_iterator = std::find(this -> images.begin(), this -> images.end(), current_image);
-
-	if (current_image_iterator != this -> images.begin()){
-		mapper -> SetInputData(*(--current_image_iterator));	
+	if (this -> current_image_index == 0){
+		this -> current_image_index = this -> images.size() - 1;
 	}
 	else{
-		mapper -> SetInputData(*(--this -> images.end()));	
+		--this -> current_image_index;
 	}
 
-	mapper -> Update();
-	
+	auto image = this -> images[this -> current_image_index];
+	auto histo = vtkChartHistogram2D::SafeDownCast(this -> view -> GetScene() -> GetItem(0));
+
+	vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
+	double max_val = -1;
+
+	for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
+		max_val = std::max(scalars -> GetTuple1(tupleIdx),max_val);
+	}
+
+	// Setting the transfer function
+	vtkSmartPointer<vtkColorTransferFunction> fun = vtkSmartPointer<vtkColorTransferFunction>::New();
+
+	fun -> AddRGBPoint(0,0.0, 0.0, 0.0);
+	fun -> AddRGBPoint(max_val,  1.0, 1.0, 1.0);
+	fun -> Build();
+
+	// Computing the histogram and setting axes titles
+	histo -> SetInputData(image);
+	histo -> SetTransferFunction(fun);
+
 	this -> qvtkWidget -> update();
 	this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+
 
 
 	
