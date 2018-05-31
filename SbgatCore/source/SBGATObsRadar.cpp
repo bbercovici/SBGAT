@@ -55,6 +55,9 @@ SOFTWARE.
 #include <vtkImageCast.h>
 #include <vtkPointData.h>
 
+#include <boost/progress.hpp>
+
+
 
 vtkStandardNewMacro(SBGATObsRadar);
 
@@ -291,24 +294,11 @@ void SBGATObsRadar::BinObservations(
   this -> images.clear();
   this -> max_value = -1;
 
-  for (int i = 0; i < measurements_sequence.size(); ++i){
+  for (unsigned int i = 0; i < measurements_sequence.size(); ++i){
 
     auto measurements = measurements_sequence[i];
 
     this -> images.push_back(vtkSmartPointer<vtkImageData>::New());
-
-    vtkSmartPointer<vtkExtractHistogram2D> extract_histogram =  vtkSmartPointer<vtkExtractHistogram2D>::New();
-    vtkSmartPointer<vtkTable> table =  vtkSmartPointer<vtkTable>::New();
-    vtkSmartPointer<vtkFloatArray>  arr_range = vtkSmartPointer<vtkFloatArray>::New();
-    vtkSmartPointer<vtkFloatArray>  arr_range_rate = vtkSmartPointer<vtkFloatArray>::New();
-
-    arr_range->SetName("Range (m)");
-    arr_range_rate->SetName("Range-rate (m/s)");
-
-    table -> AddColumn(arr_range);
-    table -> AddColumn(arr_range_rate);
-
-    table -> SetNumberOfRows(measurements.size());
 
   // Using arma::vec to get statistics
     arma::vec ranges(measurements.size());
@@ -325,6 +315,8 @@ void SBGATObsRadar::BinObservations(
   // The extent of the data is extracted
     double r_extent = std::abs(ranges.max() - ranges.min()) * this -> scaleFactor;
     double rr_extent = std::abs(range_rates.max() - range_rates.min()) * this -> scaleFactor;
+    double r_center = arma::mean(ranges) * this -> scaleFactor;
+    double rr_center = 0;
 
   // The bin counts are determined from the specified bin sizes and data extent
     int n_bin_r = (int)(r_extent / r_bin);
@@ -334,19 +326,48 @@ void SBGATObsRadar::BinObservations(
       throw(std::runtime_error("Zero bin size"));
     }
 
-  // The data is added to the table. Note the (-) required so as to have the closest range pointing "up".
-    for (int i = 0; i < measurements.size(); ++i){
-      table -> SetValue(i, 1, -ranges(i));
-      table -> SetValue(i, 0, -range_rates(i));
+
+    // The image is formed by "binning in" the measurements
+
+    this -> images[i] -> SetExtent(0, n_bin_rr - 1, 0, n_bin_r - 1, 0, 0);
+    this -> images[i] -> AllocateScalars(VTK_DOUBLE, 1);
+
+    double *dPtr = static_cast<double *>(this -> images[i]->GetScalarPointer(0, 0, 0));
+    
+    // The image is initialized 
+    #pragma omp parallel for
+    for (int row = 0; row < n_bin_r; ++row){
+      for (int col = 0; col < n_bin_rr; ++col){
+        int k = col + row * n_bin_rr;
+        dPtr[k] = 0;
+      }
     }
 
-    extract_histogram -> SetInputData(table);
-    extract_histogram -> AddColumnPair("Range-rate (m/s)","Range (m)");
+    
+    double max_range = ranges.max();
+    double max_range_rate = range_rates.max();
 
-    extract_histogram -> SetNumberOfBins(n_bin_rr,n_bin_r);
-    extract_histogram -> Update();
+    // The histogram is built
+    #pragma omp parallel for
+    for (int mes = 0; mes < measurements.size(); ++mes){
 
-    this -> images[i] -> DeepCopy(extract_histogram -> GetOutputHistogramImage());
+      // Flipping the image
+      int row = int( ( - ranges(mes) +  max_range)/ r_bin );
+      int col = int( ( - range_rates(mes) + max_range_rate )/ rr_bin );
+
+      // The last bin is inclusive
+      if (row == n_bin_r){
+        --row;
+      }
+      if (col == n_bin_rr){
+        --col;
+      }
+
+      int k = col + row * n_bin_rr;
+      dPtr[k] += 1;
+
+    }
+    
 
     // The maximum image value is extracted
     vtkDataArray * scalars = this -> images[i] -> GetPointData() -> GetScalars();
@@ -357,17 +378,6 @@ void SBGATObsRadar::BinObservations(
 
 
  }
-
-
-  // Now that the maximum value has been extracted, the luminosity of each image is normalized
- for (int i = 0; i < this -> images.size(); ++i){
-  vtkDataArray * scalars = this -> images[i] -> GetPointData() -> GetScalars();
-
-  for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
-    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) *  this -> images[i] -> GetScalarTypeMax() / (max_value * 1e6 ));
-  }
-
-}
 
 }
 
@@ -387,8 +397,11 @@ void SBGATObsRadar::SaveImages( std::string savepath){
    vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
 
    for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
-    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) * std::pow(this -> images[i] -> GetScalarTypeMax() / (max_value * 3e6 ),-1) );
+    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) * std::pow(this -> images[i] -> GetScalarTypeMax() / (this -> max_value * 3e6 ),-1) );
   }
+
+
+
 
 
   cast -> SetInputData(image);
