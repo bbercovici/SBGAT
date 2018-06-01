@@ -206,25 +206,25 @@ void Mainwindow::init_right_dockwidget(){
     this -> right_dockwidget -> hide();
 
     // VTK adds a Head light by default to the renderer
-    std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-    vtkSmartPointer<vtkLightCollection> lights = this -> get_renderer() -> GetLights();
-    vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
+    // std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+    // vtkSmartPointer<vtkLightCollection> lights = this -> get_renderer() -> GetLights();
+    // vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
     
-    lights -> InitTraversal();
+    // lights -> InitTraversal();
 
-    vtkLight * light = lights -> GetNextItem();
+    // vtkLight * light = lights -> GetNextItem();
 
-    lightActor -> SetLight(light);    
-    lightActor -> SetVisibility(1);
-    model_data -> set_light(light);
-    model_data -> set_light_actor(lightActor);
-    std::string name = "Head light";
+    // lightActor -> SetLight(light);    
+    // lightActor -> SetVisibility(1);
+    // model_data -> set_light(light);
+    // model_data -> set_light_actor(lightActor);
+    // std::string name = "Head light";
 
-    this -> wrapped_light_data[name] = model_data;
-    this -> get_renderer() -> AddViewProp(lightActor);
+    // this -> wrapped_light_data[name] = model_data;
+    // this -> get_renderer() -> AddViewProp(lightActor);
 
-    // The prop table is updated to show the default light
-    this -> add_prop_to_table_widget(name);
+    // // The prop table is updated to show the default light
+    // this -> add_prop_to_table_widget(name);
 
 
 }
@@ -238,43 +238,45 @@ void Mainwindow::init_left_dockwidget(){
     QWidget * left_dockwidget_container = new QWidget(this);
     QVBoxLayout * left_dockwidget_container_layout = new QVBoxLayout();
 
-    QGroupBox * light_creation_group = new QGroupBox(tr("Add Rendering Lights"));
-    QVBoxLayout * light_creation_layout = new QVBoxLayout(light_creation_group);
-    QPushButton * add_scene_light_button = new QPushButton(tr("Scene light"),this);
-    QPushButton * add_head_light_button = new QPushButton(tr("Head light"),this);
-    QPushButton * add_camera_light_button = new QPushButton(tr("Camera light"),this);
+    // QGroupBox * light_creation_group = new QGroupBox(tr("Add Rendering Lights"));
+    // QVBoxLayout * light_creation_layout = new QVBoxLayout(light_creation_group);
+    // QPushButton * add_scene_light_button = new QPushButton(tr("Scene light"),this);
+    // QPushButton * add_head_light_button = new QPushButton(tr("Head light"),this);
+    // QPushButton * add_camera_light_button = new QPushButton(tr("Camera light"),this);
 
-    light_creation_layout -> addWidget(add_scene_light_button);
-    light_creation_layout -> addWidget(add_head_light_button);
-    light_creation_layout -> addWidget(add_camera_light_button);
+    // light_creation_layout -> addWidget(add_scene_light_button);
+    // light_creation_layout -> addWidget(add_head_light_button);
+    // light_creation_layout -> addWidget(add_camera_light_button);
 
-    left_dockwidget_container_layout -> addWidget(light_creation_group);
+    // left_dockwidget_container_layout -> addWidget(light_creation_group);
+    
     left_dockwidget_container -> setLayout(left_dockwidget_container_layout);
     left_dockwidget_container_layout -> addStretch(1);
+    
     this -> left_dockwidget -> setWidget(left_dockwidget_container);
     this -> addDockWidget(Qt::LeftDockWidgetArea, this -> left_dockwidget);
     this -> left_dockwidget -> hide();
 
-    connect(add_scene_light_button,SIGNAL(clicked()),this,SLOT(add_scene_light_slot()));
-    connect(add_head_light_button,SIGNAL(clicked()),this,SLOT(add_head_light_slot()));
-    connect(add_camera_light_button,SIGNAL(clicked()),this,SLOT(add_camera_light_slot()));
+    // connect(add_scene_light_button,SIGNAL(clicked()),this,SLOT(add_scene_light_slot()));
+    // connect(add_head_light_button,SIGNAL(clicked()),this,SLOT(add_head_light_slot()));
+    // connect(add_camera_light_button,SIGNAL(clicked()),this,SLOT(add_camera_light_slot()));
 
 
 }
 
 
 
-void Mainwindow::add_scene_light_slot(){
-    this -> add_light(0);
-}
-void Mainwindow::add_head_light_slot(){
-    this -> add_light(1);
+// void Mainwindow::add_scene_light_slot(){
+//     this -> add_light(0);
+// }
+// void Mainwindow::add_head_light_slot(){
+//     this -> add_light(1);
 
-}
-void Mainwindow::add_camera_light_slot(){
-    this -> add_light(2);
+// }
+// void Mainwindow::add_camera_light_slot(){
+//     this -> add_light(2);
 
-}
+// }
 
 
 
@@ -1154,17 +1156,17 @@ void Mainwindow::toggle_prop_visibility(int row, int col) {
 
 
 
-        else if ( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
+        // else if ( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
 
-            if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(1);
-            }
+        //     if (item -> checkState() == Qt::Checked) {
+        //         this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(1);
+        //     }
 
-            else {
-                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(0);
-                this -> remove_results_visual_props(name, false);
-            }
-        }
+        //     else {
+        //         this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(0);
+        //         this -> remove_results_visual_props(name, false);
+        //     }
+        // }
 
 
         else if ( this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
@@ -1213,25 +1215,25 @@ void Mainwindow::remove_prop() {
         // The data wrapper is removed
         this -> wrapped_spacecraft_data.erase(name);
     }
-    else if (this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
+    // else if (this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
 
-        if (this -> wrapped_light_data.size() < 2){
-            // If there's only one light left, it cannot be removed as VTK will not 
-            // allow this
-            return;
-        }
+    //     if (this -> wrapped_light_data.size() < 2){
+    //         // If there's only one light left, it cannot be removed as VTK will not 
+    //         // allow this
+    //         return;
+    //     }
 
-        // The light actor is removed
-        this -> renderer -> RemoveActor(this -> wrapped_light_data[name] -> get_light_actor());
+    //     // The light actor is removed
+    //     this -> renderer -> RemoveActor(this -> wrapped_light_data[name] -> get_light_actor());
 
-        // The light is removed from the renderer
-        this -> get_renderer() -> RemoveLight(this -> wrapped_light_data[name] -> get_light());
+    //     // The light is removed from the renderer
+    //     this -> get_renderer() -> RemoveLight(this -> wrapped_light_data[name] -> get_light());
 
-        // The data wrapper is removed
-        this -> wrapped_light_data.erase(name);
+    //     // The data wrapper is removed
+    //     this -> wrapped_light_data.erase(name);
 
 
-    }
+    // }
 
     // The corresponding row in the table widget is removed
     // This will trigger the corresponding signal/slot mechanism updating the GUI
@@ -1339,69 +1341,66 @@ else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajector
 }
 
 
-void Mainwindow::add_light(int light_type){
+// void Mainwindow::add_light(int light_type){
 
 
-    std::vector<std::string> light_names = {"Scene light","Head light","Camera light"};
-    vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
+//     std::vector<std::string> light_names = {"Scene light","Head light","Camera light"};
+//     vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
 
 
-    light -> SetFocalPoint(this  -> get_renderer() -> GetActiveCamera() -> GetFocalPoint());
-    light -> SetPosition(this  -> get_renderer() -> GetActiveCamera() -> GetPosition());
-    light -> SetColor(1,1,1);
-    light -> SetIntensity(1);
-    light -> SetLightType(light_type); // 0: scene , 1: Head light , 2: camera light
+//     light -> SetFocalPoint(this  -> get_renderer() -> GetActiveCamera() -> GetFocalPoint());
+//     light -> SetPosition(this  -> get_renderer() -> GetActiveCamera() -> GetPosition());
+//     light -> SetColor(1,1,1);
+//     light -> SetIntensity(1);
+//     light -> SetLightType(light_type); // 0: scene , 1: Head light , 2: camera light
 
-    // The light and its props are stored in a ModelDataWrapper
-    std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-    vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
-    lightActor -> SetLight(light);    
-    model_data -> set_light(light);
-    model_data -> set_light_actor(lightActor);
+//     // The light and its props are stored in a ModelDataWrapper
+//     std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+//     vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
+//     lightActor -> SetLight(light);    
+//     model_data -> set_light(light);
+//     model_data -> set_light_actor(lightActor);
 
-    light->SetPositional(true); // required for vtkLightActor below
-    light->SetConeAngle(20);
-
-
-    // At this stage, name does not account for repeated lights of the same type
-    std::string name = light_names[light_type];
-    std::string basic_name = name;
-
-    // A potential suffix to add to the light name is found by 
-    // looking at lights that already exist
-    int light_count = 0;
-    for (auto light_it = this -> wrapped_light_data.begin(); light_it != this -> wrapped_light_data.end(); ++light_it){
-        if (light_it -> second -> get_light() -> GetLightType() == light_type){
-            ++light_count;
-        }
-    }
-
-    if(light_count == 0){
-        this -> wrapped_light_data[name] = model_data;
-    }
-            // otherwise, a suffix is added
-    else{
-
-        while( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
-            std::string suffix = "(" + std::to_string(light_count) + ")";
-            name = basic_name + suffix;
-            ++light_count;
-        }
-        this -> wrapped_light_data[name] = model_data;
-    }
-
-    this -> get_renderer() -> AddViewProp(lightActor);
-    this -> get_renderer() -> AddLight(light);
-
-    // The prop table is updated to show the newly loaded prop
-    this -> add_prop_to_table_widget(name);
-
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
+//     light->SetPositional(true); // required for vtkLightActor below
+//     light->SetConeAngle(20);
 
 
+//     // At this stage, name does not account for repeated lights of the same type
+//     std::string name = light_names[light_type];
+//     std::string basic_name = name;
 
+//     // A potential suffix to add to the light name is found by 
+//     // looking at lights that already exist
+//     int light_count = 0;
+//     for (auto light_it = this -> wrapped_light_data.begin(); light_it != this -> wrapped_light_data.end(); ++light_it){
+//         if (light_it -> second -> get_light() -> GetLightType() == light_type){
+//             ++light_count;
+//         }
+//     }
 
-}
+//     if(light_count == 0){
+//         this -> wrapped_light_data[name] = model_data;
+//     }
+//             // otherwise, a suffix is added
+//     else{
+
+//         while( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
+//             std::string suffix = "(" + std::to_string(light_count) + ")";
+//             name = basic_name + suffix;
+//             ++light_count;
+//         }
+//         this -> wrapped_light_data[name] = model_data;
+//     }
+
+//     this -> get_renderer() -> AddViewProp(lightActor);
+//     this -> get_renderer() -> AddLight(light);
+
+//     // The prop table is updated to show the newly loaded prop
+//     this -> add_prop_to_table_widget(name);
+
+//     this -> qvtkWidget -> GetRenderWindow() -> Render();
+
+// }
 
 void Mainwindow::open_move_along_traj_window(){
 

@@ -23,25 +23,18 @@ SOFTWARE.
 
 #include "RadarVisualizer.hpp"
 #include <SBGATObsRadar.hpp>
-#include <vtkImageMapper.h>
-#include <vtkActor2D.h>
+
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <QHBoxLayout>
 #include <vtkActor2DCollection.h>
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 #include <vtkImageData.h>
-
 #include <vtkChartHistogram2D.h>
 #include <vtkContextScene.h>
 #include <vtkStringArray.h>
 #include <vtkPlot.h>
 #include <vtkColorTransferFunction.h>
-
-#include <vtkImageGridSource.h>
-#include <vtkImageCast.h>
-#include <vtkUnicodeString.h>
-
 #include <vtkAxis.h>
 
 #include <QLabel>
@@ -120,18 +113,13 @@ void RadarVisualizer::init(){
 	histo -> SetInputData(image);
 	histo -> SetTransferFunction(fun);
 
-	std::string yAxisLabel = "Range bin";
-	std::string xAxisLabel = "Range-rate bin";
 
-	assert(vtkUnicodeString::is_utf8(yAxisLabel));
-
-
-
-	histo -> GetAxis( vtkAxis::LEFT) -> SetTitle(yAxisLabel);
-	histo -> GetAxis( vtkAxis::BOTTOM) -> SetTitle(xAxisLabel);
+	histo -> GetAxis( vtkAxis::LEFT) -> SetTitle("Range bin");
+	histo -> GetAxis( vtkAxis::BOTTOM) -> SetTitle("Range-rate bin");
 	histo -> GetAxis( vtkAxis::LEFT) -> SetVisible(1);
 	histo -> GetAxis( vtkAxis::BOTTOM) -> SetVisible(1);
 
+	// std::cout << histo -> GetAxis( vtkAxis::LEFT) -> GetTitle() << std::endl;
 
     // this -> view -> GetScene() -> ClearItems();
 	this -> view -> GetScene() -> AddItem(histo);
@@ -148,8 +136,7 @@ void RadarVisualizer::init(){
 
 void RadarVisualizer::next_image(){
 
-
-	if (this -> current_image_index == this -> images.size() - 1){
+	if (this -> current_image_index + 1 == this -> images.size()){
 		this -> current_image_index = 0;
 	}
 	else{
@@ -188,7 +175,7 @@ void RadarVisualizer::previous_image(){
 
 
 	if (this -> current_image_index == 0){
-		this -> current_image_index = this -> images.size() - 1;
+		this -> current_image_index = (int)(this -> images.size()) - 1;
 	}
 	else{
 		--this -> current_image_index;

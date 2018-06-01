@@ -23,7 +23,6 @@ SOFTWARE.
 
 #include <QApplication>
 #include "Mainwindow.hpp"
-#include <vtkVersion.h>
 
 int main( int argc, char** argv ) {
 

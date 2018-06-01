@@ -320,21 +320,21 @@ through the user interface layer brought by Qt.}
 	// Slots
 		private slots:
 
-		/**
-		Adds a scene light to the rendering window at the current camera location
-		*/
-		void add_scene_light_slot();
-		/**
-		Adds a head light to the rendering window that will remain aligned with
-		the camera axis
-		*/
-		void add_head_light_slot();
+		// /**
+		// Adds a scene light to the rendering window at the current camera location
+		// */
+		// void add_scene_light_slot();
+		// *
+		// Adds a head light to the rendering window that will remain aligned with
+		// the camera axis
+		
+		// void add_head_light_slot();
 
-		/**
-		Adds a scene light to the rendering window that is
-		fixed in the camera frame
-		*/
-		void add_camera_light_slot();
+		// /**
+		// Adds a scene light to the rendering window that is
+		// fixed in the camera frame
+		// */
+		// void add_camera_light_slot();
 
 
 		/**
@@ -434,7 +434,7 @@ through the user interface layer brought by Qt.}
 		Add light of prescribed type to the renderer
 		@param light_type determines the light type (0: scene light , 1: Head light , 2: camera light)
 		*/
-		void add_light(int light_type);
+		// void add_light(int light_type);
 
 		/**
 		Initializes the rendering window and its props
@@ -566,7 +566,7 @@ through the user interface layer brought by Qt.}
 		DataMap wrapped_trajectory_data;
 		DataMap wrapped_attitude_data;
 		DataMap wrapped_spacecraft_data;
-		DataMap wrapped_light_data;
+		// DataMap wrapped_light_data;
 
 
 
