@@ -78,7 +78,15 @@ to apply the update (if any).
 
 ### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)
 
+#### New:
+
+- `SBGATObsRadar` now throws an instance of `std::runtime_error` if the specified bin sizes are incompatible with the collected data that may yield an empty histogram dimension
+- Removed more deprecated functionalities
+
+#### Bug fixes: 
 - Fixed bug in `SbgatGui` that was allowing users to bin radar observations before effectively collecting them.
+- Saved radar images now have correct color levels
+
 
 
 ### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.2)
