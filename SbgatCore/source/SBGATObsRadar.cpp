@@ -193,13 +193,13 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
 
   // The vector holding the kept-facets is initialized
   std::vector<std::array<double, 2> > measurements_temp;
-  for (int i = 0; i < facets_in_view.size() * N; ++i){
+  for (auto i = 0; i < facets_in_view.size() * N; ++i){
    std::array<double, 2> measurement = {{-1,0}};
    measurements_temp.push_back(measurement);
  }
 
   // The kept facets are then sampled and reverse ray-traced
- for (int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
+ for (auto facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
 
 
   double p0[3];
@@ -322,10 +322,11 @@ void SBGATObsRadar::BinObservations(
     int n_bin_r = (int)(r_extent / r_bin);
     int n_bin_rr = (int)(rr_extent / rr_bin);
 
-    if (r_bin == 0 || rr_bin == 0){
-      throw(std::runtime_error("Zero bin size"));
-    }
+    std::cout << n_bin_r << " " << n_bin_rr << std::endl; 
 
+    if (n_bin_r == 0 || n_bin_rr == 0){
+      throw(std::runtime_error("The prescribed bin sizes yielded " + std::to_string(n_bin_r) + " range bins and " + std::to_string(n_bin_rr) + " range-rate bins. "));
+    }
 
     // The image is formed by "binning in" the measurements
 
@@ -349,7 +350,7 @@ void SBGATObsRadar::BinObservations(
 
     // The histogram is built
     #pragma omp parallel for
-    for (int mes = 0; mes < measurements.size(); ++mes){
+    for (auto mes = 0; mes < measurements.size(); ++mes){
 
       // Flipping the image
       int row = int( ( - ranges(mes) +  max_range)/ r_bin );
@@ -376,32 +377,26 @@ void SBGATObsRadar::BinObservations(
      this -> max_value = std::max(max_value,scalars -> GetTuple1(tupleIdx));
    }
 
-
  }
 
 }
-
 
 void SBGATObsRadar::SaveImages( std::string savepath){
 
   vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter> ::New();
 
-  for (int i = 0; i < this -> images.size(); ++i){
+  for (auto i = 0; i < this -> images.size(); ++i){
 
-   // Each image is de-normalized before being saved
-
+   // Each image is normalized before being saved
    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
    image -> DeepCopy(this -> images[i]);
-   
+
    vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
 
    for (vtkIdType tupleIdx = 0; tupleIdx < scalars -> GetNumberOfTuples(); ++tupleIdx){
-    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) * std::pow(this -> images[i] -> GetScalarTypeMax() / (this -> max_value * 3e6 ),-1) );
+    scalars -> SetTuple1(tupleIdx,scalars -> GetTuple1(tupleIdx) * 255 / this -> max_value );
   }
-
-
-
 
 
   cast -> SetInputData(image);
