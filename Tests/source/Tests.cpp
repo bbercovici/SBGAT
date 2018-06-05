@@ -29,7 +29,9 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SBGATSphericalHarmo.hpp>
+
 #include <SBGATObsRadar.hpp>
+#include <SBGATObsLightcurve.hpp>
 
 
 #include <vtkCell.h>
@@ -61,6 +63,7 @@ SOFTWARE.
 
 void TestsSBCore::run() {
 
+	TestsSBCore::test_lightcurve_obs();
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
@@ -417,6 +420,64 @@ void TestsSBCore::test_radar_obs(){
 	std::cout << "-- test_radar_obs successful" << std::endl;
 
 }
+
+
+/**
+This test computes simulated lightcurves for benchmarking purposes
+*/
+void TestsSBCore::test_lightcurve_obs(){
+
+	std::cout << "- Running test_lightcurve_obs ..." << std::endl;
+
+	// Loading in the shape model
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../input/KW4Alpha.obj");
+	reader -> Update(); 
+
+	// Creating the radar object
+	vtkSmartPointer<SBGATObsLightcurve> lightcurve = vtkSmartPointer<SBGATObsLightcurve>::New();
+	lightcurve -> SetInputConnection(reader -> GetOutputPort());
+	lightcurve -> SetScaleKiloMeters();
+	lightcurve -> Update();
+
+
+	// Arguments
+	arma::vec spin = {0,0,1};
+	arma::vec target_pos = {1e6,0,0};
+	arma::vec observer_pos = {1e6,1e6,0};
+	double period = 4 * 3600; // 4 hours
+	int images = 100; 
+	int N = 100;
+
+	// A sequence of images is collected
+	std::vector<std::array<double, 2> > measurements;
+	auto start = std::chrono::system_clock::now();
+
+	for (int i  = 0; i < images; ++i){
+		double dt = 360 * double(i) ; // one data point evey 360 s
+
+		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
+		lightcurve -> CollectMeasurementsSimpleSpin(measurements,N,dt,period,target_pos,observer_pos,spin);
+		std::cout << measurements.back()[1] << std::endl;
+	}
+
+	
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "-- Done collecting lightcurve " << elapsed_seconds.count() << " s\n";
+	std::cout << "-- test_lightcurve_obs successful" << std::endl;
+
+	arma::vec mes_arma(measurements.size());
+	for (unsigned int i = 0; i < measurements.size(); ++i){
+		mes_arma(i) = measurements[i][1];
+	}
+	mes_arma.save("lightcurve.txt",arma::raw_ascii);
+
+}
+
+
+
 
 
 
