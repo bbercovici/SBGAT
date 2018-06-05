@@ -306,14 +306,28 @@ void RadarWindow::bin_observations(){
 
 	}
 	else{
+		try{
+			this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
+			this -> open_visualizer_button -> setEnabled(1);
+			this -> save_observations_button -> setEnabled(1);
 
-		this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
+			this -> open_visualizer_button -> repaint();
+			this -> save_observations_button -> repaint();
+		}
 
-		this -> open_visualizer_button -> setEnabled(1);
-		this -> save_observations_button -> setEnabled(1);
+		catch(std::runtime_error & e){
 
-		this -> open_visualizer_button -> repaint();
-		this -> save_observations_button -> repaint();
+			QMessageBox::warning(this, "Generate Doppler Radar Observations", e.what());
+
+			this -> open_visualizer_button -> setEnabled(0);
+			this -> save_observations_button -> setEnabled(0);
+
+			this -> open_visualizer_button -> repaint();
+			this -> save_observations_button -> repaint();
+
+
+		}
+		
 		
 	}
 

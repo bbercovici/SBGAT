@@ -120,17 +120,14 @@ add_executable(${EXE_NAME}
 	source/RenderingPropertiesWindow.cpp
 	source/Mainwindow.cpp
 	source/ModelDataWrapper.cpp
-	source/MoveAlongTrajectoryWindow.cpp
 	source/SettingsWindow.cpp 
 	source/YORPWindow.cpp
 	source/SHARMWindow.cpp
 	source/RadarWindow.cpp
 	source/RadarVisualizer.cpp
-
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
-	include/MoveAlongTrajectoryWindow.hpp
 	include/SettingsWindow.hpp
 	include/YORPWindow.hpp
 	include/SHARMWindow.hpp

@@ -85,13 +85,7 @@ RenderingPropertiesWindow::RenderingPropertiesWindow(Mainwindow * parent) : QDia
 void RenderingPropertiesWindow::init(){
 	
 
-	auto wrapped_spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
-	
-	for (auto it = wrapped_spacecraft_data.begin(); it != wrapped_spacecraft_data.end(); ++it){
-		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
-		
-	}
 
 	for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
 		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
@@ -105,12 +99,11 @@ void RenderingPropertiesWindow::init(){
 
 void RenderingPropertiesWindow::prop_removed_slot(){
 
-	auto wrapped_spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
 
 	for (int i = 0; i < this -> prop_combo_box -> count(); ++i){
 		QString prop_name = this -> prop_combo_box -> itemText(i);
-		if (wrapped_spacecraft_data.find(prop_name.toStdString()) == wrapped_spacecraft_data.end()&& wrapped_shape_data.find(prop_name.toStdString()) == wrapped_shape_data.end()){
+		if (wrapped_shape_data.find(prop_name.toStdString()) == wrapped_shape_data.end()){
 			this -> prop_combo_box -> removeItem(i);
 			break;
 		}
@@ -124,16 +117,8 @@ void RenderingPropertiesWindow::prop_removed_slot(){
 
 
 void RenderingPropertiesWindow::prop_added_slot(){
-	auto wrapped_spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
 
-	for (auto it = wrapped_spacecraft_data.begin(); it != wrapped_spacecraft_data.end(); ++it){
-		if (this -> prop_combo_box  -> findText(QString::fromStdString(it -> first)) == -1){
-			this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),
-				QString::fromStdString(it -> first));
-			break;
-		}
-	}
 
 	for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
 		if (this -> prop_combo_box  -> findText(QString::fromStdString(it -> first)) == -1){
@@ -151,19 +136,15 @@ void RenderingPropertiesWindow::change_focus(){
 
 	if (this -> prop_combo_box -> count() > 0 ){
 
-		auto wrapped_spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
 		auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
 
 		std::string current_prop_name = this -> prop_combo_box -> currentText().toStdString();
 
 		vtkSmartPointer<vtkActor> prop_to_focus_on;
 
-		if (wrapped_spacecraft_data.find(current_prop_name) != wrapped_spacecraft_data.end()){
-			prop_to_focus_on = wrapped_spacecraft_data[current_prop_name] -> get_actor();
-		}
-		else{
-			prop_to_focus_on = wrapped_shape_data[current_prop_name] -> get_actor();
-		}
+		
+		prop_to_focus_on = wrapped_shape_data[current_prop_name] -> get_actor();
+		
 
 
 

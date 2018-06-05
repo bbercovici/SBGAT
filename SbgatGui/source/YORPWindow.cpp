@@ -55,7 +55,7 @@ YORPWindow::YORPWindow(Mainwindow * parent) {
 	QLabel * spec_label = new QLabel("Specular",this);
 	QLabel * bounces_label = new QLabel("Reflexions",this);
 	QLabel * refine_label = new QLabel("Refinement",this);
-	QLabel * order_label = new QLabel("Maximum Order",this);
+	QLabel * order_label = new QLabel("Maximum order",this);
 	QLabel * voxel_label = new QLabel("Voxels per dimension",this);
 
 
@@ -167,22 +167,14 @@ void YORPWindow::init(){
 
 
 
-	auto wrapped_spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
 	
-	for (auto it = wrapped_spacecraft_data.begin(); it != wrapped_spacecraft_data.end(); ++it){
-		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
-	}
-
 	for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
 		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
 	}
 	
 	this -> button_box -> button(QDialogButtonBox::Ok) -> setEnabled(false);
 
-	if (wrapped_spacecraft_data.size() + wrapped_shape_data.size() == 0){
-		this -> open_output_file_dialog_button -> setEnabled(false);
-	}
 
 
 
@@ -207,21 +199,10 @@ void YORPWindow::accept(){
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
 
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
-	auto spacecraft_data = this -> parent -> get_wrapped_spacecraft_data();
+
+	yorp -> SetInputData(shape_data[name] -> get_polydata());
 
 	
-	if ( shape_data.find(name)!= shape_data.end()){
-
-		yorp -> SetInputData(shape_data[name] -> get_polydata());
-
-	}
-
-	else {
-		
-		yorp -> SetInputData(spacecraft_data[name] -> get_polydata());
-
-		
-	}
 
 	yorp -> set_rho(this -> rho_sbox -> value());
 	yorp -> set_spec(this -> spec_sbox -> value());

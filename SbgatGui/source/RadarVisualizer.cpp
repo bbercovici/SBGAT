@@ -136,7 +136,7 @@ void RadarVisualizer::init(){
 
 void RadarVisualizer::next_image(){
 
-	if (this -> current_image_index + 1 == this -> images.size()){
+	if (this -> current_image_index == int(this -> images.size()) - 1){
 		this -> current_image_index = 0;
 	}
 	else{
@@ -145,8 +145,7 @@ void RadarVisualizer::next_image(){
 
 	auto image = this -> images[this -> current_image_index];
 	auto histo = vtkChartHistogram2D::SafeDownCast(this -> view -> GetScene() -> GetItem(0));
-
-
+	
 	vtkDataArray * scalars = image -> GetPointData() -> GetScalars();
 	double max_val = -1;
 
@@ -161,7 +160,7 @@ void RadarVisualizer::next_image(){
 	fun -> AddRGBPoint(max_val,  1.0, 1.0, 1.0);
 	fun -> Build();
 
-	// Computing the histogram and setting axes titles
+	// Computing the histogram 
 	histo -> SetInputData(image);
 	histo -> SetTransferFunction(fun);
 
@@ -198,7 +197,7 @@ void RadarVisualizer::previous_image(){
 	fun -> AddRGBPoint(max_val,  1.0, 1.0, 1.0);
 	fun -> Build();
 
-	// Computing the histogram and setting axes titles
+	// Computing the histogram 
 	histo -> SetInputData(image);
 	histo -> SetTransferFunction(fun);
 
