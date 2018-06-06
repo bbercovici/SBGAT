@@ -79,8 +79,11 @@ to apply the update (if any).
 ### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)
 
 #### New:
-
+- Added `SBGATObsLightcurve` to `SbgatCore` , a module enabling the generation of instantaneous-exposure lightcurves in a fixed-spin scenario. This module assumes constant small-body spin and phase angle between the sun, the small body and the observer.
 - `SBGATObsRadar` now throws an instance of `std::runtime_error` if the specified bin sizes are incompatible with the collected data that may yield an empty histogram dimension
+
+### Improvements
+- Simulated Range/Range-rate images and lightcurves rely on area-weighted surface sampling : `N * surface_area/max_surface_area` points are sampled for each facet, where `max_surface_area` is the surface area of the largest facet in the shape and `surface_area` that of the considered facet
 - Removed more deprecated functionalities
 
 #### Bug fixes: 
