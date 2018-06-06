@@ -21,30 +21,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "RadarWindow.hpp"
-#include "RadarVisualizer.hpp"
+#include "LCWindow.hpp"
+#include "LCVisualizer.hpp"
 #include <QMessageBox>
 
 
 using namespace SBGAT_GUI;
 
-RadarWindow::RadarWindow(Mainwindow * parent) {
+LCWindow::LCWindow(Mainwindow * parent) {
 
 	this -> parent = parent;
-	this -> setWindowTitle("Generate Doppler Radar Observations");
+	this -> setWindowTitle("Generate Light Curve");
 
 	this -> save_observations_button = new QPushButton("Save observations",this);
 	this -> collect_observations_button = new QPushButton("Collect observations",this);
 	
-	this -> bin_observations_button = new QPushButton("Bin observations",this);
-
 	this -> open_visualizer_button = new QPushButton("Visualize observations",this);
 
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 	
 	if (wrapped_shape_data.size() == 0){
-		QMessageBox::warning(this, "Generate Doppler Radar Observations", "You must first load a shape model in order to compute radar observations");
+		QMessageBox::warning(this, "Compute Light Curve", "You must first load a shape model in order to compute light curves!");
 		collect_observations_button -> setDisabled(1);
 	}
 
@@ -56,44 +54,48 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	
 
 
-	QVBoxLayout * radar_window_layout = new QVBoxLayout(this);
+	QVBoxLayout * lc_window_layout = new QVBoxLayout(this);
 
 	QGroupBox * target_group = new QGroupBox(tr("Shape"));
 	QGroupBox * target_properties_group = new QGroupBox(tr("Shape properties"));
-	QGroupBox * radar_settings_group = new QGroupBox(tr("Radar settings"));
-	QGroupBox * binning_settings_group = new QGroupBox(tr("Binning settings"));
+	QGroupBox * lc_settings_group = new QGroupBox(tr("Light curve settings"));
 
-	
 	QGridLayout * target_group_layout = new QGridLayout(target_group);
-	QGridLayout * radar_settings_group_layout = new QGridLayout(radar_settings_group);
+	QGridLayout * lc_settings_group_layout = new QGridLayout(lc_settings_group);
 	QGridLayout * target_properties_group_layout = new QGridLayout(target_properties_group);
-	QGridLayout * binning_settings_group_layout = new QGridLayout(binning_settings_group);
-
 
 	QLabel * shape_label = new QLabel("Targeted shape model",this);
-	QLabel * range_label = new QLabel("Range resolution (m)",this);
-	QLabel * range_rate_label = new QLabel("Range-rate resolution (m/s)",this);
 	QLabel * N_samples_label = new QLabel("Max samples per facet",this);
-
 
 	QLabel * spin_raan_label = new QLabel("Spin RAAN (deg)",this);
 	QLabel * spin_inc_label = new QLabel("Spin inclination (deg)",this);
 
-	QLabel * radar_az_label = new QLabel("Radar azimuth (deg)",this);
-	QLabel * radar_el_label = new QLabel("Radar elevation (deg)",this);
+	QLabel * observer_az_label = new QLabel("Observer azimuth (deg)",this);
+	QLabel * observer_el_label = new QLabel("Observer elevation (deg)",this);
+
+	QLabel * sun_az_label = new QLabel("Sun azimuth (deg)",this);
+	QLabel * sun_el_label = new QLabel("Sun elevation (deg)",this);
 
 	QLabel * period_label = new QLabel("Rotation period (hours)",this);
 	QLabel * imaging_period_label = new QLabel("Imaging period (hours)",this);
 	QLabel * N_images_label = new QLabel("Images to collect",this);
 
+
+	this -> phase_angle_label = new QLabel("Phase angle (deg)" , this);
+	this -> phase_angle_qldt = new QLineEdit(this);
+	this -> phase_angle_qldt -> setReadOnly(true);
+	this -> phase_angle_qldt -> setDisabled(true);
+
 	this -> prop_combo_box = new QComboBox (this);
-	this -> r_bin_sbox = new QDoubleSpinBox(this);
-	this -> rr_bin_sbox = new QDoubleSpinBox(this);
 	this -> spin_raan_sbox = new QDoubleSpinBox(this);
 	this -> spin_inc_sbox = new QDoubleSpinBox(this);
 
-	this -> radar_az_sbox = new QDoubleSpinBox(this);
-	this -> radar_el_sbox = new QDoubleSpinBox(this);
+	this -> observer_az_sbox = new QDoubleSpinBox(this);
+	this -> observer_el_sbox = new QDoubleSpinBox(this);
+
+
+	this -> sun_az_sbox = new QDoubleSpinBox(this);
+	this -> sun_el_sbox = new QDoubleSpinBox(this);
 
 	this -> rotation_period_sbox = new QDoubleSpinBox(this);
 	this -> imaging_period_sbox = new QDoubleSpinBox(this);
@@ -116,81 +118,85 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	target_properties_group_layout -> addWidget(this -> rotation_period_sbox,2,1,1,1);
 
 
-	radar_settings_group_layout -> addWidget(N_samples_label,0,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> N_samples_sbox,0,1,1,1);
+	lc_settings_group_layout -> addWidget(N_samples_label,0,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> N_samples_sbox,0,1,1,1);
 
-	radar_settings_group_layout -> addWidget(imaging_period_label,1,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> imaging_period_sbox,1,1,1,1);
+	lc_settings_group_layout -> addWidget(imaging_period_label,1,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> imaging_period_sbox,1,1,1,1);
 
-	radar_settings_group_layout -> addWidget(N_images_label,2,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> N_images_sbox,2,1,1,1);
+	lc_settings_group_layout -> addWidget(N_images_label,2,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> N_images_sbox,2,1,1,1);
 
-	radar_settings_group_layout -> addWidget(radar_az_label,3,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> radar_az_sbox,3,1,1,1);
+	lc_settings_group_layout -> addWidget(observer_az_label,3,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> observer_az_sbox,3,1,1,1);
 
-	radar_settings_group_layout -> addWidget(radar_el_label,4,0,1,1);
-	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,4,1,1,1);
+	lc_settings_group_layout -> addWidget(observer_el_label,4,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> observer_el_sbox,4,1,1,1);
 
+	lc_settings_group_layout -> addWidget(sun_az_label,5,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> sun_az_sbox,5,1,1,1);
 
+	lc_settings_group_layout -> addWidget(sun_el_label,6,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> sun_el_sbox,6,1,1,1);
 
+	lc_settings_group_layout -> addWidget(this -> phase_angle_label,7,0,1,1);
+	lc_settings_group_layout -> addWidget(this -> phase_angle_qldt,7,1,1,1);
 
-	binning_settings_group_layout -> addWidget(range_label,0,0,1,1);
-	binning_settings_group_layout -> addWidget(this -> r_bin_sbox,0,1,1,1);
-
-	binning_settings_group_layout -> addWidget(range_rate_label,1,0,1,1);
-	binning_settings_group_layout -> addWidget(this -> rr_bin_sbox,1,1,1,1);
-	
 
 	// Creating the button box
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
-	radar_window_layout -> addWidget(target_group);
-	radar_window_layout -> addWidget(target_properties_group);
-	radar_window_layout -> addWidget(radar_settings_group);
-	radar_window_layout -> addWidget(collect_observations_button);
-	radar_window_layout -> addWidget(binning_settings_group);
-	radar_window_layout -> addWidget(bin_observations_button);
-	radar_window_layout -> addWidget(open_visualizer_button);
-	radar_window_layout -> addWidget(save_observations_button);
+	lc_window_layout -> addWidget(target_group);
+	lc_window_layout -> addWidget(target_properties_group);
+	lc_window_layout -> addWidget(lc_settings_group);
+	lc_window_layout -> addWidget(collect_observations_button);
+	lc_window_layout -> addWidget(open_visualizer_button);
+	lc_window_layout -> addWidget(save_observations_button);
 
 
 	open_visualizer_button -> setDisabled(1);
 	save_observations_button -> setDisabled(1);
-	bin_observations_button -> setDisabled(1);
 
-	radar_window_layout -> addWidget(button_box);
+	lc_window_layout -> addWidget(button_box);
 
 	connect(collect_observations_button, SIGNAL(clicked()), this, SLOT(collect_observations()));
-	connect(bin_observations_button, SIGNAL(clicked()), this, SLOT(bin_observations()));
-
 	connect(open_visualizer_button, SIGNAL(clicked()), this, SLOT(open_visualizer()));
-
-
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(this -> save_observations_button,SIGNAL(clicked()),this,SLOT(save_observations()));
+	connect(this -> observer_az_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
+	connect(this -> observer_el_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
+	connect(this -> sun_az_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
+	connect(this -> sun_el_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
+
 
 	this -> init();
 
 
 }
 
-void RadarWindow::init(){
+void LCWindow::init(){
 
-	this -> r_bin_sbox -> setDecimals(6);
-	this -> rr_bin_sbox -> setDecimals(6);
 	this -> spin_raan_sbox -> setDecimals(6);
 	this -> spin_inc_sbox -> setDecimals(6);
-	this -> radar_az_sbox -> setDecimals(6);
-	this -> radar_el_sbox -> setDecimals(6);
+
+	this -> observer_az_sbox -> setDecimals(6);
+	this -> observer_el_sbox -> setDecimals(6);
+
+	this -> sun_az_sbox -> setDecimals(6);
+	this -> sun_el_sbox -> setDecimals(6);
+
 	this -> rotation_period_sbox -> setDecimals(6);
 	this -> imaging_period_sbox -> setDecimals(6);
 
-	this -> r_bin_sbox -> setRange(1e-10,1e10);
-	this -> rr_bin_sbox -> setRange(1e-10,1e10);
 	this -> spin_raan_sbox -> setRange(-180,180);
 	this -> spin_inc_sbox -> setRange(-180,180);
-	this -> radar_az_sbox -> setRange(-180,180);
-	this -> radar_el_sbox -> setRange(-180,180);
+
+	this -> observer_az_sbox -> setRange(-180,180);
+	this -> observer_el_sbox -> setRange(-180,180);
+
+
+	this -> sun_az_sbox -> setRange(-180,180);
+	this -> sun_el_sbox -> setRange(-180,180);
 
 	this -> N_samples_sbox -> setRange(1,1000);
 	this -> N_images_sbox -> setRange(1,1000);
@@ -198,15 +204,15 @@ void RadarWindow::init(){
 	this -> rotation_period_sbox -> setRange(1e-10,1e10);
 	this -> imaging_period_sbox -> setRange(1e-10,1e10);
 
-
-
-	this -> r_bin_sbox -> setValue(2);
-	this -> rr_bin_sbox -> setValue(1e-3);
 	this -> spin_raan_sbox -> setValue(0);
 	this -> spin_inc_sbox -> setValue(0);
 
-	this -> radar_az_sbox -> setValue(0);
-	this -> radar_el_sbox -> setValue(0);
+	this -> observer_az_sbox -> setValue(0);
+	this -> observer_el_sbox -> setValue(0);
+
+
+	this -> sun_az_sbox -> setValue(0);
+	this -> sun_el_sbox -> setValue(0);
 
 	this -> N_samples_sbox -> setValue(30);
 	this -> N_images_sbox -> setValue(1);
@@ -220,40 +226,37 @@ void RadarWindow::init(){
 		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
 	}
 
-	
 	if (wrapped_shape_data.size() == 0 ){
 		this -> save_observations_button -> setEnabled(false);
 	}
 
-	this ->  radar = vtkSmartPointer<SBGATObsRadar>::New();
+	this ->  lc = vtkSmartPointer<SBGATObsLightcurve>::New();
+	this -> phase_angle_qldt -> setText(QString::number(0));
+	this -> phase_angle_qldt -> repaint();
 
 
 }
 
 
-void RadarWindow::open_visualizer(){
 
-	RadarVisualizer radar_visualizer(this,this -> radar -> GetImages());
-	radar_visualizer.exec();
-
-}
-
-
-void RadarWindow::collect_observations(){
+void LCWindow::collect_observations(){
 
 	double d2r = arma::datum::pi /180;
 	arma::vec spin = {0,0,1};
 	spin = (RBK::M2(this -> spin_inc_sbox -> value() * d2r) 
 		* RBK::M3(this -> spin_raan_sbox -> value() * d2r)).t() * spin;
 	
-	arma::vec radar_to_target_dir = {-1,0,0};
-	radar_to_target_dir = (RBK::M2(this -> radar_el_sbox -> value() * d2r) 
-		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_to_target_dir;
+	arma::vec observer_dir = {1,0,0};
+	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> observer_az_sbox -> value() * d2r)).t() * observer_dir;
+
+	arma::vec sun_dir = {1,0,0};
+	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
 
 	double rotation_period = this -> rotation_period_sbox -> value() * 3600; 
 	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
 
-	
 	int N_images = this -> N_images_sbox -> value(); 
 	int N_samples = this -> N_samples_sbox -> value() ;
 
@@ -262,86 +265,70 @@ void RadarWindow::collect_observations(){
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 
-	this -> radar -> SetInputData(shape_data[name] -> get_polydata());
-	this -> radar -> SetScaleMeters();
-	this -> radar -> Update();
+	this -> lc -> SetInputData(shape_data[name] -> get_polydata());
+	this -> lc -> SetScaleMeters();
+	this -> lc -> Update();
 
-	this -> measurement_sequence.clear();
+	this -> measurements.clear();
 
 	for (int i  = 0; i < N_images; ++i){
 
 		double t = i * imaging_period;
+		this -> lc -> CollectMeasurementsSimpleSpin(this -> measurements,
+			N_samples,
+			t,
+			rotation_period,
+			sun_dir,
+			observer_dir,
+			spin);
 
-		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,N_samples,t,rotation_period,radar_to_target_dir,spin);
-		
 	}
 
 	
 
-	this -> bin_observations_button -> setEnabled(1);
-	this -> bin_observations_button -> repaint();
+	this -> open_visualizer_button -> setEnabled(1);
+	this -> save_observations_button -> setEnabled(1);
 
-
-	
-
-}
-
-
-void RadarWindow::bin_observations(){
-
-
-	double r_bin = this -> r_bin_sbox -> value();
-	double rr_bin = this -> rr_bin_sbox -> value();
-
-	if (r_bin == 0 || rr_bin == 0){
-
-		this -> radar -> ClearImages();
-
-		QMessageBox::warning(this, "Generate Doppler Radar Observations", "Invalid bin size");
-		this -> open_visualizer_button -> setEnabled(0);
-		this -> save_observations_button -> setEnabled(0);
-
-		this -> open_visualizer_button -> repaint();
-		this -> save_observations_button -> repaint();
-
-	}
-	else{
-		try{
-			this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
-			this -> open_visualizer_button -> setEnabled(1);
-			this -> save_observations_button -> setEnabled(1);
-
-			this -> open_visualizer_button -> repaint();
-			this -> save_observations_button -> repaint();
-		}
-
-		catch(std::runtime_error & e){
-
-			QMessageBox::warning(this, "Generate Doppler Radar Observations", e.what());
-
-			this -> open_visualizer_button -> setEnabled(0);
-			this -> save_observations_button -> setEnabled(0);
-
-			this -> open_visualizer_button -> repaint();
-			this -> save_observations_button -> repaint();
-
-
-		}
-		
-		
-	}
-
+	this -> open_visualizer_button -> repaint();
+	this -> save_observations_button -> repaint();
 
 }
 
-void RadarWindow::save_observations(){
+void LCWindow::open_visualizer(){
 
-	QString path = QFileDialog::getExistingDirectory(this, tr("Select output folder"));
+	LCVisualizer lc_visualizer(this,this -> measurements);
+	lc_visualizer.exec();
+
+}
+
+void LCWindow::save_observations(){
+
+	QString path = QFileDialog::getSaveFileName(this, tr("Save File"),
+		"",
+		tr("Text file (*.txt)"));
 	if (path.size() != 0){
-		this -> radar -> SaveImages( path.toStdString() + "/");
+		this -> lc -> SaveLightCurveData(this -> measurements, path.toStdString());
 	}
 
 }
 
+void LCWindow::update_phase_angle(){
+
+	double d2r = arma::datum::pi /180;
+	
+	arma::vec observer_dir = {1,0,0};
+	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> observer_az_sbox -> value() * d2r)).t() * observer_dir;
+
+	arma::vec sun_dir = {1,0,0};
+	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
+
+	double phase_angle = std::acos(arma::dot(observer_dir,sun_dir)) * d2r;
+
+	this -> phase_angle_qldt -> setText(QString::number(phase_angle));
+	this -> phase_angle_qldt -> repaint();
+
+}	
 
 

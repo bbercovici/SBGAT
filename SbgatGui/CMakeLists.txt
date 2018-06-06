@@ -124,7 +124,9 @@ add_executable(${EXE_NAME}
 	source/YORPWindow.cpp
 	source/SHARMWindow.cpp
 	source/RadarWindow.cpp
+	source/LCWindow.cpp
 	source/RadarVisualizer.cpp
+	source/LCVisualizer.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
@@ -132,8 +134,9 @@ add_executable(${EXE_NAME}
 	include/YORPWindow.hpp
 	include/SHARMWindow.hpp
 	include/RadarWindow.hpp
+	include/LCWindow.hpp
 	include/RadarVisualizer.hpp
-
+	include/LCVisualizer.hpp
 	)
 
 set(library_dependencies

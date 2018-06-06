@@ -68,6 +68,8 @@ SOFTWARE.
 #include "YORPWindow.hpp"
 #include "SHARMWindow.hpp"
 #include "RadarWindow.hpp"
+#include "LCWindow.hpp"
+
 
 
 
@@ -228,15 +230,12 @@ void Mainwindow::update_GUI_changed_prop() {
         std::string message("Facets : " + std::to_string(N_facets) + " Vertices: " + std::to_string(N_vertices));
 
         this -> statusBar() -> showMessage(QString::fromStdString(message));
-        
-        
+
     }
-    std::cout << this -> wrapped_shape_data.size() << std::endl;
 
     this -> update_actions_availability();
 
 }
-
 
 
 void Mainwindow::open_settings_window() {
@@ -251,14 +250,17 @@ void Mainwindow::open_radar_window(){
     radar_window.exec();
 }
 
+void Mainwindow::open_lightcurve_window(){
+    LCWindow lightcurve_window(this);
+    lightcurve_window.exec();
+}
+
 
 void Mainwindow::createActions() {
-
 
     this -> open_settings_window_action = new QAction(tr("Preferences"), this);
     this -> open_settings_window_action -> setStatusTip(tr("Open settings window"));
     connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
-
 
     this -> save_shape_action = new QAction(tr("Save shape"), this);
     this -> save_shape_action -> setStatusTip(tr("Save vtkPolyData to OBJ shape model"));
@@ -286,6 +288,13 @@ void Mainwindow::createActions() {
     this -> open_radar_window_action = new QAction(tr("Generate simulated radar observations"), this);
     this -> open_radar_window_action -> setStatusTip(tr("Generates simulated range/range-rate observations emulating a doppler radar"));
     connect(this -> open_radar_window_action, &QAction::triggered, this, &Mainwindow::open_radar_window);
+
+
+
+    this -> open_lightcurve_window_action = new QAction(tr("Generate simulated light curve"), this);
+    this -> open_lightcurve_window_action -> setStatusTip(tr("Generates simulated light curve"));
+    connect(this -> open_lightcurve_window_action, &QAction::triggered, this, &Mainwindow::open_lightcurve_window);
+
 
 
     this -> align_shape_action = new QAction(tr("Align shape"), this);
@@ -804,6 +813,8 @@ void Mainwindow::createMenus() {
 
     this -> ObservationsMenu = menuBar() -> addMenu(tr("&Observations"));
     this -> ObservationsMenu -> addAction(this -> open_radar_window_action);
+    this -> ObservationsMenu -> addAction(this -> open_lightcurve_window_action);
+
 
 
     this -> AnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));

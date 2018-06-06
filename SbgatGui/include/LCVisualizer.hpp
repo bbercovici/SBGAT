@@ -22,11 +22,11 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_RADAR_VIZUALIZER
-#define HEADER_RADAR_VIZUALIZER
+#ifndef HEADER_LC_VIZUALIZER
+#define HEADER_LC_VIZUALIZER
 
 
-#include "RadarWindow.hpp"
+#include "LCWindow.hpp"
 #include <QVTKOpenGLWidget.h>
 #include <vtkRenderer.h>
 #include <vtkImageData.h>
@@ -41,15 +41,14 @@ namespace SBGAT_GUI {
 	class RadarWindow;
 
 /*!
-@class RadarVisualizer
+@class LCVisualizer
 \author Benjamin Bercovici
 \date March, 2018
-\brief RadarVisualizer class defining a window where a user can visualize the radar
-images previously computed 
+\brief LCVisualizer class defining a window where a user can visualize previously computed lightcurves
 \details TODO
 */
 
-	class RadarVisualizer : public QDialog {
+	class LCVisualizer : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -57,24 +56,17 @@ images previously computed
 	/**
 	Creates the settings window
 	@param parent pointer to parent window.
-	@param images vector of radar images to visualize
+	@param measurements reference to vector of arrays of (time,luminosity)
 	*/
-		RadarVisualizer(RadarWindow * parent,
-			const std::vector<vtkSmartPointer<vtkImageData>> & images) ;
+		LCVisualizer(LCWindow * parent,const std::vector<std::array<double, 2> > & measurements) ;
 
 		/**
 		Initializes the visualizer window
 		*/	
 
-		void init();
+		void init(const std::vector<std::array<double, 2> > & measurements);
 
 		private slots:
-
-		// Shows the next radar image in the series
-		void next_image();
-
-		// Shows the previous radar image in the series
-		void previous_image();
 
 
 
@@ -83,16 +75,10 @@ images previously computed
 
 		QVTKOpenGLWidget * qvtkWidget;
 
-		QPushButton * previous_image_button;
-		QPushButton * next_image_button;
-
-
-		RadarWindow * parent;
-		std::vector<vtkSmartPointer<vtkImageData>> images;
+		LCWindow * parent;
 		vtkSmartPointer<vtkContextView>  view;
 
 		QDialogButtonBox * button_box;
-		int current_image_index = 0;
 
 		
 	};

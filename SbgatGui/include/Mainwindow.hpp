@@ -264,11 +264,15 @@ through the user interface layer brought by Qt.}
 		QAction * open_radar_window_action;
 
 
-	
+		/**
+		When triggered, opens the dialog window allowing
+		one to compute simulated lightcurves over a targeted shape model
+		*/
+
+		QAction * open_lightcurve_window_action;
 
 
 
-		
 
 		
 		signals:
@@ -307,6 +311,13 @@ through the user interface layer brought by Qt.}
 		*/
 
 		void open_radar_window();
+
+		/**
+		Opens the dialog window allowing
+		one to compute simulated lightcurves over a targeted shape model
+		*/
+
+		void open_lightcurve_window();
 
 
 	/**
