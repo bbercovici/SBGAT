@@ -130,11 +130,10 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   // Containers
   std::vector<int> facets_in_view;
   vtkPolyData * input = vtkPolyData::SafeDownCast(this->GetInput(0));
-  vtkIdType cellId, numCells, numPts, numIds;
+  vtkIdType cellId, numCells, numIds;
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
   numCells = input -> GetNumberOfCells();
-  numPts = input -> GetNumberOfPoints();
 
 
   // Angular velocity 
@@ -149,6 +148,10 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
 
   // Ray-tracing tolerance
   double tol = input -> GetLength()/1E6;
+
+
+  // The surface area of the largest facet 
+  double max_area = -1;
 
   // First, only facets that are in view of the radar (based on their normal orientation) are kept
   for (cellId=0; cellId < numCells; cellId++){
@@ -179,6 +182,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
     double n[3];
     
     vtkMath::Cross(e0,e1,n);
+    max_area = std::max(max_area,vtkMath::Norm(n)/2);
     vtkMath::Normalize(n);
 
     // Check if the facet is in view
@@ -187,19 +191,20 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
       facets_in_view.push_back(cellId);
     }
 
+
   }
 
 
 
   // The vector holding the kept-facets is initialized
   std::vector<std::array<double, 2> > measurements_temp;
-  for (auto i = 0; i < facets_in_view.size() * N; ++i){
+  for (unsigned int i = 0; i < facets_in_view.size() * N; ++i){
    std::array<double, 2> measurement = {{-1,0}};
    measurements_temp.push_back(measurement);
  }
 
   // The kept facets are then sampled and reverse ray-traced
- for (auto facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
+ for (unsigned int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
 
 
   double p0[3];
@@ -215,9 +220,14 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   arma::vec P1 = {p1[0],p1[1],p1[2]};
   arma::vec P2 = {p2[0],p2[1],p2[2]};
 
+
+  // The number of points sampled from this facet is determined based on 
+  // the relative size of this facet compared to the largest one in the considered shape
+  int N_facet = int( N * arma::norm(arma::cross(P2 - P0,P1 - P0) /2) / max_area);
+
     // A maximum of N points are sampled from this facet
   // #pragma omp parallel for
-  for (int i = 0; i < N; ++i){
+  for (int i = 0; i < N_facet; ++i){
 
     bool keep_point = true;
     vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
@@ -273,7 +283,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
 // The final measurements are kept
 // and added to the sequence
 std::vector<std::array<double, 2> > measurements;
-for (int i = 0; i < measurements_temp.size(); ++i) {
+for (unsigned int i = 0; i < measurements_temp.size(); ++i) {
   if (measurements_temp[i][0] > 0){
     measurements.push_back(measurements_temp[i]);
   }
@@ -304,7 +314,7 @@ void SBGATObsRadar::BinObservations(
     arma::vec ranges(measurements.size());
     arma::vec range_rates(measurements.size());
 
-    for (int i = 0; i < measurements.size(); ++i){
+    for (unsigned int i = 0; i < measurements.size(); ++i){
       ranges(i) = measurements[i][0];
       range_rates(i) = measurements[i][1];
     }
@@ -315,15 +325,13 @@ void SBGATObsRadar::BinObservations(
   // The extent of the data is extracted
     double r_extent = std::abs(ranges.max() - ranges.min()) * this -> scaleFactor;
     double rr_extent = std::abs(range_rates.max() - range_rates.min()) * this -> scaleFactor;
-    double r_center = arma::mean(ranges) * this -> scaleFactor;
-    double rr_center = 0;
+
 
   // The bin counts are determined from the specified bin sizes and data extent
     int n_bin_r = (int)(r_extent / r_bin);
     int n_bin_rr = (int)(rr_extent / rr_bin);
 
-    std::cout << n_bin_r << " " << n_bin_rr << std::endl; 
-
+    // Checking if one dimension is "empty" (i.e has zero bins)
     if (n_bin_r == 0 || n_bin_rr == 0){
       throw(std::runtime_error("The prescribed bin sizes yielded " + std::to_string(n_bin_r) + " range bins and " + std::to_string(n_bin_rr) + " range-rate bins. "));
     }
@@ -350,7 +358,7 @@ void SBGATObsRadar::BinObservations(
 
     // The histogram is built
     #pragma omp parallel for
-    for (auto mes = 0; mes < measurements.size(); ++mes){
+    for (unsigned int mes = 0; mes < measurements.size(); ++mes){
 
       // Flipping the image
       int row = int( ( - ranges(mes) +  max_range)/ r_bin );
@@ -386,7 +394,7 @@ void SBGATObsRadar::SaveImages( std::string savepath){
   vtkSmartPointer<vtkImageCast> cast = vtkSmartPointer<vtkImageCast>::New();
   vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter> ::New();
 
-  for (auto i = 0; i < this -> images.size(); ++i){
+  for (unsigned int i = 0; i < this -> images.size(); ++i){
 
    // Each image is normalized before being saved
    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();

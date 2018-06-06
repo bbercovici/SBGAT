@@ -125,8 +125,8 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   const int & N,
   const double & dt,
   const double & period,
-  const arma::vec & target_pos,
-  const arma::vec & observer_pos,
+  const arma::vec & sun_dir,
+  const arma::vec & observer_dir,
   const arma::vec & spin){
 
   // Containers
@@ -147,14 +147,17 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   arma::mat BN = RBK::prv_to_dcm(spin * dt * w );
 
   // Sun-to-target direction in body frame
-  arma::vec sun_to_target_dir_body_frame = BN * arma::normalise(target_pos);
+  arma::vec target_to_sun_dir_body_frame = BN * arma::normalise(sun_dir);
 
   // Observer-to-target direction in body frame
-  arma::vec observer_to_target_dir_body_frame = BN * arma::normalise(target_pos - observer_pos);
+  arma::vec target_to_observer_dir_body_frame = BN * arma::normalise(observer_dir);
 
   // Ray-tracing tolerance
   double tol = input -> GetLength()/1E6;
 
+
+  // The surface area of the largest facet 
+  double max_area = -1;
   // First, only facets that are in view of the sun
   // and the observer (based on their normal orientation) are kept
   for (cellId=0; cellId < numCells; cellId++){
@@ -185,10 +188,11 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     double n[3];
     
     vtkMath::Cross(e0,e1,n);
+    max_area = std::max(max_area,vtkMath::Norm(n)/2);
     vtkMath::Normalize(n);
 
     // Check if the facet is in view of both the sun and the observer
-    bool in_view = (vtkMath::Dot(n,sun_to_target_dir_body_frame.colptr(0)) < 0 && vtkMath::Dot(n,observer_to_target_dir_body_frame.colptr(0)) < 0);
+    bool in_view = (vtkMath::Dot(n,target_to_sun_dir_body_frame.colptr(0)) > 0 && vtkMath::Dot(n,target_to_observer_dir_body_frame.colptr(0)) > 0);
     if (in_view){
       facets_in_view.push_back(cellId);
     }
@@ -219,6 +223,12 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     arma::vec P1 = {p1[0],p1[1],p1[2]};
     arma::vec P2 = {p2[0],p2[1],p2[2]};
 
+     // The number of points sampled from this facet is determined based on 
+  // the relative size of this facet compared to the largest one in the considered shape
+    int N_facet = int( N * arma::norm(arma::cross(P2 - P0,P1 - P0) /2) / max_area);
+
+
+
     // A maximum of N points are sampled from this facet
   // #pragma omp parallel for
     for (int i = 0; i < N; ++i){
@@ -231,16 +241,15 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
       double v = random(1);
       arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
 
-      arma::vec sun_pos_body_frame = BN * (-target_pos);
-      arma::vec observer_pos_body_frame = BN * ( observer_pos - target_pos);
-
 
     // Checking if point is in view of sun
       {
         vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
         vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
 
-        this -> bspTree -> IntersectWithLine(impact.colptr(0), sun_pos_body_frame.colptr(0), tol, verts, cellIds);
+        arma::vec point_towards_sun = impact + input -> GetLength() * 1e3 * target_to_sun_dir_body_frame;
+
+        this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
         for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
@@ -248,10 +257,10 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
           double intersect[3];
           double intersect_to_origin[3];
           verts -> GetPoint(intersect_index,intersect);
-          vtkMath::Subtract(intersect,sun_pos_body_frame.colptr(0),intersect_to_origin);
+          vtkMath::Subtract(intersect,point_towards_sun.colptr(0),intersect_to_origin);
 
         // If the intersect is between the radar and the impact point
-          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - sun_pos_body_frame)){
+          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_sun)){
 
         // Reject this point
             keep_point = false;
@@ -267,7 +276,11 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
         vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
         vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
 
-        this -> bspTree -> IntersectWithLine(impact.colptr(0), observer_pos_body_frame.colptr(0), tol, verts, cellIds);
+
+        arma::vec point_towards_observer = impact + input -> GetLength() * 1e3 * target_to_observer_dir_body_frame;
+
+
+        this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
         for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
@@ -275,10 +288,10 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
           double intersect[3];
           double intersect_to_origin[3];
           verts -> GetPoint(intersect_index,intersect);
-          vtkMath::Subtract(intersect,observer_pos_body_frame.colptr(0),intersect_to_origin);
+          vtkMath::Subtract(intersect,point_towards_observer.colptr(0),intersect_to_origin);
 
         // If the intersect is between the radar and the impact point
-          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - observer_pos_body_frame)){
+          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_observer)){
 
         // Reject this point
             keep_point = false;
@@ -299,7 +312,28 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
 
   measurements.push_back(measurements_temp);
 
+
+
 }
+
+
+
+
+void SBGATObsLightcurve::SaveLightCurveData(const std::vector<std::array<double, 2> > & measurements,
+  std::string savepath){
+
+  arma::mat time_luminosity_series(measurements.size(),2);
+
+  for (int i = 0; i < measurements.size(); ++i){
+    time_luminosity_series(i, 0) = measurements[i][0];
+    time_luminosity_series(i, 1) = measurements[i][1] ;
+  }
+
+  time_luminosity_series.save(savepath,arma::raw_ascii);
+
+}
+
+
 
 
 

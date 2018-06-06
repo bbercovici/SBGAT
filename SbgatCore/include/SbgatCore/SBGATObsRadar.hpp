@@ -78,11 +78,10 @@ public:
 
   /**
   Collects range/range-rate samples over the surface of the small body at the 
-  specified time after epoch.
-  The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
-  l is a measure of the object's diagonal
+  specified time after epoch. The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
+  l is a measure of the object's diagonal. 
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
-  @param N maximum number of measurements to produce per illuminated facet
+  @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
   @param dt time since epoch (s)
   @param period rotation period of target (s)
   @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
@@ -98,9 +97,11 @@ public:
 
   /**
   Bins the provided measurements sequence into a series of 2d-histogram
-  Will throw an std::runtime_error exception if ither of the provided bin sizes are invalid (i.e <= 0)
-  @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
+  Will throw an std::runtime_error exception if 
+  - either of the provided bin sizes are invalid (i.e <= 0)
+  - the provided bin sizes yield empty histogram dimensions
 
+  @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
   @param r_bin range bin size (m)
   @param rr_bin range-rate bin size (m/s)
   */
@@ -110,7 +111,8 @@ public:
     const double & rr_bin);
 
   /**
-  Save the binned radar images to the prescribed folder
+  Save the binned radar images to PNGs in the prescribed folder.
+  The images will be normalized by the largest value in the observation sequence
   @param savepath path to folder where images will be saved (ex: "output/")
   */
   void SaveImages(std::string savepath);

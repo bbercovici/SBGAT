@@ -78,13 +78,14 @@ public:
 
   /**
   Computes collected luminosity over the surface of the small body at the 
-  specified time after epoch.
+  specified time after epoch. Exposure is instantaneous. The luminosity is computed as the 
+  number of sample points in view of both the sun and the observer at each time (the "hit count"), normalized by the largest hit count in the observation sequence.
   @param measurements reference to a vector of std::arrays holding (times,luminosity)
-  @param N maximum number of measurements to produce per illuminated facet
+  @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
   @param dt time since epoch (s)
   @param period rotation period of target (s)
-  @param target_pos position of target with respect to sun in inertial frame
-  @param observer_pos position of observer with respect to sun in inertial frame
+  @param sun_pos unit direction of sun with respect to target in inertial frame
+  @param observer_pos unit direction of observer with respect to target in inertial frame
   @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
   */
   void CollectMeasurementsSimpleSpin(
@@ -92,8 +93,8 @@ public:
     const int & N,
     const double & dt,
     const double & period,
-    const arma::vec & target_pos,
-    const arma::vec & observer_pos,
+    const arma::vec & sun_dir,
+    const arma::vec & observer_dir,
     const arma::vec & spin);
 
 
@@ -107,6 +108,13 @@ public:
   */
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
 
+
+  /**
+  Save the raw data points from the unnormalized (times,luminosity) time series to file
+  @param measurements reference to a vector of std::arrays holding (times,luminosity)
+  @param savepath path to file where raw lightcurve data will be saved (ex: "output/lightcurve.txt")
+  */
+  void SaveLightCurveData(const std::vector<std::array<double, 2> > & measurements, std::string savepath);
 
 
 protected:
