@@ -131,7 +131,8 @@ data simulating the output of a range/range-rate doppler radar
 		QPushButton * bin_observations_button;
 		QPushButton * open_visualizer_button;
 
-
+		QCheckBox * penalize_incidence_box;
+		
 		std::string output_path;
 
 		SBGATMeasurementsSequence measurement_sequence;

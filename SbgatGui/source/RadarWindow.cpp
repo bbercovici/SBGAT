@@ -101,6 +101,8 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	this -> N_samples_sbox = new QSpinBox (this);
 	this -> N_images_sbox = new QSpinBox (this);
 
+	this -> penalize_incidence_box = new QCheckBox("Penalize incidence",this);
+
 	
 
 	target_group_layout -> addWidget(shape_label,0,0,1,1);
@@ -131,7 +133,7 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_settings_group_layout -> addWidget(radar_el_label,4,0,1,1);
 	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,4,1,1,1);
 
-
+	radar_settings_group_layout -> addWidget(this -> penalize_incidence_box,5,0,1,2);
 
 
 	binning_settings_group_layout -> addWidget(range_label,0,0,1,1);
@@ -272,7 +274,13 @@ void RadarWindow::collect_observations(){
 
 		double t = i * imaging_period;
 
-		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,N_samples,t,rotation_period,radar_to_target_dir,spin);
+		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,
+			N_samples,
+			t,
+			rotation_period,
+			radar_to_target_dir,
+			spin,
+			this -> penalize_incidence_box -> isChecked());
 		
 	}
 

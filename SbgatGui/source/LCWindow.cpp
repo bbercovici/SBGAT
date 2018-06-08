@@ -103,7 +103,8 @@ LCWindow::LCWindow(Mainwindow * parent) {
 	this -> N_samples_sbox = new QSpinBox (this);
 	this -> N_images_sbox = new QSpinBox (this);
 
-	
+	this -> penalize_incidence_box = new QCheckBox("Penalize incidence",this);
+
 
 	target_group_layout -> addWidget(shape_label,0,0,1,1);
 	target_group_layout -> addWidget(this -> prop_combo_box,0,1,1,1);
@@ -141,6 +142,7 @@ LCWindow::LCWindow(Mainwindow * parent) {
 
 	lc_settings_group_layout -> addWidget(this -> phase_angle_label,7,0,1,1);
 	lc_settings_group_layout -> addWidget(this -> phase_angle_qldt,7,1,1,1);
+	lc_settings_group_layout -> addWidget(this -> penalize_incidence_box,8,0,1,2);
 
 
 	// Creating the button box
@@ -280,7 +282,8 @@ void LCWindow::collect_observations(){
 			rotation_period,
 			sun_dir,
 			observer_dir,
-			spin);
+			spin,
+			this -> penalize_incidence_box -> isChecked());
 
 	}
 
@@ -315,6 +318,8 @@ void LCWindow::save_observations(){
 void LCWindow::update_phase_angle(){
 
 	double d2r = arma::datum::pi /180;
+	double r2d = 1./d2r;
+
 	
 	arma::vec observer_dir = {1,0,0};
 	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
@@ -322,9 +327,9 @@ void LCWindow::update_phase_angle(){
 
 	arma::vec sun_dir = {1,0,0};
 	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
-		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
+		* RBK::M3(this -> sun_az_sbox -> value() * d2r)).t() * sun_dir;
 
-	double phase_angle = std::acos(arma::dot(observer_dir,sun_dir)) * d2r;
+	double phase_angle = std::acos(arma::dot(observer_dir,sun_dir)) * r2d;
 
 	this -> phase_angle_qldt -> setText(QString::number(phase_angle));
 	this -> phase_angle_qldt -> repaint();

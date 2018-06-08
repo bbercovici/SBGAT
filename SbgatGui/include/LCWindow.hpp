@@ -43,6 +43,7 @@ SOFTWARE.
 #include <QSpinBox>
 #include <QRadioButton>
 
+
 #include "Mainwindow.hpp"
 #include <SBGATObsLightcurve.hpp>
 
@@ -126,6 +127,9 @@ data simulating the output of a range/range-rate doppler radar
 
 		QSpinBox * N_samples_sbox;
 		QSpinBox * N_images_sbox;
+
+		QCheckBox * penalize_incidence_box;
+
 
 		QPushButton * save_observations_button;
 		QPushButton * collect_observations_button;
