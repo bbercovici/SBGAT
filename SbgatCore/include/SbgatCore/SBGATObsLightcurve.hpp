@@ -87,6 +87,8 @@ public:
   @param sun_pos unit direction of sun with respect to target in inertial frame
   @param observer_pos unit direction of observer with respect to target in inertial frame
   @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
+  @param penalize_incidence if true, each measurement will be weighed by the cos(incidence) angle between
+  the sampled point and the observer TIMES the cos(incidence) the sampled point and the sun. If false, all accepted measurements (in view of the observer and not blocked) 
   */
   void CollectMeasurementsSimpleSpin(
     std::vector<std::array<double, 2> > & measurements,
@@ -95,7 +97,8 @@ public:
     const double & period,
     const arma::vec & sun_dir,
     const arma::vec & observer_dir,
-    const arma::vec & spin);
+    const arma::vec & spin,
+    const bool & penalize_indicence);
 
 
   /**

@@ -127,7 +127,8 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   const double & period,
   const arma::vec & sun_dir,
   const arma::vec & observer_dir,
-  const arma::vec & spin){
+  const arma::vec & spin,
+  const bool & penalize_indicence){
 
   // Containers
   std::vector<int> facets_in_view;
@@ -223,94 +224,122 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     arma::vec P1 = {p1[0],p1[1],p1[2]};
     arma::vec P2 = {p2[0],p2[1],p2[2]};
 
+    arma::vec n = arma::cross(P1 - P0, P2 - P0);
+
      // The number of points sampled from this facet is determined based on 
   // the relative size of this facet compared to the largest one in the considered shape
-    int N_facet = int( N * arma::norm(arma::cross(P2 - P0,P1 - P0) /2) / max_area);
+    int N_facet = int( N * arma::norm(n /2) / max_area);
+
+    // only need unit normal vector from here
+    n = arma::normalise(arma::cross(P1 - P0, P2 - P0));
+
+    double cosi_sun ;
+    double cosi_obs ;
+
+    if (penalize_indicence){
+     cosi_sun = vtkMath::Dot(n.colptr(0),target_to_sun_dir_body_frame.colptr(0));
+     cosi_obs = vtkMath::Dot(n.colptr(0),target_to_observer_dir_body_frame.colptr(0));
+
+   }
+   else{
+
+    cosi_sun = 1;
+    cosi_obs = 1;
+  }
 
 
+    // The incidence is constant across the facet
 
     // A maximum of N points are sampled from this facet
   // #pragma omp parallel for
-    for (int i = 0; i < N; ++i){
+  for (int i = 0; i < N_facet; ++i){
 
-      bool keep_point = true;
+    bool keep_point = true;
 
       // A random impact point is uniformly drawn from this facet
-      arma::vec random = arma::randu<arma::vec>(2);
-      double u = random(0);
-      double v = random(1);
-      arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
+    arma::vec random = arma::randu<arma::vec>(2);
+    double u = random(0);
+    double v = random(1);
+    arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
+
+
+
 
 
     // Checking if point is in view of sun
-      {
-        vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
-        vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
+    {
+      vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
+      vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
 
-        arma::vec point_towards_sun = impact + input -> GetLength() * 1e3 * target_to_sun_dir_body_frame;
+      arma::vec point_towards_sun = impact + input -> GetLength() * 1e3 * target_to_sun_dir_body_frame;
 
-        this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
+      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
-        for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
+      for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
 
-          double intersect[3];
-          double intersect_to_origin[3];
-          verts -> GetPoint(intersect_index,intersect);
-          vtkMath::Subtract(intersect,point_towards_sun.colptr(0),intersect_to_origin);
+        double intersect[3];
+        double intersect_to_origin[3];
+        verts -> GetPoint(intersect_index,intersect);
+        vtkMath::Subtract(intersect,point_towards_sun.colptr(0),intersect_to_origin);
 
         // If the intersect is between the radar and the impact point
-          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_sun)){
+        if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_sun)){
 
         // Reject this point
-            keep_point = false;
-            break;
-          }
-
+          keep_point = false;
+          break;
         }
+
       }
+    }
 
 
     // Checking if point is in view of the observer
-      if(keep_point){
-        vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
-        vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
+    if(keep_point){
+      vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
+      vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
 
 
-        arma::vec point_towards_observer = impact + input -> GetLength() * 1e3 * target_to_observer_dir_body_frame;
+      arma::vec point_towards_observer = impact + input -> GetLength() * 1e3 * target_to_observer_dir_body_frame;
 
 
-        this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
+      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
-        for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
+      for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
 
-          double intersect[3];
-          double intersect_to_origin[3];
-          verts -> GetPoint(intersect_index,intersect);
-          vtkMath::Subtract(intersect,point_towards_observer.colptr(0),intersect_to_origin);
+        double intersect[3];
+        double intersect_to_origin[3];
+        verts -> GetPoint(intersect_index,intersect);
+        vtkMath::Subtract(intersect,point_towards_observer.colptr(0),intersect_to_origin);
 
         // If the intersect is between the radar and the impact point
-          if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_observer)){
+        if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_observer)){
 
         // Reject this point
-            keep_point = false;
-            break;
-          }
-
+          keep_point = false;
+          break;
         }
-      }
-
-
-      if (keep_point){
-        measurements_temp[1] += 1;
 
       }
+    }
+
+
+    if (keep_point){
+
+        // the return is weighed by the incidence on the inbound and outbout rays
+      assert(cosi_sun * cosi_obs <= 1);
+      assert(cosi_sun * cosi_obs >= 0);
+
+      measurements_temp[1] += cosi_sun * cosi_obs;
 
     }
-  }
 
-  measurements.push_back(measurements_temp);
+  }
+}
+
+measurements.push_back(measurements_temp);
 
 
 

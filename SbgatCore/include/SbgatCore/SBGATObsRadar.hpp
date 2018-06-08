@@ -61,7 +61,14 @@ SOFTWARE.
 #include <array>
 
 
-typedef typename std::vector<std::vector<std::array<double, 2> > > SBGATMeasurementsSequence;
+
+
+/**
+Vector of vector of radar observations. Each observation is comprised of (range,range-rate,incidence)
+This incidence is not strictly speaking a measured quantity but is used to penalize the binned 
+observations, blurring out returns collected at a high incidence
+*/
+typedef typename std::vector<std::vector<std::array<double, 3> > > SBGATMeasurementsSequence;
 
 
 class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm{
@@ -86,6 +93,9 @@ public:
   @param period rotation period of target (s)
   @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
   @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
+  @param penalize_incidence if true, each measurement will be weighed by the incidence angle between
+  the sampled point and the observer. If false, all accepted measurements (in view of the observer and not blocked) 
+  have the same weight
   */
   void CollectMeasurementsSimpleSpin(
     SBGATMeasurementsSequence & measurements_sequence,
@@ -93,7 +103,8 @@ public:
     const double & dt,
     const double & period,
     const arma::vec & dir,
-    const arma::vec & spin);
+    const arma::vec & spin,
+    const bool & penalize_incidence);
 
   /**
   Bins the provided measurements sequence into a series of 2d-histogram
