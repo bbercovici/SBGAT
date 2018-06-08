@@ -81,8 +81,9 @@ to apply the update (if any).
 #### New:
 - Added `SBGATObsLightcurve` to `SbgatCore` , a module enabling the generation of instantaneous-exposure lightcurves in a fixed-spin scenario. This module assumes constant small-body spin and phase angle between the sun, the small body and the observer.
 - `SBGATObsRadar` now throws an instance of `std::runtime_error` if the specified bin sizes are incompatible with the collected data that may yield an empty histogram dimension
+- Observations from `SBGATObsRadar` and `SBGATObsLightcurve` can be penalized by incidence so as to diminish the weight of a given measurement. `SBGATObsRadar` weighs by the `cos` of the angle between the observer and the surface normal, while `SBGATObsLightcurve` weighs by the product of the `cos` of the angle between the observer and the surface normal and the `cos` of the angle between the sun and the surface normal
 
-### Improvements
+#### Improvements
 - Simulated Range/Range-rate images and lightcurves rely on area-weighted surface sampling : `N * surface_area/max_surface_area` points are sampled for each facet, where `max_surface_area` is the surface area of the largest facet in the shape and `surface_area` that of the considered facet
 - Removed more deprecated functionalities
 
