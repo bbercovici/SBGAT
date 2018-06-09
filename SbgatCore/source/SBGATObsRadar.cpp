@@ -287,7 +287,7 @@ for (int i = 0; i < N_facet; ++i){
     double range = arma::norm(impact - origin);
     double range_rate = arma::dot(impact - origin,velocity) / range;
 
-    std::array<double, 3> measurement = {{range,range_rate,cos_i}};
+    std::array<double, 3> measurement = {{range,range_rate,std::pow(cos_i,2)}};
     measurements_temp[facet_index * N + i] = measurement;
   }
 
