@@ -133,11 +133,10 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   // Containers
   std::vector<int> facets_in_view;
   vtkPolyData * input = vtkPolyData::SafeDownCast(this->GetInput(0));
-  vtkIdType cellId, numCells, numPts, numIds;
+  vtkIdType cellId, numCells, numIds;
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
   numCells = input -> GetNumberOfCells();
-  numPts = input -> GetNumberOfPoints();
 
 
   // Angular velocity 
@@ -209,7 +208,7 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
 
 
   // The kept facets are then sampled and reverse ray-traced
-  for (auto facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
+  for (unsigned int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
 
     double p0[3];
     double p1[3];
@@ -353,7 +352,7 @@ void SBGATObsLightcurve::SaveLightCurveData(const std::vector<std::array<double,
 
   arma::mat time_luminosity_series(measurements.size(),2);
 
-  for (int i = 0; i < measurements.size(); ++i){
+  for (unsigned int i = 0; i < measurements.size(); ++i){
     time_luminosity_series(i, 0) = measurements[i][0];
     time_luminosity_series(i, 1) = measurements[i][1] ;
   }

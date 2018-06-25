@@ -383,7 +383,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 	// Edge loop
 	#pragma omp parallel for reduction(+:potential)
-	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
 		double * r1 = this -> vertices[this -> edges[edge_index][1]];
@@ -519,7 +519,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 
 	// Edge loop
 	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z)
-	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
 		double * r1 = this -> vertices[this -> edges[edge_index][1]];
@@ -568,38 +568,38 @@ void SBGATPolyhedronGravityModel::Clear(){
 		int N_vertices = this -> N_edges - this -> N_facets + 2;
 
 	//Vertices
-		for(unsigned int i = 0; i < N_vertices; ++i) {
+		for(int i = 0; i < N_vertices; ++i) {
 			delete[] this -> vertices[i];   
 		}
 		delete[] this -> vertices;
 
 	//Facet dyads
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facet_dyads[i];   
 		}
 		delete[] this -> facet_dyads;
 
 	//Facets
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facets[i];   
 		}
 		delete[] this -> facets;
 
 	//Facet normals
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facet_normals[i];   
 		}
 		delete[] this -> facet_normals;
 
 
 	//Edge dyads
-		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edge_dyads[i];   
 		}
 		delete[] this -> edge_dyads;
 
 	//Edges 
-		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edges[i];   
 		}
 		delete[] this -> edges;
