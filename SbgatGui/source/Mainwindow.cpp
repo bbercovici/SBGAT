@@ -64,11 +64,12 @@ SOFTWARE.
 
 
 #include "SettingsWindow.hpp"
-#include "MoveAlongTrajectoryWindow.hpp"
 #include "RenderingPropertiesWindow.hpp"
 #include "YORPWindow.hpp"
 #include "SHARMWindow.hpp"
 #include "RadarWindow.hpp"
+#include "LCWindow.hpp"
+
 
 
 
@@ -94,7 +95,6 @@ void Mainwindow::setupUi() {
     this -> resize(1024, 768);
 
     // The widget are created
-    this -> left_dockwidget = new QDockWidget(this);
     this -> right_dockwidget = new QDockWidget(this);
     this -> qvtkWidget = new QVTKOpenGLWidget(this);
     this -> status_bar = new QStatusBar(this);
@@ -148,7 +148,6 @@ void Mainwindow::setupUi() {
 
     this -> show();
 
-    this -> init_left_dockwidget();
     this -> init_right_dockwidget();
 
 
@@ -203,85 +202,10 @@ void Mainwindow::init_right_dockwidget(){
 
     this -> right_dockwidget -> setWidget(right_dockwidget_container);
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> right_dockwidget);
-    this -> right_dockwidget -> hide();
 
-    // VTK adds a Head light by default to the renderer
-    std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-    vtkSmartPointer<vtkLightCollection> lights = this -> get_renderer() -> GetLights();
-    vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
-    
-    lights -> InitTraversal();
-
-    vtkLight * light = lights -> GetNextItem();
-
-    lightActor -> SetLight(light);    
-    lightActor -> SetVisibility(1);
-    model_data -> set_light(light);
-    model_data -> set_light_actor(lightActor);
-    std::string name = "Head light";
-
-    this -> wrapped_light_data[name] = model_data;
-    this -> get_renderer() -> AddViewProp(lightActor);
-
-    // The prop table is updated to show the default light
-    this -> add_prop_to_table_widget(name);
 
 
 }
-
-
-void Mainwindow::init_left_dockwidget(){
-
-     // The lateral dockwidget is filled up
-    this -> left_dockwidget -> setFeatures( QDockWidget::DockWidgetMovable );
-
-    QWidget * left_dockwidget_container = new QWidget(this);
-    QVBoxLayout * left_dockwidget_container_layout = new QVBoxLayout();
-
-    QGroupBox * light_creation_group = new QGroupBox(tr("Add Rendering Lights"));
-    QVBoxLayout * light_creation_layout = new QVBoxLayout(light_creation_group);
-    QPushButton * add_scene_light_button = new QPushButton(tr("Scene light"),this);
-    QPushButton * add_head_light_button = new QPushButton(tr("Head light"),this);
-    QPushButton * add_camera_light_button = new QPushButton(tr("Camera light"),this);
-
-    light_creation_layout -> addWidget(add_scene_light_button);
-    light_creation_layout -> addWidget(add_head_light_button);
-    light_creation_layout -> addWidget(add_camera_light_button);
-
-    left_dockwidget_container_layout -> addWidget(light_creation_group);
-    left_dockwidget_container -> setLayout(left_dockwidget_container_layout);
-    left_dockwidget_container_layout -> addStretch(1);
-    this -> left_dockwidget -> setWidget(left_dockwidget_container);
-    this -> addDockWidget(Qt::LeftDockWidgetArea, this -> left_dockwidget);
-    this -> left_dockwidget -> hide();
-
-    connect(add_scene_light_button,SIGNAL(clicked()),this,SLOT(add_scene_light_slot()));
-    connect(add_head_light_button,SIGNAL(clicked()),this,SLOT(add_head_light_slot()));
-    connect(add_camera_light_button,SIGNAL(clicked()),this,SLOT(add_camera_light_slot()));
-
-
-}
-
-
-
-void Mainwindow::add_scene_light_slot(){
-    this -> add_light(0);
-}
-void Mainwindow::add_head_light_slot(){
-    this -> add_light(1);
-
-}
-void Mainwindow::add_camera_light_slot(){
-    this -> add_light(2);
-
-}
-
-
-
-
-
-
-
 
 
 void Mainwindow::set_action_status(bool enabled, QAction * action) {
@@ -291,47 +215,27 @@ void Mainwindow::set_action_status(bool enabled, QAction * action) {
 void Mainwindow::update_GUI_changed_prop() {
 
     // The status bar is updated depending on whether a shape model remains
-    if (this -> wrapped_shape_data.size() == 0 && this -> wrapped_trajectory_data.size() == 0 && this -> wrapped_spacecraft_data.size() == 0) {
+    if (this -> wrapped_shape_data.size() == 0 ) {
         this -> statusBar() -> showMessage("Ready");
     }
 
-    else {
+    else if (this -> wrapped_shape_data .size() > 0) {
 
         int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
         std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-        if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
+        auto active_shape_polydata  =  this -> wrapped_shape_data[name] -> get_polydata();
+        auto N_vertices = active_shape_polydata -> GetPoints() -> GetNumberOfPoints();
+        auto N_facets = active_shape_polydata -> GetNumberOfCells();
+        std::string message("Facets : " + std::to_string(N_facets) + " Vertices: " + std::to_string(N_vertices));
 
-            auto active_shape_polydata  =  this -> wrapped_shape_data[name] -> get_polydata();
-            auto N_vertices = active_shape_polydata -> GetPoints() -> GetNumberOfPoints();
-            auto N_facets = active_shape_polydata -> GetNumberOfCells();
-            std::string message("Facets : " + std::to_string(N_facets) + " Vertices: " + std::to_string(N_vertices));
-
-
-
-            this -> statusBar() -> showMessage(QString::fromStdString(message));
-        }
-        else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-
-            auto points =  this -> wrapped_trajectory_data[name] -> get_points();
-            std::string message("Trajectory points : " + std::to_string(points -> GetNumberOfPoints()) );
-
-            this -> statusBar() -> showMessage(QString::fromStdString(message));
-        }
-
-        else if (this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
-
-            std::string message("Spacecraft model: " + name);
-
-            this -> statusBar() -> showMessage(QString::fromStdString(message));
-        }
+        this -> statusBar() -> showMessage(QString::fromStdString(message));
 
     }
 
     this -> update_actions_availability();
 
 }
-
 
 
 void Mainwindow::open_settings_window() {
@@ -346,148 +250,101 @@ void Mainwindow::open_radar_window(){
     radar_window.exec();
 }
 
+void Mainwindow::open_lightcurve_window(){
+    LCWindow lightcurve_window(this);
+    lightcurve_window.exec();
+}
+
 
 void Mainwindow::createActions() {
-
 
     this -> open_settings_window_action = new QAction(tr("Preferences"), this);
     this -> open_settings_window_action -> setStatusTip(tr("Open settings window"));
     connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
 
+    this -> save_shape_action = new QAction(tr("Save shape"), this);
+    this -> save_shape_action -> setStatusTip(tr("Save vtkPolyData to OBJ shape model"));
+    connect(this -> save_shape_action, &QAction::triggered, this, &Mainwindow::save_shape);
 
+    this -> add_shape_action = new QAction(tr("Load shape"), this);
+    this -> add_shape_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
+    connect(this -> add_shape_action, &QAction::triggered, this, &Mainwindow::add_shape);
 
-    this -> save_small_body_action = new QAction(tr("Save Shape Model"), this);
-    this -> save_small_body_action -> setStatusTip(tr("Save vtkPolyData to OBJ shape model"));
-    connect(this -> save_small_body_action, &QAction::triggered, this, &Mainwindow::save_small_body);
-
-
-    this -> add_small_body_action = new QAction(tr("Load Shape Model"), this);
-    this -> add_small_body_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
-    connect(this -> add_small_body_action, &QAction::triggered, this, &Mainwindow::add_small_body);
-
-    this -> add_trajectory_action = new QAction(tr("Load Trajectory"), this);
-    this -> add_trajectory_action -> setStatusTip(tr("Load a text file storing the x/y/z components a body-fixed trajectory "));
-    connect(this -> add_trajectory_action, &QAction::triggered, this, &Mainwindow::add_trajectory);
-
-    this -> show_right_dockwidget_action = new QAction(tr("Show Right Prop Widget"), this);
-    this -> show_right_dockwidget_action -> setStatusTip(tr("Shows/hides the right lateral widget holding prop information"));
-    connect(this -> show_right_dockwidget_action, &QAction::triggered, this, &Mainwindow::show_right_dockwidget);
-
-    this -> show_left_dockwidget_action = new QAction(tr("Show Left Tool Widget"), this);
-    this -> show_left_dockwidget_action -> setStatusTip(tr("Shows/hides lateral widget holding tools menus"));
-    connect(this ->show_left_dockwidget_action, &QAction::triggered, this, &Mainwindow::show_left_dockwidget);
-
-
-    this -> clear_console_action = new QAction(tr("Clear Log Console"), this);
+    this -> clear_console_action = new QAction(tr("Clear log"), this);
     this -> clear_console_action -> setStatusTip(tr("Clears the log console"));
     connect(this -> clear_console_action, &QAction::triggered, this, &Mainwindow::clear_console);
 
 
-    this -> open_compute_yorp_window_action = new QAction(tr("Compute YORP Fourier Coefficients"), this);
+    this -> open_compute_yorp_window_action = new QAction(tr("Compute YORP Fourier coefficients"), this);
     this -> open_compute_yorp_window_action -> setStatusTip(tr("Computes the Fourier decomposition of YORP force/torques"));
     connect(this -> open_compute_yorp_window_action, &QAction::triggered, this, &Mainwindow::open_compute_yorp_window);
 
 
-    this -> open_compute_sharm_window_action = new QAction(tr("Compute Gravity Spherical Harmonics"), this);
+    this -> open_compute_sharm_window_action = new QAction(tr("Compute gravity spherical harmonics"), this);
     this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
     connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
 
 
-    this -> open_radar_window_action = new QAction(tr("Generate Simulated Radar Observations"), this);
+    this -> open_radar_window_action = new QAction(tr("Generate simulated radar observations"), this);
     this -> open_radar_window_action -> setStatusTip(tr("Generates simulated range/range-rate observations emulating a doppler radar"));
     connect(this -> open_radar_window_action, &QAction::triggered, this, &Mainwindow::open_radar_window);
 
 
-    this -> align_shape_action = new QAction(tr("Align Shape"), this);
+
+    this -> open_lightcurve_window_action = new QAction(tr("Generate simulated light curve"), this);
+    this -> open_lightcurve_window_action -> setStatusTip(tr("Generates simulated light curve"));
+    connect(this -> open_lightcurve_window_action, &QAction::triggered, this, &Mainwindow::open_lightcurve_window);
+
+
+
+    this -> align_shape_action = new QAction(tr("Align shape"), this);
     this -> align_shape_action -> setStatusTip(tr("Align selected shape model with barycenter/principal axis"));
     connect(this -> align_shape_action, &QAction::triggered, this, &Mainwindow::align_shape);
 
 
-    this -> save_console_action = new QAction(tr("Save Log Console"), this);
+    this -> save_console_action = new QAction(tr("Save log"), this);
     this -> save_console_action -> setStatusTip(tr("Saves log console to a file"));
     connect(this -> save_console_action, &QAction::triggered, this, &Mainwindow::save_console);
 
 
 
-    this -> compute_geometric_measures_action = new QAction(tr("Compute Geometric Measures"), this);
+    this -> compute_geometric_measures_action = new QAction(tr("Compute geometric measures"), this);
     this -> compute_geometric_measures_action -> setStatusTip(tr("Compute geometric measures of the selected prop to the console"));
     connect(this -> compute_geometric_measures_action, &QAction::triggered, this, &Mainwindow::compute_geometric_measures);
 
 
-
-    this -> add_spacecraft_action= new QAction(tr("Load Spacecraft"), this);
-    this -> add_spacecraft_action -> setStatusTip(tr("Load spacecraft shape model"));
-    connect(this -> add_spacecraft_action, &QAction::triggered, this, &Mainwindow::add_spacecraft);
-
-
-    this -> move_along_traj_action= new QAction(tr("Move Spacecraft"), this);
-    this -> move_along_traj_action -> setStatusTip(tr("Move spacecraft along trajectory"));
-    connect(this -> move_along_traj_action, &QAction::triggered, this, &Mainwindow::open_move_along_traj_window);
-
-    this -> open_rendering_properties_window_action =new QAction(tr("Rendering Properties"), this);
+    this -> open_rendering_properties_window_action =new QAction(tr("Rendering properties"), this);
     this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
     connect(this -> open_rendering_properties_window_action, &QAction::triggered, this, &Mainwindow::open_rendering_properties_window);
 
-    this -> open_alignment_window_action = new QAction(tr("Set Line Thickness"),this);
-    this -> open_alignment_window_action -> setStatusTip(tr("Set thickness of selected actor "));
-    connect(this -> open_alignment_window_action, &QAction::triggered, this, &Mainwindow::open_actor_thickness_window);
     
 }
 
 void Mainwindow::update_actions_availability() {
 
-    if (this -> wrapped_shape_data.size() == 0 && this -> wrapped_trajectory_data.size() == 0){
+
+    if (this -> wrapped_shape_data.size() == 0){
         this -> compute_geometric_measures_action -> setEnabled(false);
-        
+        this -> align_shape_action -> setEnabled(false);
+        this -> save_shape_action -> setEnabled(false);
     }
+
     else{
         this -> compute_geometric_measures_action -> setEnabled(true);
-    }
-
-
-    if (this -> wrapped_trajectory_data.size() == 0 || this -> wrapped_spacecraft_data.size()== 0){
-        this -> move_along_traj_action -> setEnabled(false);
-    }
-
-    else {
-        this -> move_along_traj_action -> setEnabled(true);
-    }
-
-
-    if (this -> wrapped_shape_data.size() == 0) {
-
-        this -> align_shape_action -> setEnabled(false);
-        this -> save_small_body_action -> setEnabled(false);
-
-
-    }
-    else {
 
         int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
         std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
 
-        if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
-
-            this -> align_shape_action -> setEnabled(true);
-            this -> save_small_body_action -> setEnabled(true);
-
-        }
-        else{
-
-         this -> align_shape_action -> setEnabled(false);
-         this -> save_small_body_action -> setEnabled(false);
-
-
-     }
- }
-
-
-
+        this -> align_shape_action -> setEnabled(true);
+        this -> save_shape_action -> setEnabled(true);
+        
+    }
 
 
 
 
 }
+
 
 
 void Mainwindow::open_compute_yorp_window(){
@@ -502,29 +359,6 @@ void Mainwindow::open_compute_sharm_window(){
 
     SHARMWindow sharm_window(this);
     sharm_window.exec();
-
-}
-
-
-void Mainwindow::remove_results_visual_props(std::string name, bool remove_all) {
-
-    // Loop over all the shape mappers to turn off the scalar visibility
-    for (auto it = this -> wrapped_shape_data.begin(); it != this -> wrapped_shape_data.end(); ++it) {
-
-        if ((it -> first == name && it -> second -> get_mapper() -> GetScalarVisibility()) || remove_all) {
-            it -> second -> get_mapper() -> ScalarVisibilityOff();
-            if (this -> renderer -> GetActors2D() -> GetNumberOfItems () > 0) {
-                this -> renderer -> RemoveActor2D(this -> renderer -> GetActors2D() -> GetLastActor2D());
-            }
-
-            break;
-        }
-
-    }
-
-
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
-
 
 }
 
@@ -556,43 +390,18 @@ void Mainwindow::save_console() {
 }
 
 
-void Mainwindow::show_right_dockwidget() {
 
-    if (this -> right_dockwidget -> isVisible()) {
-        this -> right_dockwidget -> hide();
-        this -> show_right_dockwidget_action -> setText(QString::fromStdString("Show Prop Widget"));
-    }
-    else {
-        this -> right_dockwidget -> show();
-        this -> show_right_dockwidget_action -> setText(QString::fromStdString("Hide Prop Widget"));
-    }
-}
-
-
-void Mainwindow::show_left_dockwidget() {
-
-    if (this -> left_dockwidget -> isVisible()) {
-        this -> left_dockwidget -> hide();
-        this -> show_left_dockwidget_action -> setText(QString::fromStdString("Show Tools Widget"));
-    }
-    else {
-        this -> left_dockwidget -> show();
-        this -> show_left_dockwidget_action -> setText(QString::fromStdString("Hide Tools Widget"));
-    }
-}
-
-void Mainwindow::save_small_body(){
+void Mainwindow::save_shape(){
 
 
     std::string default_name;
     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
     std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
 
-    if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
-        default_name = name;
-    }
+    default_name = name;
+    
 
-    QString fileName = QFileDialog::getSaveFileName(this,tr("Save Small Body Shape Model"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
+    QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
        int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
@@ -611,9 +420,9 @@ void Mainwindow::save_small_body(){
 
 }
 
-void Mainwindow::add_small_body() {
+void Mainwindow::add_shape() {
 
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Load Small Body Shape Model"), "~/", tr("Wavefront file (*.obj)"));
+    QString fileName = QFileDialog::getOpenFileName(this,tr("Load shape"), "~/", tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
 
@@ -637,9 +446,9 @@ void Mainwindow::add_small_body() {
          std::stringstream ss;
          ss.str(std::string());
 
-         std::string opening_line = "### Loading shape model ###";
+         std::string opening_line = "### Loading shape ###";
          this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape model from ") + fileName);
+         this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape from ") + fileName);
 
          std::chrono::time_point<std::chrono::system_clock> start, end;
 
@@ -723,20 +532,11 @@ void Mainwindow::add_small_body() {
         // The shape table is updated to show the newly loaded shape model
         this -> add_prop_to_table_widget(name);
 
-            // The lateral dockwidget is shown if it was not visible already
-        if (this -> right_dockwidget -> isVisible() == false) {
-            this -> show_right_dockwidget();
 
-        }
-
-            // The lateral dockwidget is shown if it was not visible already
-        if (this -> left_dockwidget -> isVisible() == false) {
-            this -> show_left_dockwidget();
-
-        }
-
+        
             // The GUI actions are updated
         this -> update_actions_availability();
+        this -> update_GUI_changed_prop();
 
             // The log console displays the name and content of the loaded shape model
         this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
@@ -746,8 +546,6 @@ void Mainwindow::add_small_body() {
         closing_line.append("\n");
         this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
-            // A signal is emitted to warn potential dependents
-        emit prop_added_signal();
 
     }
 }
@@ -803,275 +601,6 @@ void Mainwindow::align_shape(){
 }
 
 
-void Mainwindow::add_spacecraft() {
-
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Load shape model"), "~/", tr("Wavefront file (*.obj)"));
-
-    if (fileName.isEmpty() == false) {
-
-        bool ok;
-        double scaling_factor = QInputDialog::getDouble(this,"Scaling factor", "Enter scaling factor :", 1, 1e-6, 1e6,5, &ok);
-        if (ok) {
-
-
-         std::stringstream ss;
-         ss.str(std::string());
-
-         std::string opening_line = "### Loading spacecraft model ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading spacecraft model from ") + fileName);
-
-
-         std::chrono::time_point<std::chrono::system_clock> start, end;
-
-         start = std::chrono::system_clock::now();
-
-
-            // The name of the shape model is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
-
-         vtkSmartPointer<vtkOBJReader> reader =
-         vtkSmartPointer<vtkOBJReader>::New();
-         reader -> SetFileName(fileName.toStdString().c_str());
-         reader -> Update();
-
-         vtkSmartPointer<vtkPolyData> spacecraft_polydata;
-
-
-
-            // The spacececraft actor is aligned with 
-           // the center of mass of the loaded spacecraft shape model
-
-         vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
-         vtkSmartPointer<SBGATMassProperties>::New();
-
-         center_of_mass_filter -> SetInputConnection(reader -> GetOutputPort());
-         center_of_mass_filter -> Update();
-
-         double center[3];
-         center_of_mass_filter -> GetCenterOfMass(center);
-
-         vtkSmartPointer<vtkTransform> translation = vtkSmartPointer<vtkTransform>::New();
-         translation -> Translate( - center[0],  - center[1],  - center[2]);
-         vtkSmartPointer<vtkTransformPolyDataFilter> translation_filter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         translation_filter -> SetInputConnection(reader -> GetOutputPort());
-         translation_filter -> SetTransform(translation);
-         translation_filter -> Update();
-
-         vtkSmartPointer<vtkTransform> scaling = vtkSmartPointer<vtkTransform>::New();
-         scaling -> Scale( scaling_factor,  scaling_factor,  scaling_factor);
-         vtkSmartPointer<vtkTransformPolyDataFilter> scaling_filter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         scaling_filter -> SetInputConnection(translation_filter -> GetOutputPort());
-         scaling_filter -> SetTransform(scaling);
-         scaling_filter -> Update();
-
-
-
-
-            // Set the actor and mapper
-         vtkSmartPointer<vtkPolyDataMapper> mapper = 
-         vtkSmartPointer<vtkPolyDataMapper>::New();
-         mapper -> SetInputConnection(scaling_filter->GetOutputPort());
-         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-         actor -> SetMapper(mapper);
-         this -> renderer -> AddActor(actor);
-
-            // A new ModelDataWrapper is created and stored under the name of the spacecraft
-         std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-         model_data -> set_polydata(mapper -> GetInput());
-         model_data -> set_actor(actor);
-         model_data -> set_mapper(mapper);
-
-
-            // The ModelDataWrapper pointer is stored. 
-            // If the name is not already taken, nothing special
-         unsigned int count = this -> wrapped_spacecraft_data.count(name);
-         if(count == 0){
-            this -> wrapped_spacecraft_data[name] = model_data;
-        }
-            // otherwise, a suffix is added
-        else{
-
-
-            while( this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
-                std::string suffix = "(" + std::to_string(count) + ")";
-                name = basic_name + suffix;
-                ++count;
-            }
-            this -> wrapped_spacecraft_data[name] = model_data;
-
-
-
-
-        }
-
-
-
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-
-            // The shape table is updated to show the newly loaded shape model
-        this -> add_prop_to_table_widget(name);
-
-
-            // The lateral dockwidget is shown if it was not visible already
-        if (this -> right_dockwidget -> isVisible() == false) {
-            this -> show_right_dockwidget();
-
-        }
-
-            // The GUI actions are updated
-        this -> update_actions_availability();
-
-                  // The log console displays the name and content of the loaded shape model
-        this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
-
-        std::string closing_line(opening_line.length() - 1, '#');
-        closing_line.append("\n");
-        this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-
-
-            // A signal is emitted to warn potential dependents
-        emit prop_added_signal();
-
-    }
-}
-}
-
-
-
-void Mainwindow::add_trajectory() {
-
-    QString fileName = QFileDialog::getOpenFileName(this,
-     tr("Load trajectory"), "~/", tr("(*.txt)"));
-
-    if (fileName.isEmpty() == false) {
-
-        bool ok;
-        double scaling_factor = QInputDialog::getDouble(this,
-            "Scaling factor", "Enter scaling factor :", 1, 1e-6, 1e6,
-            5, &ok);
-        if (ok) {
-
-
-         std::stringstream ss;
-         ss.str(std::string());
-
-         std::string opening_line = "### Loading spacecraft model ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading trajectory from ") + fileName);
-
-         std::chrono::time_point<std::chrono::system_clock> start, end;
-
-         start = std::chrono::system_clock::now();
-
-
-            // The name of the trajectory is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
-
-         arma::mat traj;
-         traj.load(fileName.toStdString());
-
-         traj *= scaling_factor;
-
-         if(traj.n_cols < traj.n_rows){
-            arma::inplace_trans(traj);
-        }
-
-
-            // Create a vtkPoints object and store the points in it
-        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-
-        for (unsigned int i = 0; i < traj.n_cols; ++i){
-
-            arma::vec pos = traj.col(i).rows(1,3);
-            points->InsertNextPoint(pos.colptr(0));
-
-        }
-
-        vtkSmartPointer<vtkParametricSpline> spline = 
-        vtkSmartPointer<vtkParametricSpline>::New();
-        spline -> SetPoints(points);
-
-        vtkSmartPointer<vtkParametricFunctionSource> functionSource = 
-        vtkSmartPointer<vtkParametricFunctionSource>::New();
-        functionSource -> SetParametricFunction(spline);
-        functionSource -> SetUResolution (traj.n_cols);
-        functionSource -> Update();
-
-        // Set the actor and mapper
-        vtkSmartPointer<vtkPolyDataMapper> mapper = 
-        vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper -> SetInputConnection(functionSource -> GetOutputPort());
-        vtkSmartPointer<vtkActor> actor = 
-        vtkSmartPointer<vtkActor>::New();
-        actor -> SetMapper(mapper);
-        this -> renderer -> AddActor(actor);
-
-        end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-
-            // A new ModelDataWrapper is created and stored under the name of the trajectory
-        std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-        model_data -> set_polydata(mapper -> GetInput());
-        model_data -> set_points(points);
-        model_data -> set_actor(actor);
-        model_data -> set_mapper(mapper);
-
-
-            // The ModelDataWrapper pointer is stored. 
-            // If the name is not already taken, nothing special
-        unsigned int count = this -> wrapped_trajectory_data.count(name);
-        if(count == 0){
-            this -> wrapped_trajectory_data[name] = model_data;
-        }
-            // otherwise, a suffix is added
-        else{
-
-            while( this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-                std::string suffix = "(" + std::to_string(count) + ")";
-                name = basic_name + suffix;
-                ++count;
-            }
-            this -> wrapped_trajectory_data[name] = model_data;
-
-
-        }
-
-
-            // The shape table is updated to show the newly loaded shape model
-        this -> add_prop_to_table_widget(name);
-
-            // The lateral dockwidget is shown if it was not visible already
-        if (this -> right_dockwidget -> isVisible() == false) {
-            this -> show_right_dockwidget();
-        }
-
-            // The GUI actions are updated
-        this -> update_actions_availability();
-
-            // The log console displays the name and content of the loaded shape model
-        this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
-
-            // A signal is emitted to warn potential dependents
-        emit prop_added_signal();
-
-    }
-}
-}
-
-
-
 
 
 
@@ -1120,65 +649,24 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
 
 void Mainwindow::toggle_prop_visibility(int row, int col) {
     // Showing/hiding small body shape model actor
-    // Showing/hiding trajectory actor
-    // Showing/hiding light actor
-    // Showing/hiding spacecraft actor
 
-    if (col == 2) {
+    if (this -> prop_table -> rowCount() > 0){
 
-        std::string name = this -> prop_table -> item(row, 0) -> text() .toStdString();
-        auto item = this -> prop_table -> item(row, col);
+        if (col == 2) {
 
-        if ( this -> wrapped_shape_data.find(name)!= this -> wrapped_shape_data.end()){
+            std::string name = this -> prop_table -> item(row, 0) -> text() .toStdString();
+            auto item = this -> prop_table -> item(row, col);
+
             if (item -> checkState() == Qt::Checked) {
                 this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOn();
             }
 
             else {
                 this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOff();
-                this -> remove_results_visual_props(name, false);
             }
+            
+
         }
-
-        else if ( this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-
-            if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_trajectory_data[name] -> get_actor() -> VisibilityOn();
-            }
-
-            else {
-                this -> wrapped_trajectory_data[name] -> get_actor() -> VisibilityOff();
-                this -> remove_results_visual_props(name, false);
-            }
-        }
-
-
-
-        else if ( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
-
-            if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(1);
-            }
-
-            else {
-                this -> wrapped_light_data[name] -> get_light_actor() -> SetVisibility(0);
-                this -> remove_results_visual_props(name, false);
-            }
-        }
-
-
-        else if ( this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
-
-            if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_spacecraft_data[name] -> get_actor() -> SetVisibility(1);
-            }
-
-            else {
-                this -> wrapped_spacecraft_data[name] -> get_actor() -> SetVisibility(0);
-                this -> remove_results_visual_props(name, false);
-            }
-        }
-
     }
 
     // The Render window is updated
@@ -1193,61 +681,29 @@ void Mainwindow::remove_prop() {
     std::string name = button -> property("name") . toString().toStdString();
 
 
-    if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end() ){
-        // The actor of this shape is removed
-        this -> renderer -> RemoveActor(this -> wrapped_shape_data[name] -> get_actor());
 
-        // The data wrapper is removed
-        this -> wrapped_shape_data.erase(name);
-    }
-    else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end() ){
-        // The actor of this trajectory is removed
-        this -> renderer -> RemoveActor(this -> wrapped_trajectory_data[name] -> get_actor());
+    // The actor of this shape is removed
+    this -> renderer -> RemoveActor(this -> wrapped_shape_data[name] -> get_actor());
 
-        // The data wrapper is removed
-        this -> wrapped_trajectory_data.erase(name);
-    }
-    else if (this -> wrapped_spacecraft_data.find(name) != this -> wrapped_spacecraft_data.end()){
-        this -> renderer -> RemoveActor(this -> wrapped_spacecraft_data[name] -> get_actor());
-
-        // The data wrapper is removed
-        this -> wrapped_spacecraft_data.erase(name);
-    }
-    else if (this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
-
-        if (this -> wrapped_light_data.size() < 2){
-            // If there's only one light left, it cannot be removed as VTK will not 
-            // allow this
-            return;
-        }
-
-        // The light actor is removed
-        this -> renderer -> RemoveActor(this -> wrapped_light_data[name] -> get_light_actor());
-
-        // The light is removed from the renderer
-        this -> get_renderer() -> RemoveLight(this -> wrapped_light_data[name] -> get_light());
-
-        // The data wrapper is removed
-        this -> wrapped_light_data.erase(name);
-
-
-    }
+    // The data wrapper is removed
+    this -> wrapped_shape_data.erase(name);
+    
 
     // The corresponding row in the table widget is removed
     // This will trigger the corresponding signal/slot mechanism updating the GUI
     for (int i = 0; i < this -> prop_table -> rowCount(); ++i) {
         if (this -> prop_table -> item(i, 0) -> text() == QString::fromStdString(name)) {
             this -> prop_table -> removeRow(i);
+
             break;
         }
     }
+
 
     this -> update_actions_availability();
 
     // The Render window is updated
     this -> qvtkWidget -> GetRenderWindow() -> Render();
-
-    emit prop_removed_signal();
 
 }
 
@@ -1258,159 +714,76 @@ void Mainwindow::compute_geometric_measures(){
  int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
  std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
- if (this -> wrapped_shape_data.find(name) != this -> wrapped_shape_data.end()){
+ std::stringstream ss;
 
-    std::stringstream ss;
+ ss.str(std::string());
+ ss.precision(10);
 
-    ss.str(std::string());
-    ss.precision(10);
-    
-    std::string opening_line = "### Computing shape model geometric measures ###";
-    this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+ std::string opening_line = "### Computing shape geometric measures ###";
+ this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
+ std::chrono::time_point<std::chrono::system_clock> start, end;
+ start = std::chrono::system_clock::now();
 
-    vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
-    mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
-    mass_properties_filter -> Update();
-    end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
+ vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
+ mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+ mass_properties_filter -> Update();
+ end = std::chrono::system_clock::now();
+ std::chrono::duration<double> elapsed_seconds = end - start;
 
 
-    this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
-    this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
+ this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
 
-    this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
-    this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
+ this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
 
-    this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
 
-    double * bbox =  mass_properties_filter -> GetBoundingBox();
+ double * bbox =  mass_properties_filter -> GetBoundingBox();
 
-    this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
-    this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
 
-    ss.str(std::string());
-    ss.precision(10);
+ ss.str(std::string());
+ ss.precision(10);
 
-    this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
-    mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
+ mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
-    ss.str(std::string());
-    ss.precision(10);
+ ss.str(std::string());
+ ss.precision(10);
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name ));
-    mass_properties_filter -> GetInertiaTensor().raw_print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-    
-    ss.str(std::string());
-    ss.precision(10);
+ this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name ));
+ mass_properties_filter -> GetInertiaTensor().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Principal axes of " + name ));
-    mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+ ss.str(std::string());
+ ss.precision(10);
 
-    ss.str(std::string());
-    ss.precision(10);
+ this -> log_console -> appendPlainText(QString::fromStdString("- Principal axes of " + name ));
+ mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia moments of " + name ));
-    mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
-    this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia moments of " + name ));
+ mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
 
-    this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
+ this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
      + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
-    std::string closing_line(opening_line.length() - 1, '#');
-    closing_line.append("\n");
-    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-
-}
-else if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-    std::string opening_line = "### Computing trajectory geometry measures ###\n";
-    this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-    std::string closing_line(opening_line.length() - 1, '#');
-    closing_line.append("\n");
-    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-}
-
-}
-
-
-void Mainwindow::add_light(int light_type){
-
-
-    std::vector<std::string> light_names = {"Scene light","Head light","Camera light"};
-    vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
-
-
-    light -> SetFocalPoint(this  -> get_renderer() -> GetActiveCamera() -> GetFocalPoint());
-    light -> SetPosition(this  -> get_renderer() -> GetActiveCamera() -> GetPosition());
-    light -> SetColor(1,1,1);
-    light -> SetIntensity(1);
-    light -> SetLightType(light_type); // 0: scene , 1: Head light , 2: camera light
-
-    // The light and its props are stored in a ModelDataWrapper
-    std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-    vtkSmartPointer<vtkLightActor> lightActor = vtkSmartPointer<vtkLightActor>::New();
-    lightActor -> SetLight(light);    
-    model_data -> set_light(light);
-    model_data -> set_light_actor(lightActor);
-
-    light->SetPositional(true); // required for vtkLightActor below
-    light->SetConeAngle(20);
-
-
-    // At this stage, name does not account for repeated lights of the same type
-    std::string name = light_names[light_type];
-    std::string basic_name = name;
-
-    // A potential suffix to add to the light name is found by 
-    // looking at lights that already exist
-    int light_count = 0;
-    for (auto light_it = this -> wrapped_light_data.begin(); light_it != this -> wrapped_light_data.end(); ++light_it){
-        if (light_it -> second -> get_light() -> GetLightType() == light_type){
-            ++light_count;
-        }
-    }
-
-    if(light_count == 0){
-        this -> wrapped_light_data[name] = model_data;
-    }
-            // otherwise, a suffix is added
-    else{
-
-        while( this -> wrapped_light_data.find(name) != this -> wrapped_light_data.end()){
-            std::string suffix = "(" + std::to_string(light_count) + ")";
-            name = basic_name + suffix;
-            ++light_count;
-        }
-        this -> wrapped_light_data[name] = model_data;
-    }
-
-    this -> get_renderer() -> AddViewProp(lightActor);
-    this -> get_renderer() -> AddLight(light);
-
-    // The prop table is updated to show the newly loaded prop
-    this -> add_prop_to_table_widget(name);
-
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
-
+ std::string closing_line(opening_line.length() - 1, '#');
+ closing_line.append("\n");
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
 
 }
-
-void Mainwindow::open_move_along_traj_window(){
-
-    MoveAlongTrajectoryWindow * move_along_traj_window = new MoveAlongTrajectoryWindow(this);
-    connect(this,SIGNAL(prop_removed_signal()),move_along_traj_window,SLOT(prop_removed_slot()));
-    connect(this,SIGNAL(prop_added_signal()),move_along_traj_window,SLOT(prop_added_slot()));
-    
-    move_along_traj_window -> show();
-}   
 
 
 void Mainwindow::open_rendering_properties_window(){
@@ -1425,24 +798,14 @@ void Mainwindow::open_rendering_properties_window(){
 
 void Mainwindow::createMenus() {
 
-
-
     this -> SettingsMenu = this -> menuBar() -> addMenu(tr("&Settings"));
     this -> SettingsMenu -> addAction(this -> open_settings_window_action);
 
-
-    this -> SmallBodyMenu = this -> menuBar() -> addMenu(tr("&Small Body"));
-    this -> SmallBodyMenu -> addAction(this -> add_small_body_action);
-    this -> SmallBodyMenu -> addAction(this -> save_small_body_action);
+    this -> SmallBodyMenu = this -> menuBar() -> addMenu(tr("&Shape"));
+    this -> SmallBodyMenu -> addAction(this -> add_shape_action);
+    this -> SmallBodyMenu -> addAction(this -> save_shape_action);
     this -> SmallBodyMenu -> addSeparator();
     this -> SmallBodyMenu -> addAction(this -> align_shape_action);
-
-    this -> TrajectoryMenu = this -> menuBar() -> addMenu(tr("&Trajectory"));
-    this -> TrajectoryMenu -> addAction(this -> add_trajectory_action);
-
-    this -> SpacecraftMenu = this -> menuBar() -> addMenu(tr("&Spacecraft"));
-    this -> SpacecraftMenu -> addAction(this -> add_spacecraft_action);
-    this -> SpacecraftMenu -> addAction(this -> move_along_traj_action);
 
     this -> MeasuresMenu = menuBar() -> addMenu(tr("&Measures"));
     this -> MeasuresMenu -> addAction(this -> compute_geometric_measures_action);
@@ -1450,6 +813,8 @@ void Mainwindow::createMenus() {
 
     this -> ObservationsMenu = menuBar() -> addMenu(tr("&Observations"));
     this -> ObservationsMenu -> addAction(this -> open_radar_window_action);
+    this -> ObservationsMenu -> addAction(this -> open_lightcurve_window_action);
+
 
 
     this -> AnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
@@ -1459,15 +824,6 @@ void Mainwindow::createMenus() {
 
     this -> ResultsMenu = menuBar() -> addMenu(tr("&Visualization"));
     this -> ResultsMenu -> addAction(this -> open_rendering_properties_window_action);
-    this -> ResultsMenu -> addAction(this -> open_alignment_window_action);
-
-    this -> ResultsMenu -> addSeparator();
-
-
-    this -> ViewMenu = menuBar() -> addMenu(tr("&View"));
-    this -> ViewMenu -> addAction(this -> show_left_dockwidget_action);
-    this -> ViewMenu -> addAction(this -> show_right_dockwidget_action);
-    this -> ViewMenu -> addSeparator();
 
     this -> ConsoleMenu = menuBar() -> addMenu(tr("&Console"));
     this -> ConsoleMenu -> addAction(this -> clear_console_action);
@@ -1476,44 +832,10 @@ void Mainwindow::createMenus() {
 }
 
 
-void Mainwindow::open_actor_thickness_window(){
-
-    if (this -> prop_table -> rowCount()){
-
-        int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-        std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-
-        if (this -> wrapped_trajectory_data.find(name) != this -> wrapped_trajectory_data.end()){
-            bool ok;
-            int line_width = QInputDialog::getInt(this,"Line width", "Enter line width factor :",
-                this -> wrapped_trajectory_data[name] -> get_actor() -> GetProperty()-> GetLineWidth(), 1, 30,5, &ok);
-            this -> wrapped_trajectory_data[name] -> get_actor() -> GetProperty()->SetLineWidth(line_width);
-            this -> qvtkWidget -> GetRenderWindow() -> Render();
-
-        }
-
-
-
-    }
-
-
-}
 
 
 DataMap Mainwindow::get_wrapped_shape_data() const{
     return this -> wrapped_shape_data;
-}
-
-DataMap Mainwindow::get_wrapped_trajectory_data() const{
-    return this -> wrapped_trajectory_data;
-}
-
-DataMap Mainwindow::get_wrapped_attitude_data() const{
-    return this -> wrapped_attitude_data;
-}
-
-DataMap Mainwindow::get_wrapped_spacecraft_data() const{
-    return this -> wrapped_spacecraft_data;
 }
 
 

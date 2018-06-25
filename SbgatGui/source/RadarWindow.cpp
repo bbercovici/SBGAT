@@ -101,6 +101,8 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	this -> N_samples_sbox = new QSpinBox (this);
 	this -> N_images_sbox = new QSpinBox (this);
 
+	this -> penalize_incidence_box = new QCheckBox("Penalize incidence",this);
+
 	
 
 	target_group_layout -> addWidget(shape_label,0,0,1,1);
@@ -131,7 +133,7 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 	radar_settings_group_layout -> addWidget(radar_el_label,4,0,1,1);
 	radar_settings_group_layout -> addWidget(this -> radar_el_sbox,4,1,1,1);
 
-
+	radar_settings_group_layout -> addWidget(this -> penalize_incidence_box,5,0,1,2);
 
 
 	binning_settings_group_layout -> addWidget(range_label,0,0,1,1);
@@ -156,7 +158,7 @@ RadarWindow::RadarWindow(Mainwindow * parent) {
 
 	open_visualizer_button -> setDisabled(1);
 	save_observations_button -> setDisabled(1);
-
+	bin_observations_button -> setDisabled(1);
 
 	radar_window_layout -> addWidget(button_box);
 
@@ -208,13 +210,11 @@ void RadarWindow::init(){
 	this -> radar_az_sbox -> setValue(0);
 	this -> radar_el_sbox -> setValue(0);
 
-	this -> N_samples_sbox -> setValue(100);
+	this -> N_samples_sbox -> setValue(30);
 	this -> N_images_sbox -> setValue(1);
 
 	this -> rotation_period_sbox -> setValue(1);
 	this -> imaging_period_sbox -> setValue(1);
-
-
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 
@@ -274,7 +274,13 @@ void RadarWindow::collect_observations(){
 
 		double t = i * imaging_period;
 
-		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,N_samples,t,rotation_period,radar_to_target_dir,spin);
+		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,
+			N_samples,
+			t,
+			rotation_period,
+			radar_to_target_dir,
+			spin,
+			this -> penalize_incidence_box -> isChecked());
 		
 	}
 
@@ -308,14 +314,28 @@ void RadarWindow::bin_observations(){
 
 	}
 	else{
+		try{
+			this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
+			this -> open_visualizer_button -> setEnabled(1);
+			this -> save_observations_button -> setEnabled(1);
 
-		this -> radar -> BinObservations(this -> measurement_sequence,r_bin,rr_bin);
+			this -> open_visualizer_button -> repaint();
+			this -> save_observations_button -> repaint();
+		}
 
-		this -> open_visualizer_button -> setEnabled(1);
-		this -> save_observations_button -> setEnabled(1);
+		catch(std::runtime_error & e){
 
-		this -> open_visualizer_button -> repaint();
-		this -> save_observations_button -> repaint();
+			QMessageBox::warning(this, "Generate Doppler Radar Observations", e.what());
+
+			this -> open_visualizer_button -> setEnabled(0);
+			this -> save_observations_button -> setEnabled(0);
+
+			this -> open_visualizer_button -> repaint();
+			this -> save_observations_button -> repaint();
+
+
+		}
+		
 		
 	}
 
@@ -324,7 +344,7 @@ void RadarWindow::bin_observations(){
 
 void RadarWindow::save_observations(){
 
-	QString path = QFileDialog::getExistingDirectory(this, tr("Select radar output folder"));
+	QString path = QFileDialog::getExistingDirectory(this, tr("Select output folder"));
 	if (path.size() != 0){
 		this -> radar -> SaveImages( path.toStdString() + "/");
 	}

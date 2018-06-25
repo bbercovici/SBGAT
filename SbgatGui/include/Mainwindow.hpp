@@ -138,23 +138,6 @@ through the user interface layer brought by Qt.}
 	*/
 		DataMap get_wrapped_shape_data() const;
 
-	/**
-	Getter to wrapped trajectory data
-	@return copy of wrapper trajectory data
-	*/
-		DataMap get_wrapped_trajectory_data() const;
-
-	/**
-	Getter to wrapped attitude data
-	@return copy of attitude shape data
-	*/
-		DataMap get_wrapped_attitude_data() const;
-
-	/**
-	Getter to wrapped spacecraft data
-	@return copy of wrapper spacecraft data
-	*/
-		DataMap get_wrapped_spacecraft_data() const;
 
 	/**
 	Returns to a pair storing the directory and vtkActor pointer to the current skybox
@@ -190,18 +173,14 @@ through the user interface layer brought by Qt.}
 	/**
 	When triggered, starts shape model saving action sequence.
 	*/
-		QAction * save_small_body_action;
+		QAction * save_shape_action;
 
 	/**
 	When triggered, starts shape model loading action sequence.
 	*/
-		QAction * add_small_body_action;
+		QAction * add_shape_action;
 
-	/**
-	When triggered, starts trajectory loading action sequence.
-	*/
-		QAction * add_trajectory_action;
-
+	
 
 	/**
 	When triggered, opens settings window.
@@ -285,22 +264,15 @@ through the user interface layer brought by Qt.}
 		QAction * open_radar_window_action;
 
 
-	/**
-	When triggered, opens the dialog window
-	allowing one to load a spacecraft shape model
-	*/
-		QAction * add_spacecraft_action;
+		/**
+		When triggered, opens the dialog window allowing
+		one to compute simulated lightcurves over a targeted shape model
+		*/
 
-	/**
-	When triggered, opens the dialog window
-	allowing one to move a previously loaded spacecraft along a previously loaded trajectory
-	*/
-		QAction * move_along_traj_action;
+		QAction * open_lightcurve_window_action;
 
 
 
-
-		
 
 		
 		signals:
@@ -320,28 +292,9 @@ through the user interface layer brought by Qt.}
 	// Slots
 		private slots:
 
-		/**
-		Adds a scene light to the rendering window at the current camera location
-		*/
-		void add_scene_light_slot();
-		/**
-		Adds a head light to the rendering window that will remain aligned with
-		the camera axis
-		*/
-		void add_head_light_slot();
-
-		/**
-		Adds a scene light to the rendering window that is
-		fixed in the camera frame
-		*/
-		void add_camera_light_slot();
+		
 
 
-		/**
-	Opens a widget allowing the user to associate a trajectory to a spacecraft 
-	and move the spacecraft along it
-	*/
-		void open_move_along_traj_window();
 
 
 	/**
@@ -359,7 +312,12 @@ through the user interface layer brought by Qt.}
 
 		void open_radar_window();
 
+		/**
+		Opens the dialog window allowing
+		one to compute simulated lightcurves over a targeted shape model
+		*/
 
+		void open_lightcurve_window();
 
 
 	/**
@@ -421,11 +379,6 @@ through the user interface layer brought by Qt.}
 		void open_settings_window();
 
 
-	/**
-	Open alignment window.
-	*/
-		void open_actor_thickness_window();
-
 
 
 	private:
@@ -434,7 +387,7 @@ through the user interface layer brought by Qt.}
 		Add light of prescribed type to the renderer
 		@param light_type determines the light type (0: scene light , 1: Head light , 2: camera light)
 		*/
-		void add_light(int light_type);
+		// void add_light(int light_type);
 
 		/**
 		Initializes the rendering window and its props
@@ -447,11 +400,6 @@ through the user interface layer brought by Qt.}
 		*/
 		void init_right_dockwidget();
 
-		/**	
-		Initializes the left dockwidget. This widget holds tools submenus for small body
-		creation / interaction and ligthing props creation / deletion
-		*/
-		void init_left_dockwidget();
 
 	/**
 	Creates the GUI actions enabling the user to interact with the software, and connects them to the
@@ -459,14 +407,6 @@ through the user interface layer brought by Qt.}
 	*/
 		void createActions();
 
-
-	/**
-	Removes props associated with display of results
-	@param name name of shape model associated with the removal of the visual props
-	@param remove_all true if all props should be removed. Otherwise only those corresponding to the
-	name in argument will be removed.
-	*/
-		void remove_results_visual_props(std::string name, bool remove_all) ;
 
 
 	/**
@@ -492,47 +432,14 @@ through the user interface layer brought by Qt.}
 	Load small body shape model stored in a .obj file. The shape model is stored in an instance of the ShapeModel
 	class for subsequent operations. A vtkPolydata is also constructed for visualization purposes
 	*/
-		void add_small_body();
+		void add_shape();
 
 		/**
 	Save small body shape model to a .obj file.
 	*/
-		void save_small_body();
+		void save_shape();
 
-	/**
-	Load spacecraft shape model stored in a .obj file. A vtkPolydata is also constructed for visualization purposes
-	*/
-		void add_spacecraft();
-
-
-
-
-
-
-	/**
-	Load x/y/z trajectory expressed in a small body's body-fixed frame
-	*/
-		void add_trajectory();
-
-
-	/**
-	Creates and display a vtkPolyData corresponding to the provided shape model.
-	Also stores the associated vtkPolyDataMapper and vtkActor
-	@param model_data pointer to the ModelDataWrapper housing the data
-	related to the shape model being created
-	*/
-		void create_sbgatcore_shape_model_from_vtk(std::shared_ptr<ModelDataWrapper> model_data);
-
-	/**
-	Shows/hides right dockwidget (prop list widget)
-	*/
-		void show_right_dockwidget();
-
-	/**
-	Shows/hides left dockwidget (tools widget)
-	*/
-		void show_left_dockwidget();
-
+	
 
 	/**
 	Clears the console.
@@ -546,10 +453,7 @@ through the user interface layer brought by Qt.}
 
 		QMenu * SettingsMenu;
 		QMenu * SmallBodyMenu;
-		QMenu * SpacecraftMenu;
 		QMenu * MeasuresMenu;
-		QMenu * TrajectoryMenu;
-		QMenu * ViewMenu;
 		QMenu * ObservationsMenu;
 		QMenu * AnalysesMenu;
 		QMenu * ConsoleMenu;
@@ -563,10 +467,6 @@ through the user interface layer brought by Qt.}
 
 
 		DataMap wrapped_shape_data;
-		DataMap wrapped_trajectory_data;
-		DataMap wrapped_attitude_data;
-		DataMap wrapped_spacecraft_data;
-		DataMap wrapped_light_data;
 
 
 
