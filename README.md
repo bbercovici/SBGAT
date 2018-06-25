@@ -92,7 +92,6 @@ to apply the update (if any).
 - Saved radar images now have correct color levels
 
 
-
 ### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.2)
 
 - Adds `SBGATObsRadar` to `SbgatCore`, a class emulating range/range-rate radar measurements. The corresponding menu and action are also available in `SbgatGui`
