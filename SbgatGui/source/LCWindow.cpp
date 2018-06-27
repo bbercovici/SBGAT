@@ -25,6 +25,9 @@ SOFTWARE.
 #include "LCVisualizer.hpp"
 #include <QMessageBox>
 
+#include <vtkSphereSource.h>
+#include <vtkTriangleFilter.h>
+
 
 using namespace SBGAT_GUI;
 
@@ -267,7 +270,30 @@ void LCWindow::collect_observations(){
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 
-	this -> lc -> SetInputData(shape_data[name] -> get_polydata());
+
+	vtkSmartPointer<vtkSphereSource> sphereSource =
+	vtkSmartPointer<vtkSphereSource>::New();
+	sphereSource -> SetThetaResolution (100);
+	sphereSource -> SetPhiResolution (100);
+
+	sphereSource->Update();
+
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter->SetInputConnection(sphereSource->GetOutputPort());
+	triangleFilter->Update();
+
+	this -> lc -> SetInputData(0,shape_data[name] -> get_polydata());
+
+	this -> lc -> SetInputData(1,triangleFilter -> GetOutput());
+
+
+
+
+
+
+
+
 	this -> lc -> SetScaleMeters();
 	this -> lc -> Update();
 

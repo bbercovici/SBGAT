@@ -73,48 +73,54 @@ SBGATObsLightcurve::SBGATObsLightcurve(){
 SBGATObsLightcurve::~SBGATObsLightcurve(){
 }
 
-//----------------------------------------------------------------------------
-// Description:
-// This method computes the Cnm and Snm arrays of coefficients
-// used in the spherical harmonics expansion of exterior gravity 
-// about a constant-density polyhedron
-
 int SBGATObsLightcurve::RequestData(
   vtkInformation* vtkNotUsed( request ),
   vtkInformationVector** inputVector,
   vtkInformationVector* vtkNotUsed( outputVector )){
 
-  vtkInformation *inInfo =
-  inputVector[0]->GetInformationObject(0);
+  // vtkInformation *inInfo =
+  // inputVector[0]->GetInformationObject(0);
 
   // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  // vtkPolyData *input = vtkPolyData::SafeDownCast(
+  //   inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  vtkIdType numCells, numPts;
+  // vtkIdType numCells, numPts;
 
-  numCells = input->GetNumberOfCells();
-  numPts = input->GetNumberOfPoints();
-  if (numCells < 1 || numPts < 1){
-    vtkErrorMacro( << "No data to measure...!");
-    return 1;
+  // numCells = input->GetNumberOfCells();
+  // numPts = input->GetNumberOfPoints();
+  // if (numCells < 1 || numPts < 1){
+  //   vtkErrorMacro( << "No data to measure...!");
+  //   return 1;
+  // }
+
+ 
+  this -> bspTree_vec.clear();
+  this -> cm_vec.clear();
+
+  std::cout << "number of inputs: " << this -> GetNumberOfInputPorts() << std::endl;
+
+
+  for (int i = 0; i < this -> GetNumberOfInputPorts(); ++i){
+
+    vtkPolyData * input = vtkPolyData::SafeDownCast(this->GetInput(0));
+
+    // The KD tree around each body is constructed
+    vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
+    tree -> SetDataSet(input);
+    tree -> BuildLocator();
+    this -> bspTree_vec.push_back(tree);
+
+
+    // The center of mass of each input shape is stored
+    vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+    mass_filter -> SetInputData(input);
+    mass_filter -> Update();
+    this -> cm_vec.push_back(mass_filter -> GetCenterOfMass());
   }
 
-  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds -> Allocate(VTK_CELL_SIZE);
 
-  this -> bspTree =vtkSmartPointer<vtkModifiedBSPTree>::New();
-  this -> bspTree->SetDataSet(input);
 
-  // bspTree->SetMaxLevel(12);
-  // bspTree->SetNumberOfCellsPerNode(16);
-  this -> bspTree -> BuildLocator();
-
-  // The center of mass of the input shape is saved
-  vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
-  mass_filter -> SetInputData(input);
-  mass_filter -> Update();
-  this -> center_of_mass = mass_filter -> GetCenterOfMass();
 
   return 1;
 }
@@ -131,12 +137,17 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   const bool & penalize_indicence){
 
   // Containers
-  std::vector<int> facets_in_view;
+  std::vector<std::vector<int> > facets_in_view;
+
+  // Pre-allocating for all inputs
+  for (int i = 0; i < this -> GetNumberOfInputPorts(); ++i){
+    facets_in_view.push_back(std::vector<int>());
+  }
+
   vtkPolyData * input = vtkPolyData::SafeDownCast(this->GetInput(0));
-  vtkIdType cellId, numCells, numIds;
+  vtkIdType cellId, numIds;
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
-  numCells = input -> GetNumberOfCells();
 
 
   // Angular velocity 
@@ -152,15 +163,120 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   // Observer-to-target direction in body frame
   arma::vec target_to_observer_dir_body_frame = BN * arma::normalise(observer_dir);
 
-  // Ray-tracing tolerance
-  double tol = input -> GetLength()/1E6;
-
+  
 
   // The surface area of the largest facet 
   double max_area = -1;
+
+
   // First, only facets that are in view of the sun
   // and the observer (based on their normal orientation) are kept
-  for (cellId=0; cellId < numCells; cellId++){
+  
+
+  // THIS CHECK SHOULD BE PERFORM FOR EVERY BODY IN CONSIDERATION
+  for (unsigned int i = 0; i < this -> GetNumberOfInputPorts(); ++i){
+    this -> check_facet_illumination(i,
+      facets_in_view[i],
+      target_to_sun_dir_body_frame,
+      target_to_observer_dir_body_frame,
+      max_area);
+  }
+
+
+  for (unsigned int i = 0; i < this -> GetNumberOfInputPorts(); ++i){
+
+
+    std::array<double, 2>  measurements_temp;
+    measurements_temp[0] = dt;
+    measurements_temp[1] = 0;
+
+    this -> reverse_ray_trace(measurements_temp,
+      i,
+      facets_in_view[i],
+      target_to_sun_dir_body_frame,
+      target_to_observer_dir_body_frame,
+      N,
+      max_area,
+      penalize_indicence);
+
+    measurements.push_back(measurements_temp);
+
+  }
+
+
+}
+
+
+
+
+void SBGATObsLightcurve::SaveLightCurveData(const std::vector<std::array<double, 2> > & measurements,
+  std::string savepath){
+
+  arma::mat time_luminosity_series(measurements.size(),2);
+
+  for (unsigned int i = 0; i < measurements.size(); ++i){
+    time_luminosity_series(i, 0) = measurements[i][0];
+    time_luminosity_series(i, 1) = measurements[i][1] ;
+  }
+
+  time_luminosity_series.save(savepath,arma::raw_ascii);
+
+}
+
+
+
+
+
+
+
+
+
+
+void SBGATObsLightcurve::PrintHeader(ostream& os, vtkIndent indent) {
+
+}
+void SBGATObsLightcurve::PrintTrailer(ostream& os, vtkIndent indent) {
+
+}
+
+
+
+
+//----------------------------------------------------------------------------
+void SBGATObsLightcurve::PrintSelf(std::ostream& os, vtkIndent indent){
+
+  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
+  if (!input)
+  {
+    return;
+  }
+
+}
+
+
+
+
+
+
+
+
+
+void SBGATObsLightcurve::check_facet_illumination(
+  const unsigned int & body_index,
+  std::vector<int> & facets_in_view,
+  const arma::vec & target_to_sun_dir_body_frame,
+  const arma::vec & target_to_observer_dir_body_frame,
+  double & max_area){
+
+  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(body_index));
+  vtkIdType cellId, numCells, numIds;
+
+  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+  ptIds -> Allocate(VTK_CELL_SIZE);
+  numCells = input -> GetNumberOfCells();
+
+
+  for (vtkIdType cellId=0; cellId < numCells; cellId++){
 
     if ( input->GetCellType(cellId) != VTK_TRIANGLE){
       vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "<< input->GetCellType(cellId));
@@ -191,6 +307,8 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     max_area = std::max(max_area,vtkMath::Norm(n)/2);
     vtkMath::Normalize(n);
 
+
+
     // Check if the facet is in view of both the sun and the observer
     bool in_view = (vtkMath::Dot(n,target_to_sun_dir_body_frame.colptr(0)) > 0 && vtkMath::Dot(n,target_to_observer_dir_body_frame.colptr(0)) > 0);
     if (in_view){
@@ -198,14 +316,33 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     }
 
   }
+}
 
 
+
+void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements_temp,
+  const unsigned int & body_index,
+  const std::vector<int> & facets_in_view,
+  const arma::vec & target_to_sun_dir_body_frame,
+  const arma::vec & target_to_observer_dir_body_frame,
+  const int N,
+  const double max_area,
+  const bool penalize_indicence){
+
+
+
+  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(body_index));
+  vtkIdType cellId, numCells, numIds;
+
+  // Ray-tracing tolerance
+  double tol = input -> GetLength()/1E6;
+
+
+  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+  ptIds -> Allocate(VTK_CELL_SIZE);
 
   // The vector holding the kept-facets is initialized
-  std::array<double, 2>  measurements_temp;
-  measurements_temp[0] = dt;
-  measurements_temp[1] = 0;
-
+  
 
   // The kept facets are then sampled and reverse ray-traced
   for (unsigned int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
@@ -262,9 +399,6 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
 
 
-
-
-
     // Checking if point is in view of sun
     {
       vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
@@ -272,7 +406,7 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
 
       arma::vec point_towards_sun = impact + input -> GetLength() * 1e3 * target_to_sun_dir_body_frame;
 
-      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
+      this -> bspTree_vec[body_index] -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
       for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
@@ -303,7 +437,7 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
       arma::vec point_towards_observer = impact + input -> GetLength() * 1e3 * target_to_observer_dir_body_frame;
 
 
-      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
+      this -> bspTree_vec[body_index] -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
 
       // All the detected intersections are checked.
       for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
@@ -327,10 +461,7 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
 
     if (keep_point){
 
-        // the return is weighed by the incidence on the inbound and outbout rays
-      assert(cosi_sun * cosi_obs <= 1);
-      assert(cosi_sun * cosi_obs >= 0);
-
+      // the return is weighed by the incidence on the inbound and outbout rays
       measurements_temp[1] += cosi_sun * cosi_obs;
 
     }
@@ -338,7 +469,6 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   }
 }
 
-measurements.push_back(measurements_temp);
 
 
 
@@ -347,46 +477,7 @@ measurements.push_back(measurements_temp);
 
 
 
-void SBGATObsLightcurve::SaveLightCurveData(const std::vector<std::array<double, 2> > & measurements,
-  std::string savepath){
-
-  arma::mat time_luminosity_series(measurements.size(),2);
-
-  for (unsigned int i = 0; i < measurements.size(); ++i){
-    time_luminosity_series(i, 0) = measurements[i][0];
-    time_luminosity_series(i, 1) = measurements[i][1] ;
-  }
-
-  time_luminosity_series.save(savepath,arma::raw_ascii);
-
-}
 
 
 
 
-
-
-
-
-
-
-void SBGATObsLightcurve::PrintHeader(ostream& os, vtkIndent indent) {
-
-}
-void SBGATObsLightcurve::PrintTrailer(ostream& os, vtkIndent indent) {
-
-}
-
-
-
-
-//----------------------------------------------------------------------------
-void SBGATObsLightcurve::PrintSelf(std::ostream& os, vtkIndent indent){
-
-  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
-  if (!input)
-  {
-    return;
-  }
-
-}

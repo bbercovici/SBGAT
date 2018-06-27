@@ -103,8 +103,8 @@ int SBGATObsRadar::RequestData(
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
 
-  this -> bspTree =vtkSmartPointer<vtkModifiedBSPTree>::New();
-  this -> bspTree->SetDataSet(input);
+  this -> bspTree = vtkSmartPointer<vtkModifiedBSPTree>::New();
+  this -> bspTree -> SetDataSet(input);
 
   // bspTree->SetMaxLevel(12);
   // bspTree->SetNumberOfCellsPerNode(16);
@@ -119,8 +119,7 @@ int SBGATObsRadar::RequestData(
   return 1;
 }
 
-void SBGATObsRadar::CollectMeasurementsSimpleSpin(
-  SBGATMeasurementsSequence & measurements_sequence,
+void SBGATObsRadar::CollectMeasurementsSimpleSpin(SBGATMeasurementsSequence & measurements_sequence,
   const int & N,
   const double & dt,
   const double & period,
@@ -135,7 +134,6 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   ptIds -> Allocate(VTK_CELL_SIZE);
   numCells = input -> GetNumberOfCells();
-
 
   // Angular velocity 
   double w = 2 * arma::datum::pi / period;
@@ -192,9 +190,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(
       facets_in_view.push_back(cellId);
     }
 
-
   }
-
 
 
   // The vector holding the kept-facets is initialized
@@ -281,7 +277,6 @@ for (int i = 0; i < N_facet; ++i){
   }
 
   if (keep_point){
-
         // Store the range/range-rate measurements
     arma::vec velocity = arma::cross(omega,impact - this -> center_of_mass);
     double range = arma::norm(impact - origin);

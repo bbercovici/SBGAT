@@ -84,9 +84,9 @@ public:
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
   /**
-  Collects range/range-rate samples over the surface of the small body at the 
+  Collects range/range-rate samples over the surface of the specified system of small bodies at the 
   specified time after epoch. The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
-  l is a measure of the object's diagonal. 
+  l is a measure of the first object's diagonal. 
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
   @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
   @param dt time since epoch (s)

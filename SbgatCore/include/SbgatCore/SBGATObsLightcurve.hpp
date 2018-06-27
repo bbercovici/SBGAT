@@ -128,10 +128,40 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
+  /**
+  Determines what facets may be illuminated by the sun. Does not check for interests, 
+  only compares the outbound normal orientation to the sun/facet direction
+  @param body_index index of considered body
+  @param facets_in_view reference to vector holding indices of (maybe) illuminated facets
+  */
+  void check_facet_illumination(const unsigned int & body_index,
+    std::vector<int> & facets_in_view,
+    const arma::vec & target_to_sun_dir_body_frame,
+    const arma::vec & target_to_observer_dir_body_frame,
+    double & max_area);
 
-  vtkSmartPointer<vtkModifiedBSPTree> bspTree;
+
+
+  /**
+  Ray traces the facets in view to the sun/observer and increment measurement
+  counter if in view
+  @param measurements_temp reference to an std::array holding (times,luminosity)
+  @param body_index index of considered body
+  @param facets_in_view reference to vector holding indices of (maybe) illuminated facets
+  */
+  void reverse_ray_trace(std::array<double, 2> & measurements,
+    const unsigned int & body_index,
+    const std::vector<int> & facets_in_view,
+    const arma::vec & target_to_sun_dir_body_frame,
+    const arma::vec & target_to_observer_dir_body_frame,
+    const int N,
+    const double max_area,
+    const bool penalize_indicence);
+
+
+  std::vector<vtkSmartPointer<vtkModifiedBSPTree>> bspTree_vec;
   
-  arma::vec center_of_mass;
+  std::vector<arma::vec> cm_vec;
 
   double scaleFactor = 1;
   double max_value;
