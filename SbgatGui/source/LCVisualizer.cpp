@@ -91,7 +91,6 @@ void LCVisualizer::init(const std::vector<std::array<double, 2> > & measurements
 
 	vtkSmartPointer<vtkFloatArray> luminosity =
 	vtkSmartPointer<vtkFloatArray>::New();
-	luminosity->SetName("Luminosity");
 	table->AddColumn(luminosity);
 	table->SetNumberOfRows(measurements.size());
 
@@ -110,8 +109,8 @@ void LCVisualizer::init(const std::vector<std::array<double, 2> > & measurements
 	vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
 	points->SetInputData(table, 0, 1);
 
-	chart -> GetAxis( vtkAxis::LEFT) -> SetTitle("Luminosity");
-	chart -> GetAxis( vtkAxis::BOTTOM) -> SetTitle("Time since epoch (days)");
+	chart -> GetAxis( vtkAxis::LEFT ) -> SetTitle("Luminosity");
+	chart -> GetAxis( vtkAxis::BOTTOM ) -> SetTitle("Time since epoch (days)");
 	chart -> GetAxis( vtkAxis::LEFT) -> SetVisible(1);
 	chart -> GetAxis( vtkAxis::BOTTOM) -> SetVisible(1);
 

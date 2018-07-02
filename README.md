@@ -74,6 +74,15 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 1.07.1](https://github.com/bbercovici/SBGAT/releases/tag/1.07.1)
+
+#### New:
+- Created module `SBGATKeplerianTraj`, a wrapper around the `OrbitConversions` library. This means that SBGAT can generate Keplerian trajectories
+
+#### Improvements
+-  `SBGATObsLightcurve` now handles multi-body configurations, allowing generation of lightcurves of binary asteroid systems under the assumption that the secondary is undergoing a keplerian orbit about the primary 
+
+#### Bug fixes: 
 
 
 ### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)

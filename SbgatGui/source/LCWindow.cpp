@@ -250,6 +250,7 @@ void LCWindow::collect_observations(){
 	arma::vec spin = {0,0,1};
 	spin = (RBK::M2(this -> spin_inc_sbox -> value() * d2r) 
 		* RBK::M3(this -> spin_raan_sbox -> value() * d2r)).t() * spin;
+
 	
 	arma::vec observer_dir = {1,0,0};
 	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
@@ -265,11 +266,13 @@ void LCWindow::collect_observations(){
 	int N_images = this -> N_images_sbox -> value(); 
 	int N_samples = this -> N_samples_sbox -> value() ;
 
-
 	// Querying the selected small body
 	std::string name = this -> prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 
+
+	// #################
+	// TODO: remove this
 
 	vtkSmartPointer<vtkSphereSource> sphereSource =
 	vtkSmartPointer<vtkSphereSource>::New();
@@ -282,21 +285,19 @@ void LCWindow::collect_observations(){
 	vtkSmartPointer<vtkTriangleFilter>::New();
 	triangleFilter->SetInputConnection(sphereSource->GetOutputPort());
 	triangleFilter->Update();
+	// this -> lc -> SetInputData(1,triangleFilter -> GetOutput());
+
+	// #################
+
+
+	std::vector<arma::vec> positions_vec = {arma::zeros<arma::vec>(3)};
+	std::vector<arma::vec> spin_vec = {spin};
+	std::vector<double> rotation_period_vec = {rotation_period};
 
 	this -> lc -> SetInputData(0,shape_data[name] -> get_polydata());
 
-	this -> lc -> SetInputData(1,triangleFilter -> GetOutput());
-
-
-
-
-
-
-
-
 	this -> lc -> SetScaleMeters();
 	this -> lc -> Update();
-
 	this -> measurements.clear();
 
 	for (int i  = 0; i < N_images; ++i){
@@ -305,10 +306,11 @@ void LCWindow::collect_observations(){
 		this -> lc -> CollectMeasurementsSimpleSpin(this -> measurements,
 			N_samples,
 			t,
-			rotation_period,
+			rotation_period_vec,
 			sun_dir,
 			observer_dir,
-			spin,
+			positions_vec,
+			spin_vec,
 			this -> penalize_incidence_box -> isChecked());
 
 	}

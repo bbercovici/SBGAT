@@ -119,6 +119,8 @@ int SBGATObsRadar::RequestData(
   return 1;
 }
 
+
+
 void SBGATObsRadar::CollectMeasurementsSimpleSpin(SBGATMeasurementsSequence & measurements_sequence,
   const int & N,
   const double & dt,
@@ -298,7 +300,6 @@ for (unsigned int i = 0; i < measurements_temp.size(); ++i) {
   }
 }
 measurements_sequence.push_back(measurements);
-
 
 }
 

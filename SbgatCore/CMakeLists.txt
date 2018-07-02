@@ -128,6 +128,7 @@ add_library(${LIB_NAME}
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
+	source/SBGATObs.cpp
 	source/SBGATObsRadar.cpp
 	source/SBGATObsLightcurve.cpp
 	

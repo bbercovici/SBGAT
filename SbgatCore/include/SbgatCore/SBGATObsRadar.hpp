@@ -60,7 +60,7 @@ SOFTWARE.
 #include <armadillo>
 #include <array>
 
-
+#include <SBGATObs.hpp>
 
 
 /**
@@ -71,7 +71,7 @@ observations, blurring out returns collected at a high incidence
 typedef typename std::vector<std::vector<std::array<double, 3> > > SBGATMeasurementsSequence;
 
 
-class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm{
+class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm, SBGATObs{
 public:
   /**
    * Constructs with initial values of zero.
@@ -128,16 +128,7 @@ public:
   */
   void SaveImages(std::string savepath);
 
-  /**
-  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
-  */
-  void SetScaleMeters() { this -> scaleFactor = 1; }
-
-  /**
-  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
-  */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
-
+  
   /**
   Return vector holding the computed images
   @return vector of radar images
@@ -166,8 +157,7 @@ protected:
   
   arma::vec center_of_mass;
 
-  double scaleFactor = 1;
-  double max_value;
+  
 
 private:
   SBGATObsRadar(const SBGATObsRadar&) = delete;

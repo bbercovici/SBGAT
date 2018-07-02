@@ -60,10 +60,10 @@ SOFTWARE.
 #include <armadillo>
 #include <array>
 
+#include <SBGATObs.hpp>
 
 
-
-class VTKFILTERSCORE_EXPORT SBGATObsLightcurve : public vtkPolyDataAlgorithm{
+class VTKFILTERSCORE_EXPORT SBGATObsLightcurve : public vtkPolyDataAlgorithm , SBGATObs{
 public:
 
   /**
@@ -77,39 +77,58 @@ public:
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
   /**
-  Computes collected luminosity over the surface of the small body at the 
+  Computes collected luminosity over the surface of the considered small bodies at the 
   specified time after epoch. Exposure is instantaneous. The luminosity is computed as the 
   number of sample points in view of both the sun and the observer at each time (the "hit count"), normalized by the largest hit count in the observation sequence.
+  The positions of each body is specified. The attitude of each body is supposed to derive from a constant-spin rotation such that
+  each of the dcms BN is equal to identity when dt == 0.
   @param measurements reference to a vector of std::arrays holding (times,luminosity)
   @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
   @param dt time since epoch (s)
-  @param period rotation period of target (s)
+  @param period_vec vector of rotation periods of each target (s)
   @param sun_pos unit direction of sun with respect to target in inertial frame
   @param observer_pos unit direction of observer with respect to target in inertial frame
-  @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
+  @param positions_vec (unit vector) vector of positions of each target's center-of-mass expressed in the target's body frame
+  @param spin_vec (unit vector) vector of direction of each target's spin vector expressed in the target's body frame
   @param penalize_incidence if true, each measurement will be weighed by the cos(incidence) angle between
   the sampled point and the observer TIMES the cos(incidence) the sampled point and the sun. If false, all accepted measurements (in view of the observer and not blocked) 
   */
   void CollectMeasurementsSimpleSpin(
-    std::vector<std::array<double, 2> > & measurements,
-    const int & N,
-    const double & dt,
-    const double & period,
-    const arma::vec & sun_dir,
-    const arma::vec & observer_dir,
-    const arma::vec & spin,
-    const bool & penalize_indicence);
+  std::vector<std::array<double, 2> > & measurements,
+  const int & N,
+  const double & dt,
+  const std::vector<double> & period_vec,
+  const arma::vec & sun_dir,
+  const arma::vec & observer_dir,
+  const std::vector<arma::vec> & positions_vec,
+  const std::vector<arma::vec> & spin_vec,
+  const bool & penalize_indicence);
 
+   /**
+  Computes collected luminosity over the surface of the small body at the 
+  specified time after epoch. Exposure is instantaneous. The luminosity is computed as the 
+  number of sample points in view of both the sun and the observer at each time (the "hit count"), normalized by the largest hit count in the observation sequence.
+  The position and attitude of each body is explicitely specified.
 
-  /**
-  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
+  @param measurements reference to a vector of std::arrays holding (times,luminosity)
+  @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
+  @param dt time since epoch (s)
+  @param sun_pos unit direction of sun with respect to target in inertial frame
+  @param observer_pos unit direction of observer with respect to target in inertial frame
+  @param positions_vec vector of DCMs of each target's body-frame with respect to reference frame
+  @param BN_dcms_vec vector of direction of each target's spin vector expressed in the target's body frame
+  @param penalize_incidence if true, each measurement will be weighed by the cos(incidence) angle between
+  the sampled point and the observer TIMES the cos(incidence) the sampled point and the sun. If false, all accepted measurements (in view of the observer and not blocked) 
   */
-  void SetScaleMeters() { this -> scaleFactor = 1; }
-
-  /**
-  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
-  */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
+  void CollectMeasurementsArbitrarySpin(
+  std::vector<std::array<double, 2> > & measurements,
+  const int & N,
+  const double & dt,
+  const arma::vec & sun_dir,
+  const arma::vec & observer_dir,
+  const std::vector<arma::vec> & positions_vec,
+  const std::vector<arma::mat> & BN_dcms_vec,
+  const bool & penalize_indicence);
 
 
   /**
@@ -128,18 +147,8 @@ protected:
     vtkInformationVector** inputVector,
     vtkInformationVector* outputVector) override;
 
-  /**
-  Determines what facets may be illuminated by the sun. Does not check for interests, 
-  only compares the outbound normal orientation to the sun/facet direction
-  @param body_index index of considered body
-  @param facets_in_view reference to vector holding indices of (maybe) illuminated facets
-  */
-  void check_facet_illumination(const unsigned int & body_index,
-    std::vector<int> & facets_in_view,
-    const arma::vec & target_to_sun_dir_body_frame,
-    const arma::vec & target_to_observer_dir_body_frame,
-    double & max_area);
 
+  int FillInputPortInformation( int port, vtkInformation* info ) VTK_OVERRIDE;
 
 
   /**
@@ -147,24 +156,25 @@ protected:
   counter if in view
   @param measurements_temp reference to an std::array holding (times,luminosity)
   @param body_index index of considered body
-  @param facets_in_view reference to vector holding indices of (maybe) illuminated facets
+  @param facets_in_view reference to a vector of vector holding indices of (maybe) illuminated facets for all considered bodies
+  @param sun_dir sun direction expressed in inertial frame
+  @param observer_dir observer direction expressed in inertial frame
+  @param max_area maximum area of all facets (illuminated/shaded facets)
+  @param BN_dcms_vec vector holding the DCMs orienting the body frame of each body w/r to inertial
+  @param positions_vec vector holding the position vector of the CM of each body w/r to the primary
   */
-  void reverse_ray_trace(std::array<double, 2> & measurements,
-    const unsigned int & body_index,
-    const std::vector<int> & facets_in_view,
-    const arma::vec & target_to_sun_dir_body_frame,
-    const arma::vec & target_to_observer_dir_body_frame,
-    const int N,
-    const double max_area,
-    const bool penalize_indicence);
+  void reverse_ray_trace(std::array<double, 2>  & measurements_temp,
+  const unsigned int & body_index,
+  const std::vector<std::vector<int> > & facets_in_view,
+  const arma::vec & sun_dir,
+  const arma::vec & observer_dir,
+  const int N,
+  const double max_area,
+  const bool penalize_indicence,
+  const std::vector<arma::mat> & BN_dcms_vec,
+  const std::vector<arma::vec> & positions_vec);
 
-
-  std::vector<vtkSmartPointer<vtkModifiedBSPTree>> bspTree_vec;
   
-  std::vector<arma::vec> cm_vec;
-
-  double scaleFactor = 1;
-  double max_value;
 
 private:
   SBGATObsLightcurve(const SBGATObsLightcurve&) = delete;
