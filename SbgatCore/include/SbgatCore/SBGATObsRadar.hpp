@@ -68,10 +68,10 @@ Vector of vector of radar observations. Each observation is comprised of (range,
 This incidence is not strictly speaking a measured quantity but is used to penalize the binned 
 observations, blurring out returns collected at a high incidence
 */
-typedef typename std::vector<std::vector<std::array<double, 3> > > SBGATMeasurementsSequence;
+typedef typename std::vector<std::vector<std::array<double, 3> > > SBGATRadarObsSequence;
 
 
-class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm, SBGATObs{
+class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm, public SBGATObs{
 public:
   /**
    * Constructs with initial values of zero.
@@ -90,21 +90,27 @@ public:
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
   @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
   @param dt time since epoch (s)
-  @param period rotation period of target (s)
-  @param dir (unit vector) direction of radar-to-target vector expressed in the target's body frame at epoch
-  @param spin (unit vector) direction of target's spin vector expressed in the target's body frame
-  @param penalize_incidence if true, each measurement will be weighed by the incidence angle between
-  the sampled point and the observer. If false, all accepted measurements (in view of the observer and not blocked) 
+  @param period_vec vector of rotation periods of each target (s)
+  @param sun_pos unit direction of sun with respect to target in inertial frame
+  @param observer_pos unit direction of observer with respect to target in inertial frame
+  @param positions_vec (unit vector) vector of positions of each target's center-of-mass expressed in the target's body frame
+  @param spin_vec (unit vector) vector of direction of each target's spin vector expressed in the target's body frame
+  @param penalize_incidence if true, each measurement will be weighed by the cos(incidence) angle between
+  the sampled point and the radar squared. If false, all measurements (in view of the radar and not blocked) are weighed equally
   have the same weight
   */
-  void CollectMeasurementsSimpleSpin(
-    SBGATMeasurementsSequence & measurements_sequence,
+  void CollectMeasurementsSimpleSpin(SBGATRadarObsSequence & measurements_sequence,  
     const int & N,
     const double & dt,
-    const double & period,
-    const arma::vec & dir,
-    const arma::vec & spin,
-    const bool & penalize_incidence);
+    const std::vector<double> & period_vec,
+    const arma::vec & radar_dir,
+    const std::vector<arma::vec> & positions_vec,
+    const std::vector<arma::vec> & velocities_vec,
+    const std::vector<arma::vec> & spin_vec,
+    const bool & penalize_indicence);
+
+
+
 
   /**
   Bins the provided measurements sequence into a series of 2d-histogram
@@ -117,7 +123,7 @@ public:
   @param rr_bin range-rate bin size (m/s)
   */
   void BinObservations(
-    const SBGATMeasurementsSequence & measurements_sequence,
+    const SBGATRadarObsSequence & measurements_sequence,
     const double & r_bin,
     const double & rr_bin);
 
@@ -151,11 +157,40 @@ protected:
     vtkInformationVector* outputVector) override;
 
 
-  vtkSmartPointer<vtkModifiedBSPTree> bspTree;
+
+
+  /**
+  Ray traces the facets in view to the radar and measurements sequence with range/range-rate data
+  if sampled point was in view of the radar
+  @param measurements_sequence Sequence of measurements to add new image data to
+  @param facets_in_view reference to a vector of vector holding indices of (maybe) illuminated facets for all considered bodies
+  @param radar_dir radar direction expressed in inertial frame
+  @param BN_dcms_vec vector holding the DCMs orienting the body frame of each body w/r to inertial
+  @param positions_vec vector holding the position vector of the CM of each body w/r to the primary
+  @param velocities_vec vector holding the velocities vector of the CM of each body
+  @param omega_vec vector holding the angular velocities vector of each body
+  */
+  void reverse_ray_trace(SBGATRadarObsSequence & measurements_sequence,
+    const std::vector<std::vector<int> > & facets_in_view,
+    const arma::vec & radar_dir,
+    const int N,
+    const bool penalize_indicence,
+    const std::vector<arma::mat> & BN_dcms_vec,
+    const std::vector<arma::vec> & positions_vec,
+    const std::vector<arma::vec> & velocities_vec,
+    const std::vector<arma::vec> & omega_vec);
+
+
+
+
+
+
+
+
 
   std::vector<vtkSmartPointer<vtkImageData>> images;
   
-  arma::vec center_of_mass;
+  double max_value;
 
   
 

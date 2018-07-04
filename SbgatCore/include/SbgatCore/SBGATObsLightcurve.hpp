@@ -63,7 +63,7 @@ SOFTWARE.
 #include <SBGATObs.hpp>
 
 
-class VTKFILTERSCORE_EXPORT SBGATObsLightcurve : public vtkPolyDataAlgorithm , SBGATObs{
+class VTKFILTERSCORE_EXPORT SBGATObsLightcurve : public vtkPolyDataAlgorithm , public SBGATObs{
 public:
 
   /**
@@ -152,24 +152,20 @@ protected:
 
 
   /**
-  Ray traces the facets in view to the sun/observer and increment measurement
+  Ray traces all of the facets in view to the sun/observer and increment measurement
   counter if in view
   @param measurements_temp reference to an std::array holding (times,luminosity)
-  @param body_index index of considered body
   @param facets_in_view reference to a vector of vector holding indices of (maybe) illuminated facets for all considered bodies
   @param sun_dir sun direction expressed in inertial frame
   @param observer_dir observer direction expressed in inertial frame
-  @param max_area maximum area of all facets (illuminated/shaded facets)
   @param BN_dcms_vec vector holding the DCMs orienting the body frame of each body w/r to inertial
   @param positions_vec vector holding the position vector of the CM of each body w/r to the primary
   */
   void reverse_ray_trace(std::array<double, 2>  & measurements_temp,
-  const unsigned int & body_index,
   const std::vector<std::vector<int> > & facets_in_view,
   const arma::vec & sun_dir,
   const arma::vec & observer_dir,
   const int N,
-  const double max_area,
   const bool penalize_indicence,
   const std::vector<arma::mat> & BN_dcms_vec,
   const std::vector<arma::vec> & positions_vec);

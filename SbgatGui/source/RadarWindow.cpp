@@ -248,9 +248,9 @@ void RadarWindow::collect_observations(){
 	spin = (RBK::M2(this -> spin_inc_sbox -> value() * d2r) 
 		* RBK::M3(this -> spin_raan_sbox -> value() * d2r)).t() * spin;
 	
-	arma::vec radar_to_target_dir = {-1,0,0};
-	radar_to_target_dir = (RBK::M2(this -> radar_el_sbox -> value() * d2r) 
-		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_to_target_dir;
+	arma::vec radar_dir = {1,0,0};
+	radar_dir = (RBK::M2(this -> radar_el_sbox -> value() * d2r) 
+		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_dir;
 
 	double rotation_period = this -> rotation_period_sbox -> value() * 3600; 
 	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
@@ -270,6 +270,12 @@ void RadarWindow::collect_observations(){
 
 	this -> measurement_sequence.clear();
 
+
+	std::vector<double> period_vec  = {rotation_period};
+    std::vector<arma::vec> positions_vec = {arma::zeros<arma::vec>(3)};
+    std::vector<arma::vec> velocities_vec = {arma::zeros<arma::vec>(3)};
+    std::vector<arma::vec> spin_vec = {spin};
+
 	for (int i  = 0; i < N_images; ++i){
 
 		double t = i * imaging_period;
@@ -277,9 +283,11 @@ void RadarWindow::collect_observations(){
 		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,
 			N_samples,
 			t,
-			rotation_period,
-			radar_to_target_dir,
-			spin,
+			period_vec,
+			radar_dir,
+			positions_vec,
+			velocities_vec,
+			spin_vec,
 			this -> penalize_incidence_box -> isChecked());
 		
 	}

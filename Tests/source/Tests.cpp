@@ -395,7 +395,7 @@ void TestsSBCore::test_radar_obs(){
 	double rr_bin = 7.9e-3;//(m/s)
 
 	// A sequence of images is collected
-	SBGATMeasurementsSequence measurement_sequence;
+	SBGATRadarObsSequence measurement_sequence;
 	auto start = std::chrono::system_clock::now();
 
 	for (int i  = 0; i < images; ++i){

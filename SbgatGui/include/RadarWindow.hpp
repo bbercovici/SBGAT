@@ -135,7 +135,7 @@ data simulating the output of a range/range-rate doppler radar
 		
 		std::string output_path;
 
-		SBGATMeasurementsSequence measurement_sequence;
+		SBGATRadarObsSequence measurement_sequence;
 		vtkSmartPointer<SBGATObsRadar> radar;
 
 	};

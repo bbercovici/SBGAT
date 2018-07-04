@@ -58,6 +58,7 @@ LCVisualizer::LCVisualizer(LCWindow * parent,const std::vector<std::array<double
 
 	connect(this -> button_box, SIGNAL(accepted()), this, SLOT(accept()));
 
+
 	this -> init(measurements);
 
 	
@@ -89,10 +90,11 @@ void LCVisualizer::init(const std::vector<std::array<double, 2> > & measurements
 	time->SetName("Time since epoch (days)");
 	table->AddColumn(time);
 
-	vtkSmartPointer<vtkFloatArray> luminosity =
-	vtkSmartPointer<vtkFloatArray>::New();
-	table->AddColumn(luminosity);
-	table->SetNumberOfRows(measurements.size());
+	vtkSmartPointer<vtkFloatArray> luminosity = vtkSmartPointer<vtkFloatArray>::New();
+	luminosity -> SetName("Luminosity");
+	
+	table -> AddColumn(luminosity);
+	table -> SetNumberOfRows(measurements.size());
 
 	// Extracting the max luminosity for normalization purposes
 	double max_luminosity = measurements[0][1];
@@ -100,19 +102,22 @@ void LCVisualizer::init(const std::vector<std::array<double, 2> > & measurements
 	for (int i = 0; i < measurements.size(); ++i){
 		max_luminosity = std::max(max_luminosity,measurements[i][1]);
 	}
-	
+
 	for (int i = 0; i < measurements.size(); ++i){
 		table -> SetValue(i, 0, (measurements[i][0] - measurements[0][0]) / 86400);
 		table -> SetValue(i, 1, measurements[i][1] / max_luminosity);
+
 	}
 
-	vtkPlot *points = chart->AddPlot(vtkChart::POINTS);
-	points->SetInputData(table, 0, 1);
+
+	vtkPlot * points = chart -> AddPlot(vtkChart::POINTS);
+
+	points -> SetInputData(table, 0, 1);
 
 	chart -> GetAxis( vtkAxis::LEFT ) -> SetTitle("Luminosity");
 	chart -> GetAxis( vtkAxis::BOTTOM ) -> SetTitle("Time since epoch (days)");
-	chart -> GetAxis( vtkAxis::LEFT) -> SetVisible(1);
-	chart -> GetAxis( vtkAxis::BOTTOM) -> SetVisible(1);
+	chart -> GetAxis( vtkAxis::LEFT ) -> SetVisible(1);
+	chart -> GetAxis( vtkAxis::BOTTOM ) -> SetVisible(1);
 
 	this -> view -> GetScene() -> AddItem(chart);
 		
@@ -122,7 +127,7 @@ void LCVisualizer::init(const std::vector<std::array<double, 2> > & measurements
 	this -> view -> GetRenderWindow() -> Render();
 	this -> qvtkWidget -> GetRenderWindow() -> Render();
 	this -> qvtkWidget -> repaint();
-	this -> view->GetInteractor()->Start();
+	this -> view -> GetInteractor()->Start();
 
 
 }

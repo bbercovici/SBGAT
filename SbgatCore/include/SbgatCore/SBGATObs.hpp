@@ -48,31 +48,64 @@ public:
 
 protected:
 
-	/**
-	Determines what facets may be illuminated by the sun. Does not check for intersects and shadowing, 
-	only compares the outbound normal orientation to the sun/facet direction. If 
-	a facet is found to be visible, its index is added to facets_in_view
-	@param body_index index of considered body
+	/*
+	Determines what facets of a given shape satisfy a set of visibility conditions, formulated in terms of a 
+	direction that must point above the facet's horizon. Does not check for intersects and shadowing, 
+	only compares the outbound normal orientation to the unit vector direction of each condition. If 
+	a facet is found to be visible (i.e all conditions are satisfied), 
+	its index is added to facets_in_view.
 	@param facets_in_view reference to vector holding indices of (maybe) illuminated facets
+	@param body_index index of considered body
 	@param dir_to_check_vec vector of directions (unit vectors) that must point above a facet's horizon for a facet to be considered as visible
-	@param max_area maximum area of all facets (illuminated/shaded facets)
 	@param BN_dcms_vec vector holding the DCMs orienting the body frame of each body w/r to inertial
 	@param positions_vec vector holding the position vector of the CM of each body w/r to the primary
 	*/
 	void prefind_facets_inview(
-		const unsigned int & body_index,
 		std::vector<int> & facets_in_view,
+		const unsigned int & body_index,
 		const std::vector<arma::vec> & dir_to_check_vec,
-		double & max_area,
 		const std::vector<arma::mat> & BN_dcms_vec,
 		const std::vector<arma::vec> & positions_vec);
 
+	/**
+	Computes the largest facet surface area of all of the considered shapes
+	@return surface area of largest facet in all of the considered shapes
+	*/
+	void find_max_facet_surface_area();
+
+
+
+
+
+
+
+	/**
+	Checks if the line spanned between provided points intersects
+	with any of the considered bodies. 
+	@param origin_body_index index of the body from which originates the line to be tested for intersect
+	@param start_point_origin_body coordinates of the origin of the line, expressed in the original body frame
+	@param end_point_inertial coordinates of the end of the line, expressed in the inertial frame
+	@param BN_dcms_vec vector holding the DCMs orienting the body frame of each body w/r to inertial
+	@param positions_vec vector holding the position vector of the CM of each body w/r to the primary
+	@return true if the line intersects with any of the considered bodies, false otherwise
+	*/
+	bool check_line_for_intersect(const int & origin_body_index,
+	const arma::vec & start_point_origin_body,
+	const arma::vec & end_point_inertial,
+	const std::vector<arma::mat> & BN_dcms_vec,
+	const std::vector<arma::vec> & positions_vec,
+	const double & tol) const;
+
+
+
+
 
 	std::vector<vtkSmartPointer<vtkModifiedBSPTree>> bspTree_vec;
-
 	std::vector<vtkPolyData *> polydata_vec;
+	std::vector<arma::vec> center_of_mass_vec;
+	
 	double scaleFactor = 1;
-	double max_value;
+	double max_area;
 	int number_of_bodies;
 
 };

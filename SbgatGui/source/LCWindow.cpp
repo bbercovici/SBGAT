@@ -239,6 +239,8 @@ void LCWindow::init(){
 	this -> phase_angle_qldt -> setText(QString::number(0));
 	this -> phase_angle_qldt -> repaint();
 
+	this -> penalize_incidence_box -> setChecked(true);
+
 
 }
 
@@ -314,6 +316,8 @@ void LCWindow::collect_observations(){
 			this -> penalize_incidence_box -> isChecked());
 
 	}
+
+
 
 	
 

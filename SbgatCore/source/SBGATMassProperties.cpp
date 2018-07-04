@@ -103,7 +103,7 @@ int SBGATMassProperties::RequestData(
   }
 
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds->Allocate(VTK_CELL_SIZE);
+  ptIds -> Allocate(VTK_CELL_SIZE);
 
   // Traverse all cells, obtaining node coordinates.
   //
