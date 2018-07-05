@@ -22,44 +22,32 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_LC_WINDOW
-#define HEADER_LC_WINDOW
 
-#include <QGroupBox>
-#include <QComboBox>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QDialog>
-#include <QFileDialog>
-#include <QMessageBox>
 
-#include <QLabel>
-#include <QLineEdit>
 
-#include <QVBoxLayout>
-#include <QDialogButtonBox>
+#ifndef HEADER_SHAPE_PROPERTIES_WIDGET
+#define HEADER_SHAPE_PROPERTIES_WIDGET
+
+#include <QWidget>
 #include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QRadioButton>
-
+#include <QLabel>
 
 #include "ObsWindow.hpp"
-#include <SBGATObsLightcurve.hpp>
-
 
 
 namespace SBGAT_GUI {
 
 /*!
-@class LCWindow
+@class ShapePropertiesWidget
 \author Benjamin Bercovici
 \date March, 2018
-\brief LCWindow class defining a window where a user can generate lightcurve data
+\brief ShapePropertiesWidget class defining a widget where a user can specify the values taken 
+by the physical parameters of a shape
 
 \details TODO
 */
 
-	class LCWindow : public ObsWindow {
+	class ShapePropertiesWidget : public QGroupBox {
 		Q_OBJECT
 
 	public:
@@ -67,56 +55,49 @@ namespace SBGAT_GUI {
 	/**
 	Creates the settings window
 	@param parent pointer to parent window.
+	@param is_primary true if corresponding shape is a primary, false otherwise. Will add the option
+	to set body density if true.
+	@param title widget title
 	*/
-		LCWindow(Mainwindow * parent) ;
+		ShapePropertiesWidget(ObsWindow * parent,bool is_primary,std::string title) ;
+
+		/**
+		Returns direction of spin vector in inertial frame
+		@return spin vector (unit vector)
+		*/
+		arma::vec get_spin() const;
+
+		/**
+		Returns rotation periond
+		@return rotation period (seconds)
+		*/
+		double get_period() const;
+
+		/**
+		Returns density of corresponding body. If the body is not declared as 
+		primary, this method will return 0
+		@return density (kg/m^3)
+		*/
+		double get_density() const;
+
 
 
 		private slots:
-
-
-		/**
-		Collect lightcurve with specified inputs
-		*/	
-		void collect_observations();
-
-
-		/**
-		Save lightcurve data to png and raw .txt file
-		*/
-
-		void save_observations();
-
-		/**
-		Opens the visualizer to view lightcurve
-		*/
-		void open_visualizer();
-
-
-		/**
-		Update displayed value of phase angle
-		*/
-		void update_phase_angle();
-
-
 
 	protected:
 
 		void init();
 
-		QDoubleSpinBox * observer_az_sbox;
-		QDoubleSpinBox * observer_el_sbox;
+		QLabel * spin_raan_label;
+		QLabel * spin_inc_label;
+		QLabel * period_label;
+		QLabel * density_label = nullptr;
 
-		QDoubleSpinBox * sun_az_sbox;
-		QDoubleSpinBox * sun_el_sbox;
 
-		QLabel * phase_angle_label;
-		QLineEdit * phase_angle_qldt;
-
-		std::string output_path;
-
-		vtkSmartPointer<SBGATObsLightcurve> lc;
-
-		std::vector<std::array<double, 2> > measurements;
+		QDoubleSpinBox * spin_raan_sbox;
+		QDoubleSpinBox * spin_inc_sbox;
+		QDoubleSpinBox * period_sbox;
+		QDoubleSpinBox * density_sbox = nullptr;
 
 	};
 }

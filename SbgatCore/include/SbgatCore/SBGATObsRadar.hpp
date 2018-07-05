@@ -117,7 +117,6 @@ public:
   Will throw an std::runtime_error exception if 
   - either of the provided bin sizes are invalid (i.e <= 0)
   - the provided bin sizes yield empty histogram dimensions
-
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
   @param r_bin range bin size (m)
   @param rr_bin range-rate bin size (m/s)

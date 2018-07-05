@@ -290,68 +290,12 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
 
 measurements_sequence.push_back(measurements);
 
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void SBGATObsRadar::BinObservations(
   const SBGATRadarObsSequence & measurements_sequence,
   const double & r_bin,
   const double & rr_bin){
-
 
   // The container holding the images is pre-allocated
   this -> images.clear();
@@ -434,7 +378,6 @@ void SBGATObsRadar::BinObservations(
       dPtr[k] += measurements[mes][2];
 
     }
-
 
     // The maximum image value is extracted
     vtkDataArray * scalars = this -> images[i] -> GetPointData() -> GetScalars();

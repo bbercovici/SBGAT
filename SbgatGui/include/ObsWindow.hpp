@@ -22,9 +22,10 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_LC_WINDOW
-#define HEADER_LC_WINDOW
+#ifndef HEADER_OBS_WINDOW
+#define HEADER_OBS_WINDOW
 
+#include <QMainWindow>
 #include <QGroupBox>
 #include <QComboBox>
 #include <QCheckBox>
@@ -43,23 +44,25 @@ SOFTWARE.
 #include <QRadioButton>
 
 
-#include "ObsWindow.hpp"
-#include <SBGATObsLightcurve.hpp>
-
+#include "Mainwindow.hpp"
 
 
 namespace SBGAT_GUI {
 
+	class Mainwindow;
+	class ShapePropertiesWidget;
+
 /*!
-@class LCWindow
+@class ObsWindow
 \author Benjamin Bercovici
 \date March, 2018
-\brief LCWindow class defining a window where a user can generate lightcurve data
+\brief ObsWindow class defining a window where a user can generate emulated radar 
+data simulating the output of a range/range-rate doppler radar
 
 \details TODO
 */
 
-	class LCWindow : public ObsWindow {
+	class ObsWindow : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -68,55 +71,42 @@ namespace SBGAT_GUI {
 	Creates the settings window
 	@param parent pointer to parent window.
 	*/
-		LCWindow(Mainwindow * parent) ;
+		ObsWindow(Mainwindow * parent) ;
 
 
 		private slots:
 
 
-		/**
-		Collect lightcurve with specified inputs
-		*/	
-		void collect_observations();
-
-
-		/**
-		Save lightcurve data to png and raw .txt file
-		*/
-
-		void save_observations();
-
-		/**
-		Opens the visualizer to view lightcurve
-		*/
-		void open_visualizer();
-
-
-		/**
-		Update displayed value of phase angle
-		*/
-		void update_phase_angle();
-
+		void changed_secondary_box(int index);
 
 
 	protected:
 
-		void init();
+		virtual void init();
 
-		QDoubleSpinBox * observer_az_sbox;
-		QDoubleSpinBox * observer_el_sbox;
+		Mainwindow * parent;
 
-		QDoubleSpinBox * sun_az_sbox;
-		QDoubleSpinBox * sun_el_sbox;
+		QComboBox * primary_prop_combo_box;
+		QComboBox * secondary_prop_combo_box;
 
-		QLabel * phase_angle_label;
-		QLineEdit * phase_angle_qldt;
 
-		std::string output_path;
+		QDialogButtonBox * button_box;
+		QDoubleSpinBox * imaging_period_sbox;
 
-		vtkSmartPointer<SBGATObsLightcurve> lc;
 
-		std::vector<std::array<double, 2> > measurements;
+		QSpinBox * N_samples_sbox;
+		QSpinBox * N_images_sbox;
+
+		QCheckBox * penalize_incidence_box;
+
+		QGroupBox * obs_specific_group;
+		QPushButton * save_observations_button;
+		QPushButton * open_visualizer_button;
+		QPushButton * collect_observations_button;
+		ShapePropertiesWidget * primary_shape_properties_widget;
+		ShapePropertiesWidget * secondary_shape_properties_widget;
+
+
 
 	};
 }

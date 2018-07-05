@@ -23,6 +23,8 @@ SOFTWARE.
 
 #include "LCWindow.hpp"
 #include "LCVisualizer.hpp"
+#include "ShapePropertiesWidget.hpp"
+
 #include <QMessageBox>
 
 #include <vtkSphereSource.h>
@@ -31,47 +33,38 @@ SOFTWARE.
 
 using namespace SBGAT_GUI;
 
-LCWindow::LCWindow(Mainwindow * parent) {
+LCWindow::LCWindow(Mainwindow * parent) : ObsWindow(parent){
 
-	this -> parent = parent;
+
 	this -> setWindowTitle("Generate Light Curve");
 
-	this -> save_observations_button = new QPushButton("Save observations",this);
 	this -> collect_observations_button = new QPushButton("Collect observations",this);
-	
-	this -> open_visualizer_button = new QPushButton("Visualize observations",this);
-
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 	
 	if (wrapped_shape_data.size() == 0){
 		QMessageBox::warning(this, "Compute Light Curve", "You must first load a shape model in order to compute light curves!");
-		collect_observations_button -> setDisabled(1);
+		this -> collect_observations_button -> setDisabled(1);
 	}
 
 	else{
-		collect_observations_button -> setEnabled(1);
+		this -> collect_observations_button -> setEnabled(1);
 	}
 
 
-	
+	this -> obs_specific_group -> setTitle("Light curve");
+
+	QVBoxLayout * lc_window_layout = new QVBoxLayout(this -> obs_specific_group);
+
+	QGroupBox * observer_location_group = new QGroupBox(tr("Observer location"));
+	QGroupBox * sun_location_group = new QGroupBox(tr("Sun location"));
+	QGroupBox * phasing_group = new QGroupBox(tr("Phasing"));
 
 
-	QVBoxLayout * lc_window_layout = new QVBoxLayout(this);
+	QGridLayout * observer_location_group_layout = new QGridLayout(observer_location_group);
+	QGridLayout * sun_location_group_layout = new QGridLayout(sun_location_group);
+	QGridLayout * phasing_group_layout = new QGridLayout(phasing_group);
 
-	QGroupBox * target_group = new QGroupBox(tr("Shape"));
-	QGroupBox * target_properties_group = new QGroupBox(tr("Shape properties"));
-	QGroupBox * lc_settings_group = new QGroupBox(tr("Light curve settings"));
-
-	QGridLayout * target_group_layout = new QGridLayout(target_group);
-	QGridLayout * lc_settings_group_layout = new QGridLayout(lc_settings_group);
-	QGridLayout * target_properties_group_layout = new QGridLayout(target_properties_group);
-
-	QLabel * shape_label = new QLabel("Targeted shape model",this);
-	QLabel * N_samples_label = new QLabel("Max samples per facet",this);
-
-	QLabel * spin_raan_label = new QLabel("Spin RAAN (deg)",this);
-	QLabel * spin_inc_label = new QLabel("Spin inclination (deg)",this);
 
 	QLabel * observer_az_label = new QLabel("Observer azimuth (deg)",this);
 	QLabel * observer_el_label = new QLabel("Observer elevation (deg)",this);
@@ -79,110 +72,52 @@ LCWindow::LCWindow(Mainwindow * parent) {
 	QLabel * sun_az_label = new QLabel("Sun azimuth (deg)",this);
 	QLabel * sun_el_label = new QLabel("Sun elevation (deg)",this);
 
-	QLabel * period_label = new QLabel("Rotation period (hours)",this);
-	QLabel * imaging_period_label = new QLabel("Imaging period (hours)",this);
-	QLabel * N_images_label = new QLabel("Images to collect",this);
-
-
 	this -> phase_angle_label = new QLabel("Phase angle (deg)" , this);
 	this -> phase_angle_qldt = new QLineEdit(this);
 	this -> phase_angle_qldt -> setReadOnly(true);
 	this -> phase_angle_qldt -> setDisabled(true);
 
-	this -> prop_combo_box = new QComboBox (this);
-	this -> spin_raan_sbox = new QDoubleSpinBox(this);
-	this -> spin_inc_sbox = new QDoubleSpinBox(this);
-
 	this -> observer_az_sbox = new QDoubleSpinBox(this);
 	this -> observer_el_sbox = new QDoubleSpinBox(this);
-
 
 	this -> sun_az_sbox = new QDoubleSpinBox(this);
 	this -> sun_el_sbox = new QDoubleSpinBox(this);
 
-	this -> rotation_period_sbox = new QDoubleSpinBox(this);
-	this -> imaging_period_sbox = new QDoubleSpinBox(this);
+	observer_location_group_layout -> addWidget(observer_az_label,0,0,1,1);
+	observer_location_group_layout -> addWidget(this -> observer_az_sbox,0,1,1,1);
 
-	this -> N_samples_sbox = new QSpinBox (this);
-	this -> N_images_sbox = new QSpinBox (this);
+	observer_location_group_layout -> addWidget(observer_el_label,1,0,1,1);
+	observer_location_group_layout -> addWidget(this -> observer_el_sbox,1,1,1,1);
 
-	this -> penalize_incidence_box = new QCheckBox("Penalize incidence",this);
+	sun_location_group_layout -> addWidget(sun_az_label,0,0,1,1);
+	sun_location_group_layout -> addWidget(this -> sun_az_sbox,0,1,1,1);
 
+	sun_location_group_layout -> addWidget(sun_el_label,1,0,1,1);
+	sun_location_group_layout -> addWidget(this -> sun_el_sbox,1,1,1,1);
 
-	target_group_layout -> addWidget(shape_label,0,0,1,1);
-	target_group_layout -> addWidget(this -> prop_combo_box,0,1,1,1);
+	phasing_group_layout -> addWidget(this -> phase_angle_label,0,0,1,1);
+	phasing_group_layout -> addWidget(this -> phase_angle_qldt,0,1,1,1);
 
-	target_properties_group_layout -> addWidget(spin_raan_label,0,0,1,1);
-	target_properties_group_layout -> addWidget(this -> spin_raan_sbox,0,1,1,1);
+	lc_window_layout -> addWidget(observer_location_group);
+	lc_window_layout -> addWidget(sun_location_group);
+	lc_window_layout -> addWidget(phasing_group);
 
-	target_properties_group_layout -> addWidget(spin_inc_label,1,0,1,1);
-	target_properties_group_layout -> addWidget(this -> spin_inc_sbox,1,1,1,1);
-
-	target_properties_group_layout -> addWidget(period_label,2,0,1,1);
-	target_properties_group_layout -> addWidget(this -> rotation_period_sbox,2,1,1,1);
-
-
-	lc_settings_group_layout -> addWidget(N_samples_label,0,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> N_samples_sbox,0,1,1,1);
-
-	lc_settings_group_layout -> addWidget(imaging_period_label,1,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> imaging_period_sbox,1,1,1,1);
-
-	lc_settings_group_layout -> addWidget(N_images_label,2,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> N_images_sbox,2,1,1,1);
-
-	lc_settings_group_layout -> addWidget(observer_az_label,3,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> observer_az_sbox,3,1,1,1);
-
-	lc_settings_group_layout -> addWidget(observer_el_label,4,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> observer_el_sbox,4,1,1,1);
-
-	lc_settings_group_layout -> addWidget(sun_az_label,5,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> sun_az_sbox,5,1,1,1);
-
-	lc_settings_group_layout -> addWidget(sun_el_label,6,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> sun_el_sbox,6,1,1,1);
-
-	lc_settings_group_layout -> addWidget(this -> phase_angle_label,7,0,1,1);
-	lc_settings_group_layout -> addWidget(this -> phase_angle_qldt,7,1,1,1);
-	lc_settings_group_layout -> addWidget(this -> penalize_incidence_box,8,0,1,2);
+	lc_window_layout -> addWidget(this -> collect_observations_button);
 
 
-	// Creating the button box
-	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
-
-	lc_window_layout -> addWidget(target_group);
-	lc_window_layout -> addWidget(target_properties_group);
-	lc_window_layout -> addWidget(lc_settings_group);
-	lc_window_layout -> addWidget(collect_observations_button);
-	lc_window_layout -> addWidget(open_visualizer_button);
-	lc_window_layout -> addWidget(save_observations_button);
-
-
-	open_visualizer_button -> setDisabled(1);
-	save_observations_button -> setDisabled(1);
-
-	lc_window_layout -> addWidget(button_box);
-
-	connect(collect_observations_button, SIGNAL(clicked()), this, SLOT(collect_observations()));
-	connect(open_visualizer_button, SIGNAL(clicked()), this, SLOT(open_visualizer()));
-	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
+	connect(this -> collect_observations_button, SIGNAL(clicked()), this, SLOT(collect_observations()));
+	connect(this -> open_visualizer_button, SIGNAL(clicked()), this, SLOT(open_visualizer()));
 	connect(this -> save_observations_button,SIGNAL(clicked()),this,SLOT(save_observations()));
 	connect(this -> observer_az_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
 	connect(this -> observer_el_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
 	connect(this -> sun_az_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
 	connect(this -> sun_el_sbox,SIGNAL(valueChanged(double)),this,SLOT(update_phase_angle()));
 
-
 	this -> init();
-
 
 }
 
 void LCWindow::init(){
-
-	this -> spin_raan_sbox -> setDecimals(6);
-	this -> spin_inc_sbox -> setDecimals(6);
 
 	this -> observer_az_sbox -> setDecimals(6);
 	this -> observer_el_sbox -> setDecimals(6);
@@ -190,56 +125,21 @@ void LCWindow::init(){
 	this -> sun_az_sbox -> setDecimals(6);
 	this -> sun_el_sbox -> setDecimals(6);
 
-	this -> rotation_period_sbox -> setDecimals(6);
-	this -> imaging_period_sbox -> setDecimals(6);
-
-	this -> spin_raan_sbox -> setRange(-180,180);
-	this -> spin_inc_sbox -> setRange(-180,180);
-
 	this -> observer_az_sbox -> setRange(-180,180);
 	this -> observer_el_sbox -> setRange(-180,180);
-
 
 	this -> sun_az_sbox -> setRange(-180,180);
 	this -> sun_el_sbox -> setRange(-180,180);
 
-	this -> N_samples_sbox -> setRange(1,1000);
-	this -> N_images_sbox -> setRange(1,1000);
-
-	this -> rotation_period_sbox -> setRange(1e-10,1e10);
-	this -> imaging_period_sbox -> setRange(1e-10,1e10);
-
-	this -> spin_raan_sbox -> setValue(0);
-	this -> spin_inc_sbox -> setValue(0);
-
 	this -> observer_az_sbox -> setValue(0);
 	this -> observer_el_sbox -> setValue(0);
-
 
 	this -> sun_az_sbox -> setValue(0);
 	this -> sun_el_sbox -> setValue(0);
 
-	this -> N_samples_sbox -> setValue(30);
-	this -> N_images_sbox -> setValue(1);
-
-	this -> rotation_period_sbox -> setValue(1);
-	this -> imaging_period_sbox -> setValue(1);
-
-	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
-
-	for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
-		this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
-	}
-
-	if (wrapped_shape_data.size() == 0 ){
-		this -> save_observations_button -> setEnabled(false);
-	}
-
 	this ->  lc = vtkSmartPointer<SBGATObsLightcurve>::New();
 	this -> phase_angle_qldt -> setText(QString::number(0));
 	this -> phase_angle_qldt -> repaint();
-
-	this -> penalize_incidence_box -> setChecked(true);
 
 
 }
@@ -247,13 +147,11 @@ void LCWindow::init(){
 
 
 void LCWindow::collect_observations(){
-
 	double d2r = arma::datum::pi /180;
-	arma::vec spin = {0,0,1};
-	spin = (RBK::M2(this -> spin_inc_sbox -> value() * d2r) 
-		* RBK::M3(this -> spin_raan_sbox -> value() * d2r)).t() * spin;
 
-	
+	arma::vec spin = this -> primary_shape_properties_widget -> get_spin();
+	double rotation_period = this -> primary_shape_properties_widget -> get_period();
+
 	arma::vec observer_dir = {1,0,0};
 	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> observer_az_sbox -> value() * d2r)).t() * observer_dir;
@@ -262,14 +160,13 @@ void LCWindow::collect_observations(){
 	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
 
-	double rotation_period = this -> rotation_period_sbox -> value() * 3600; 
 	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
 
 	int N_images = this -> N_images_sbox -> value(); 
 	int N_samples = this -> N_samples_sbox -> value() ;
 
 	// Querying the selected small body
-	std::string name = this -> prop_combo_box -> currentText().toStdString();
+	std::string name = this -> primary_prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 
 

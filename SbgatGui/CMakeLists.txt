@@ -127,6 +127,8 @@ add_executable(${EXE_NAME}
 	source/LCWindow.cpp
 	source/RadarVisualizer.cpp
 	source/LCVisualizer.cpp
+	source/ObsWindow.cpp
+	source/ShapePropertiesWidget.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
@@ -137,6 +139,8 @@ add_executable(${EXE_NAME}
 	include/LCWindow.hpp
 	include/RadarVisualizer.hpp
 	include/LCVisualizer.hpp
+	include/ObsWindow.hpp
+	include/ShapePropertiesWidget.hpp
 	)
 
 set(library_dependencies
