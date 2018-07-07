@@ -41,7 +41,6 @@ SOFTWARE.
 class SBGATTrajectory{
 
 public:
-	SBGATTrajectory();
 
 	/**
 	Generates a keplerian trajectory at the prescribed time

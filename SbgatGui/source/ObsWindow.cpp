@@ -23,10 +23,13 @@ SOFTWARE.
 
 #include "ObsWindow.hpp"
 #include <QMessageBox>
+#include <QScrollArea>
 
 #include <vtkSphereSource.h>
 #include <vtkTriangleFilter.h>
 #include "ShapePropertiesWidget.hpp"
+
+
 
 using namespace SBGAT_GUI;
 
@@ -34,10 +37,19 @@ ObsWindow::ObsWindow(Mainwindow * parent) {
 
 	this -> parent = parent;
 
-	QVBoxLayout * obs_window_layout = new QVBoxLayout(this);
 
 	QGroupBox * target_group = new QGroupBox(tr("Shapes"));
-	
+		
+	QScrollArea * scroll_area = new QScrollArea(this);
+	scroll_area -> setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+    scroll_area -> setWidgetResizable( true );
+    scroll_area -> setGeometry( 10, 10, 600, 1000 );
+
+	QWidget * enclosing_widget = new QWidget();
+	scroll_area -> setWidget(enclosing_widget);
+
+	QVBoxLayout * obs_window_layout = new QVBoxLayout(enclosing_widget);
+
 
 	this -> obs_specific_group = new QGroupBox(tr("-"));
 	QGroupBox * settings_group = new QGroupBox(tr("Settings"));

@@ -137,7 +137,6 @@ add_library(${LIB_NAME}
 	source/SBGATObsRadar.cpp
 	source/SBGATObsLightcurve.cpp
 	source/SBGATTrajectory.cpp
-
 	)
 
 # Linking

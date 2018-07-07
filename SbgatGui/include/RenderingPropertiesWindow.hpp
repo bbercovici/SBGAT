@@ -89,7 +89,8 @@ namespace SBGAT_GUI {
 		// QComboBox * new_light_combo_box ;
 
 		// void make_light_box_consistent();
-		
+
+
 
 
 

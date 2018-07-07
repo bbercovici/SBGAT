@@ -73,9 +73,7 @@ data simulating the output of a range/range-rate doppler radar
 	*/
 		ObsWindow(Mainwindow * parent) ;
 
-
 		private slots:
-
 
 		void changed_secondary_box(int index);
 
@@ -105,8 +103,6 @@ data simulating the output of a range/range-rate doppler radar
 		QPushButton * collect_observations_button;
 		ShapePropertiesWidget * primary_shape_properties_widget;
 		ShapePropertiesWidget * secondary_shape_properties_widget;
-
-
 
 	};
 }

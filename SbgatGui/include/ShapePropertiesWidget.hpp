@@ -81,8 +81,17 @@ by the physical parameters of a shape
 		double get_density() const;
 
 
+		/**
+		Returns a vector of keplerian orbital elements
+		@return vector of orbital elements sma (m) ,e ,i (rad) ,Omega (rad) ,omega (rad) ,M0 (rad)
+		*/
+		arma::vec get_orbital_elements() const;
+
 
 		private slots:
+
+		void toggle_position_visibility();
+		void toggle_attitude_visibility();
 
 	protected:
 
@@ -91,13 +100,40 @@ by the physical parameters of a shape
 		QLabel * spin_raan_label;
 		QLabel * spin_inc_label;
 		QLabel * period_label;
-		QLabel * density_label = nullptr;
+
 
 
 		QDoubleSpinBox * spin_raan_sbox;
 		QDoubleSpinBox * spin_inc_sbox;
 		QDoubleSpinBox * period_sbox;
+
+
+
+		QDoubleSpinBox * sma_sbox;
+		QDoubleSpinBox * ecc_sbox;
+		QDoubleSpinBox * inc_sbox;
+		QDoubleSpinBox * Omega_sbox;
+		QDoubleSpinBox * omega_sbox;
+		QDoubleSpinBox * M0_sbox;
+
+
+
 		QDoubleSpinBox * density_sbox = nullptr;
+		QLabel * density_label = nullptr;
+
+		QRadioButton * position_from_keplerian_button ;
+		QRadioButton * position_from_file_button ;
+		QRadioButton * attitude_from_simple_spin_button ;
+		QRadioButton * attitude_from_file_button ;
+
+
+		QWidget * position_keplerian_widget;
+		QWidget * attitude_simple_spin_widget;
+
+		QGroupBox * position_box;
+		QGroupBox * attitude_box;
+
+		
 
 	};
 }

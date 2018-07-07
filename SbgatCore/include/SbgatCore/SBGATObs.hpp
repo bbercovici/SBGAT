@@ -46,6 +46,12 @@ public:
 	*/
 	void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
 
+	/**
+	Returns the number of considered bodies
+	@return number of considered bodies
+	*/
+	int get_number_of_bodies() const {return this -> number_of_bodies;}
+
 protected:
 
 	/*
@@ -73,12 +79,6 @@ protected:
 	*/
 	void find_max_facet_surface_area();
 
-
-
-
-
-
-
 	/**
 	Checks if the line spanned between provided points intersects
 	with any of the considered bodies. 
@@ -95,9 +95,6 @@ protected:
 	const std::vector<arma::mat> & BN_dcms_vec,
 	const std::vector<arma::vec> & positions_vec,
 	const double & tol) const;
-
-
-
 
 
 	std::vector<vtkSmartPointer<vtkModifiedBSPTree>> bspTree_vec;

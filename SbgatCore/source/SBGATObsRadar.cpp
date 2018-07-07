@@ -66,6 +66,7 @@ vtkStandardNewMacro(SBGATObsRadar);
 SBGATObsRadar::SBGATObsRadar(){
 
   this -> SetNumberOfOutputPorts(0);
+  this -> SetNumberOfInputPorts(2);
 }
 
 //----------------------------------------------------------------------------

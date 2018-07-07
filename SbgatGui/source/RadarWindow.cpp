@@ -27,6 +27,10 @@ SOFTWARE.
 
 #include <QMessageBox>
 
+#include <SBGATTrajectory.hpp>
+#include <SBGATMassProperties.hpp>
+
+
 
 using namespace SBGAT_GUI;
 
@@ -152,46 +156,75 @@ void RadarWindow::open_visualizer(){
 
 
 void RadarWindow::collect_observations(){
+	this -> measurement_sequence.clear();
+	
+
+	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
+	std::vector<double> imaging_times;
+	for (int i  = 0; i < this -> N_images_sbox -> value(); ++i){
+		double t = i * imaging_period;
+		imaging_times.push_back(t);
+	}
+
+	// Querying the selected primary small body
+	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	this -> radar -> SetInputData(0,shape_data[primary_name] -> get_polydata());
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
+	mass_properties -> Update();
+	double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
+	
+
+
+	// Querying the selected secondary small body, if any
+	// Need to pull the keplerian state of the secondary but only if its present
+
+	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
+	arma::vec elements;
+	SBGATTrajectory trajectory;
+	std::vector<arma::vec> secondary_positions,secondary_velocities;
+
+	if (secondary_name != "None"){
+		shape_data = this -> parent -> get_wrapped_shape_data();
+		this -> radar -> SetInputData(1,shape_data[secondary_name] -> get_polydata());
+		elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
+		trajectory.GenerateKeplerianTrajectory(secondary_positions,secondary_velocities,imaging_times,elements,mu);
+	}
+
+
+	this -> radar -> SetScaleMeters();
+	this -> radar -> Update();
+
+
 	double d2r = arma::datum::pi /180;
-
-	arma::vec spin = this -> primary_shape_properties_widget -> get_spin();
-	double rotation_period = this -> primary_shape_properties_widget -> get_period();
-
-
 	arma::vec radar_dir = {1,0,0};
 	radar_dir = (RBK::M2(this -> radar_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_dir;
 
-	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
 
-	
-	int N_images = this -> N_images_sbox -> value(); 
-	int N_samples = this -> N_samples_sbox -> value() ;
+	for (int t = 0; t < imaging_times.size(); ++t){
 
+		std::vector<double> period_vec;
+		std::vector<arma::vec> positions_vec, velocities_vec, spin_vec;
 
-	// Querying the selected small body
-	std::string name = this -> primary_prop_combo_box -> currentText().toStdString();
-	auto shape_data = this -> parent -> get_wrapped_shape_data();
+		// Primary
+		period_vec.push_back(this -> primary_shape_properties_widget -> get_period());
+		positions_vec.push_back(arma::zeros<arma::vec>(3));
+		velocities_vec.push_back(arma::zeros<arma::vec>(3));
+		spin_vec.push_back(this -> primary_shape_properties_widget -> get_spin());
 
-	this -> radar -> SetInputData(shape_data[name] -> get_polydata());
-	this -> radar -> SetScaleMeters();
-	this -> radar -> Update();
-
-	this -> measurement_sequence.clear();
-
-
-	std::vector<double> period_vec  = {rotation_period};
-	std::vector<arma::vec> positions_vec = {arma::zeros<arma::vec>(3)};
-	std::vector<arma::vec> velocities_vec = {arma::zeros<arma::vec>(3)};
-	std::vector<arma::vec> spin_vec = {spin};
-
-	for (int i  = 0; i < N_images; ++i){
-
-		double t = i * imaging_period;
+		// Secondary, if any
+		if (secondary_name != "None"){
+			period_vec.push_back(this -> secondary_shape_properties_widget -> get_period());
+			positions_vec.push_back(secondary_positions[t]);
+			velocities_vec.push_back(secondary_velocities[t]);
+			spin_vec.push_back(this -> secondary_shape_properties_widget -> get_spin());
+		}
 
 		this -> radar -> CollectMeasurementsSimpleSpin(this -> measurement_sequence,
-			N_samples,
-			t,
+			this -> N_samples_sbox -> value(),
+			imaging_times[t],
 			period_vec,
 			radar_dir,
 			positions_vec,
