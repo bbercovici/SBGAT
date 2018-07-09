@@ -121,6 +121,7 @@ int SBGATSphericalHarmo::RequestData(
 
   this -> Cnm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
   this -> Snm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
+  
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(input);
   mass_properties -> Update();
@@ -128,7 +129,7 @@ int SBGATSphericalHarmo::RequestData(
   // Check that the shape is topologically closed
   assert(mass_properties -> CheckClosed());
 
-  this -> totalMass = mass_properties -> GetVolume() * this -> density;
+  this -> totalMass = mass_properties -> GetVolume() * this -> density * std::pow(this -> scaleFactor,3);
 
   // Looping over all facets
   for (cellId=0; cellId < numCells; cellId++){
@@ -169,25 +170,19 @@ int SBGATSphericalHarmo::RequestData(
       Snm2f,
       this -> degree,
       this -> referenceRadius,
-      dv * this -> density,
-      this -> density,
-      this -> totalMass,
       &r0[0],
       &r1[0],
       &r2[0],
       this -> normalized
       );
 
-
-    this -> Cnm += Cnm2f * dv * this -> density;
-    this -> Snm += Snm2f * dv * this -> density;
-    
-    
+    this -> Cnm += Cnm2f * dv ;
+    this -> Snm += Snm2f * dv ;
     
   }
 
-  this -> Cnm /= this -> totalMass;
-  this -> Snm /= this -> totalMass;
+  this -> Cnm /= mass_properties -> GetVolume();
+  this -> Snm /= mass_properties -> GetVolume();
 
   return 1;
 }
@@ -210,15 +205,14 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
       pos,
       this -> referenceRadius);
 
-    double G = arma::datum::G / std::pow(this -> scaleFactor,3); 
-    double mu = this -> totalMass * G;
+    double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.5 * mu / this -> referenceRadius / this -> referenceRadius;
+    double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
     double x_ddot = 0;
     double y_ddot = 0;
     double z_ddot = 0;
 
-    for (unsigned int nn = 0; nn<=this -> degree; nn++){
+    for (unsigned int nn = 0; nn <= this -> degree; nn++){
 
       double n = (double) nn;
 
@@ -279,7 +273,6 @@ void SBGATSphericalHarmo::PrintTrailer(ostream& os, vtkIndent indent) {
 }
 
 
-
 void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
@@ -308,14 +301,13 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   spherical_harmo_json["density"]["value"] = this -> density;
 
   spherical_harmo_json["referenceRadius"]["value"] = this -> referenceRadius;
+  spherical_harmo_json["density"]["unit"] = "kg/m^3";
   
   if (this -> scaleFactor == 1){
-    spherical_harmo_json["density"]["unit"] = "kg/m^3";
     spherical_harmo_json["referenceRadius"]["unit"] = "m";
 
   }
   else{
-    spherical_harmo_json["density"]["unit"] = "kg/km^3";
     spherical_harmo_json["referenceRadius"]["unit"] = "km";
 
   }
@@ -348,7 +340,6 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
 }
-
 void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // The JSON container is created
@@ -368,7 +359,7 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
   this -> referenceRadius = spherical_harmo_json.at("referenceRadius").at("value");
   this -> totalMass = spherical_harmo_json.at("totalMass").at("value");
 
-  if (spherical_harmo_json.at("density").at("unit") == "kg/m^3" ){
+  if (spherical_harmo_json.at("referenceRadius").at("unit") == "m" ){
     this -> scaleFactor = 1;
   }
   else{
@@ -411,9 +402,6 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
   this -> SetInputData(empty_polydata);
 
 }
-
-
-
 
 //----------------------------------------------------------------------------
 void SBGATSphericalHarmo::PrintSelf(std::ostream& os, vtkIndent indent){

@@ -84,7 +84,7 @@ public:
   }
 
   /**
-  Sets reference radius in spherical harmonics expansion. Units must be consistent 
+  Sets reference radius in spherical harmonics expansion. Must be consistent 
   with the units in which the shape coordinates are expressed
   @param ref_radius reference radius in spherical harmonics expansion
   */
@@ -148,6 +148,7 @@ public:
   Returns the acceleration due to gravity at the specified point
   @param pos position at which the acceleration must be evaluated, expressed in the same frame as 
   the one used to build the spherical harmonics expansion
+  @return acceleration (kg * m / s ^ 2)
   */
   arma::vec GetAcceleration(const arma::vec & pos);
 
