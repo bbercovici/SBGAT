@@ -99,7 +99,7 @@ public:
   */
   arma::vec GetAcceleration(arma::vec point);
 
-   /**
+  /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
@@ -117,7 +117,6 @@ public:
   */
   bool Contains(double * point, double tol = 1e-8);
 
-
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
@@ -130,7 +129,7 @@ public:
 
   /**
   Sets polyhedron density
-  @param density bulk density of polyhedron
+  @param density bulk density of polyhedron (kg/m^3)
   */
   void SetDensity(const double density){
     this -> density = density;

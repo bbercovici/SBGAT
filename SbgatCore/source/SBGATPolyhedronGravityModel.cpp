@@ -98,7 +98,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 
 	if (!(this -> densitySet && this -> scaleFactorSet)){
-		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor may have not been properly set"));
+		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
   // call ExecuteData
@@ -417,7 +417,9 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 	}
 
-	potential *= 0.5 * arma::datum::G / std::pow(this -> scaleFactor,3) * this ->density;
+
+	// The scale factor is not needed here since G is in L^3 / (MT^2) and density in M/L^3
+	potential *= 0.5 * arma::datum::G * this -> density;
 
 	return potential;
 
@@ -548,7 +550,9 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 	}
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
-	acc *= arma::datum::G  / std::pow(this -> scaleFactor,3)* this -> density;
+	// The scale factor is not needed here since G is in L^3 / (MT^2) and density in M/L^3
+
+	acc *= arma::datum::G  * this -> density;
 
 	return acc;
 

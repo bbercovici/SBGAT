@@ -358,8 +358,6 @@ int SBGATMassProperties::RequestData(
       + y[1] * z[2]
       + z[1] * y[2]);
 
-
-
     // Sum of oriented surface
     vtkMath::MultiplyScalar(u,area);
     vtkMath::Add(u,sum_surface,sum_surface);
@@ -451,7 +449,7 @@ int SBGATMassProperties::RequestData(
 
 
     // Closeness of topology given sum of oriented surface
-    if (vtkMath::Norm(sum_surface) / average_surface < 1e-8){
+    if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
       this -> IsClosed = true;
     }
     else{
