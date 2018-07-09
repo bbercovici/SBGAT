@@ -175,11 +175,7 @@ void RadarWindow::collect_observations(){
 	mass_properties -> Update();
 	double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
 	
-
-
 	// Querying the selected secondary small body, if any
-	// Need to pull the keplerian state of the secondary but only if its present
-
 	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
 	arma::vec elements;
 	SBGATTrajectory trajectory;
@@ -203,7 +199,7 @@ void RadarWindow::collect_observations(){
 		* RBK::M3(this -> radar_az_sbox -> value() * d2r)).t() * radar_dir;
 
 
-	for (int t = 0; t < imaging_times.size(); ++t){
+	for (unsigned int t = 0; t < imaging_times.size(); ++t){
 
 		std::vector<double> period_vec;
 		std::vector<arma::vec> positions_vec, velocities_vec, spin_vec;

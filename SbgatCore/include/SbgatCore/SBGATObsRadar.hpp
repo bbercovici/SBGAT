@@ -181,6 +181,7 @@ protected:
 
 
 
+  int FillInputPortInformation( int port, vtkInformation* info );
 
 
 

@@ -67,6 +67,9 @@ SBGATObsLightcurve::SBGATObsLightcurve(){
 
   this -> SetNumberOfOutputPorts(0);
   this -> SetNumberOfInputPorts(2);
+  this -> SetInputData(0,nullptr);
+  this -> SetInputData(1,nullptr);
+
 }
 
 //----------------------------------------------------------------------------
@@ -102,8 +105,10 @@ int SBGATObsLightcurve::RequestData(
 
 
   // Processing the secondary, if any
-  if(this -> GetNumberOfInputConnections(1) > 0){
-   vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
+  vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
+
+  if(inInfo1->Get(vtkDataObject::DATA_OBJECT()) != nullptr){
+   vtkInformation *inInfo1 = inputVector[1] -> GetInformationObject(0);
    vtkPolyData * secondary =  vtkPolyData::SafeDownCast(inInfo1->Get(vtkDataObject::DATA_OBJECT()));
    vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
    tree -> SetDataSet(secondary);
@@ -120,7 +125,6 @@ int SBGATObsLightcurve::RequestData(
  
  // The surface area of the largest facet amongst all considered shapes is found
  this -> find_max_facet_surface_area();
-
 
 
  return 1;
@@ -175,12 +179,15 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   }
 
 
+
   // First, only facets that are in view of the sun
   // and the observer (based on their normal orientation) are kept
   // Then, the facets that are in view of the sun are ray-traced to the sun and to the observer
   // checking with potential interects with all bodies
 
   std::vector<arma::vec> dir_to_check_vec = {observer_dir,sun_dir};
+
+  std::cout << "prefinding...\n";
 
   for (int i = 0; i < this -> number_of_bodies; ++i){
 
@@ -195,6 +202,9 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   measurements_temp[0] = dt;
   measurements_temp[1] = 0;
 
+
+  std::cout << "reversing...\n";
+
   this -> reverse_ray_trace(measurements_temp,
     facets_in_view,
     sun_dir,
@@ -203,6 +213,7 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
     penalize_indicence,
     BN_dcms_vec,
     positions_vec);
+  std::cout << "reversed\n";
 
   measurements.push_back(measurements_temp);
 
@@ -355,7 +366,7 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
 
     // The number of points sampled from this facet is determined based on 
     // the relative size of this facet compared to the largest one in all the considered shapes
-      int N_samples = int( N * arma::norm(n /2) / this -> max_area);
+      int N_samples = int( N * arma::norm(n /2) / this -> min_area);
 
     // only need unit normal vector from here
       n = arma::normalise(arma::cross(P1 - P0, P2 - P0));
@@ -389,7 +400,6 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
         + this -> check_line_for_intersect(body_index,point_above_surface,observer_pos,BN_dcms_vec,positions_vec,tol));
 
       // If this point was not obscured, the return is weighed by the incidence on the inbound and outbout rays
-
       if (!has_intersected){
         measurements_temp[1] += cosi_sun * cosi_obs;
       }

@@ -102,7 +102,7 @@ protected:
 	std::vector<arma::vec> center_of_mass_vec;
 	
 	double scaleFactor = 1;
-	double max_area;
+	double min_area;
 	int number_of_bodies;
 
 };

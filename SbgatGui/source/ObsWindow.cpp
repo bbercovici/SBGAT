@@ -41,15 +41,16 @@ ObsWindow::ObsWindow(Mainwindow * parent) {
 	QGroupBox * target_group = new QGroupBox(tr("Shapes"));
 		
 	QScrollArea * scroll_area = new QScrollArea(this);
-	scroll_area -> setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	// scroll_area -> setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
+	scroll_area -> setFrameShape(QFrame::NoFrame);
     scroll_area -> setWidgetResizable( true );
-    scroll_area -> setGeometry( 10, 10, 600, 1000 );
+    scroll_area -> setGeometry( 10, 10, 600, 800 );
 
 	QWidget * enclosing_widget = new QWidget();
-	scroll_area -> setWidget(enclosing_widget);
 
 	QVBoxLayout * obs_window_layout = new QVBoxLayout(enclosing_widget);
-
+	scroll_area -> setWidget(enclosing_widget);
+	
 
 	this -> obs_specific_group = new QGroupBox(tr("-"));
 	QGroupBox * settings_group = new QGroupBox(tr("Settings"));
@@ -60,7 +61,7 @@ ObsWindow::ObsWindow(Mainwindow * parent) {
 	QLabel * primary_shape_label = new QLabel("Primary shape model",this);
 	QLabel * secondary_shape_label = new QLabel("Secondary shape model",this);
 
-	QLabel * N_samples_label = new QLabel("Max samples per facet",this);
+	QLabel * N_samples_label = new QLabel("Minimum number of samples per facet",this);
 
 
 	QLabel * imaging_period_label = new QLabel("Imaging period (hours)",this);
@@ -85,7 +86,6 @@ ObsWindow::ObsWindow(Mainwindow * parent) {
 
 	target_group_layout -> addWidget(secondary_shape_label,1,0,1,1);
 	target_group_layout -> addWidget(this -> secondary_prop_combo_box,1,1,1,1);
-
 
 	settings_group_layout -> addWidget(N_samples_label,0,0,1,1);
 	settings_group_layout -> addWidget(this -> N_samples_sbox,0,1,1,1);
@@ -135,7 +135,7 @@ void ObsWindow::init(){
 	this -> imaging_period_sbox -> setRange(1e-10,1e10);
 
 
-	this -> N_samples_sbox -> setValue(30);
+	this -> N_samples_sbox -> setValue(1);
 	this -> N_images_sbox -> setValue(1);
 
 	this -> imaging_period_sbox -> setValue(1);
@@ -154,13 +154,11 @@ void ObsWindow::init(){
 		}
 	}
 
-	
 	this -> penalize_incidence_box -> setChecked(true);
 
 	this -> open_visualizer_button -> setDisabled(true);
 	this -> save_observations_button -> setDisabled(true);
 	this -> secondary_shape_properties_widget -> setEnabled(0);
-
 
 }
 

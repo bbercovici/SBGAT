@@ -4,7 +4,7 @@
 
 void SBGATObs::find_max_facet_surface_area(){
 
-	double max_area = -1;
+	double min_area = std::numeric_limits<double>::infinity();
 	vtkIdType numCells, numIds;
 
 	vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
@@ -42,12 +42,12 @@ void SBGATObs::find_max_facet_surface_area(){
 			double n[3];
 
 			vtkMath::Cross(e0,e1,n);
-			max_area = std::max(max_area,vtkMath::Norm(n)/2);
+			min_area = std::min(min_area,vtkMath::Norm(n)/2);
 
 		}
 	}
 
-	this-> max_area = max_area;
+	this-> min_area = min_area;
 
 }
 
@@ -124,6 +124,7 @@ bool SBGATObs::check_line_for_intersect(const int & origin_body_index,
 	const std::vector<arma::vec> & positions_vec,
 	const double & tol) const{
 
+
 	for (int considered_body_index = 0; considered_body_index < this -> number_of_bodies; ++considered_body_index){
 
 		// The KD tree of the considered body is aligned with the axes of the B frame 
@@ -132,6 +133,8 @@ bool SBGATObs::check_line_for_intersect(const int & origin_body_index,
 		arma::vec start_point_inertial = BN_dcms_vec[origin_body_index].t() * (start_point_origin_body - this -> center_of_mass_vec[origin_body_index]) + positions_vec[origin_body_index];
 		arma::vec start_point_considered = BN_dcms_vec[considered_body_index] *  (start_point_inertial - positions_vec[considered_body_index]) + this -> center_of_mass_vec[considered_body_index];
 		arma::vec end_point_considered = BN_dcms_vec[considered_body_index] *  (end_point_inertial - positions_vec[considered_body_index]) + this -> center_of_mass_vec[considered_body_index];
+
+
 
 		vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
 		vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();

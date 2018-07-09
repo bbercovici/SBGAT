@@ -119,8 +119,6 @@ void RadarVisualizer::init(){
 	histo -> GetAxis( vtkAxis::LEFT) -> SetVisible(1);
 	histo -> GetAxis( vtkAxis::BOTTOM) -> SetVisible(1);
 
-	// std::cout << histo -> GetAxis( vtkAxis::LEFT) -> GetTitle() << std::endl;
-
     // this -> view -> GetScene() -> ClearItems();
 	this -> view -> GetScene() -> AddItem(histo);
 	

@@ -67,6 +67,12 @@ SBGATObsRadar::SBGATObsRadar(){
 
   this -> SetNumberOfOutputPorts(0);
   this -> SetNumberOfInputPorts(2);
+
+  this -> SetInputData(0,nullptr);
+  this -> SetInputData(1,nullptr);
+
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -74,11 +80,30 @@ SBGATObsRadar::SBGATObsRadar(){
 SBGATObsRadar::~SBGATObsRadar(){
 }
 
-//----------------------------------------------------------------------------
-// Description:
-// This method computes the Cnm and Snm arrays of coefficients
-// used in the spherical harmonics expansion of exterior gravity 
-// about a constant-density polyhedron
+
+
+
+
+
+int SBGATObsRadar::FillInputPortInformation( int port, vtkInformation* info ){
+  if ( port == 0 ){
+    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+    return 1;
+
+  }
+  else if(port == 1){
+   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), true);
+   info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), true);
+   return 1;
+
+ }
+
+ return 0;
+}
+
+
+
 
 int SBGATObsRadar::RequestData(
   vtkInformation* vtkNotUsed( request ),
@@ -110,8 +135,9 @@ int SBGATObsRadar::RequestData(
 
 
   // Processing the secondary, if any
-  if(this -> GetNumberOfInputConnections(1) > 0){
-   vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
+  vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
+
+  if(inInfo1->Get(vtkDataObject::DATA_OBJECT()) != nullptr){
    vtkPolyData * secondary =  vtkPolyData::SafeDownCast(inInfo1->Get(vtkDataObject::DATA_OBJECT()));
    vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
    tree -> SetDataSet(secondary);
@@ -175,6 +201,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(SBGATRadarObsSequence & measur
     this -> prefind_facets_inview(facets_in_view[i],i,dir_to_check_vec,BN_dcms_vec,positions_vec);
   }
 
+
   // The vector holding the kept-facets is initialized
   std::vector<std::array<double, 3> > measurements_temp;
   
@@ -205,12 +232,16 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
   arma::vec radar_pos = this -> center_of_mass_vec[0] + this -> polydata_vec[0] -> GetLength() * 1E6 * radar_dir;
 
   for (int body_index = 0; body_index < this -> number_of_bodies; ++body_index){
+
     vtkPolyData * input = this -> polydata_vec[body_index];
 
     vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
     ptIds -> Allocate(VTK_CELL_SIZE);
 
     arma::vec target_to_radar_dir_body_frame = BN_dcms_vec[body_index] * radar_dir;
+
+
+
 
   // The kept facets are then sampled and reverse ray-traced
     for (unsigned int facet_index = 0; facet_index != facets_in_view[body_index].size(); ++facet_index){
@@ -232,7 +263,7 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
 
     // The number of points sampled from this facet is determined based on 
     // the relative size of this facet compared to the largest one in all the considered shapes
-      int N_samples = int( N * arma::norm(n /2) / this -> max_area);
+      int N_samples = int( N * arma::norm(n /2) / this -> min_area);
 
     // only need unit normal vector from here
       n = arma::normalise(arma::cross(P1 - P0, P2 - P0));
@@ -277,7 +308,6 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
         // The velocity at the impact point is a combination of the orbital and rotational velocities
         arma::vec velocity = velocities_vec[body_index] + arma::cross(omega_vec[body_index],origin_cm);
         
-
         double range_rate = arma::dot(origin_inertial - radar_pos,velocity) / range;
 
         std::array<double, 3> measurement = {{range,range_rate,std::pow(cosi_radar,2)}};
