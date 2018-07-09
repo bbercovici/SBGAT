@@ -94,9 +94,8 @@ public:
   }
 
   /**
-  Sets polyhedron density. Units must be consistent 
-  with the units in which the shape coordinates are expressed
-  @param density bulk density of polyhedron
+  Sets polyhedron density 
+  @param density bulk density of polyhedron (kg/m^3)
   */
   void SetDensity(const double density){
     this -> density = density;
@@ -146,8 +145,8 @@ public:
 
   /**
   Returns the acceleration due to gravity at the specified point
-  @param pos position at which the acceleration must be evaluated, expressed in the same frame as 
-  the one used to build the spherical harmonics expansion
+  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit as 
+  the shape used to build the spherical harmonics expansion. 
   @return acceleration (kg * m / s ^ 2)
   */
   arma::vec GetAcceleration(const arma::vec & pos);

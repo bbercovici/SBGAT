@@ -93,8 +93,8 @@ public:
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame as
-  the polydata
+  @param point coordinates of queried point, expressed in the same frame/unit as
+  the polydata used to construct the PGM
   @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
   arma::vec GetAcceleration(arma::vec point);
