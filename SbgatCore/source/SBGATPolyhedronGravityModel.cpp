@@ -414,7 +414,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 	}
 
 	
-	potential *= 0.5 * arma::datum::G * this -> density / std::pow(this -> scaleFactor,2);
+	potential *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
 
 	return potential;
 
@@ -546,7 +546,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
 
-	acc *= arma::datum::G  * this -> density / (this -> scaleFactor);
+	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
 
 	return acc;
 
