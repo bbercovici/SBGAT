@@ -96,7 +96,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 	inputVector[0]->GetInformationObject(0);
 
 
-
 	if (!(this -> densitySet && this -> scaleFactorSet)){
 		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
@@ -197,7 +196,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 	}
 
 	// The edges are extracted
-
 	vtkSmartPointer<vtkExtractEdges> extractEdges = 
 	vtkSmartPointer<vtkExtractEdges>::New();
 	extractEdges->SetInputData(input);
@@ -206,7 +204,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	unsigned int edge_count = extractEdges->GetOutput()->GetNumberOfCells();
 	std::vector<std::array<vtkIdType,4>> edge_points_ids_facet_ids(edge_count);
-
 
 	// Should get rid of this map and use a vector instead
 	// This loop cannot be parallelized since GetPointCells is 
@@ -414,12 +411,10 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 		potential += Le * vtkMath::Dot(r0m,a);
 
-
 	}
 
-
-	// The scale factor is not needed here since G is in L^3 / (MT^2) and density in M/L^3
-	potential *= 0.5 * arma::datum::G * this -> density;
+	
+	potential *= 0.5 * arma::datum::G * this -> density / std::pow(this -> scaleFactor,2);
 
 	return potential;
 
@@ -550,9 +545,8 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 	}
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
-	// The scale factor is not needed here since G is in L^3 / (MT^2) and density in M/L^3
 
-	acc *= arma::datum::G  * this -> density;
+	acc *= arma::datum::G  * this -> density / (this -> scaleFactor);
 
 	return acc;
 
