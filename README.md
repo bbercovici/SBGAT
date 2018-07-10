@@ -78,9 +78,12 @@ to apply the update (if any).
 
 #### New:
 - Created module `SBGATKeplerianTraj`, a wrapper around the `OrbitConversions` library. This means that SBGAT can generate Keplerian trajectories
+- Created `SBGATObs` base-class from which `SBGATObsLightcurve` and `SBGATObsRadar` derive
+- Added new functionalities to `SbgatGui`
 
 #### Improvements
--  `SBGATObsLightcurve` now handles multi-body configurations, allowing generation of lightcurves of binary asteroid systems under the assumption that the secondary is undergoing a keplerian orbit about the primary 
+-  `SBGATObsLightcurve` and `SBGATObsRadar` now handle primary/secondary asteroid systems, allowing generation of lightcurves and radar observations of binary asteroid systems. Relative trajectories can be computed under the assumption that the secondary is undergoing a keplerian orbit about the primary, or be loaded from an external file.
+- Removed dependency of `SBGATSphericalHarmo` to density and mass of the considered shape model
 
 #### Bug fixes: 
 
