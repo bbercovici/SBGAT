@@ -114,8 +114,6 @@ namespace SBGAT_GUI {
 
 		std::string output_path;
 
-		vtkSmartPointer<SBGATObsLightcurve> lc;
-
 		std::vector<std::array<double, 2> > measurements;
 
 	};

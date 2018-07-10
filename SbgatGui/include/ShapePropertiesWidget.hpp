@@ -93,6 +93,29 @@ by the physical parameters of a shape
 		void toggle_position_visibility();
 		void toggle_attitude_visibility();
 
+
+		/**
+		Exclusive push button which, if pressed, indicates that the position of the body is keplerian
+		*/
+		QRadioButton * position_from_keplerian_button ;
+
+		/**
+		Exclusive push button which, if pressed, indicates that the position of the body is to be loaded from a file
+		*/
+		QRadioButton * position_from_file_button ;
+
+		/**
+		Exclusive push button which, if pressed, indicates that the attitude of the body derives from a fixed-spin regime
+		*/
+		QRadioButton * attitude_from_simple_spin_button ;
+
+		
+		/**
+		Exclusive push button which, if pressed, indicates that the attitude of the body is to be loaded from a file
+		*/
+		QRadioButton * attitude_from_file_button ;
+
+
 	protected:
 
 		void init();
@@ -121,14 +144,14 @@ by the physical parameters of a shape
 		QDoubleSpinBox * density_sbox = nullptr;
 		QLabel * density_label = nullptr;
 
-		QRadioButton * position_from_keplerian_button ;
-		QRadioButton * position_from_file_button ;
-		QRadioButton * attitude_from_simple_spin_button ;
-		QRadioButton * attitude_from_file_button ;
-
+		
 
 		QWidget * position_keplerian_widget;
 		QWidget * attitude_simple_spin_widget;
+
+
+		QWidget * position_from_file_widget;
+		QWidget * attitude_from_file_widget;
 
 		QGroupBox * position_box;
 		QGroupBox * attitude_box;

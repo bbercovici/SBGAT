@@ -137,7 +137,6 @@ void LCWindow::init(){
 	this -> sun_az_sbox -> setValue(0);
 	this -> sun_el_sbox -> setValue(0);
 
-	this ->  lc = vtkSmartPointer<SBGATObsLightcurve>::New();
 	this -> phase_angle_qldt -> setText(QString::number(0));
 	this -> phase_angle_qldt -> repaint();
 
@@ -151,43 +150,18 @@ void LCWindow::collect_observations(){
 
 	this -> measurements.clear();
 
+	this -> observation_filter = vtkSmartPointer<SBGATObsLightcurve>::New();
 
-	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
 	std::vector<double> imaging_times;
-	for (int i  = 0; i < this -> N_images_sbox -> value(); ++i){
-		double t = i * imaging_period;
-		imaging_times.push_back(t);
-	}
+	std::vector< std::vector<arma::vec> > positions_vec, velocities_vec, mrps_vec,omegas_vec;
 
-
-
-
-	// Querying the selected primary small body
-	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
-	auto shape_data = this -> parent -> get_wrapped_shape_data();
-	this -> lc -> SetInputData(0,shape_data[primary_name] -> get_polydata());
-	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
-	mass_properties -> Update();
-	double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
+	ObsWindow::get_inputs_from_GUI(imaging_times,
+		positions_vec,
+		velocities_vec,
+		mrps_vec,
+		omegas_vec);
 	
-	// Querying the selected secondary small body, if any
-	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
-	arma::vec elements;
-	SBGATTrajectory trajectory;
-	std::vector<arma::vec> secondary_positions,secondary_velocities;
-
-	if (secondary_name != "None"){
-		shape_data = this -> parent -> get_wrapped_shape_data();
-		this -> lc -> SetInputData(1,shape_data[secondary_name] -> get_polydata());
-		elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
-		trajectory.GenerateKeplerianTrajectory(secondary_positions,secondary_velocities,imaging_times,elements,mu);
-	}
-
-
-	this -> lc -> SetScaleMeters();
-	this -> lc -> Update();
-
+	this -> observation_filter -> SetScaleMeters();
 
 	double d2r = arma::datum::pi /180;
 	arma::vec observer_dir = {1,0,0};
@@ -197,35 +171,22 @@ void LCWindow::collect_observations(){
 	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
 
+	SBGATObsLightcurve * lc = SBGATObsLightcurve::SafeDownCast(this -> observation_filter);
+
 
 	for (unsigned int t = 0; t < imaging_times.size(); ++t){
 
-		std::vector<double> period_vec;
-		std::vector<arma::vec> positions_vec, velocities_vec, spin_vec;
-
-		// Primary
-		period_vec.push_back(this -> primary_shape_properties_widget -> get_period());
-		positions_vec.push_back(arma::zeros<arma::vec>(3));
-		velocities_vec.push_back(arma::zeros<arma::vec>(3));
-		spin_vec.push_back(this -> primary_shape_properties_widget -> get_spin());
-
-		// Secondary, if any
-		if (secondary_name != "None"){
-			period_vec.push_back(this -> secondary_shape_properties_widget -> get_period());
-			positions_vec.push_back(secondary_positions[t]);
-			velocities_vec.push_back(secondary_velocities[t]);
-			spin_vec.push_back(this -> secondary_shape_properties_widget -> get_spin());
-		}
-
-		this -> lc -> CollectMeasurementsSimpleSpin(
+		
+		lc -> CollectMeasurements(
 			this -> measurements,
-			this -> N_samples_sbox -> value(),
 			imaging_times[t],
-			period_vec,
+			this -> N_samples_sbox -> value(),
 			sun_dir,
 			observer_dir,
-			positions_vec,
-			spin_vec,
+			positions_vec[t],
+			velocities_vec[t], 
+			mrps_vec[t],
+			omegas_vec[t],
 			this -> penalize_incidence_box -> isChecked());
 	}
 
@@ -246,12 +207,13 @@ void LCWindow::open_visualizer(){
 }
 
 void LCWindow::save_observations(){
-
+	SBGATObsLightcurve * lc = SBGATObsLightcurve::SafeDownCast(this -> observation_filter);
+	
 	QString path = QFileDialog::getSaveFileName(this, tr("Save File"),
 		"",
 		tr("Text file (*.txt)"));
 	if (path.size() != 0){
-		this -> lc -> SaveLightCurveData(this -> measurements, path.toStdString());
+		lc -> SaveLightCurveData(this -> measurements, path.toStdString());
 	}
 
 }

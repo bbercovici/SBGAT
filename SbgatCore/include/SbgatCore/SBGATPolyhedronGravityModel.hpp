@@ -57,6 +57,14 @@ SOFTWARE.
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
 
+
+
+
+
+
+
+
+
 class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{
 public:
 

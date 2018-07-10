@@ -41,6 +41,9 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	this -> position_keplerian_widget = new QWidget(this -> position_box);
 	this -> attitude_simple_spin_widget = new QWidget(this -> attitude_box);
 
+	this -> position_from_file_widget = new QWidget(this -> position_box);
+	this -> attitude_from_file_widget = new QWidget(this -> attitude_box);
+
 
 	QWidget * button_box_widget_position = new QWidget(this -> position_box);
 	QHBoxLayout * button_box_widget_position_layout = new QHBoxLayout(button_box_widget_position);
@@ -62,16 +65,22 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 
 	QGridLayout * position_box_layout = new QGridLayout(this -> position_box);
 	QGridLayout * attitude_box_layout = new QGridLayout(this -> attitude_box);
+	
 	QGridLayout * position_keplerian_widget_layout = new QGridLayout(this -> position_keplerian_widget);
 	QGridLayout * attitude_simple_spin_widget_layout = new QGridLayout(this -> attitude_simple_spin_widget);
 
+	QGridLayout * position_from_file_widget_layout = new QGridLayout(this -> position_from_file_widget);
+	QGridLayout * attitude_from_file_widget_layout = new QGridLayout(this -> attitude_from_file_widget);
+
 	position_box_layout -> addWidget(button_box_widget_position);
 	position_box_layout -> addWidget(this -> position_keplerian_widget);
+	position_box_layout -> addWidget(this -> position_from_file_widget);
+
 
 	attitude_box_layout -> addWidget(button_box_widget_attitude);
 	attitude_box_layout -> addWidget(this -> attitude_simple_spin_widget);
+	attitude_box_layout -> addWidget(this -> attitude_from_file_widget);
 
-	
 	shape_properties_group_layout -> addWidget(this -> attitude_box,1,0,1,2);
 
 
@@ -141,7 +150,6 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	}
 	else{
 		shape_properties_group_layout -> addWidget(this -> position_box,0,0,1,2);
-
 	}
 
 	this -> init();
@@ -204,7 +212,9 @@ void ShapePropertiesWidget::init(){
 	}
 	
 	this -> period_sbox -> setValue(1);
-
+	this -> position_from_file_widget -> setVisible(0);
+	this -> attitude_from_file_widget -> setVisible(1);
+	
 }
 
 
@@ -242,12 +252,16 @@ void ShapePropertiesWidget::toggle_position_visibility(){
 	if (this -> position_from_keplerian_button -> isChecked()){
 		
 		this -> position_keplerian_widget -> setVisible(1);
+		this -> position_from_file_widget -> setVisible(0);
+
 		this -> repaint();
 		
 
 	}
 	else{
 		this -> position_keplerian_widget -> setVisible(0);
+		this -> position_from_file_widget -> setVisible(1);
+
 		this -> repaint();
 	}
 
@@ -257,11 +271,15 @@ void ShapePropertiesWidget::toggle_attitude_visibility(){
 
 	if (this -> attitude_from_simple_spin_button -> isChecked()){
 		this -> attitude_simple_spin_widget -> setVisible(1);
+		this -> attitude_from_file_widget -> setVisible(0);
+
 		this -> repaint();
 
 	}
 	else{
 		this -> attitude_simple_spin_widget -> setVisible(0);
+		this -> attitude_from_file_widget -> setVisible(1);
+
 		this -> repaint();
 	}
 

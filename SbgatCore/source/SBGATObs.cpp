@@ -1,8 +1,82 @@
 
 #include <SBGATObs.hpp>
+#include <SBGATMassProperties.hpp>
 
 
-void SBGATObs::find_max_facet_surface_area(){
+vtkStandardNewMacro(SBGATObs);
+
+
+//----------------------------------------------------------------------------
+// Constructs with initial 0 values.
+SBGATObs::SBGATObs(){
+
+	this -> SetNumberOfOutputPorts(0);
+	this -> SetNumberOfInputPorts(1);
+
+	this -> SetInputData(0,nullptr);
+}
+
+
+SBGATObs::~SBGATObs(){
+
+}
+
+
+
+int SBGATObs::RequestData(
+	vtkInformation* vtkNotUsed( request ),
+	vtkInformationVector** inputVector,
+	vtkInformationVector* vtkNotUsed( outputVector )){
+
+	this -> bspTree_vec.clear();
+	this -> polydata_vec.clear();
+
+	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+
+  // Processing the primary
+	vtkInformation *inInfo0 = inputVector[0]->GetInformationObject(0);
+	vtkPolyData * primary = vtkPolyData::SafeDownCast(inInfo0->Get(vtkDataObject::DATA_OBJECT()));
+
+
+	vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
+	tree -> SetDataSet(primary);
+	tree -> BuildLocator();
+
+	this -> bspTree_vec.push_back(tree);
+	this -> polydata_vec.push_back(primary);
+
+	mass_filter -> SetInputData(primary);
+	mass_filter -> Update();
+	this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
+	
+  	// Processing the secondary, if any
+	if(inputVector[0] -> GetNumberOfInformationObjects() == 2){
+
+		vtkInformation *inInfo1 = inputVector[0]->GetInformationObject(1);
+		vtkPolyData * secondary =  vtkPolyData::SafeDownCast(inInfo1->Get(vtkDataObject::DATA_OBJECT()));
+		vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
+		tree -> SetDataSet(secondary);
+		tree -> BuildLocator();
+		this -> bspTree_vec.push_back(tree);
+		this -> polydata_vec.push_back(secondary);
+
+		mass_filter -> SetInputData(secondary);
+		mass_filter -> Update();
+		this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
+
+	}
+
+
+	this -> number_of_bodies = polydata_vec.size();
+
+ // The surface area of the largest facet amongst all considered shapes is found
+	this -> find_min_facet_surface_area();
+
+	return 1;
+}
+
+
+void SBGATObs::find_min_facet_surface_area(){
 
 	double min_area = std::numeric_limits<double>::infinity();
 	vtkIdType numCells, numIds;
@@ -13,7 +87,6 @@ void SBGATObs::find_max_facet_surface_area(){
 	for (auto input : this -> polydata_vec){
 
 		numCells = input -> GetNumberOfCells();
-
 
 		for (vtkIdType cellId=0; cellId < numCells; cellId++){
 
@@ -49,6 +122,19 @@ void SBGATObs::find_max_facet_surface_area(){
 
 	this-> min_area = min_area;
 
+}
+
+
+
+int SBGATObs::FillInputPortInformation( int port, vtkInformation* info ){
+	if ( port == 0 ){
+		info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+		info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), true);
+		return 1;
+
+	}
+	
+	return 0;
 }
 
 void SBGATObs::prefind_facets_inview (
@@ -143,9 +229,9 @@ bool SBGATObs::check_line_for_intersect(const int & origin_body_index,
 		this -> bspTree_vec[considered_body_index] -> IntersectWithLine(start_point_considered.colptr(0), 
 			end_point_considered.colptr(0), tol, verts, cellIds);
 
-		 if (verts -> GetNumberOfPoints() > 0){
-		 	return true;
-		 }
+		if (verts -> GetNumberOfPoints() > 0){
+			return true;
+		}
 
 	}
 
@@ -153,6 +239,28 @@ bool SBGATObs::check_line_for_intersect(const int & origin_body_index,
 
 }
 
+
+
+void SBGATObs::PrintHeader(ostream& os, vtkIndent indent) {
+
+}
+void SBGATObs::PrintTrailer(ostream& os, vtkIndent indent) {
+
+}
+
+
+
+
+//----------------------------------------------------------------------------
+void SBGATObs::PrintSelf(std::ostream& os, vtkIndent indent){
+
+	vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
+	if (!input)
+	{
+		return;
+	}
+
+}
 
 
 

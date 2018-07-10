@@ -45,6 +45,8 @@ SOFTWARE.
 
 
 #include "Mainwindow.hpp"
+#include <SBGATObs.hpp>
+
 
 
 namespace SBGAT_GUI {
@@ -80,6 +82,17 @@ data simulating the output of a range/range-rate doppler radar
 
 	protected:
 
+		/**
+
+
+		*/
+		void get_inputs_from_GUI(std::vector<double> & imaging_times,
+			std::vector< std::vector<arma::vec> > & positions_vec, 
+			std::vector< std::vector<arma::vec> > & velocities_vec,
+			std::vector< std::vector<arma::vec> > & mrps_vec,
+			std::vector< std::vector<arma::vec> > & omegas_vec);
+
+
 		virtual void init();
 
 		Mainwindow * parent;
@@ -103,6 +116,8 @@ data simulating the output of a range/range-rate doppler radar
 		QPushButton * collect_observations_button;
 		ShapePropertiesWidget * primary_shape_properties_widget;
 		ShapePropertiesWidget * secondary_shape_properties_widget;
+
+		vtkSmartPointer<SBGATObs> observation_filter;
 
 	};
 }

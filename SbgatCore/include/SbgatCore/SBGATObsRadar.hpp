@@ -71,7 +71,7 @@ observations, blurring out returns collected at a high incidence
 typedef typename std::vector<std::vector<std::array<double, 3> > > SBGATRadarObsSequence;
 
 
-class VTKFILTERSCORE_EXPORT SBGATObsRadar : public vtkPolyDataAlgorithm, public SBGATObs{
+class VTKFILTERSCORE_EXPORT SBGATObsRadar : public SBGATObs{
 public:
   /**
    * Constructs with initial values of zero.
@@ -84,30 +84,29 @@ public:
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
   /**
-  Collects range/range-rate samples over the surface of the specified system of small bodies at the 
-  specified time after epoch. The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
+  Collects range/range-rate samples over the surface of the specified system of small bodies at a given time after the epoch. The radar source is positionned at 1e6 * l meters from the target's center of mass, where 
   l is a measure of the first object's diagonal. 
   @param measurements_sequence reference to MeasurementsSequence, holding collected range/range-rate measurements at each observation time
-  @param N maximum number of measurements to produce over the largest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / larget_facet_surface_area
-  @param dt time since epoch (s)
-  @param period_vec vector of rotation periods of each target (s)
-  @param sun_pos unit direction of sun with respect to target in inertial frame
-  @param observer_pos unit direction of observer with respect to target in inertial frame
-  @param positions_vec (unit vector) vector of positions of each target's center-of-mass expressed in the target's body frame
-  @param spin_vec (unit vector) vector of direction of each target's spin vector expressed in the target's body frame
+  @param time observation timestamp
+  @param N minimum number of measurements to produce over the smallest facet in the shape. The number of samples for any other facet will be equal to N * facet_surface_area / smallest_facet_surface_area
+  @param radar_dir unit direction towards radar from target in inertial frame
+  @param positions_vec vector of positions of each target's center-of-mass expressed in the primary's body frame
+  @param velocities_vec vector of inertial velocities of each target's center-of-mass expressed in the primary's body frame
+  @param mrps_vec vector of MRPs defining the inertial-to-body DCM [BN]
+  @param omegas_vec vector of angular velocities of each body expressed in the inertial frame
   @param penalize_incidence if true, each measurement will be weighed by the cos(incidence) angle between
   the sampled point and the radar squared. If false, all measurements (in view of the radar and not blocked) are weighed equally
   have the same weight
   */
-  void CollectMeasurementsSimpleSpin(SBGATRadarObsSequence & measurements_sequence,  
-    const int & N,
-    const double & dt,
-    const std::vector<double> & period_vec,
-    const arma::vec & radar_dir,
-    const std::vector<arma::vec> & positions_vec,
-    const std::vector<arma::vec> & velocities_vec,
-    const std::vector<arma::vec> & spin_vec,
-    const bool & penalize_indicence);
+  void CollectMeasurements(SBGATRadarObsSequence & measurements_sequence,  
+  const double & time,
+  const int & N,
+  const arma::vec & radar_dir,
+  const std::vector<arma::vec> & positions_vec,
+  const std::vector<arma::vec> & velocities_vec,
+  const std::vector<arma::vec> & mrps_vec,
+  const std::vector<arma::vec> & omegas_vec,
+  const bool & penalize_indicence);
 
 
 
@@ -151,11 +150,6 @@ protected:
   SBGATObsRadar();
   ~SBGATObsRadar() override;
 
-  int RequestData(vtkInformation* request,
-    vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector) override;
-
-
 
 
   /**
@@ -178,14 +172,6 @@ protected:
     const std::vector<arma::vec> & positions_vec,
     const std::vector<arma::vec> & velocities_vec,
     const std::vector<arma::vec> & omega_vec);
-
-
-
-  int FillInputPortInformation( int port, vtkInformation* info );
-
-
-
-
 
 
   std::vector<vtkSmartPointer<vtkImageData>> images;

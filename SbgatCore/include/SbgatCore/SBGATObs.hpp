@@ -30,14 +30,30 @@ SOFTWARE.
 
 #include <vtkModifiedBSPTree.h>
 #include <vtkPolydata.h>
+#include <vtkPolyDataAlgorithm.h>
+#include <vtkFiltersCoreModule.h> // For export macro
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+
 #include <armadillo>
 
-class SBGATObs {
+
+
+class VTKFILTERSCORE_EXPORT SBGATObs : public vtkPolyDataAlgorithm {
 
 public:
 
+
+	static SBGATObs * New();
+
+	vtkTypeMacro(SBGATObs,vtkPolyDataAlgorithm);
+
+	void PrintSelf(std::ostream& os, vtkIndent indent) override;
+	void PrintHeader(std::ostream& os, vtkIndent indent) override;
+	void PrintTrailer(std::ostream& os, vtkIndent indent) override;
+
 	/**
- 	 Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
+ 	Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters (default)
  	*/
 	void SetScaleMeters() { this -> scaleFactor = 1; }
 
@@ -53,6 +69,18 @@ public:
 	int get_number_of_bodies() const {return this -> number_of_bodies;}
 
 protected:
+
+	SBGATObs();
+	~SBGATObs() override;
+
+
+	int RequestData(vtkInformation* request,
+		vtkInformationVector** inputVector,
+		vtkInformationVector* outputVector) override;
+
+
+	int FillInputPortInformation( int port, vtkInformation* info ) VTK_OVERRIDE;
+
 
 	/*
 	Determines what facets of a given shape satisfy a set of visibility conditions, formulated in terms of a 
@@ -77,7 +105,7 @@ protected:
 	Computes the largest facet surface area of all of the considered shapes
 	@return surface area of largest facet in all of the considered shapes
 	*/
-	void find_max_facet_surface_area();
+	void find_min_facet_surface_area();
 
 	/**
 	Checks if the line spanned between provided points intersects
@@ -90,11 +118,11 @@ protected:
 	@return true if the line intersects with any of the considered bodies, false otherwise
 	*/
 	bool check_line_for_intersect(const int & origin_body_index,
-	const arma::vec & start_point_origin_body,
-	const arma::vec & end_point_inertial,
-	const std::vector<arma::mat> & BN_dcms_vec,
-	const std::vector<arma::vec> & positions_vec,
-	const double & tol) const;
+		const arma::vec & start_point_origin_body,
+		const arma::vec & end_point_inertial,
+		const std::vector<arma::mat> & BN_dcms_vec,
+		const std::vector<arma::vec> & positions_vec,
+		const double & tol) const;
 
 
 	std::vector<vtkSmartPointer<vtkModifiedBSPTree>> bspTree_vec;
@@ -104,6 +132,10 @@ protected:
 	double scaleFactor = 1;
 	double min_area;
 	int number_of_bodies;
+
+private:
+	SBGATObs(const SBGATObs&) = delete;
+	void operator=(const SBGATObs&) = delete;
 
 };
 

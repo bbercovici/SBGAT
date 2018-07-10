@@ -21,13 +21,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ObsWindow.hpp"
-#include <QMessageBox>
 #include <QScrollArea>
 
-#include <vtkSphereSource.h>
-#include <vtkTriangleFilter.h>
 #include "ShapePropertiesWidget.hpp"
+#include "ObsWindow.hpp"
+
+#include <SBGATMassProperties.hpp>
+#include <SBGATTrajectory.hpp>
 
 
 
@@ -39,12 +39,11 @@ ObsWindow::ObsWindow(Mainwindow * parent) {
 
 
 	QGroupBox * target_group = new QGroupBox(tr("Shapes"));
-		
+
 	QScrollArea * scroll_area = new QScrollArea(this);
-	// scroll_area -> setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
 	scroll_area -> setFrameShape(QFrame::NoFrame);
-    scroll_area -> setWidgetResizable( true );
-    scroll_area -> setGeometry( 10, 10, 600, 800 );
+	scroll_area -> setWidgetResizable( true );
+	scroll_area -> setGeometry( 10, 10, 600, 800 );
 
 	QWidget * enclosing_widget = new QWidget();
 
@@ -155,7 +154,6 @@ void ObsWindow::init(){
 	}
 
 	this -> penalize_incidence_box -> setChecked(true);
-
 	this -> open_visualizer_button -> setDisabled(true);
 	this -> save_observations_button -> setDisabled(true);
 	this -> secondary_shape_properties_widget -> setEnabled(0);
@@ -170,5 +168,120 @@ void ObsWindow::changed_secondary_box(int index){
 	else{
 		this -> secondary_shape_properties_widget -> setEnabled(0);
 	}
+}
+
+
+void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
+	std::vector< std::vector<arma::vec> > & positions_vec, 
+	std::vector< std::vector<arma::vec> > & velocities_vec,
+	std::vector< std::vector<arma::vec> > & mrps_vec,
+	std::vector< std::vector<arma::vec> > & omegas_vec){
+
+	// Querying the selected primary small body
+	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	this -> observation_filter -> AddInputData(0,shape_data[primary_name] -> get_polydata());
+	
+
+
+	// Observations are assumed to happen at a constant rate
+	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
+	
+	for (int i  = 0; i < this -> N_images_sbox -> value(); ++i){
+		double time = i * imaging_period;
+		imaging_times.push_back(time);
+
+
+		std::vector<arma::vec> positions,velocities,mrps,omegas;
+
+	// Primary states
+		if (this -> primary_shape_properties_widget -> position_from_keplerian_button -> isChecked()){
+			positions.push_back(arma::zeros<arma::vec>(3));
+			velocities.push_back(arma::zeros<arma::vec>(3));
+
+		} else{
+			// not implemented yet, will require interpolator
+
+		}
+
+		if (this -> primary_shape_properties_widget -> attitude_from_simple_spin_button -> isChecked()){
+
+			double w = 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
+			double phi = w * time;
+			arma::vec spin = this -> primary_shape_properties_widget -> get_spin();
+			arma::vec mrp = std::tan(phi / 4) * spin;
+			arma::vec omega = w * spin;
+			mrps.push_back(mrp);
+			omegas.push_back(omega);
+
+
+		} else{
+
+			// not implemented yet, will require interpolator
+
+		}
+
+
+
+	// Secondary states
+		if (secondary_name != "None"){
+			if (this -> secondary_shape_properties_widget -> position_from_keplerian_button -> isChecked()){
+
+			} else{
+
+			// not implemented yet, will require interpolator
+
+			}
+
+			if (this -> secondary_shape_properties_widget -> attitude_from_simple_spin_button -> isChecked()){
+
+				double w = 2 * arma::datum::pi / this -> secondary_shape_properties_widget -> get_period();
+				double phi = w * time;
+				arma::vec spin = this -> secondary_shape_properties_widget -> get_spin();
+				arma::vec mrp = std::tan(phi / 4) * spin;
+				arma::vec omega = w * spin;
+				mrps.push_back(mrp);
+				omegas.push_back(omega);
+
+
+			} else{
+			// not implemented yet, will require interpolator
+
+			}
+		}
+
+		positions_vec.push_back(positions);
+		velocities_vec.push_back(velocities);
+		mrps_vec.push_back(mrps);
+		omegas_vec.push_back(omegas);
+
+
+	}
+
+
+
+	// Querying the selected secondary small body, if any
+	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
+	arma::vec elements;
+	SBGATTrajectory trajectory;
+	std::vector<arma::vec> secondary_positions,secondary_velocities;
+
+	if (secondary_name != "None"){
+		shape_data = this -> parent -> get_wrapped_shape_data();
+		this -> observation_filter -> AddInputData(0,shape_data[secondary_name] -> get_polydata());
+		elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
+
+		// Standard gravitational parameter of the first body
+		vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
+		mass_properties -> Update();
+		double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
+		trajectory.GenerateKeplerianTrajectory(secondary_positions,secondary_velocities,imaging_times,elements,mu);
+	}
+
+
+
+
+
 }
 

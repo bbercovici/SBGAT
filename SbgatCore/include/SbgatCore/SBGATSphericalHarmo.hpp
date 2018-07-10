@@ -44,7 +44,9 @@ SOFTWARE.
  field around a constant density polyhedron
  *
  * @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
- * field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed
+ * field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
+ * The computed coefficients are completely independent of the mass and density of the considered object
+ * as they are only a geometric construct, thanks to the constant-density assumption
  * Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
  * for more details, see 
  * Werner, R. a. (1997). 

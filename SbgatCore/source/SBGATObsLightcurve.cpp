@@ -38,14 +38,13 @@ SOFTWARE.
 
 =========================================================================*/
 #include <SBGATObsLightcurve.hpp>
-#include <vtkObjectFactory.h>
+#include <SBGATObs.hpp>
+
 #include <vtkCell.h>
 #include <vtkDataObject.h>
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
 #include <SBGATMassProperties.hpp>
 #include <vtkExtractHistogram2D.h>
@@ -61,121 +60,42 @@ SOFTWARE.
 
 vtkStandardNewMacro(SBGATObsLightcurve);
 
-//----------------------------------------------------------------------------
-// Constructs with initial 0 values.
-SBGATObsLightcurve::SBGATObsLightcurve(){
 
-  this -> SetNumberOfOutputPorts(0);
-  this -> SetNumberOfInputPorts(2);
-  this -> SetInputData(0,nullptr);
-  this -> SetInputData(1,nullptr);
+SBGATObsLightcurve::SBGATObsLightcurve() : SBGATObs(){
 
 }
 
-//----------------------------------------------------------------------------
-// Destroy any allocated memory.
+
 SBGATObsLightcurve::~SBGATObsLightcurve(){
 
 }
 
-int SBGATObsLightcurve::RequestData(
-  vtkInformation* vtkNotUsed( request ),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector )){
 
-  this -> bspTree_vec.clear();
-  this -> polydata_vec.clear();
-  this -> center_of_mass_vec.clear();
-
-  vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
-
-  // Processing the primary
-  vtkInformation *inInfo0 = inputVector[0]->GetInformationObject(0);
-  vtkPolyData * primary = vtkPolyData::SafeDownCast(inInfo0->Get(vtkDataObject::DATA_OBJECT()));
-  vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-  tree -> SetDataSet(primary);
-  tree -> BuildLocator();
-  this -> bspTree_vec.push_back(tree);
-  
-  this -> polydata_vec.push_back(primary);
-
-  mass_filter -> SetInputData(primary);
-  mass_filter -> Update();
-  this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
-
-
-  // Processing the secondary, if any
-  vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
-
-  if(inInfo1->Get(vtkDataObject::DATA_OBJECT()) != nullptr){
-   vtkInformation *inInfo1 = inputVector[1] -> GetInformationObject(0);
-   vtkPolyData * secondary =  vtkPolyData::SafeDownCast(inInfo1->Get(vtkDataObject::DATA_OBJECT()));
-   vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-   tree -> SetDataSet(secondary);
-   tree -> BuildLocator();
-   this -> bspTree_vec.push_back(tree);
-   this -> polydata_vec.push_back(secondary);
-
-   mass_filter -> SetInputData(secondary);
-   mass_filter -> Update();
-   this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
- }
-
- this -> number_of_bodies = polydata_vec.size();
- 
- // The surface area of the largest facet amongst all considered shapes is found
- this -> find_max_facet_surface_area();
-
-
- return 1;
-}
-
-
-
-int SBGATObsLightcurve::FillInputPortInformation( int port, vtkInformation* info ){
-  if ( port == 0 ){
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-    return 1;
-
-  }
-  else if(port == 1){
-   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), true);
-   info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), true);
-   return 1;
-
- }
-
- return 0;
-}
-
-
-
-void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
+void SBGATObsLightcurve::CollectMeasurements(
   std::vector<std::array<double, 2> > & measurements,
-  const int & N,
-  const double & dt,
-  const std::vector<double> & period_vec,
-  const arma::vec & sun_dir,
-  const arma::vec & observer_dir,
-  const std::vector<arma::vec> & positions_vec,
-  const std::vector<arma::vec> & spin_vec,
-  const bool & penalize_indicence){
+    const double & time,
+    const int & N,
+    const arma::vec & sun_dir,
+    const arma::vec & observer_dir,
+    const std::vector<arma::vec> & positions_vec,
+    const std::vector<arma::vec> & velocities_vec,
+    const std::vector<arma::vec> & mrps_vec,
+    const std::vector<arma::vec> & omegas_vec,
+    const bool & penalize_indicence){
 
-  if(period_vec.size() != spin_vec.size() || period_vec.size() != positions_vec.size())
+ 
+  if(positions_vec.size() != omegas_vec.size() || positions_vec.size() != velocities_vec.size()|| positions_vec.size() != mrps_vec.size())
     throw(std::runtime_error("Incompatible input dimensions"));
 
 
-  // Containers
+// Containers
   std::vector<std::vector<int> > facets_in_view;
   std::vector<arma::mat> BN_dcms_vec ;
 
-
   // Pre-allocating for all inputs  
   for (int i = 0; i < this -> number_of_bodies; ++i){
-    double w = 2 * arma::datum::pi / period_vec[i];
     facets_in_view.push_back(std::vector<int>());
-    BN_dcms_vec.push_back(RBK::prv_to_dcm(spin_vec[i] * dt * w ));
+    BN_dcms_vec.push_back(RBK::mrp_to_dcm(mrps_vec[i]));
   }
 
 
@@ -186,8 +106,6 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   // checking with potential interects with all bodies
 
   std::vector<arma::vec> dir_to_check_vec = {observer_dir,sun_dir};
-
-  std::cout << "prefinding...\n";
 
   for (int i = 0; i < this -> number_of_bodies; ++i){
 
@@ -199,72 +117,9 @@ void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
   }
 
   std::array<double, 2>  measurements_temp;
-  measurements_temp[0] = dt;
+  measurements_temp[0] = time;
   measurements_temp[1] = 0;
 
-
-  std::cout << "reversing...\n";
-
-  this -> reverse_ray_trace(measurements_temp,
-    facets_in_view,
-    sun_dir,
-    observer_dir,
-    N,
-    penalize_indicence,
-    BN_dcms_vec,
-    positions_vec);
-  std::cout << "reversed\n";
-
-  measurements.push_back(measurements_temp);
-
-  
-
-}
-
-
-
-void SBGATObsLightcurve::CollectMeasurementsArbitrarySpin(
-  std::vector<std::array<double, 2> > & measurements,
-  const int & N,
-  const double & dt,
-  const arma::vec & sun_dir,
-  const arma::vec & observer_dir,
-  const std::vector<arma::vec> & positions_vec,
-  const std::vector<arma::mat> & BN_dcms_vec,
-  const bool & penalize_indicence){
-
-
-  if(positions_vec.size() != BN_dcms_vec.size())
-    throw(std::runtime_error("Incompatible input dimensions"));
-  
-  // Containers
-  std::vector<std::vector<int> > facets_in_view;
-
-  // Pre-allocating for all inputs  
-  for (int i = 0; i < this -> number_of_bodies; ++i){
-    facets_in_view.push_back(std::vector<int>());
-  }
-
-  
-  // First, only facets that are in view of the sun
-  // and the observer (based on their normal orientation) are kept
-  // Then, the facets that are in view of the sun are ray-traced to the sun and to the observer
-  // checking with potential interects with all bodies
-  std::vector<arma::vec> dir_to_check_vec = {observer_dir,sun_dir};
-  
-  for (int i = 0; i < this -> number_of_bodies; ++i){
-
-    this -> prefind_facets_inview(facets_in_view[i],
-      i,
-      dir_to_check_vec,
-      BN_dcms_vec,
-      positions_vec);
-
-  }
-
-
-  std::array<double, 2>  measurements_temp = {dt, 0};
-
   this -> reverse_ray_trace(measurements_temp,
     facets_in_view,
     sun_dir,
@@ -279,6 +134,9 @@ void SBGATObsLightcurve::CollectMeasurementsArbitrarySpin(
   
 
 }
+
+
+
 
 
 

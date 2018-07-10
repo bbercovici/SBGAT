@@ -38,16 +38,13 @@ SOFTWARE.
 
 =========================================================================*/
 #include <SBGATObsRadar.hpp>
-#include <vtkObjectFactory.h>
+// #include <vtkObjectFactory.h>
 #include <vtkCell.h>
 #include <vtkDataObject.h>
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
-#include <SBGATMassProperties.hpp>
 #include <vtkExtractHistogram2D.h>
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
@@ -61,133 +58,40 @@ SOFTWARE.
 
 vtkStandardNewMacro(SBGATObsRadar);
 
-//----------------------------------------------------------------------------
-// Constructs with initial 0 values.
-SBGATObsRadar::SBGATObsRadar(){
-
-  this -> SetNumberOfOutputPorts(0);
-  this -> SetNumberOfInputPorts(2);
-
-  this -> SetInputData(0,nullptr);
-  this -> SetInputData(1,nullptr);
 
 
+SBGATObsRadar::SBGATObsRadar() : SBGATObs(){
 
 }
 
-//----------------------------------------------------------------------------
-// Destroy any allocated memory.
 SBGATObsRadar::~SBGATObsRadar(){
 }
 
 
 
-
-
-
-int SBGATObsRadar::FillInputPortInformation( int port, vtkInformation* info ){
-  if ( port == 0 ){
-    info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-    return 1;
-
-  }
-  else if(port == 1){
-   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
-   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), true);
-   info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), true);
-   return 1;
-
- }
-
- return 0;
-}
-
-
-
-
-int SBGATObsRadar::RequestData(
-  vtkInformation* vtkNotUsed( request ),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector )){
-
-  this -> bspTree_vec.clear();
-  this -> polydata_vec.clear();
-
-  vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
-
-
-  // Processing the primary
-  vtkInformation *inInfo0 = inputVector[0]->GetInformationObject(0);
-  vtkPolyData * primary = vtkPolyData::SafeDownCast(inInfo0->Get(vtkDataObject::DATA_OBJECT()));
-
-  
-
-  vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-  tree -> SetDataSet(primary);
-  tree -> BuildLocator();
-  
-  this -> bspTree_vec.push_back(tree);
-  this -> polydata_vec.push_back(primary);
-
-  mass_filter -> SetInputData(primary);
-  mass_filter -> Update();
-  this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
-
-
-  // Processing the secondary, if any
-  vtkInformation *inInfo1 = inputVector[1]->GetInformationObject(0);
-
-  if(inInfo1->Get(vtkDataObject::DATA_OBJECT()) != nullptr){
-   vtkPolyData * secondary =  vtkPolyData::SafeDownCast(inInfo1->Get(vtkDataObject::DATA_OBJECT()));
-   vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-   tree -> SetDataSet(secondary);
-   tree -> BuildLocator();
-   this -> bspTree_vec.push_back(tree);
-   this -> polydata_vec.push_back(secondary);
-
-   mass_filter -> SetInputData(secondary);
-   mass_filter -> Update();
-   this -> center_of_mass_vec.push_back(mass_filter -> GetCenterOfMass());
-
- }
-
- this -> number_of_bodies = polydata_vec.size();
- 
- // The surface area of the largest facet amongst all considered shapes is found
- this -> find_max_facet_surface_area();
-
- return 1;
-}
-
-
-
-void SBGATObsRadar::CollectMeasurementsSimpleSpin(SBGATRadarObsSequence & measurements_sequence,  
+void SBGATObsRadar::CollectMeasurements(SBGATRadarObsSequence & measurements_sequence,  
+  const double & time,
   const int & N,
-  const double & dt,
-  const std::vector<double> & period_vec,
   const arma::vec & radar_dir,
   const std::vector<arma::vec> & positions_vec,
   const std::vector<arma::vec> & velocities_vec,
-  const std::vector<arma::vec> & spin_vec,
+  const std::vector<arma::vec> & mrps_vec,
+  const std::vector<arma::vec> & omegas_vec,
   const bool & penalize_indicence){
 
 
-  if(period_vec.size() != spin_vec.size() || period_vec.size() != positions_vec.size() || period_vec.size() != velocities_vec.size())
+  if(positions_vec.size() != omegas_vec.size() || positions_vec.size() != velocities_vec.size()|| positions_vec.size() != mrps_vec.size())
     throw(std::runtime_error("Incompatible input dimensions"));
 
 
   // Containers
   std::vector<std::vector<int> > facets_in_view;
   std::vector<arma::mat> BN_dcms_vec ;
-  std::vector<arma::vec> omega_vec ;
-
 
   // Pre-allocating for all inputs  
   for (int i = 0; i < this -> number_of_bodies; ++i){
-    double w = 2 * arma::datum::pi / period_vec[i];
     facets_in_view.push_back(std::vector<int>());
-    BN_dcms_vec.push_back(RBK::prv_to_dcm(spin_vec[i] * dt * w ));
-    omega_vec.push_back(spin_vec[i] * w);
+    BN_dcms_vec.push_back(RBK::mrp_to_dcm(mrps_vec[i]));
   }
 
 
@@ -206,7 +110,7 @@ void SBGATObsRadar::CollectMeasurementsSimpleSpin(SBGATRadarObsSequence & measur
   std::vector<std::array<double, 3> > measurements_temp;
   
   this -> reverse_ray_trace(measurements_sequence,facets_in_view,radar_dir,N,penalize_indicence,
-    BN_dcms_vec,positions_vec,velocities_vec,omega_vec);
+    BN_dcms_vec,positions_vec,velocities_vec,omegas_vec);
 
 
 
@@ -221,7 +125,7 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
   const std::vector<arma::mat> & BN_dcms_vec,
   const std::vector<arma::vec> & positions_vec,
   const std::vector<arma::vec> & velocities_vec,
-  const std::vector<arma::vec> & omega_vec){
+  const std::vector<arma::vec> & omegas_vec){
 
   std::vector<std::array<double, 3> > measurements;
 
@@ -306,7 +210,7 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
         double range = arma::norm(origin_inertial - radar_pos);
 
         // The velocity at the impact point is a combination of the orbital and rotational velocities
-        arma::vec velocity = velocities_vec[body_index] + arma::cross(omega_vec[body_index],origin_cm);
+        arma::vec velocity = velocities_vec[body_index] + arma::cross(omegas_vec[body_index],origin_cm);
         
         double range_rate = arma::dot(origin_inertial - radar_pos,velocity) / range;
 
