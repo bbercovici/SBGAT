@@ -28,7 +28,7 @@ SOFTWARE.
 
 #include <SBGATMassProperties.hpp>
 #include <SBGATTrajectory.hpp>
-
+#include <OrbitConversions.hpp>
 
 
 using namespace SBGAT_GUI;
@@ -177,11 +177,21 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 	std::vector< std::vector<arma::vec> > & mrps_vec,
 	std::vector< std::vector<arma::vec> > & omegas_vec){
 
-	// Querying the selected primary small body
 	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
+	
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 	this -> observation_filter -> AddInputData(0,shape_data[primary_name] -> get_polydata());
-	
+		
+	// Adding the secondary to the filter
+	if (secondary_name != "None"){
+		this -> observation_filter -> AddInputData(0,shape_data[secondary_name] -> get_polydata());
+	}
+
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
+	mass_properties -> Update();
+	double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
 
 
 	// Observations are assumed to happen at a constant rate
@@ -208,8 +218,17 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 
 			double w = 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
 			double phi = w * time;
+			phi = phi - int(phi / (2 * arma::datum::pi) ) * (2 * arma::datum::pi);
+
 			arma::vec spin = this -> primary_shape_properties_widget -> get_spin();
-			arma::vec mrp = std::tan(phi / 4) * spin;
+			arma::vec mrp;
+			
+			if (phi > arma::datum::pi){
+				phi = 2 * arma::datum::pi - phi;
+				spin = -spin;
+			}
+
+			mrp = std::tan(phi / 4) * spin;
 			arma::vec omega = w * spin;
 			mrps.push_back(mrp);
 			omegas.push_back(omega);
@@ -227,6 +246,17 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 		if (secondary_name != "None"){
 			if (this -> secondary_shape_properties_widget -> position_from_keplerian_button -> isChecked()){
 
+				arma::vec elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
+
+
+
+				OC::KepState kep_state(elements,mu);
+				OC::CartState cart_state = kep_state.convert_to_cart(time);
+
+				positions.push_back(cart_state.get_position_vector());
+				velocities.push_back(cart_state.get_velocity_vector());
+
+
 			} else{
 
 			// not implemented yet, will require interpolator
@@ -237,8 +267,17 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 
 				double w = 2 * arma::datum::pi / this -> secondary_shape_properties_widget -> get_period();
 				double phi = w * time;
+				phi = phi - int(phi / (2 * arma::datum::pi) ) * (2 * arma::datum::pi);
+
 				arma::vec spin = this -> secondary_shape_properties_widget -> get_spin();
-				arma::vec mrp = std::tan(phi / 4) * spin;
+				arma::vec mrp;
+
+				if (phi > arma::datum::pi){
+					phi = 2 * arma::datum::pi - phi;
+					spin = -spin;
+				}
+
+				mrp = std::tan(phi / 4) * spin;
 				arma::vec omega = w * spin;
 				mrps.push_back(mrp);
 				omegas.push_back(omega);
@@ -258,26 +297,6 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 
 	}
 
-
-
-	// Querying the selected secondary small body, if any
-	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
-	arma::vec elements;
-	SBGATTrajectory trajectory;
-	std::vector<arma::vec> secondary_positions,secondary_velocities;
-
-	if (secondary_name != "None"){
-		shape_data = this -> parent -> get_wrapped_shape_data();
-		this -> observation_filter -> AddInputData(0,shape_data[secondary_name] -> get_polydata());
-		elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
-
-		// Standard gravitational parameter of the first body
-		vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-		mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
-		mass_properties -> Update();
-		double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
-		trajectory.GenerateKeplerianTrajectory(secondary_positions,secondary_velocities,imaging_times,elements,mu);
-	}
 
 
 

@@ -101,6 +101,13 @@ find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 
+
+
+# Find OrbitConversions 
+find_package(OrbitConversions REQUIRED)
+include_directories(${OC_INCLUDE_DIR})
+
+
 # Find OpenMP
 find_package(OpenMP)
 if (OpenMP_FOUND)
@@ -150,6 +157,7 @@ set(library_dependencies
 	${Boost_LIBRARIES}
 	${SBGATCORE_LIBRARY}
 	${RBK_LIBRARY}
+	${OC_LIBRARY}
 	)
 
 target_link_libraries(${EXE_NAME} ${library_dependencies})

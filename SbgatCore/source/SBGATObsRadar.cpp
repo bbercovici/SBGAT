@@ -145,8 +145,6 @@ void SBGATObsRadar::reverse_ray_trace(SBGATRadarObsSequence & measurements_seque
     arma::vec target_to_radar_dir_body_frame = BN_dcms_vec[body_index] * radar_dir;
 
 
-
-
   // The kept facets are then sampled and reverse ray-traced
     for (unsigned int facet_index = 0; facet_index != facets_in_view[body_index].size(); ++facet_index){
 

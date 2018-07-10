@@ -13,7 +13,6 @@ SBGATObs::SBGATObs(){
 	this -> SetNumberOfOutputPorts(0);
 	this -> SetNumberOfInputPorts(1);
 
-	this -> SetInputData(0,nullptr);
 }
 
 

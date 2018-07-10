@@ -88,11 +88,7 @@ by the physical parameters of a shape
 		arma::vec get_orbital_elements() const;
 
 
-		private slots:
-
-		void toggle_position_visibility();
-		void toggle_attitude_visibility();
-
+		
 
 		/**
 		Exclusive push button which, if pressed, indicates that the position of the body is keplerian
@@ -109,11 +105,17 @@ by the physical parameters of a shape
 		*/
 		QRadioButton * attitude_from_simple_spin_button ;
 
-		
+
 		/**
 		Exclusive push button which, if pressed, indicates that the attitude of the body is to be loaded from a file
 		*/
 		QRadioButton * attitude_from_file_button ;
+
+		private slots:
+
+		void toggle_position_visibility();
+		void toggle_attitude_visibility();
+
 
 
 	protected:
