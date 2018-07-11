@@ -104,28 +104,12 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	this -> period_label = new QLabel("Rotation period (hours)",this);
 
 
-	QLabel * sma_label = new QLabel("Semi-major axis (m)",this);
-	QLabel * ecc_label = new QLabel("Eccentricity",this);
-	QLabel * inc_label = new QLabel("Inclination (deg)",this);
-	QLabel * Omega_label = new QLabel("RAAN (deg)",this);
-	QLabel * omega_label = new QLabel("Longitude of perigee (deg)",this);
-	QLabel * M0_label = new QLabel("Mean anomaly at epoch (deg)",this);
-	QLabel * density_label = new QLabel("Density of central body (kg/m^3)",this);
-
 
 	this -> setTitle(QString::fromStdString(title));
 
 	this -> spin_raan_sbox = new QDoubleSpinBox(this);
 	this -> spin_inc_sbox = new QDoubleSpinBox(this);
 	this -> period_sbox = new QDoubleSpinBox(this);
-
-	this -> sma_sbox  = new QDoubleSpinBox(this);
-	this -> ecc_sbox  = new QDoubleSpinBox(this);
-	this -> inc_sbox  = new QDoubleSpinBox(this);
-	this -> Omega_sbox  = new QDoubleSpinBox(this);
-	this -> omega_sbox  = new QDoubleSpinBox(this);
-	this -> M0_sbox  = new QDoubleSpinBox(this);
-	this -> density_sbox = new QDoubleSpinBox(this);
 
 	attitude_simple_spin_widget_layout -> addWidget(spin_raan_label,0,0,1,1);
 	attitude_simple_spin_widget_layout -> addWidget(this -> spin_raan_sbox,0,1,1,1);
@@ -137,33 +121,51 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	attitude_simple_spin_widget_layout -> addWidget(this -> period_sbox,2,1,1,1);
 
 
-	position_keplerian_widget_layout -> addWidget(sma_label,0,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> sma_sbox,0,1,1,1);
+	
 
-	position_keplerian_widget_layout -> addWidget(ecc_label,1,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> ecc_sbox,1,1,1,1);
-
-	position_keplerian_widget_layout -> addWidget(inc_label,2,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> inc_sbox,2,1,1,1);
-
-	position_keplerian_widget_layout -> addWidget(Omega_label,3,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> Omega_sbox,3,1,1,1);
-
-	position_keplerian_widget_layout -> addWidget(omega_label,4,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> omega_sbox,4,1,1,1);
-
-	position_keplerian_widget_layout -> addWidget(M0_label,5,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> M0_sbox,5,1,1,1);
-
-	position_keplerian_widget_layout -> addWidget(density_label,6,0,1,1);
-	position_keplerian_widget_layout -> addWidget(this -> density_sbox,6,1,1,1);
-
+	shape_properties_group_layout -> addWidget(this -> position_box,0,0,1,2);
 
 	if (is_primary){
-		this -> position_box -> setVisible(0);
+		this -> position_from_keplerian_button -> setText("Fixed");
 	}
 	else{
-		shape_properties_group_layout -> addWidget(this -> position_box,0,0,1,2);
+		QLabel * sma_label = new QLabel("Semi-major axis (m)",this);
+		QLabel * ecc_label = new QLabel("Eccentricity",this);
+		QLabel * inc_label = new QLabel("Inclination (deg)",this);
+		QLabel * Omega_label = new QLabel("RAAN (deg)",this);
+		QLabel * omega_label = new QLabel("Longitude of perigee (deg)",this);
+		QLabel * M0_label = new QLabel("Mean anomaly at epoch (deg)",this);
+		QLabel * density_label = new QLabel("Density of central body (kg/m^3)",this);
+
+		this -> sma_sbox  = new QDoubleSpinBox(this);
+		this -> ecc_sbox  = new QDoubleSpinBox(this);
+		this -> inc_sbox  = new QDoubleSpinBox(this);
+		this -> Omega_sbox  = new QDoubleSpinBox(this);
+		this -> omega_sbox  = new QDoubleSpinBox(this);
+		this -> M0_sbox  = new QDoubleSpinBox(this);
+		this -> density_sbox = new QDoubleSpinBox(this);
+
+		position_keplerian_widget_layout -> addWidget(sma_label,0,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> sma_sbox,0,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(ecc_label,1,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> ecc_sbox,1,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(inc_label,2,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> inc_sbox,2,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(Omega_label,3,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> Omega_sbox,3,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(omega_label,4,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> omega_sbox,4,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(M0_label,5,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> M0_sbox,5,1,1,1);
+
+		position_keplerian_widget_layout -> addWidget(density_label,6,0,1,1);
+		position_keplerian_widget_layout -> addWidget(this -> density_sbox,6,1,1,1);
+
 	}
 
 	this -> init();
@@ -194,37 +196,38 @@ void ShapePropertiesWidget::init(){
 	this -> spin_raan_sbox -> setValue(0);
 	this -> spin_inc_sbox -> setValue(0);
 
-	this -> sma_sbox -> setRange(1e-10,1e10);
-	this -> ecc_sbox -> setRange(0,1);
-	this -> inc_sbox -> setRange(0,180);
-	this -> Omega_sbox -> setRange(-180,180);
-	this -> omega_sbox -> setRange(-180,180);
-	this -> M0_sbox -> setRange(-180,180);
+	if(!this -> is_primary){
+		this -> sma_sbox -> setRange(1e-10,1e10);
+		this -> ecc_sbox -> setRange(0,1);
+		this -> inc_sbox -> setRange(0,180);
+		this -> Omega_sbox -> setRange(-180,180);
+		this -> omega_sbox -> setRange(-180,180);
+		this -> M0_sbox -> setRange(-180,180);
 
 
-	this -> sma_sbox -> setValue(1000);
-	this -> ecc_sbox -> setValue(0);
-	this -> inc_sbox -> setValue(0);
-	this -> Omega_sbox -> setValue(0);
-	this -> omega_sbox -> setValue(0);
-	this -> M0_sbox -> setValue(0);
+		this -> sma_sbox -> setValue(1000);
+		this -> ecc_sbox -> setValue(0);
+		this -> inc_sbox -> setValue(0);
+		this -> Omega_sbox -> setValue(0);
+		this -> omega_sbox -> setValue(0);
+		this -> M0_sbox -> setValue(0);
 
-	this -> sma_sbox -> setDecimals(6);
-	this -> ecc_sbox -> setDecimals(6);
-	this -> inc_sbox -> setDecimals(6);
-	this -> Omega_sbox -> setDecimals(6);
-	this -> omega_sbox -> setDecimals(6);
-	this -> M0_sbox -> setDecimals(6);
+		this -> sma_sbox -> setDecimals(6);
+		this -> ecc_sbox -> setDecimals(6);
+		this -> inc_sbox -> setDecimals(6);
+		this -> Omega_sbox -> setDecimals(6);
+		this -> omega_sbox -> setDecimals(6);
+		this -> M0_sbox -> setDecimals(6);
+
+		this -> density_sbox -> setRange(1e-10,1e10);
+		this -> density_sbox -> setDecimals(6);
+		this -> density_sbox -> setValue(2000);
+
+	}
 
 	this -> position_from_keplerian_button -> setChecked(1);
 	this -> attitude_from_simple_spin_button -> setChecked(1);
 
-	if (this -> density_sbox != nullptr){
-		this -> density_sbox -> setRange(1e-10,1e10);
-		this -> density_sbox -> setDecimals(6);
-		this -> density_sbox -> setValue(2000);
-	}
-	
 	this -> period_sbox -> setValue(1);
 	this -> position_from_file_widget -> setVisible(0);
 	this -> attitude_from_file_widget -> setVisible(0);

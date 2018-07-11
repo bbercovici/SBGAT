@@ -58,10 +58,27 @@ namespace SBGAT_GUI {
 @class ObsWindow
 \author Benjamin Bercovici
 \date March, 2018
-\brief ObsWindow class defining a window where a user can generate emulated radar 
-data simulating the output of a range/range-rate doppler radar
+\brief ObsWindow class defining a window where a user can generate simulated observations involving (optionally)binary asteroids.
 
-\details TODO
+
+\details The position and attitude states of the asteroids can either be generated under keplerian dynamics (resp. fixed-spin) regime, or provided 
+from an external input file. 
+Note:
+- Should the position of a secondary be generated under the keplerian dynamics assumption, the center of mass of the primary will 
+remain at (0,0,0) with no velocity (in violation of the actual barycentric motion of the two bodies). 
+- The attitude is parametrized in terms of a set of Modified Rodrigues Parameters sigma = (sigma_1,sigma_2,sigma_3)
+- Position and attitude files should be header-less, whitespace-separated, time-sorted like so :
+
+t_0 a_0 b_0 c_0 d_0 e_0 f_0
+t_1 a_1 b_1 c_1 d_1 e_1 f_1
+...........................
+t_N a_N b_N c_N d_N e_N f_N
+
+where t_i is the state epoch expressed in seconds, (a_i, b_i, c_i) the position cartesian coordinates (resp. unitless MRP)  expressed in meters ( resp. unitless), 
+(d_i, e_i, f_i) the velocity (resp. angular velocity) expressed in meters/second (resp. expressed in rad/s). 
+
+
+
 */
 
 	class ObsWindow : public QDialog {
@@ -114,11 +131,24 @@ data simulating the output of a range/range-rate doppler radar
 
 		virtual void init();
 
+		/**
+		Piecewise linear interpolation of provided state history
+		@param time interpolation time
+		@param state_from_file vector of states , each of them being 6x1
+		@param state_time_from_file vector of state epochs
+		@param is_attitude_state true if the interpolated state is an attitude state (sigma_1,sigma_2,sigma_3,omega_1,omega_2,omega_3).
+		Will ensure that the interpolator behaves properly around MRP shadow set switching, if any
+		@return interpolated state
+		*/
+		static arma::vec interpolate(const double & time,
+			const std::vector<arma::vec> & state_from_file,
+			const std::vector<double> & state_time_from_file,
+			bool is_attitude_state);
+
 		Mainwindow * parent;
 
 		QComboBox * primary_prop_combo_box;
 		QComboBox * secondary_prop_combo_box;
-
 
 		QDialogButtonBox * button_box;
 		QDoubleSpinBox * imaging_period_sbox;
