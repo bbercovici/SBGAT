@@ -180,49 +180,125 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
 	std::string secondary_name = this -> secondary_prop_combo_box -> currentText().toStdString();
 	
-	auto shape_data = this -> parent -> get_wrapped_shape_data();
-	this -> observation_filter -> AddInputData(0,shape_data[primary_name] -> get_polydata());
-		
-	// Adding the secondary to the filter
-	if (secondary_name != "None"){
-		this -> observation_filter -> AddInputData(0,shape_data[secondary_name] -> get_polydata());
-	}
 
-	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
-	mass_properties -> Update();
-	double mu = arma::datum::G * this -> primary_shape_properties_widget -> get_density() * mass_properties -> GetVolume();
-
-
-	// Observations are assumed to happen at a constant rate
-	double imaging_period = this -> imaging_period_sbox -> value() * 3600; 
 	
 	for (int i  = 0; i < this -> N_images_sbox -> value(); ++i){
-		double time = i * imaging_period;
+		double time = i * this -> imaging_period_sbox -> value() * 3600;
 		imaging_times.push_back(time);
+		positions_vec.push_back(std::vector<arma::vec>());
+		velocities_vec.push_back(std::vector<arma::vec>());
+		mrps_vec.push_back(std::vector<arma::vec>());
+		omegas_vec.push_back(std::vector<arma::vec>());
+	}
+
+	// Primary state
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	this -> observation_filter -> AddInputData(0,shape_data[primary_name] -> get_polydata());
+	this -> add_state_history(this -> primary_shape_properties_widget,
+		imaging_times,positions_vec,velocities_vec,mrps_vec,omegas_vec);
+
+	// If there's a secondary, its state history is  added
+	if (secondary_name != "None"){
+		this -> observation_filter -> AddInputData(0,shape_data[secondary_name] -> get_polydata());
+		this -> add_state_history(this -> secondary_shape_properties_widget,
+			imaging_times,positions_vec, velocities_vec,mrps_vec,omegas_vec);
+	}
 
 
-		std::vector<arma::vec> positions,velocities,mrps,omegas;
+}
 
-	// Primary states
-		if (this -> primary_shape_properties_widget -> position_from_keplerian_button -> isChecked()){
-			positions.push_back(arma::zeros<arma::vec>(3));
-			velocities.push_back(arma::zeros<arma::vec>(3));
+
+void ObsWindow::add_state_history(ShapePropertiesWidget * shape_properties_widget,
+	const std::vector<double> & imaging_times,
+	std::vector< std::vector<arma::vec> > & positions_vec, 
+	std::vector< std::vector<arma::vec> > & velocities_vec,
+	std::vector< std::vector<arma::vec> > & mrps_vec,
+	std::vector< std::vector<arma::vec> > & omegas_vec) const{
+
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	std::string primary_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	mass_properties -> SetInputData(shape_data[primary_name] -> get_polydata());
+	mass_properties -> Update();
+	double mu = arma::datum::G * shape_properties_widget -> get_density() * mass_properties -> GetVolume();
+
+
+	std::vector<arma::vec> position_from_file, attitude_from_file;
+	std::vector<double> position_time_from_file, attitude_time_from_file;
+
+
+
+
+	if (shape_properties_widget -> position_from_file_button -> isChecked()){
+		// This is where the text file should be parsed
+		// The in the file should be
+		// time (s) -- x_pos (m)-- y_pos (m) -- z_pos (m)-- x_dot (m) -- y_dot (m) -- z_dot
+		ObsWindow::load_state_from_file(
+			shape_properties_widget -> get_position_state_file_path(),
+			position_from_file,
+			position_time_from_file);
+	}
+
+	if (shape_properties_widget -> attitude_from_file_button -> isChecked()){
+		// This is where the text file should be parsed
+		// time (s) -- sigma_1 -- sigma_2 -- sigma_3 -- omega_x -- omega_y -- omega_z
+		ObsWindow::load_state_from_file(shape_properties_widget -> get_attitude_state_file_path(),
+			attitude_from_file,
+			attitude_time_from_file);
+		
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	for (int i  = 0; i < this -> N_images_sbox -> value(); ++i){
+
+		double time = imaging_times[i];
+		if (shape_properties_widget -> position_from_keplerian_button -> isChecked()){
+
+			// If the considered shape is a primary, then its position state should be zero (both in position
+			// and velocity)
+
+			if (shape_properties_widget -> isPrimary()){
+				positions_vec[i].push_back(arma::zeros<arma::vec>(3));
+				velocities_vec[i].push_back(arma::zeros<arma::vec>(3));
+			}
+			else{
+				arma::vec elements = shape_properties_widget -> get_orbital_elements();
+
+				OC::KepState kep_state(elements,mu);
+				OC::CartState cart_state = kep_state.convert_to_cart(time);
+				positions_vec[i].push_back(cart_state.get_position_vector());
+				velocities_vec[i].push_back(cart_state.get_velocity_vector());
+			}
 
 		} else{
+
 			// not implemented yet, will require interpolator
 
 		}
 
-		if (this -> primary_shape_properties_widget -> attitude_from_simple_spin_button -> isChecked()){
-
-			double w = 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
+		if (shape_properties_widget -> attitude_from_simple_spin_button -> isChecked()){
+			double period = shape_properties_widget -> get_period();
+			double w = 2 * arma::datum::pi / period;
 			double phi = w * time;
 			phi = phi - int(phi / (2 * arma::datum::pi) ) * (2 * arma::datum::pi);
 
-			arma::vec spin = this -> primary_shape_properties_widget -> get_spin();
+			arma::vec spin = shape_properties_widget -> get_spin();
 			arma::vec mrp;
-			
+
 			if (phi > arma::datum::pi){
 				phi = 2 * arma::datum::pi - phi;
 				spin = -spin;
@@ -230,74 +306,32 @@ void ObsWindow::get_inputs_from_GUI(std::vector<double> & imaging_times,
 
 			mrp = std::tan(phi / 4) * spin;
 			arma::vec omega = w * spin;
-			mrps.push_back(mrp);
-			omegas.push_back(omega);
+			mrps_vec[i].push_back(mrp);
+			omegas_vec[i].push_back(omega);
 
 
 		} else{
-
 			// not implemented yet, will require interpolator
 
 		}
-
-
-
-	// Secondary states
-		if (secondary_name != "None"){
-			if (this -> secondary_shape_properties_widget -> position_from_keplerian_button -> isChecked()){
-
-				arma::vec elements = this -> secondary_shape_properties_widget -> get_orbital_elements();
-
-
-
-				OC::KepState kep_state(elements,mu);
-				OC::CartState cart_state = kep_state.convert_to_cart(time);
-
-				positions.push_back(cart_state.get_position_vector());
-				velocities.push_back(cart_state.get_velocity_vector());
-
-
-			} else{
-
-			// not implemented yet, will require interpolator
-
-			}
-
-			if (this -> secondary_shape_properties_widget -> attitude_from_simple_spin_button -> isChecked()){
-
-				double w = 2 * arma::datum::pi / this -> secondary_shape_properties_widget -> get_period();
-				double phi = w * time;
-				phi = phi - int(phi / (2 * arma::datum::pi) ) * (2 * arma::datum::pi);
-
-				arma::vec spin = this -> secondary_shape_properties_widget -> get_spin();
-				arma::vec mrp;
-
-				if (phi > arma::datum::pi){
-					phi = 2 * arma::datum::pi - phi;
-					spin = -spin;
-				}
-
-				mrp = std::tan(phi / 4) * spin;
-				arma::vec omega = w * spin;
-				mrps.push_back(mrp);
-				omegas.push_back(omega);
-
-
-			} else{
-			// not implemented yet, will require interpolator
-
-			}
-		}
-
-		positions_vec.push_back(positions);
-		velocities_vec.push_back(velocities);
-		mrps_vec.push_back(mrps);
-		omegas_vec.push_back(omegas);
-
 
 	}
 
+}
 
+
+void ObsWindow::load_state_from_file(const std::string & filepath,
+	std::vector<arma::vec> & state_vec,
+	std::vector<double> & time_vec){
+
+	std::ifstream file(filepath);
+	double time, x,y,z,X,Y,Z;
+
+	while(file >> time >> x >> y >> z >> X >> Y >> Z ){
+		time_vec.push_back(time);
+		arma::vec state = {x,y,z,X,Y,Z};
+		state_vec.push_back(state);
+	}
 
 
 

@@ -88,8 +88,6 @@ by the physical parameters of a shape
 		arma::vec get_orbital_elements() const;
 
 
-		
-
 		/**
 		Exclusive push button which, if pressed, indicates that the position of the body is keplerian
 		*/
@@ -111,13 +109,32 @@ by the physical parameters of a shape
 		*/
 		QRadioButton * attitude_from_file_button ;
 
+		/**
+		Returns true if the widget corresponds to a primary shape, false otherwise
+		*/
+		bool isPrimary() const{ return this -> is_primary;}
+
+		/**
+		Returns path to position state
+		*/
+		std::string get_position_state_file_path() const;
+		
+		/**
+		Returns path to attitude state
+		*/
+		std::string get_attitude_state_file_path() const;
+
+
+
 		private slots:
 
 		void toggle_position_visibility();
 		void toggle_attitude_visibility();
 
+		void load_position_state();
+		void load_attitude_state();
 
-
+		
 	protected:
 
 		void init();
@@ -126,13 +143,9 @@ by the physical parameters of a shape
 		QLabel * spin_inc_label;
 		QLabel * period_label;
 
-
-
 		QDoubleSpinBox * spin_raan_sbox;
 		QDoubleSpinBox * spin_inc_sbox;
 		QDoubleSpinBox * period_sbox;
-
-
 
 		QDoubleSpinBox * sma_sbox;
 		QDoubleSpinBox * ecc_sbox;
@@ -140,13 +153,11 @@ by the physical parameters of a shape
 		QDoubleSpinBox * Omega_sbox;
 		QDoubleSpinBox * omega_sbox;
 		QDoubleSpinBox * M0_sbox;
+		QDoubleSpinBox * density_sbox;
 
 
-
-		QDoubleSpinBox * density_sbox = nullptr;
-		QLabel * density_label = nullptr;
-
-		
+		QPushButton * load_position_state_from_file_button;
+		QPushButton * load_attitude_state_from_file_button;
 
 		QWidget * position_keplerian_widget;
 		QWidget * attitude_simple_spin_widget;
@@ -158,6 +169,12 @@ by the physical parameters of a shape
 		QGroupBox * position_box;
 		QGroupBox * attitude_box;
 
+		QLabel * load_position_state_from_file_label;
+		QLabel * load_attitude_state_from_file_label;
+
+		std::string position_state_file_path;
+		std::string attitude_state_file_path;
+		bool is_primary;
 		
 
 	};

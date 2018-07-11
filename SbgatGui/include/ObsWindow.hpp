@@ -82,16 +82,35 @@ data simulating the output of a range/range-rate doppler radar
 
 	protected:
 
+
+
 		/**
-
-
+		Loads time history of 6x1 state into the provided containers. 
+		Expects to read file line-by-line with 7 values on each line
+		(time, followed by the 6 state components) with each value separated by 
+		a whitespace
+		@param filepath path to file
+		@param state_vec container to hold each vector from the state history
+		@param time_vec container to hold each time in the state history
 		*/
+		static void load_state_from_file(const std::string & filepath,
+			std::vector<arma::vec> & state_vec,
+			std::vector<double> & time_vec);
+		
 		void get_inputs_from_GUI(std::vector<double> & imaging_times,
 			std::vector< std::vector<arma::vec> > & positions_vec, 
 			std::vector< std::vector<arma::vec> > & velocities_vec,
 			std::vector< std::vector<arma::vec> > & mrps_vec,
 			std::vector< std::vector<arma::vec> > & omegas_vec);
 
+
+
+		void add_state_history(ShapePropertiesWidget * shape_properties_widget,
+			const std::vector<double> & imaging_times,
+			std::vector< std::vector<arma::vec> > & positions_vec, 
+			std::vector< std::vector<arma::vec> > & velocities_vec,
+			std::vector< std::vector<arma::vec> > & mrps_vec,
+			std::vector< std::vector<arma::vec> > & omegas_vec) const;
 
 		virtual void init();
 

@@ -30,7 +30,7 @@ using namespace SBGAT_GUI;
 
 ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	std::string title){
-
+	this -> is_primary = is_primary;
 	QGridLayout * shape_properties_group_layout = new QGridLayout(this);
 
 
@@ -44,6 +44,8 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	this -> position_from_file_widget = new QWidget(this -> position_box);
 	this -> attitude_from_file_widget = new QWidget(this -> attitude_box);
 
+	this -> load_position_state_from_file_button = new QPushButton("Select file",this -> position_from_file_widget);
+	this -> load_attitude_state_from_file_button = new QPushButton("Select file",this -> attitude_from_file_widget);
 
 	QWidget * button_box_widget_position = new QWidget(this -> position_box);
 	QHBoxLayout * button_box_widget_position_layout = new QHBoxLayout(button_box_widget_position);
@@ -65,12 +67,25 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 
 	QGridLayout * position_box_layout = new QGridLayout(this -> position_box);
 	QGridLayout * attitude_box_layout = new QGridLayout(this -> attitude_box);
-	
+
+
 	QGridLayout * position_keplerian_widget_layout = new QGridLayout(this -> position_keplerian_widget);
 	QGridLayout * attitude_simple_spin_widget_layout = new QGridLayout(this -> attitude_simple_spin_widget);
 
 	QGridLayout * position_from_file_widget_layout = new QGridLayout(this -> position_from_file_widget);
 	QGridLayout * attitude_from_file_widget_layout = new QGridLayout(this -> attitude_from_file_widget);
+
+
+	this -> load_position_state_from_file_label = new QLabel("(No file selected)",this -> position_from_file_widget);
+	this -> load_attitude_state_from_file_label = new QLabel("(No file selected)",this -> attitude_from_file_widget);
+
+	position_from_file_widget_layout -> addWidget(this -> load_position_state_from_file_button,0,0,1,1);
+	position_from_file_widget_layout -> addWidget(this -> load_position_state_from_file_label,0,1,1,1);
+
+
+	attitude_from_file_widget_layout -> addWidget(this -> load_attitude_state_from_file_button,0,0,1,1);
+	attitude_from_file_widget_layout -> addWidget(this -> load_attitude_state_from_file_label,0,1,1,1);
+
 
 	position_box_layout -> addWidget(button_box_widget_position);
 	position_box_layout -> addWidget(this -> position_keplerian_widget);
@@ -95,6 +110,8 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	QLabel * Omega_label = new QLabel("RAAN (deg)",this);
 	QLabel * omega_label = new QLabel("Longitude of perigee (deg)",this);
 	QLabel * M0_label = new QLabel("Mean anomaly at epoch (deg)",this);
+	QLabel * density_label = new QLabel("Density of central body (kg/m^3)",this);
+
 
 	this -> setTitle(QString::fromStdString(title));
 
@@ -108,6 +125,7 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	this -> Omega_sbox  = new QDoubleSpinBox(this);
 	this -> omega_sbox  = new QDoubleSpinBox(this);
 	this -> M0_sbox  = new QDoubleSpinBox(this);
+	this -> density_sbox = new QDoubleSpinBox(this);
 
 	attitude_simple_spin_widget_layout -> addWidget(spin_raan_label,0,0,1,1);
 	attitude_simple_spin_widget_layout -> addWidget(this -> spin_raan_sbox,0,1,1,1);
@@ -117,8 +135,6 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 
 	attitude_simple_spin_widget_layout -> addWidget(period_label,2,0,1,1);
 	attitude_simple_spin_widget_layout -> addWidget(this -> period_sbox,2,1,1,1);
-
-
 
 
 	position_keplerian_widget_layout -> addWidget(sma_label,0,0,1,1);
@@ -139,13 +155,11 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 	position_keplerian_widget_layout -> addWidget(M0_label,5,0,1,1);
 	position_keplerian_widget_layout -> addWidget(this -> M0_sbox,5,1,1,1);
 
+	position_keplerian_widget_layout -> addWidget(density_label,6,0,1,1);
+	position_keplerian_widget_layout -> addWidget(this -> density_sbox,6,1,1,1);
 
 
 	if (is_primary){
-		this -> density_label = new QLabel("Density (kg/m^3)",this);
-		this -> density_sbox = new QDoubleSpinBox(this);
-		shape_properties_group_layout -> addWidget(this -> density_label,2,0,1,1);
-		shape_properties_group_layout -> addWidget(this -> density_sbox,2,1,1,1);
 		this -> position_box -> setVisible(0);
 	}
 	else{
@@ -154,13 +168,14 @@ ShapePropertiesWidget::ShapePropertiesWidget(ObsWindow * parent,bool is_primary,
 
 	this -> init();
 
-
-
 	connect(this -> position_from_keplerian_button, SIGNAL(clicked()),this,SLOT(toggle_position_visibility()));
 	connect(this -> position_from_file_button, SIGNAL(clicked()),this,SLOT(toggle_position_visibility()));
 
 	connect(this -> attitude_from_simple_spin_button, SIGNAL(clicked()),this,SLOT(toggle_attitude_visibility()));
 	connect(this -> attitude_from_file_button, SIGNAL(clicked()),this,SLOT(toggle_attitude_visibility()));
+
+	connect(this -> load_position_state_from_file_button,SIGNAL(clicked()),this,SLOT(load_position_state()));
+	connect(this -> load_attitude_state_from_file_button,SIGNAL(clicked()),this,SLOT(load_attitude_state()));
 
 	
 }
@@ -204,7 +219,6 @@ void ShapePropertiesWidget::init(){
 	this -> position_from_keplerian_button -> setChecked(1);
 	this -> attitude_from_simple_spin_button -> setChecked(1);
 
-
 	if (this -> density_sbox != nullptr){
 		this -> density_sbox -> setRange(1e-10,1e10);
 		this -> density_sbox -> setDecimals(6);
@@ -213,12 +227,9 @@ void ShapePropertiesWidget::init(){
 	
 	this -> period_sbox -> setValue(1);
 	this -> position_from_file_widget -> setVisible(0);
-	this -> attitude_from_file_widget -> setVisible(1);
+	this -> attitude_from_file_widget -> setVisible(0);
 	
 }
-
-
-
 
 
 arma::vec ShapePropertiesWidget::get_spin() const{
@@ -299,7 +310,51 @@ arma::vec ShapePropertiesWidget::get_orbital_elements() const{
 
 	return orbital_elements;
 
+}
+
+
+
+void ShapePropertiesWidget::load_position_state(){
+
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load trajectory file"),
+		"/home",
+		tr(" (*.txt)"));
+	
+	if (!fileName.isNull()){
+		this -> load_position_state_from_file_label -> setText(fileName);
+		this -> position_state_file_path = fileName.toStdString();
+		
+	}
+
+}
+void ShapePropertiesWidget::load_attitude_state(){
+
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load attitude history file"),
+		"/home",
+		tr(" (*.txt)"));
+
+	if (!fileName.isNull()){
+		this -> load_attitude_state_from_file_label -> setText(fileName);
+		this -> attitude_state_file_path = fileName.toStdString();
+	}
+
 
 
 
 }
+
+
+std::string ShapePropertiesWidget::get_position_state_file_path() const{
+	return this -> position_state_file_path;
+}
+
+std::string ShapePropertiesWidget::get_attitude_state_file_path() const{
+	return this -> attitude_state_file_path;
+}
+
+
+
+
+
+
+
