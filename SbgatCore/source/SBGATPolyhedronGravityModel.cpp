@@ -225,7 +225,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
 
 		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
-			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_2 -> GetNumberOfIds())));
+			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_1 -> GetNumberOfIds())));
 		}
 		
 		edge_points_ids_facet_ids[i][2] = facet_ids_point_1->GetId(0);
