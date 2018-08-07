@@ -55,6 +55,8 @@ SOFTWARE.
 #include <vtkExtractEdges.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
+#include <vtkCleanPolyData.h>
+
 #include <vtkLine.h>
 #include <set>
 #include <vtkMath.h>
@@ -101,8 +103,16 @@ int SBGATPolyhedronGravityModel::RequestData(
 	}
 
   // call ExecuteData
-	vtkPolyData * input = vtkPolyData::SafeDownCast(
+	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(
 		inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner->SetInputData (input_unclean);
+	cleaner-> Update();
+
+	vtkPolyData * input = cleaner -> GetOutput();
 
 	vtkIdType cellId, numCells, numPts, numIds;
 
@@ -221,13 +231,15 @@ int SBGATPolyhedronGravityModel::RequestData(
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][0],facet_ids_point_1 );
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][1],facet_ids_point_2 );
 
-		// Now, we find the two indices showing up in both facet_ids_point_1 and facet_ids_point_2
+
+
+		// Now, we find the two facet indices showing up in both facet_ids_point_1 and facet_ids_point_2
 		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
 
 		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
 			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_1 -> GetNumberOfIds())));
 		}
-		
+
 		edge_points_ids_facet_ids[i][2] = facet_ids_point_1->GetId(0);
 		edge_points_ids_facet_ids[i][3] = facet_ids_point_1->GetId(1);
 		
