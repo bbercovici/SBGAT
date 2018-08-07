@@ -74,18 +74,20 @@ to apply the update (if any).
 
 ## Changelog
 
-### [SBGAT 1.07.1](https://github.com/bbercovici/SBGAT/releases/tag/1.07.1)
+### [SBGAT 1.08.1](https://github.com/bbercovici/SBGAT/releases/tag/1.08.1)
 
 #### New:
-- Created module `SBGATKeplerianTraj`, a wrapper around the `OrbitConversions` library. This means that SBGAT can generate Keplerian trajectories
+
 - Created `SBGATObs` base-class from which `SBGATObsLightcurve` and `SBGATObsRadar` derive
 - Added new functionalities to `SbgatGui`
+- Created the dependency `OrbitConversions` to generate Keplerian trajectories or convert 6 dof states between Cartesians and Keplerian representations.
 
 #### Improvements
 -  `SBGATObsLightcurve` and `SBGATObsRadar` now handle primary/secondary asteroid systems, allowing generation of lightcurves and radar observations of binary asteroid systems. Relative trajectories can be computed under the assumption that the secondary is undergoing a keplerian orbit about the primary, or be loaded from an external file.
 - Removed dependency of `SBGATSphericalHarmo` to density and mass of the considered shape model
 
 #### Bug fixes: 
+- Fixed a bug in `SBGATPolyhedronGravityModel.cpp` where the edge extraction would sometimes fail. Fix consisted in filtering the input through a `vtkPolyDataCleaner` before handing it to `vtkExtractEdges`.
 
 
 ### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)
