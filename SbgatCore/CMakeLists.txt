@@ -86,6 +86,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
+# Find OrbitConversions 
+find_package(OrbitConversions REQUIRED)
+include_directories(${OC_INCLUDE_DIR})
+
+
 # Find OpenMP
 find_package(OpenMP)
 if(OpenMP_FOUND)
@@ -128,10 +133,10 @@ add_library(${LIB_NAME}
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
+	source/SBGATObs.cpp
 	source/SBGATObsRadar.cpp
 	source/SBGATObsLightcurve.cpp
-	
-
+	source/SBGATTrajectory.cpp
 	)
 
 # Linking
@@ -142,6 +147,7 @@ set(library_dependencies
 	${RBK_LIBRARY}
 	${YORPLIB_LIBRARY}
 	${SHARMLIB_LIBRARY}
+	${OC_LIBRARY}
 	)
 target_link_libraries(${LIB_NAME} ${library_dependencies})
 

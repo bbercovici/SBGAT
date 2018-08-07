@@ -41,14 +41,11 @@ YORPWindow::YORPWindow(Mainwindow * parent) {
 	QGroupBox * output_group = new QGroupBox(tr("Output directory"));
 
 
-	
 	QGridLayout * shape_model_group_layout = new QGridLayout(shape_model_group);
 	QGridLayout * surface_group_layout = new QGridLayout(surface_group);
 	QGridLayout * fidelity_group_layout = new QGridLayout(fidelity_group);
 	QGridLayout * fourier_group_layout = new QGridLayout(fourier_group);
 	QGridLayout * output_group_layout = new QGridLayout(output_group);
-
-
 
 	QLabel * shape_label = new QLabel("Shape model",this);
 	QLabel * rho_label = new QLabel("Rho",this);

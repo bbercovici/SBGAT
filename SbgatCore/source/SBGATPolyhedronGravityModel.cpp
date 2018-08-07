@@ -55,6 +55,8 @@ SOFTWARE.
 #include <vtkExtractEdges.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
+#include <vtkCleanPolyData.h>
+
 #include <vtkLine.h>
 #include <set>
 #include <vtkMath.h>
@@ -96,14 +98,21 @@ int SBGATPolyhedronGravityModel::RequestData(
 	inputVector[0]->GetInformationObject(0);
 
 
-
 	if (!(this -> densitySet && this -> scaleFactorSet)){
-		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor may have not been properly set"));
+		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
   // call ExecuteData
-	vtkPolyData * input = vtkPolyData::SafeDownCast(
+	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(
 		inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner->SetInputData (input_unclean);
+	cleaner-> Update();
+
+	vtkPolyData * input = cleaner -> GetOutput();
 
 	vtkIdType cellId, numCells, numPts, numIds;
 
@@ -197,7 +206,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 	}
 
 	// The edges are extracted
-
 	vtkSmartPointer<vtkExtractEdges> extractEdges = 
 	vtkSmartPointer<vtkExtractEdges>::New();
 	extractEdges->SetInputData(input);
@@ -206,7 +214,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	unsigned int edge_count = extractEdges->GetOutput()->GetNumberOfCells();
 	std::vector<std::array<vtkIdType,4>> edge_points_ids_facet_ids(edge_count);
-
 
 	// Should get rid of this map and use a vector instead
 	// This loop cannot be parallelized since GetPointCells is 
@@ -224,13 +231,15 @@ int SBGATPolyhedronGravityModel::RequestData(
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][0],facet_ids_point_1 );
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][1],facet_ids_point_2 );
 
-		// Now, we find the two indices showing up in both facet_ids_point_1 and facet_ids_point_2
+
+
+		// Now, we find the two facet indices showing up in both facet_ids_point_1 and facet_ids_point_2
 		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
 
 		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
-			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_2 -> GetNumberOfIds())));
+			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_1 -> GetNumberOfIds())));
 		}
-		
+
 		edge_points_ids_facet_ids[i][2] = facet_ids_point_1->GetId(0);
 		edge_points_ids_facet_ids[i][3] = facet_ids_point_1->GetId(1);
 		
@@ -414,10 +423,10 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 		potential += Le * vtkMath::Dot(r0m,a);
 
-
 	}
 
-	potential *= 0.5 * arma::datum::G / std::pow(this -> scaleFactor,3) * this ->density;
+	
+	potential *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
 
 	return potential;
 
@@ -548,7 +557,8 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 	}
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
-	acc *= arma::datum::G  / std::pow(this -> scaleFactor,3)* this -> density;
+
+	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
 
 	return acc;
 

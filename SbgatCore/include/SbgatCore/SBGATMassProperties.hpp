@@ -167,7 +167,7 @@ public:
 
 
   /**
-  * Compute and return the inertia moments assuming a constant density distribution
+  * Compute and return the inertia moments assuming uniform density distribution
   * across the shape
   */
         arma::vec::fixed<3> GetInertiaMoments(){

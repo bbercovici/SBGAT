@@ -44,7 +44,9 @@ SOFTWARE.
  field around a constant density polyhedron
  *
  * @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
- * field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed
+ * field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
+ * The computed coefficients are completely independent of the mass and density of the considered object
+ * as they are only a geometric construct, thanks to the constant-density assumption
  * Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
  * for more details, see 
  * Werner, R. a. (1997). 
@@ -84,7 +86,7 @@ public:
   }
 
   /**
-  Sets reference radius in spherical harmonics expansion. Units must be consistent 
+  Sets reference radius in spherical harmonics expansion. Must be consistent 
   with the units in which the shape coordinates are expressed
   @param ref_radius reference radius in spherical harmonics expansion
   */
@@ -94,9 +96,8 @@ public:
   }
 
   /**
-  Sets polyhedron density. Units must be consistent 
-  with the units in which the shape coordinates are expressed
-  @param density bulk density of polyhedron
+  Sets polyhedron density 
+  @param density bulk density of polyhedron (kg/m^3)
   */
   void SetDensity(const double density){
     this -> density = density;
@@ -146,8 +147,9 @@ public:
 
   /**
   Returns the acceleration due to gravity at the specified point
-  @param pos position at which the acceleration must be evaluated, expressed in the same frame as 
-  the one used to build the spherical harmonics expansion
+  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit as 
+  the shape used to build the spherical harmonics expansion. 
+  @return acceleration (kg * m / s ^ 2)
   */
   arma::vec GetAcceleration(const arma::vec & pos);
 

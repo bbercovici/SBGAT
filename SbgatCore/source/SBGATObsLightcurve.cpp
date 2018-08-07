@@ -38,14 +38,13 @@ SOFTWARE.
 
 =========================================================================*/
 #include <SBGATObsLightcurve.hpp>
-#include <vtkObjectFactory.h>
+#include <SBGATObs.hpp>
+
 #include <vtkCell.h>
 #include <vtkDataObject.h>
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
 #include <SBGATMassProperties.hpp>
 #include <vtkExtractHistogram2D.h>
@@ -61,288 +60,82 @@ SOFTWARE.
 
 vtkStandardNewMacro(SBGATObsLightcurve);
 
-//----------------------------------------------------------------------------
-// Constructs with initial 0 values.
-SBGATObsLightcurve::SBGATObsLightcurve(){
 
-  this -> SetNumberOfOutputPorts(0);
+SBGATObsLightcurve::SBGATObsLightcurve() : SBGATObs(){
+
 }
 
-//----------------------------------------------------------------------------
-// Destroy any allocated memory.
+
 SBGATObsLightcurve::~SBGATObsLightcurve(){
+
 }
 
-//----------------------------------------------------------------------------
-// Description:
-// This method computes the Cnm and Snm arrays of coefficients
-// used in the spherical harmonics expansion of exterior gravity 
-// about a constant-density polyhedron
 
-int SBGATObsLightcurve::RequestData(
-  vtkInformation* vtkNotUsed( request ),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector )){
+void SBGATObsLightcurve::CollectMeasurements(
+  std::vector<std::array<double, 2> > & measurements,
+    const double & time,
+    const int & N,
+    const arma::vec & sun_dir,
+    const arma::vec & observer_dir,
+    const std::vector<arma::vec> & positions_vec,
+    const std::vector<arma::vec> & velocities_vec,
+    const std::vector<arma::vec> & mrps_vec,
+    const std::vector<arma::vec> & omegas_vec,
+    const bool & penalize_indicence){
 
-  vtkInformation *inInfo =
-  inputVector[0]->GetInformationObject(0);
+ 
+  if(positions_vec.size() != omegas_vec.size() || positions_vec.size() != velocities_vec.size()|| positions_vec.size() != mrps_vec.size())
+    throw(std::runtime_error("Incompatible input dimensions"));
 
-  // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  vtkIdType numCells, numPts;
+// Containers
+  std::vector<std::vector<int> > facets_in_view;
+  std::vector<arma::mat> BN_dcms_vec ;
 
-  numCells = input->GetNumberOfCells();
-  numPts = input->GetNumberOfPoints();
-  if (numCells < 1 || numPts < 1){
-    vtkErrorMacro( << "No data to measure...!");
-    return 1;
+  // Pre-allocating for all inputs  
+  for (int i = 0; i < this -> number_of_bodies; ++i){
+    facets_in_view.push_back(std::vector<int>());
+    BN_dcms_vec.push_back(RBK::mrp_to_dcm(mrps_vec[i]));
   }
 
-  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds -> Allocate(VTK_CELL_SIZE);
-
-  this -> bspTree =vtkSmartPointer<vtkModifiedBSPTree>::New();
-  this -> bspTree->SetDataSet(input);
-
-  // bspTree->SetMaxLevel(12);
-  // bspTree->SetNumberOfCellsPerNode(16);
-  this -> bspTree -> BuildLocator();
-
-  // The center of mass of the input shape is saved
-  vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
-  mass_filter -> SetInputData(input);
-  mass_filter -> Update();
-  this -> center_of_mass = mass_filter -> GetCenterOfMass();
-
-  return 1;
-}
 
 
-void SBGATObsLightcurve::CollectMeasurementsSimpleSpin(
-  std::vector<std::array<double, 2> > & measurements,
-  const int & N,
-  const double & dt,
-  const double & period,
-  const arma::vec & sun_dir,
-  const arma::vec & observer_dir,
-  const arma::vec & spin,
-  const bool & penalize_indicence){
-
-  // Containers
-  std::vector<int> facets_in_view;
-  vtkPolyData * input = vtkPolyData::SafeDownCast(this->GetInput(0));
-  vtkIdType cellId, numCells, numIds;
-  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds -> Allocate(VTK_CELL_SIZE);
-  numCells = input -> GetNumberOfCells();
-
-
-  // Angular velocity 
-  double w = 2 * arma::datum::pi / period;
-  arma::vec omega = spin * w;
-
-  // Body-frame to inertial matrix
-  arma::mat BN = RBK::prv_to_dcm(spin * dt * w );
-
-  // Sun-to-target direction in body frame
-  arma::vec target_to_sun_dir_body_frame = BN * arma::normalise(sun_dir);
-
-  // Observer-to-target direction in body frame
-  arma::vec target_to_observer_dir_body_frame = BN * arma::normalise(observer_dir);
-
-  // Ray-tracing tolerance
-  double tol = input -> GetLength()/1E6;
-
-
-  // The surface area of the largest facet 
-  double max_area = -1;
   // First, only facets that are in view of the sun
   // and the observer (based on their normal orientation) are kept
-  for (cellId=0; cellId < numCells; cellId++){
+  // Then, the facets that are in view of the sun are ray-traced to the sun and to the observer
+  // checking with potential interects with all bodies
 
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE){
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "<< input->GetCellType(cellId));
-      continue;
-    }
+  std::vector<arma::vec> dir_to_check_vec = {observer_dir,sun_dir};
 
-    input -> GetCellPoints(cellId,ptIds);
-    numIds = ptIds -> GetNumberOfIds();
-    assert(numIds == 3);
-    
-    double p0[3];
-    double p1[3];
-    double p2[3];
+  for (int i = 0; i < this -> number_of_bodies; ++i){
 
-    input->GetPoint(ptIds->GetId(0), p0);
-    input->GetPoint(ptIds->GetId(1), p1);
-    input->GetPoint(ptIds->GetId(2), p2);
-
-    double e0[3];
-    double e1[3];
-
-    vtkMath::Subtract(p1,p0,e0);
-    vtkMath::Subtract(p2,p0,e1);
-
-    double n[3];
-    
-    vtkMath::Cross(e0,e1,n);
-    max_area = std::max(max_area,vtkMath::Norm(n)/2);
-    vtkMath::Normalize(n);
-
-    // Check if the facet is in view of both the sun and the observer
-    bool in_view = (vtkMath::Dot(n,target_to_sun_dir_body_frame.colptr(0)) > 0 && vtkMath::Dot(n,target_to_observer_dir_body_frame.colptr(0)) > 0);
-    if (in_view){
-      facets_in_view.push_back(cellId);
-    }
-
+    this -> prefind_facets_inview(facets_in_view[i],
+      i,
+      dir_to_check_vec,
+      BN_dcms_vec,
+      positions_vec);
   }
 
-
-
-  // The vector holding the kept-facets is initialized
   std::array<double, 2>  measurements_temp;
-  measurements_temp[0] = dt;
+  measurements_temp[0] = time;
   measurements_temp[1] = 0;
 
+  this -> reverse_ray_trace(measurements_temp,
+    facets_in_view,
+    sun_dir,
+    observer_dir,
+    N,
+    penalize_indicence,
+    BN_dcms_vec,
+    positions_vec);
 
-  // The kept facets are then sampled and reverse ray-traced
-  for (unsigned int facet_index = 0; facet_index != facets_in_view.size(); ++facet_index){
+  measurements.push_back(measurements_temp);
 
-    double p0[3];
-    double p1[3];
-    double p2[3];
-
-    input -> GetCellPoints(facets_in_view[facet_index],ptIds);
-    input -> GetPoint(ptIds->GetId(0), p0);
-    input -> GetPoint(ptIds->GetId(1), p1);
-    input -> GetPoint(ptIds->GetId(2), p2);
-
-    arma::vec P0 = {p0[0],p0[1],p0[2]};
-    arma::vec P1 = {p1[0],p1[1],p1[2]};
-    arma::vec P2 = {p2[0],p2[1],p2[2]};
-
-    arma::vec n = arma::cross(P1 - P0, P2 - P0);
-
-     // The number of points sampled from this facet is determined based on 
-  // the relative size of this facet compared to the largest one in the considered shape
-    int N_facet = int( N * arma::norm(n /2) / max_area);
-
-    // only need unit normal vector from here
-    n = arma::normalise(arma::cross(P1 - P0, P2 - P0));
-
-    double cosi_sun ;
-    double cosi_obs ;
-
-    if (penalize_indicence){
-     cosi_sun = vtkMath::Dot(n.colptr(0),target_to_sun_dir_body_frame.colptr(0));
-     cosi_obs = vtkMath::Dot(n.colptr(0),target_to_observer_dir_body_frame.colptr(0));
-
-   }
-   else{
-
-    cosi_sun = 1;
-    cosi_obs = 1;
-  }
-
-
-    // The incidence is constant across the facet
-
-    // A maximum of N points are sampled from this facet
-  // #pragma omp parallel for
-  for (int i = 0; i < N_facet; ++i){
-
-    bool keep_point = true;
-
-      // A random impact point is uniformly drawn from this facet
-    arma::vec random = arma::randu<arma::vec>(2);
-    double u = random(0);
-    double v = random(1);
-    arma::vec impact =  (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
-
-
-
-
-
-    // Checking if point is in view of sun
-    {
-      vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
-      vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
-
-      arma::vec point_towards_sun = impact + input -> GetLength() * 1e3 * target_to_sun_dir_body_frame;
-
-      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_sun.colptr(0), tol, verts, cellIds);
-
-      // All the detected intersections are checked.
-      for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
-
-        double intersect[3];
-        double intersect_to_origin[3];
-        verts -> GetPoint(intersect_index,intersect);
-        vtkMath::Subtract(intersect,point_towards_sun.colptr(0),intersect_to_origin);
-
-        // If the intersect is between the radar and the impact point
-        if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_sun)){
-
-        // Reject this point
-          keep_point = false;
-          break;
-        }
-
-      }
-    }
-
-
-    // Checking if point is in view of the observer
-    if(keep_point){
-      vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
-      vtkSmartPointer<vtkPoints> verts = vtkSmartPointer<vtkPoints>::New();
-
-
-      arma::vec point_towards_observer = impact + input -> GetLength() * 1e3 * target_to_observer_dir_body_frame;
-
-
-      this -> bspTree -> IntersectWithLine(impact.colptr(0), point_towards_observer.colptr(0), tol, verts, cellIds);
-
-      // All the detected intersections are checked.
-      for (int intersect_index = 0; intersect_index < verts -> GetNumberOfPoints(); ++intersect_index){
-
-        double intersect[3];
-        double intersect_to_origin[3];
-        verts -> GetPoint(intersect_index,intersect);
-        vtkMath::Subtract(intersect,point_towards_observer.colptr(0),intersect_to_origin);
-
-        // If the intersect is between the radar and the impact point
-        if (vtkMath::Norm(intersect_to_origin) + tol < arma::norm(impact - point_towards_observer)){
-
-        // Reject this point
-          keep_point = false;
-          break;
-        }
-
-      }
-    }
-
-
-    if (keep_point){
-
-        // the return is weighed by the incidence on the inbound and outbout rays
-      assert(cosi_sun * cosi_obs <= 1);
-      assert(cosi_sun * cosi_obs >= 0);
-
-      measurements_temp[1] += cosi_sun * cosi_obs;
-
-    }
-
-  }
-}
-
-measurements.push_back(measurements_temp);
-
-
+  
 
 }
+
+
 
 
 
@@ -360,13 +153,6 @@ void SBGATObsLightcurve::SaveLightCurveData(const std::vector<std::array<double,
   time_luminosity_series.save(savepath,arma::raw_ascii);
 
 }
-
-
-
-
-
-
-
 
 
 
@@ -390,3 +176,107 @@ void SBGATObsLightcurve::PrintSelf(std::ostream& os, vtkIndent indent){
   }
 
 }
+
+void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements_temp,
+  const std::vector<std::vector<int> > & facets_in_view,
+  const arma::vec & sun_dir,
+  const arma::vec & observer_dir,
+  const int N,
+  const bool penalize_indicence,
+  const std::vector<arma::mat> & BN_dcms_vec,
+  const std::vector<arma::vec> & positions_vec){
+
+  // The sun is positionned with respect to the primary 
+  arma::vec observer_pos = this -> center_of_mass_vec[0] + this -> polydata_vec[0] -> GetLength() * 1E6 * observer_dir;
+  arma::vec sun_pos = this -> center_of_mass_vec[0] + this -> polydata_vec[0] -> GetLength() * 1E6 * sun_dir;
+
+  // Ray-tracing tolerance
+  double tol = this -> polydata_vec[0] -> GetLength()/1E6;
+
+  for (int body_index = 0; body_index < this -> number_of_bodies; ++body_index){
+
+    vtkPolyData * input = this -> polydata_vec[body_index];
+
+    vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+    ptIds -> Allocate(VTK_CELL_SIZE);
+
+    arma::vec target_to_sun_dir_body_frame = BN_dcms_vec[body_index] * sun_dir;
+    arma::vec target_to_observer_dir_body_frame = BN_dcms_vec[body_index] * observer_dir;
+
+
+  // The kept facets are then sampled and reverse ray-traced
+    for (unsigned int facet_index = 0; facet_index != facets_in_view[body_index].size(); ++facet_index){
+
+      double p0[3];
+      double p1[3];
+      double p2[3];
+
+      input -> GetCellPoints(facets_in_view[body_index][facet_index],ptIds);
+      input -> GetPoint(ptIds->GetId(0), p0);
+      input -> GetPoint(ptIds->GetId(1), p1);
+      input -> GetPoint(ptIds->GetId(2), p2);
+
+      arma::vec P0 = {p0[0],p0[1],p0[2]};
+      arma::vec P1 = {p1[0],p1[1],p1[2]};
+      arma::vec P2 = {p2[0],p2[1],p2[2]};
+
+      arma::vec n = arma::cross(P1 - P0, P2 - P0);
+
+    // The number of points sampled from this facet is determined based on 
+    // the relative size of this facet compared to the largest one in all the considered shapes
+      int N_samples = int( N * arma::norm(n /2) / this -> min_area);
+
+    // only need unit normal vector from here
+      n = arma::normalise(arma::cross(P1 - P0, P2 - P0));
+
+      double cosi_sun,cosi_obs ;
+
+    // Computing the ray incidence at impact if needed
+      if (penalize_indicence){
+        cosi_sun = vtkMath::Dot(n.colptr(0),target_to_sun_dir_body_frame.colptr(0));
+        cosi_obs = vtkMath::Dot(n.colptr(0),target_to_observer_dir_body_frame.colptr(0));
+      }
+      else{
+        cosi_sun = 1;
+        cosi_obs = 1;
+      }
+
+    // A maximum of N points are sampled from this facet
+    // #pragma omp parallel for
+      for (int i = 0; i < N_samples; ++i){
+
+      // A random origin point is uniformly drawn from this facet
+        arma::vec random = arma::randu<arma::vec>(2);
+        double u = random(0);
+        double v = random(1);
+        arma::vec origin = (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
+
+    // Derived points are expressed in the body reference frame
+      arma::vec point_above_surface = origin + 3 * tol * n; // the origin of the ray is moved 3*tol above the surface
+      
+      bool has_intersected = (this -> check_line_for_intersect(body_index,point_above_surface,sun_pos,BN_dcms_vec,positions_vec,tol)
+        + this -> check_line_for_intersect(body_index,point_above_surface,observer_pos,BN_dcms_vec,positions_vec,tol));
+
+      // If this point was not obscured, the return is weighed by the incidence on the inbound and outbout rays
+      if (!has_intersected){
+        measurements_temp[1] += cosi_sun * cosi_obs;
+      }
+
+
+    }
+  }
+
+}
+
+
+
+
+}
+
+
+
+
+
+
+
+

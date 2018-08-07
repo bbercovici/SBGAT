@@ -57,6 +57,14 @@ SOFTWARE.
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
 
+
+
+
+
+
+
+
+
 class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{
 public:
 
@@ -77,7 +85,7 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point
+  @return PGM potential evaluated at the queried point (kg * m ^ 2/ s ^2)
   */
   double GetPotential(double * point);
 
@@ -86,25 +94,25 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point
+  @return PGM potential evaluated at the queried point (kg * m ^ 2 / s ^2)
   */
   double GetPotential( arma::vec point);
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame as
-  the polydata
-  @return PGM acceleration evaluated at the queried point
+  @param point coordinates of queried point, expressed in the same frame/unit as
+  the polydata used to construct the PGM
+  @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
   arma::vec GetAcceleration(arma::vec point);
 
-   /**
+  /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM acceleration evaluated at the queried point
+  @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
   arma::vec GetAcceleration(double * point);
 
@@ -116,7 +124,6 @@ public:
   @return true if the polydata contains the point, false otherwise
   */
   bool Contains(double * point, double tol = 1e-8);
-
 
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
@@ -130,7 +137,7 @@ public:
 
   /**
   Sets polyhedron density
-  @param density bulk density of polyhedron
+  @param density bulk density of polyhedron (kg/m^3)
   */
   void SetDensity(const double density){
     this -> density = density;

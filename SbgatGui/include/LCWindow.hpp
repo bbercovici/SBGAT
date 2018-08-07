@@ -25,7 +25,6 @@ SOFTWARE.
 #ifndef HEADER_LC_WINDOW
 #define HEADER_LC_WINDOW
 
-#include <QMainWindow>
 #include <QGroupBox>
 #include <QComboBox>
 #include <QCheckBox>
@@ -44,26 +43,23 @@ SOFTWARE.
 #include <QRadioButton>
 
 
-#include "Mainwindow.hpp"
+#include "ObsWindow.hpp"
 #include <SBGATObsLightcurve.hpp>
 
 
 
 namespace SBGAT_GUI {
 
-	class Mainwindow;
-
 /*!
 @class LCWindow
 \author Benjamin Bercovici
 \date March, 2018
-\brief LCWindow class defining a window where a user can generate emulated radar 
-data simulating the output of a range/range-rate doppler radar
+\brief LCWindow class defining a window where a user can generate lightcurve data
 
 \details TODO
 */
 
-	class LCWindow : public QDialog {
+	class LCWindow : public ObsWindow {
 		Q_OBJECT
 
 	public:
@@ -107,40 +103,16 @@ data simulating the output of a range/range-rate doppler radar
 
 		void init();
 
-		Mainwindow * parent;
-
-		QComboBox * prop_combo_box;
-
-		QDialogButtonBox * button_box;
-
-		QDoubleSpinBox * spin_raan_sbox;
-		QDoubleSpinBox * spin_inc_sbox;
-
 		QDoubleSpinBox * observer_az_sbox;
 		QDoubleSpinBox * observer_el_sbox;
 
 		QDoubleSpinBox * sun_az_sbox;
 		QDoubleSpinBox * sun_el_sbox;
 
-		QDoubleSpinBox * rotation_period_sbox;
-		QDoubleSpinBox * imaging_period_sbox;
-
-		QSpinBox * N_samples_sbox;
-		QSpinBox * N_images_sbox;
-
-		QCheckBox * penalize_incidence_box;
-
-
-		QPushButton * save_observations_button;
-		QPushButton * collect_observations_button;
-		QPushButton * open_visualizer_button;
-
 		QLabel * phase_angle_label;
 		QLineEdit * phase_angle_qldt;
 
 		std::string output_path;
-
-		vtkSmartPointer<SBGATObsLightcurve> lc;
 
 		std::vector<std::array<double, 2> > measurements;
 

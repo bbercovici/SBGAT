@@ -60,21 +60,21 @@ SOFTWARE.
 #include <boost/progress.hpp>
 
 
-
 void TestsSBCore::run() {
 
-	TestsSBCore::test_lightcurve_obs();
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
 	TestsSBCore::test_spherical_harmonics_coefs_consistency();
-	TestsSBCore::test_radar_obs();
+
+
+	// TestsSBCore::test_lightcurve_obs();
+	// TestsSBCore::test_radar_obs();
 
 
 	std::cout << "All tests passed.\n";
 
 }
-
 
 /**
 This test compares some geometric measures as computed by SBGAT 
@@ -112,7 +112,6 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	transformFilter_rot->SetTransform(transform_rot);
 	transformFilter_rot->SetInputConnection(cleanPolyData->GetOutputPort());
 	transformFilter_rot->Update();
-
 
 	vtkSmartPointer<vtkTransform> transform_trans = vtkSmartPointer<vtkTransform>::New();
 	arma::vec translation_vector = { 1, 2, 3};
@@ -162,7 +161,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "-- Creating dyads...\n";
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
-	pgm_filter -> SetDensity(2670. * 1e9);
+	pgm_filter -> SetDensity(2670.); // density in kg/m^3
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
 	std::cout << "-- Done creating dyads...\n";
@@ -307,9 +306,8 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// Harmonics up to degree five are computed
 	int degree = 5;
 
-	// Density of KW4 (kg/km^3). The input shape model has 
-	// its coordinates expressed in km 
-	double density = 2000000000000.0;
+	// Density of KW4 (kg/m^3). 
+	double density = 2000.0;
 
 	// Reference radius of KW4 (km)
 	double ref_radius = 1.317/2;
@@ -320,7 +318,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(density);
-	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> SetScaleKiloMeters();// The input shape model has its coordinates expressed in km 
 	pgm_filter -> Update();
 
 	// An instance of SBGATSphericalHarmo is created to compute and evaluate the spherical 
@@ -344,7 +342,6 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	arma::vec pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
 	arma::vec sharm_acc = spherical_harmonics -> GetAcceleration(pos);
 
-	assert(arma::norm(pgm_acc - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-4);
 
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
@@ -353,7 +350,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 
-	// The accelerations should be consisted with the one previously computed
+	// The accelerations should be consistant with the one previously computed
 	assert(arma::norm(pgm_acc - sharm_acc_from_file) / arma::norm(sharm_acc_from_file) * 100 < 1e-4);
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
 
@@ -363,118 +360,118 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 }
 
 
+// TODO : reimplement these tests
+
+// /**
+// This test computes simulated radar images for benchmarking purposes
+// */
+// void TestsSBCore::test_radar_obs(){
+
+// 	std::cout << "- Running test_radar_obs ..." << std::endl;
+
+// 	// Loading in the shape model
+// 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+// 	reader -> SetFileName("../input/KW4Alpha.obj");
+// 	reader -> Update(); 
+
+// 	// Creating the radar object
+// 	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
+// 	radar -> SetInputConnection(reader -> GetOutputPort());
+// 	radar -> SetScaleKiloMeters();
+// 	radar -> Update();
 
 
-/**
-This test computes simulated radar images for benchmarking purposes
-*/
-void TestsSBCore::test_radar_obs(){
+// 	// Arguments
+// 	arma::vec spin = {0,0,1};
+// 	arma::vec dir = {1,0,0};
+// 	double period = 4 * 3600; // 4 hours
+// 	int images = 48; 
+// 	int N = 100;
 
-	std::cout << "- Running test_radar_obs ..." << std::endl;
+// 	double r_bin = 7.5;//(m)
+// 	double rr_bin = 7.9e-3;//(m/s)
 
-	// Loading in the shape model
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../input/KW4Alpha.obj");
-	reader -> Update(); 
+// 	// A sequence of images is collected
+// 	SBGATRadarObsSequence measurement_sequence;
+// 	auto start = std::chrono::system_clock::now();
 
-	// Creating the radar object
-	vtkSmartPointer<SBGATObsRadar> radar = vtkSmartPointer<SBGATObsRadar>::New();
-	radar -> SetInputConnection(reader -> GetOutputPort());
-	radar -> SetScaleKiloMeters();
-	radar -> Update();
+// 	for (int i  = 0; i < images; ++i){
+// 		double dt = 1.5 * double(i) / ((images - 1)) * period;
 
+// 		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
 
-	// Arguments
-	arma::vec spin = {0,0,1};
-	arma::vec dir = {1,0,0};
-	double period = 4 * 3600; // 4 hours
-	int images = 48; 
-	int N = 100;
+// 		radar -> CollectMeasurementsSimpleSpin(measurement_sequence,N,dt,period,dir,spin);
+// 	}
 
-	double r_bin = 7.5;//(m)
-	double rr_bin = 7.9e-3;//(m/s)
+// 	radar -> BinObservations(measurement_sequence,r_bin,rr_bin);
+// 	std::cout << " --- Done binning ...\n";
 
-	// A sequence of images is collected
-	SBGATMeasurementsSequence measurement_sequence;
-	auto start = std::chrono::system_clock::now();
-
-	for (int i  = 0; i < images; ++i){
-		double dt = 1.5 * double(i) / ((images - 1)) * period;
-
-		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
-
-		radar -> CollectMeasurementsSimpleSpin(measurement_sequence,N,dt,period,dir,spin);
-	}
-
-	radar -> BinObservations(measurement_sequence,r_bin,rr_bin);
-	std::cout << " --- Done binning ...\n";
-
-	radar -> SaveImages("../radar_output/");
-	std::cout << " --- Done saving ...\n";
-
-	
-	auto end = std::chrono::system_clock::now();
-
-	std::chrono::duration<double> elapsed_seconds = end-start;
-	std::cout << "-- Done collecting radar images in " << elapsed_seconds.count() << " s\n";
-	std::cout << "-- test_radar_obs successful" << std::endl;
-
-}
-
-
-/**
-This test computes simulated lightcurves for benchmarking purposes
-*/
-void TestsSBCore::test_lightcurve_obs(){
-
-	std::cout << "- Running test_lightcurve_obs ..." << std::endl;
-
-	// Loading in the shape model
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../input/KW4Alpha.obj");
-	reader -> Update(); 
-
-	// Creating the radar object
-	vtkSmartPointer<SBGATObsLightcurve> lightcurve = vtkSmartPointer<SBGATObsLightcurve>::New();
-	lightcurve -> SetInputConnection(reader -> GetOutputPort());
-	lightcurve -> SetScaleKiloMeters();
-	lightcurve -> Update();
-
-
-	// Arguments
-	arma::vec spin = {0,0,1};
-	arma::vec target_pos = {1e6,0,0};
-	arma::vec observer_pos = {1e6,1e6,0};
-	double period = 4 * 3600; // 4 hours
-	int images = 100; 
-	int N = 100;
-
-	// A sequence of images is collected
-	std::vector<std::array<double, 2> > measurements;
-	auto start = std::chrono::system_clock::now();
-
-	for (int i  = 0; i < images; ++i){
-		double dt = 360 * double(i) ; // one data point evey 360 s
-
-		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
-		lightcurve -> CollectMeasurementsSimpleSpin(measurements,N,dt,period,target_pos,observer_pos,spin);
-		std::cout << measurements.back()[1] << std::endl;
-	}
+// 	radar -> SaveImages("../radar_output/");
+// 	std::cout << " --- Done saving ...\n";
 
 	
-	auto end = std::chrono::system_clock::now();
+// 	auto end = std::chrono::system_clock::now();
 
-	std::chrono::duration<double> elapsed_seconds = end-start;
-	std::cout << "-- Done collecting lightcurve " << elapsed_seconds.count() << " s\n";
-	std::cout << "-- test_lightcurve_obs successful" << std::endl;
+// 	std::chrono::duration<double> elapsed_seconds = end-start;
+// 	std::cout << "-- Done collecting radar images in " << elapsed_seconds.count() << " s\n";
+// 	std::cout << "-- test_radar_obs successful" << std::endl;
 
-	arma::vec mes_arma(measurements.size());
-	for (unsigned int i = 0; i < measurements.size(); ++i){
-		mes_arma(i) = measurements[i][1];
-	}
-	mes_arma.save("lightcurve.txt",arma::raw_ascii);
+// }
 
-}
+
+// *
+// This test computes simulated lightcurves for benchmarking purposes
+
+// void TestsSBCore::test_lightcurve_obs(){
+
+// 	std::cout << "- Running test_lightcurve_obs ..." << std::endl;
+
+// 	// Loading in the shape model
+// 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+// 	reader -> SetFileName("../input/KW4Alpha.obj");
+// 	reader -> Update(); 
+
+// 	// Creating the radar object
+// 	vtkSmartPointer<SBGATObsLightcurve> lightcurve = vtkSmartPointer<SBGATObsLightcurve>::New();
+// 	lightcurve -> SetInputConnection(reader -> GetOutputPort());
+// 	lightcurve -> SetScaleKiloMeters();
+// 	lightcurve -> Update();
+
+
+// 	// Arguments
+// 	arma::vec spin = {0,0,1};
+// 	arma::vec target_pos = {1e6,0,0};
+// 	arma::vec observer_pos = {1e6,1e6,0};
+// 	double period = 4 * 3600; // 4 hours
+// 	int images = 100; 
+// 	int N = 100;
+
+// 	// A sequence of images is collected
+// 	std::vector<std::array<double, 2> > measurements;
+// 	auto start = std::chrono::system_clock::now();
+
+// 	for (int i  = 0; i < images; ++i){
+// 		double dt = 360 * double(i) ; // one data point evey 360 s
+
+// 		std::cout << " --- Ray tracing " +std::to_string(i + 1) + "/" +std::to_string(images) + " ...\n";
+// 		lightcurve -> CollectMeasurementsSimpleSpin(measurements,N,dt,period,target_pos,observer_pos,spin);
+// 		std::cout << measurements.back()[1] << std::endl;
+// 	}
+
+	
+// 	auto end = std::chrono::system_clock::now();
+
+// 	std::chrono::duration<double> elapsed_seconds = end-start;
+// 	std::cout << "-- Done collecting lightcurve " << elapsed_seconds.count() << " s\n";
+// 	std::cout << "-- test_lightcurve_obs successful" << std::endl;
+
+// 	arma::vec mes_arma(measurements.size());
+// 	for (unsigned int i = 0; i < measurements.size(); ++i){
+// 		mes_arma(i) = measurements[i][1];
+// 	}
+// 	mes_arma.save("lightcurve.txt",arma::raw_ascii);
+
+// }
 
 
 

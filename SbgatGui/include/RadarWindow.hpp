@@ -41,14 +41,13 @@ SOFTWARE.
 #include <QSpinBox>
 #include <QRadioButton>
 
-#include "Mainwindow.hpp"
+#include "ObsWindow.hpp"
+
 #include <SBGATObsRadar.hpp>
 
 
 
 namespace SBGAT_GUI {
-
-	class Mainwindow;
 
 /*!
 @class RadarWindow
@@ -60,7 +59,7 @@ data simulating the output of a range/range-rate doppler radar
 \details TODO
 */
 
-	class RadarWindow : public QDialog {
+	class RadarWindow : public ObsWindow {
 		Q_OBJECT
 
 	public:
@@ -71,9 +70,7 @@ data simulating the output of a range/range-rate doppler radar
 	*/
 		RadarWindow(Mainwindow * parent) ;
 
-
 		private slots:
-
 
 		/**
 		Collect radar observations with specified inputs
@@ -99,44 +96,21 @@ data simulating the output of a range/range-rate doppler radar
 		*/
 		void open_visualizer();
 
-
-
-
 	protected:
 
-		void init();
-
-		Mainwindow * parent;
-
-		QComboBox * prop_combo_box;
-
-		QDialogButtonBox * button_box;
+		virtual void init();
 
 		QDoubleSpinBox * r_bin_sbox;
 		QDoubleSpinBox * rr_bin_sbox;
-		QDoubleSpinBox * spin_raan_sbox;
-		QDoubleSpinBox * spin_inc_sbox;
 
 		QDoubleSpinBox * radar_az_sbox;
 		QDoubleSpinBox * radar_el_sbox;
 
-		QDoubleSpinBox * rotation_period_sbox;
-		QDoubleSpinBox * imaging_period_sbox;
-
-		QSpinBox * N_samples_sbox;
-		QSpinBox * N_images_sbox;
-
-		QPushButton * save_observations_button;
-		QPushButton * collect_observations_button;
 		QPushButton * bin_observations_button;
-		QPushButton * open_visualizer_button;
-
-		QCheckBox * penalize_incidence_box;
 		
 		std::string output_path;
 
-		SBGATMeasurementsSequence measurement_sequence;
-		vtkSmartPointer<SBGATObsRadar> radar;
+		SBGATRadarObsSequence measurement_sequence;
 
 	};
 }
