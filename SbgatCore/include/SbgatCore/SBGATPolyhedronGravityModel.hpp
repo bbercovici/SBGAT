@@ -99,6 +99,17 @@ public:
   double GetPotential( arma::vec point);
 
   /**
+  Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
+  a constant density
+  @param point coordinates of queried point, expressed in the same frame/unit as
+  the polydata used to construct the PGM
+  @param PGM potential evaluated at the queried point (kg * m^2 / s ^2)
+  @param PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  */
+  void GetPotentialAcceleration(const double * point,double & potential, 
+    arma::vec & acc);
+
+  /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit as
