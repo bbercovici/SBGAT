@@ -656,12 +656,11 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const double * point,
 
 		acc_x -= Le * a[0];
 		acc_y -= Le * a[1];
-		acc_z -= Le * a[];
+		acc_z -= Le * a[2];
 
 	}
 
-	arma::vec acc = {acc_x,acc_y,acc_z};
-
+	acc = {acc_x,acc_y,acc_z};
 	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
 	pot *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
 
