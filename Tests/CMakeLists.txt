@@ -58,13 +58,6 @@ set(SbgatCore_LOC "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 
 cmake_minimum_required(VERSION 3.0.0)
 
-if (${USE_GCC})
-	include(cmake/FindOmpGcc.cmake)
-else()
-	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-endif()
-
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
@@ -99,12 +92,6 @@ include_directories(${RBK_INCLUDE_DIR})
 find_package(SbgatCore REQUIRED PATHS ${SbgatCore_LOC})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
-# Find OpenMP
-find_package(OpenMP)
-if (OpenMP_FOUND)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
 
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
@@ -125,5 +112,7 @@ set(library_dependencies
 	${VTK_LIBRARIES}
 	)
 
+
 target_link_libraries(${EXE_NAME} ${library_dependencies})
+
 

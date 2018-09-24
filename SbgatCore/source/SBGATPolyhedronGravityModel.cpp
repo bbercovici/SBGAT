@@ -339,12 +339,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 
 
-double SBGATPolyhedronGravityModel::GetPotential(arma::vec point){
+double SBGATPolyhedronGravityModel::GetPotential(const arma::vec & point){
 	return this -> GetPotential(point.colptr(0));
 }
 
 
-double SBGATPolyhedronGravityModel::GetPotential(double * point) {
+double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
 
 	double potential = 0;
 
@@ -433,7 +433,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 }
 
 
-bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
+bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) {
 
 	double laplacian = 0;
 
@@ -479,11 +479,11 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(arma::vec point){
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec & point){
 	return this-> GetAcceleration(  point.colptr(0));
 }
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 	double acc_x = 0;
 	double acc_y = 0;
@@ -561,6 +561,120 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
 
 	return acc;
+
+}
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & point,double & potential, 
+    arma::vec & acc){
+
+	this -> GetPotentialAcceleration(point.colptr(0),potential, acc);
+
+}
+
+
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point,double & potential, 
+	arma::vec & acc) {
+
+	double pot = 0;
+	double acc_x = 0;
+	double acc_y = 0;
+	double acc_z = 0;
+
+
+	// Facet loop
+	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z,pot)
+	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
+
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
+
+		double r0m[3];
+		double r1m[3];
+		double r2m[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r2,point,r2m);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double R2 = vtkMath::Norm(r2m);
+
+		double r1m_cross_r2m[3];
+
+		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
+
+		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
+			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
+
+		double * F = this -> facet_dyads[facet_index];
+
+
+		double a[3] = {
+			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
+			F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2],
+			F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]
+		};
+
+		acc_x += wf * a[0];
+		acc_y += wf * a[1];
+		acc_z += wf * a[2];
+
+		pot += - wf * vtkMath::Dot(r0m,a);
+
+
+	}
+
+	// Edge loop
+	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z,pot)
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+		double * r1 = this -> vertices[this -> edges[edge_index][1]];
+
+		
+		double r0m[3];
+		double r1m[3];
+		double rem[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r1m,r0m,rem);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double Re = vtkMath::Norm(rem);
+
+		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+
+		double * E = this -> edge_dyads[edge_index];
+
+		double a[3] = {
+			E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2],
+			E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2],
+			E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]
+		};
+
+
+		pot += Le * vtkMath::Dot(r0m,a);
+
+
+
+		acc_x -= Le * a[0];
+		acc_y -= Le * a[1];
+		acc_z -= Le * a[2];
+
+	}
+
+	acc = {acc_x,acc_y,acc_z};
+	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
+	pot *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
+
+	potential = pot;
 
 }
 

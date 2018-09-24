@@ -74,6 +74,21 @@ to apply the update (if any).
 
 ## Changelog
 
+
+
+### [SBGAT 1.09.1](https://github.com/bbercovici/SBGAT/releases/tag/1.09.1)
+
+#### New:
+
+- Built-from source GCC no longer required for OpenMP support on Mac since CLANG 10 now provides the required definitions
+- Added a method simultaneously computing gravity potential and acceleration in `SBGATPolyhedronGravityModel` and updated corresponding tests 
+
+#### Improvements
+-  Added constant qualifiers to `SBGATPolyhedronGravityModel` inputs
+
+#### Bug fixes: 
+- Captions should now properly show in `SbgatGui`
+
 ### [SBGAT 1.08.1](https://github.com/bbercovici/SBGAT/releases/tag/1.08.1)
 
 #### New:

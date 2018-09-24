@@ -29,7 +29,7 @@ SOFTWARE.
 
 
 #include <vtkModifiedBSPTree.h>
-#include <vtkPolydata.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkInformation.h>

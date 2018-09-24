@@ -37,13 +37,6 @@
 
 cmake_minimum_required(VERSION 3.0.0)
 
-if (${USE_GCC})
-	include(cmake/FindOmpGcc.cmake)
-else()
-	set(CMAKE_C_COMPILER /usr/bin/gcc CACHE STRING "C Compiler" FORCE)
-	set(CMAKE_CXX_COMPILER /usr/bin/g++ CACHE STRING "C++ Compiler" FORCE)
-endif()
-
 # Building procedure
 set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")
 
@@ -101,20 +94,9 @@ find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 
-
-
 # Find OrbitConversions 
 find_package(OrbitConversions REQUIRED)
 include_directories(${OC_INCLUDE_DIR})
-
-
-# Find OpenMP
-find_package(OpenMP)
-if (OpenMP_FOUND)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
