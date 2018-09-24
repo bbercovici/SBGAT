@@ -278,8 +278,16 @@ void TestsSBCore::test_sbgat_pgm() {
 		pgm_acc = pgm_filter -> GetAcceleration(p4);
 		pgm_pot = pgm_filter -> GetPotential(p4);
 
+		double pgm_pot2;
+		arma::vec pgm_acc2;
+		pgm_filter -> GetPotentialAcceleration(p4,pgm_pot2, pgm_acc2);
+
 		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
+
+		assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-10);
+		assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-10);
+
 
 	}
 
@@ -343,18 +351,16 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	arma::vec sharm_acc = spherical_harmonics -> GetAcceleration(pos);
 
 
-
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
 	spherical_harmonics_from_file -> LoadFromJson("../gravity_output/harmo.json");
 	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
-
-	// The accelerations should be consistant with the one previously computed
+	// The accelerations should be consistent with the one previously computed
 	assert(arma::norm(pgm_acc - sharm_acc_from_file) / arma::norm(sharm_acc_from_file) * 100 < 1e-4);
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
 
-
+	
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
@@ -409,7 +415,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 // 	radar -> SaveImages("../radar_output/");
 // 	std::cout << " --- Done saving ...\n";
 
-	
+
 // 	auto end = std::chrono::system_clock::now();
 
 // 	std::chrono::duration<double> elapsed_seconds = end-start;
@@ -458,7 +464,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 // 		std::cout << measurements.back()[1] << std::endl;
 // 	}
 
-	
+
 // 	auto end = std::chrono::system_clock::now();
 
 // 	std::chrono::duration<double> elapsed_seconds = end-start;

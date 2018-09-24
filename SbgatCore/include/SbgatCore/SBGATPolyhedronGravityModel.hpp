@@ -87,7 +87,7 @@ public:
   the polydata
   @return PGM potential evaluated at the queried point (kg * m ^ 2/ s ^2)
   */
-  double GetPotential(double * point);
+  double GetPotential(double const * point);
 
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
@@ -96,7 +96,7 @@ public:
   the polydata
   @return PGM potential evaluated at the queried point (kg * m ^ 2 / s ^2)
   */
-  double GetPotential( arma::vec point);
+  double GetPotential(const arma::vec & point);
 
   /**
   Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
@@ -106,8 +106,21 @@ public:
   @param PGM potential evaluated at the queried point (kg * m^2 / s ^2)
   @param PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
-  void GetPotentialAcceleration(const double * point,double & potential, 
+  void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec & acc);
+
+
+  /**
+  Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
+  a constant density
+  @param point coordinates of queried point, expressed in the same frame/unit as
+  the polydata used to construct the PGM
+  @param PGM potential evaluated at the queried point (kg * m^2 / s ^2)
+  @param PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  */
+  void GetPotentialAcceleration(const arma::vec & point,double & potential, 
+    arma::vec & acc);
+
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
@@ -116,7 +129,7 @@ public:
   the polydata used to construct the PGM
   @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
-  arma::vec GetAcceleration(arma::vec point);
+  arma::vec GetAcceleration(const arma::vec & point);
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
@@ -125,7 +138,7 @@ public:
   the polydata
   @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
   */
-  arma::vec GetAcceleration(double * point);
+  arma::vec GetAcceleration(double const * point);
 
   /** 
   Determines whether the provided point lies inside or outside the shape
@@ -134,7 +147,7 @@ public:
   @param tolerance
   @return true if the polydata contains the point, false otherwise
   */
-  bool Contains(double * point, double tol = 1e-8);
+  bool Contains(double const * point, double tol = 1e-8);
 
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters

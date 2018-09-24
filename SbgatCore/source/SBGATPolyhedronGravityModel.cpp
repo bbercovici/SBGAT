@@ -339,12 +339,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 
 
-double SBGATPolyhedronGravityModel::GetPotential(arma::vec point){
+double SBGATPolyhedronGravityModel::GetPotential(const arma::vec & point){
 	return this -> GetPotential(point.colptr(0));
 }
 
 
-double SBGATPolyhedronGravityModel::GetPotential(double * point) {
+double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
 
 	double potential = 0;
 
@@ -433,7 +433,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 }
 
 
-bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
+bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) {
 
 	double laplacian = 0;
 
@@ -479,11 +479,11 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(arma::vec point){
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec & point){
 	return this-> GetAcceleration(  point.colptr(0));
 }
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 	double acc_x = 0;
 	double acc_y = 0;
@@ -565,7 +565,17 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 }
 
 
-void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const double * point,double & potential, 
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & point,double & potential, 
+    arma::vec & acc){
+
+	this -> GetPotentialAcceleration(point.colptr(0),potential, acc);
+
+}
+
+
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point,double & potential, 
 	arma::vec & acc) {
 
 	double pot = 0;
