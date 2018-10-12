@@ -74,6 +74,14 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 1.10.1](https://github.com/bbercovici/SBGAT/releases/tag/1.10.1)
+
+#### New:
+
+#### Improvements:
+
+#### Bug fixes:
+- Fixed a major regression that was causing `SbgatGui` to crash when computing lightcurves
 
 
 ### [SBGAT 1.09.1](https://github.com/bbercovici/SBGAT/releases/tag/1.09.1)

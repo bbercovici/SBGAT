@@ -163,12 +163,11 @@ void RadarWindow::collect_observations(){
 	std::vector<double> imaging_times;
 	std::vector< std::vector<arma::vec> > positions_vec, velocities_vec, mrps_vec,omegas_vec;
 
-	ObsWindow::get_inputs_from_GUI(imaging_times,
+	this -> get_inputs_from_GUI(imaging_times,
 		positions_vec,
 		velocities_vec,
 		mrps_vec,
 		omegas_vec);
-
 
 	this -> observation_filter -> SetScaleMeters();
 	this -> observation_filter -> Update();

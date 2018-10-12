@@ -155,19 +155,22 @@ void LCWindow::collect_observations(){
 	std::vector<double> imaging_times;
 	std::vector< std::vector<arma::vec> > positions_vec, velocities_vec, mrps_vec,omegas_vec;
 
-	ObsWindow::get_inputs_from_GUI(imaging_times,
+	this -> get_inputs_from_GUI(imaging_times,
 		positions_vec,
 		velocities_vec,
 		mrps_vec,
 		omegas_vec);
 	
 	this -> observation_filter -> SetScaleMeters();
+	this -> observation_filter -> Update();
+
+
 
 	double d2r = arma::datum::pi /180;
-	arma::vec observer_dir = {1,0,0};
+	arma::vec::fixed<3> observer_dir = {1,0,0};
 	observer_dir = (RBK::M2(this -> observer_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> observer_az_sbox -> value() * d2r)).t() * observer_dir;
-	arma::vec sun_dir = {1,0,0};
+	arma::vec::fixed<3> sun_dir = {1,0,0};
 	sun_dir = (RBK::M2(this -> sun_el_sbox -> value() * d2r) 
 		* RBK::M3(this -> sun_el_sbox -> value() * d2r)).t() * sun_dir;
 
@@ -176,7 +179,8 @@ void LCWindow::collect_observations(){
 
 	for (unsigned int t = 0; t < imaging_times.size(); ++t){
 
-		
+
+
 		lc -> CollectMeasurements(
 			this -> measurements,
 			imaging_times[t],
@@ -188,6 +192,8 @@ void LCWindow::collect_observations(){
 			mrps_vec[t],
 			omegas_vec[t],
 			this -> penalize_incidence_box -> isChecked());
+
+
 	}
 
 

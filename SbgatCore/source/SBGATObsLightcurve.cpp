@@ -92,6 +92,8 @@ void SBGATObsLightcurve::CollectMeasurements(
   std::vector<std::vector<int> > facets_in_view;
   std::vector<arma::mat> BN_dcms_vec ;
 
+
+
   // Pre-allocating for all inputs  
   for (int i = 0; i < this -> number_of_bodies; ++i){
     facets_in_view.push_back(std::vector<int>());
@@ -107,6 +109,7 @@ void SBGATObsLightcurve::CollectMeasurements(
 
   std::vector<arma::vec> dir_to_check_vec = {observer_dir,sun_dir};
 
+
   for (int i = 0; i < this -> number_of_bodies; ++i){
 
     this -> prefind_facets_inview(facets_in_view[i],
@@ -115,6 +118,7 @@ void SBGATObsLightcurve::CollectMeasurements(
       BN_dcms_vec,
       positions_vec);
   }
+
 
   std::array<double, 2>  measurements_temp;
   measurements_temp[0] = time;
@@ -129,9 +133,9 @@ void SBGATObsLightcurve::CollectMeasurements(
     BN_dcms_vec,
     positions_vec);
 
+
   measurements.push_back(measurements_temp);
 
-  
 
 }
 
@@ -186,12 +190,19 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
   const std::vector<arma::mat> & BN_dcms_vec,
   const std::vector<arma::vec> & positions_vec){
 
+
+  
+
   // The sun is positionned with respect to the primary 
   arma::vec observer_pos = this -> center_of_mass_vec[0] + this -> polydata_vec[0] -> GetLength() * 1E6 * observer_dir;
   arma::vec sun_pos = this -> center_of_mass_vec[0] + this -> polydata_vec[0] -> GetLength() * 1E6 * sun_dir;
 
   // Ray-tracing tolerance
   double tol = this -> polydata_vec[0] -> GetLength()/1E6;
+
+
+
+
 
   for (int body_index = 0; body_index < this -> number_of_bodies; ++body_index){
 
@@ -200,8 +211,8 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
     vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
     ptIds -> Allocate(VTK_CELL_SIZE);
 
-    arma::vec target_to_sun_dir_body_frame = BN_dcms_vec[body_index] * sun_dir;
-    arma::vec target_to_observer_dir_body_frame = BN_dcms_vec[body_index] * observer_dir;
+    arma::vec::fixed<3> target_to_sun_dir_body_frame = BN_dcms_vec[body_index] * sun_dir;
+    arma::vec::fixed<3> target_to_observer_dir_body_frame = BN_dcms_vec[body_index] * observer_dir;
 
 
   // The kept facets are then sampled and reverse ray-traced
@@ -216,11 +227,11 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
       input -> GetPoint(ptIds->GetId(1), p1);
       input -> GetPoint(ptIds->GetId(2), p2);
 
-      arma::vec P0 = {p0[0],p0[1],p0[2]};
-      arma::vec P1 = {p1[0],p1[1],p1[2]};
-      arma::vec P2 = {p2[0],p2[1],p2[2]};
+      arma::vec::fixed<3> P0 = {p0[0],p0[1],p0[2]};
+      arma::vec::fixed<3> P1 = {p1[0],p1[1],p1[2]};
+      arma::vec::fixed<3> P2 = {p2[0],p2[1],p2[2]};
 
-      arma::vec n = arma::cross(P1 - P0, P2 - P0);
+      arma::vec::fixed<3> n = arma::cross(P1 - P0, P2 - P0);
 
     // The number of points sampled from this facet is determined based on 
     // the relative size of this facet compared to the largest one in all the considered shapes
@@ -245,11 +256,12 @@ void SBGATObsLightcurve::reverse_ray_trace(std::array<double, 2>  & measurements
     // #pragma omp parallel for
       for (int i = 0; i < N_samples; ++i){
 
+
       // A random origin point is uniformly drawn from this facet
         arma::vec random = arma::randu<arma::vec>(2);
         double u = random(0);
         double v = random(1);
-        arma::vec origin = (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
+        arma::vec::fixed<3> origin = (1 - std::sqrt(u)) * P0 + std::sqrt(u) * ( 1 - v ) * P1 + std::sqrt(u) * v * P2 ;
 
     // Derived points are expressed in the body reference frame
       arma::vec point_above_surface = origin + 3 * tol * n; // the origin of the ray is moved 3*tol above the surface

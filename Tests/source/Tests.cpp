@@ -60,7 +60,7 @@ SOFTWARE.
 #include <boost/progress.hpp>
 
 
-void TestsSBCore::run() {
+void TestsSBCore::run() {	
 
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
