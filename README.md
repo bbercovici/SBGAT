@@ -81,7 +81,7 @@ to apply the update (if any).
 #### Improvements:
 
 #### Bug fixes:
-- Fixed a major regression that was causing `SbgatGui` to crash when computing lightcurves
+- Fixed a major regression that was causing *SbgatGui* to crash when computing lightcurves
 
 
 ### [SBGAT 1.09.1](https://github.com/bbercovici/SBGAT/releases/tag/1.09.1)
@@ -95,14 +95,14 @@ to apply the update (if any).
 -  Added constant qualifiers to `SBGATPolyhedronGravityModel` inputs
 
 #### Bug fixes: 
-- Captions should now properly show in `SbgatGui`
+- Captions should now properly show in *SbgatGui*
 
 ### [SBGAT 1.08.1](https://github.com/bbercovici/SBGAT/releases/tag/1.08.1)
 
 #### New:
 
 - Created `SBGATObs` base-class from which `SBGATObsLightcurve` and `SBGATObsRadar` derive
-- Added new functionalities to `SbgatGui`
+- Added new functionalities to *SbgatGui*
 - Created the dependency `OrbitConversions` to generate Keplerian trajectories or convert 6 dof states between Cartesians and Keplerian representations.
 
 #### Improvements
@@ -116,7 +116,7 @@ to apply the update (if any).
 ### [SBGAT 1.06.1](https://github.com/bbercovici/SBGAT/releases/tag/1.06.1)
 
 #### New:
-- Added `SBGATObsLightcurve` to `SbgatCore` , a module enabling the generation of instantaneous-exposure lightcurves in a fixed-spin scenario. This module assumes constant small-body spin and phase angle between the sun, the small body and the observer.
+- Added `SBGATObsLightcurve` to *SbgatCore* , a module enabling the generation of instantaneous-exposure lightcurves in a fixed-spin scenario. This module assumes constant small-body spin and phase angle between the sun, the small body and the observer.
 - `SBGATObsRadar` now throws an instance of `std::runtime_error` if the specified bin sizes are incompatible with the collected data that may yield an empty histogram dimension
 - Observations from `SBGATObsRadar` and `SBGATObsLightcurve` can be penalized by incidence so as to diminish the weight of a given measurement. `SBGATObsRadar` weighs by the `cos` of the angle between the observer and the surface normal, while `SBGATObsLightcurve` weighs by the product of the `cos` of the angle between the observer and the surface normal and the `cos` of the angle between the sun and the surface normal
 
@@ -125,13 +125,13 @@ to apply the update (if any).
 - Removed more deprecated functionalities
 
 #### Bug fixes: 
-- Fixed bug in `SbgatGui` that was allowing users to bin radar observations before effectively collecting them.
+- Fixed bug in *SbgatGui* that was allowing users to bin radar observations before effectively collecting them.
 - Saved radar images now have correct color levels
 
 
 ### [SBGAT 1.05.2](https://github.com/bbercovici/SBGAT/releases/tag/1.05.2)
 
-- Adds `SBGATObsRadar` to `SbgatCore`, a class emulating range/range-rate radar measurements. The corresponding menu and action are also available in `SbgatGui`
+- Adds `SBGATObsRadar` to *SbgatCore*, a class emulating range/range-rate radar measurements. The corresponding menu and action are also available in *SbgatGui*
 - If `gcc` exists in Homebrew's Cellar, SBGAT and its dependencies will be compiled using this OpenMP compliant compiler, giving better performance on multithreaded platforms. [This functionality had to be postponed due to Qt 5.10 incompability with recent gcc versions on MacOS](https://bugreports.qt.io/browse/QTBUG-66585). 
 
 
