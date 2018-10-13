@@ -1,26 +1,3 @@
-/** MIT License
-
-Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 /*=========================================================================
 
   Program:   Small Body Geophysical Analysis
@@ -38,15 +15,20 @@ SOFTWARE.
 
 =========================================================================*/
 /**
- * @class  SBGATPolyhedronGravityModel
- * @author Benjamin Bercovici
- * @brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
- *
- * @details Computes the potential, acceleration caused by a polyhedron
+@file SBGATPolyhedronGravityModel.hpp
+@class  SBGATPolyhedronGravityModel
+@author Benjamin Bercovici
+@date October 2018
+
+@brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
+ @details Computes the potential, acceleration caused by a polyhedron
  of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres.
- * The input must be a topologically-closed polyhedron.
- * See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
- * for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+The input must be a topologically-closed polyhedron.
+See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
+for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+@copyright MIT License, Benjamin Bercovici and Jay McMahon
+
+
 */
 
 #ifndef SBGATPolyhedronGravityModel_hpp

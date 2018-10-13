@@ -10,7 +10,7 @@ The Small Bodies Geophysical Analysis Tool (SBGAT) implementation.
 
 ## Wiki
 
-The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki).
+The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wiki), and the technical documentation [here](https://bbercovici.github.io/sbgat-doc/index.html)
 
 ## Installation: 
 
@@ -79,6 +79,8 @@ to apply the update (if any).
 #### New:
 
 #### Improvements:
+
+- The SBGAT documentation should be back online at [the following location](https://bbercovici.github.io/sbgat-doc/index.html)
 
 #### Bug fixes:
 - Fixed a major regression that was causing *SbgatGui* to crash when computing lightcurves

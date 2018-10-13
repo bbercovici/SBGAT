@@ -1,25 +1,3 @@
-/** MIT License
-
-Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 
 /*=========================================================================
 
@@ -38,23 +16,26 @@ SOFTWARE.
 
 =========================================================================*/
 /**
- * @class  SBGATSphericalHarmo
- * @author Benjamin Bercovici
- * @brief  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
+ @class  SBGATSphericalHarmo
+ @author Benjamin Bercovici
+ @author Jay McMahon
+@date October 2018
+ @brief  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
  field around a constant density polyhedron
- *
- * @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
- * field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
- * The computed coefficients are completely independent of the mass and density of the considered object
- * as they are only a geometric construct, thanks to the constant-density assumption
- * Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
- * for more details, see 
- * Werner, R. a. (1997). 
- * Spherical harmonic coefficients for the potential of a constant-density polyhedron. 
- * Computers & Geosciences, 
- * 23(10), 
- * 1071–1077. 
- * https://doi.org/10.1016/S0098-3004(97)00110-6
+
+ @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
+field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
+The computed coefficients are completely independent of the mass and density of the considered object
+as they are only a geometric construct, thanks to the constant-density assumption
+Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
+for more details, see 
+Werner, R. a. (1997). 
+Spherical harmonic coefficients for the potential of a constant-density polyhedron. 
+Computers & Geosciences, 
+23(10), 
+1071–1077. 
+https://doi.org/10.1016/S0098-3004(97)00110-6
+@copyright MIT License, Benjamin Bercovici and Jay McMahon
 */
 
 #ifndef SBGATSphericalHarmo_h
