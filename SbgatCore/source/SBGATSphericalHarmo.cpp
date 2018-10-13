@@ -160,9 +160,8 @@ int SBGATSphericalHarmo::RequestData(
 
     double dv = vtkMath::Determinant3x3(r0,r1r0,r2r0) / 6;
 
-
-    arma::mat Cnm2f ;
-    arma::mat Snm2f ;
+    arma::mat Cnm2f( this -> degree + 1, this -> degree + 1);
+    arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
 
     // Call to SHARMLib here
     SHARMLib::ComputePolyhedralCS(
@@ -176,6 +175,8 @@ int SBGATSphericalHarmo::RequestData(
       this -> normalized
       );
 
+
+
     this -> Cnm += Cnm2f * dv ;
     this -> Snm += Snm2f * dv ;
     
@@ -188,7 +189,7 @@ int SBGATSphericalHarmo::RequestData(
 }
 
 
-arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
+arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<3> & pos){
 
   try{
 
@@ -251,7 +252,7 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
 
     } 
 
-    arma::vec acceleration = {x_ddot,y_ddot,z_ddot};
+    arma::vec::fixed<3> acceleration = {x_ddot,y_ddot,z_ddot};
 
 
     return acceleration;

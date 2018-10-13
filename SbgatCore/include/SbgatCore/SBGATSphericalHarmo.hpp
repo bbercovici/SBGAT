@@ -132,7 +132,7 @@ public:
   the shape used to build the spherical harmonics expansion. 
   @return acceleration (kg * m / s ^ 2)
   */
-  arma::vec GetAcceleration(const arma::vec & pos);
+  arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & pos);
 
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
