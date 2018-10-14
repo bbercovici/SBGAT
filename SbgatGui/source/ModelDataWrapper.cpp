@@ -126,3 +126,133 @@ vtkSmartPointer<vtkLightActor> ModelDataWrapper::get_light_actor() const{
 	return this -> light_actor;
 }
 
+
+
+void ModelDataWrapper::set_slopes(std::vector<double> slopes){
+
+	// Create cell data
+	if (this -> slopes == nullptr){
+
+		this -> slopes = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> slopes -> InsertNextValue(slopes[i]);
+		}
+
+	}
+
+	else{
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> slopes -> SetValue(i,slopes[i]);
+			
+		}
+	}
+
+	this -> slopes -> Modified();
+
+	
+}
+
+
+void ModelDataWrapper::set_potentials(std::vector<double> potentials){
+
+	
+	// Create cell data
+	if (this -> potentials == nullptr){
+		this -> potentials = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> potentials -> InsertNextValue(potentials[i]);
+		}
+
+	}
+
+	else{
+
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> potentials -> SetValue(i,potentials[i]);
+		}
+
+	}
+	this -> potentials -> Modified();
+
+
+	
+}
+
+
+void ModelDataWrapper::set_acc_magnitudes(std::vector<double> acc_magnitudes){
+
+	// Create cell data
+	if (this -> acc_magnitudes == nullptr){
+		this -> acc_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> acc_magnitudes -> InsertNextValue(acc_magnitudes[i]);
+		}
+
+	}
+
+	else{
+
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> acc_magnitudes -> SetValue(i,acc_magnitudes[i]);
+		}
+
+	}
+	this -> acc_magnitudes -> Modified();
+
+}
+
+
+void ModelDataWrapper::set_acc_body_fixed_magnitudes(std::vector<double> acc_body_fixed_magnitudes){
+
+	// Create cell data
+	if (this -> acc_body_fixed_magnitudes == nullptr){
+		this -> acc_body_fixed_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> acc_body_fixed_magnitudes -> InsertNextValue(acc_body_fixed_magnitudes[i]);
+		}
+
+	}
+
+	else{
+
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> acc_body_fixed_magnitudes -> SetValue(i,acc_body_fixed_magnitudes[i]);
+		}
+
+	}
+	this -> acc_body_fixed_magnitudes -> Modified();
+
+
+}
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_slopes(){
+	return this -> slopes;
+}
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_potentials(){
+	return this -> potentials;
+}
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_acc_magnitudes(){
+	return this -> acc_magnitudes;
+}
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_acc_body_fixed_magnitudes(){
+	return this -> acc_body_fixed_magnitudes;
+}
+
+
+vtkSmartPointer<vtkScalarBarActor> ModelDataWrapper::get_colorbar_actor(){
+	return this -> colorbar_actor;
+}
+
+void ModelDataWrapper::set_colorbar_actor(vtkSmartPointer<vtkScalarBarActor> actor){
+	this -> colorbar_actor = actor;
+}
+
+
+

@@ -31,7 +31,8 @@ SOFTWARE.
 #include <vtkLightActor.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-
+#include <vtkFloatArray.h>
+#include <vtkScalarBarActor.h>
 
 
 namespace SBGAT_GUI {
@@ -50,85 +51,85 @@ Using this wrapping structure thus helps condensing the code by providing unifie
 elements through a unique interface.
 */
 
-class ModelDataWrapper {
+	class ModelDataWrapper {
 
-public:
-	ModelDataWrapper();
+	public:
+		ModelDataWrapper();
 
-	
+
 	/**
 	Accessor to polydata.
 	@return pointer to polydata.
 	*/
-	vtkSmartPointer<vtkPolyData> get_polydata() const;
+		vtkSmartPointer<vtkPolyData> get_polydata() const;
 
 	/**
 	Accessor to mapper.
 	@return pointer to mapper.
 	*/
-	vtkSmartPointer<vtkPolyDataMapper> get_mapper() const;
+		vtkSmartPointer<vtkPolyDataMapper> get_mapper() const;
 
 
 	/**
 	Accessor to actor.
 	@return pointer to actor.
 	*/
-	vtkSmartPointer<vtkActor> get_actor() const;
+		vtkSmartPointer<vtkActor> get_actor() const;
 
 
 	/**
 	Accessor to points.
 	@return pointer to points.
 	*/
-	vtkSmartPointer<vtkPoints> get_points() const;
+		vtkSmartPointer<vtkPoints> get_points() const;
 
 
 	/**
 	Setter of polydata.
 	@param polydata pointer to polydata to assign.
 	*/
-	void set_polydata(vtkSmartPointer<vtkPolyData> polydata);
+		void set_polydata(vtkSmartPointer<vtkPolyData> polydata);
 
 
 	/**
 	Setter of points.
 	@param points pointer to vtkPoints to assign.
 	*/
-	void set_points(vtkSmartPointer<vtkPoints> points);
+		void set_points(vtkSmartPointer<vtkPoints> points);
 
 
 	/**
 	Setter of mapper.
 	@param mapper pointer to mapper to assign.
 	*/
-	void set_mapper(vtkSmartPointer<vtkPolyDataMapper> mapper);
+		void set_mapper(vtkSmartPointer<vtkPolyDataMapper> mapper);
 
 
 	/**
 	Setter of actor.
 	@param actor pointer to actor to assign.
 	*/
-	void set_actor(vtkSmartPointer<vtkActor> actor);
+		void set_actor(vtkSmartPointer<vtkActor> actor);
 
 
 	/**
 	Accessor to consistent_global_acceleration.
 	@return true if global pgm accelerations have been computed
 	*/
-	bool get_global_pgm_acc() const;
+		bool get_global_pgm_acc() const;
 
 
 	/**
 	Accessor to consistent_global_potential
 	@return true if global pgm potentials have been computed
 	*/
-	bool get_global_pgm_pot() const;
+		bool get_global_pgm_pot() const;
 
 	/**
 	Accessor to consistent_grav_slope.
 	@return true gravity slopes have been computed
 	*/
-	bool get_grav_slopes() const;
+		bool get_grav_slopes() const;
 
 	/**
 	Setter to consistent_global_acceleration
@@ -136,7 +137,7 @@ public:
 	computed
 	*/
 
-	void set_global_pgm_acc(bool global_pgm_acc);
+		void set_global_pgm_acc(bool global_pgm_acc);
 
 
 	/**
@@ -144,7 +145,7 @@ public:
 	@param global_pgm_pot true if consistent global potentials have been
 	computed
 	*/
-	void set_global_pgm_pot(bool global_pgm_pot);
+		void set_global_pgm_pot(bool global_pgm_pot);
 
 
 	/**
@@ -153,64 +154,132 @@ public:
 	computed
 	*/
 
-	void set_grav_slopes(bool grav_slopes);
+		void set_grav_slopes(bool grav_slopes);
 
 	/**
 	Sets the internal flag consistent_shape_model to false, 
 	indicating that the VTK shape and the SbgatCore shape are different
 	*/
-	void shape_was_modified();
+		void shape_was_modified();
 
 	/**
 	Returns the internal flag consistent_shape_model
 	@return true if the VTK shape and the SbgatCore are identical, false otherwise
 	*/
-	bool get_consistent_shape_model() const;
+		bool get_consistent_shape_model() const;
 
 
 	/**
 	Setter to light
 	*/
-	void set_light(vtkSmartPointer<vtkLight> light);
+		void set_light(vtkSmartPointer<vtkLight> light);
 
 	/**
 	Getter to light
 	*/
-	vtkSmartPointer<vtkLight> get_light() const;
+		vtkSmartPointer<vtkLight> get_light() const;
 
 
 	/**
 	Getter to light actor
 	*/
-	vtkSmartPointer<vtkLightActor> get_light_actor() const;
+		vtkSmartPointer<vtkLightActor> get_light_actor() const;
 
 	/**
 	Set light actor
 	*/
-	void set_light_actor(vtkSmartPointer<vtkLightActor> light_actor);
+		void set_light_actor(vtkSmartPointer<vtkLightActor> light_actor);
+
+
+	/**
+	Set surface slopes
+	*/
+		void set_slopes(std::vector<double> slopes);
+
+
+	/**
+	Sety surface gravity potentials
+	*/
+		void set_potentials(std::vector<double> potentials);
+
+
+	/**
+	Set surface inertial acceleration magnitudes
+	*/
+		void set_acc_magnitudes(std::vector<double> acc_magnitudes);
+
+
+	/**
+	Set surface body-fixed acceleration magnitudes
+	*/
+		void set_acc_body_fixed_magnitudes(std::vector<double> acc_body_fixed_magnitudes);
 
 
 
 
-protected:
 
-	vtkSmartPointer<vtkPolyData>  polydata;
-	vtkSmartPointer<vtkPolyDataMapper>  mapper;
-	vtkSmartPointer<vtkActor>  actor;
-	vtkSmartPointer<vtkPoints>  points;
-	vtkSmartPointer<vtkLight> light;
-	vtkSmartPointer<vtkLightActor> light_actor;
+	/**
+	Set surface slopes
+	*/
+		vtkSmartPointer<vtkFloatArray> get_slopes();
 
 
-
-	bool consistent_shape_model = false;
-	bool consistent_global_acceleration = false;
-	bool consistent_global_potential = false;
-	bool consistent_grav_slope = false;
-
+	/**
+	Sety surface gravity potentials
+	*/
+		vtkSmartPointer<vtkFloatArray> get_potentials();
 
 
-};
+	/**
+	Set surface inertial acceleration magnitudes
+	*/
+		vtkSmartPointer<vtkFloatArray> get_acc_magnitudes();
+
+
+	/**
+	Set surface body-fixed acceleration magnitudes
+	*/
+		vtkSmartPointer<vtkFloatArray> get_acc_body_fixed_magnitudes();
+
+
+
+	/**
+	Get colorbar actor
+	*/
+		vtkSmartPointer<vtkScalarBarActor> get_colorbar_actor();
+
+
+	/**
+	Set colorbar actor 
+	*/
+		void set_colorbar_actor(vtkSmartPointer<vtkScalarBarActor> actor);
+
+
+	protected:
+
+		vtkSmartPointer<vtkPolyData>  polydata;
+		vtkSmartPointer<vtkPolyDataMapper>  mapper;
+		vtkSmartPointer<vtkActor>  actor;
+		vtkSmartPointer<vtkPoints>  points;
+		vtkSmartPointer<vtkLight> light;
+		vtkSmartPointer<vtkLightActor> light_actor;
+		vtkSmartPointer<vtkScalarBarActor> colorbar_actor;
+
+
+		vtkSmartPointer<vtkFloatArray> slopes = nullptr;
+		vtkSmartPointer<vtkFloatArray> potentials = nullptr;
+		vtkSmartPointer<vtkFloatArray> acc_magnitudes = nullptr;
+		vtkSmartPointer<vtkFloatArray> acc_body_fixed_magnitudes = nullptr;
+
+
+		bool consistent_shape_model = false;
+		bool consistent_global_acceleration = false;
+		bool consistent_global_potential = false;
+		bool consistent_grav_slope = false;
+
+
+
+	};
 
 
 

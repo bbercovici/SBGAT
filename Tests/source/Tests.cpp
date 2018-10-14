@@ -32,7 +32,7 @@ SOFTWARE.
 
 #include <SBGATObsRadar.hpp>
 #include <SBGATObsLightcurve.hpp>
-
+#include <SBGATFrameGraph.hpp>
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -62,11 +62,11 @@ SOFTWARE.
 
 void TestsSBCore::run() {	
 
+	TestsSBCore::test_frame_conversion();
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
 	TestsSBCore::test_sbgat_pgm_speed();
 	TestsSBCore::test_spherical_harmonics_coefs_consistency();
-
 
 	// TestsSBCore::test_lightcurve_obs();
 	// TestsSBCore::test_radar_obs();
@@ -340,21 +340,22 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> SetDegree(degree);
 	spherical_harmonics -> Update();
 
+
+
 	// The spherical harmonics are saved to a file
 	spherical_harmonics -> SaveToJson("../gravity_output/harmo.json");
 
 
 	// The accelerations are evaluated at the query point
-	arma::vec pos = {3,5,-2};
-
-	arma::vec pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
-	arma::vec sharm_acc = spherical_harmonics -> GetAcceleration(pos);
+	arma::vec::fixed<3>  pos = {3,5,-2};
+	arma::vec::fixed<3> pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
+	arma::vec::fixed<3> sharm_acc = spherical_harmonics -> GetAcceleration(pos);
 
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
 	spherical_harmonics_from_file -> LoadFromJson("../gravity_output/harmo.json");
-	arma::vec sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
+	arma::vec::fixed<3> sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 	// The accelerations should be consistent with the one previously computed
 	assert(arma::norm(pgm_acc - sharm_acc_from_file) / arma::norm(sharm_acc_from_file) * 100 < 1e-4);
@@ -364,6 +365,45 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
+
+void TestsSBCore::test_frame_conversion(){
+
+
+	std::cout << "- Running test_frame_conversion ..." << std::endl;
+
+
+	SBGATFrameGraph frame_graph;
+
+	frame_graph.add_frame("N");
+	frame_graph.add_frame("B");
+	frame_graph.add_transform("N","B");
+	arma::vec::fixed<3> mrp = {0.1,0.2,0.3};
+	arma::vec::fixed<3> origin = {-0.1,0.2,-0.3};
+
+	frame_graph.set_transform_mrp("N","B",mrp);
+	frame_graph.set_transform_origin("N","B",origin);
+
+
+	arma::vec::fixed<3> zero = {0,0,0};
+
+	assert(arma::norm(frame_graph.convert(zero,"B","N") - origin) == 0);
+	// TODO : complete with rotation tests
+	std::cout << "- Done running test_frame_conversion" << std::endl;
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
 
 
 // TODO : reimplement these tests

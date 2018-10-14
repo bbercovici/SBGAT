@@ -34,7 +34,6 @@ SOFTWARE.
 
 #include "ObsWindow.hpp"
 
-
 namespace SBGAT_GUI {
 
 /*!
@@ -45,7 +44,10 @@ namespace SBGAT_GUI {
 by the physical parameters of a shape
 
 \details TODO
-*/
+*/	
+
+class SurfacePGMWindow;
+	
 
 	class ShapePropertiesWidget : public QGroupBox {
 		Q_OBJECT
@@ -53,13 +55,23 @@ by the physical parameters of a shape
 	public:
 
 	/**
-	Creates the settings window
+	Creates the widget
 	@param parent pointer to parent window.
 	@param is_primary true if corresponding shape is a primary, false otherwise. Will add the option
 	to set body density if true.
 	@param title widget title
 	*/
 		ShapePropertiesWidget(ObsWindow * parent,bool is_primary,std::string title) ;
+
+
+	/**
+	Creates the widget for use in SurfacePGMWindow
+	@param parent pointer to parent window.
+	@param title widget title
+	*/
+		ShapePropertiesWidget(SurfacePGMWindow * parent,std::string title);
+
+
 
 		/**
 		Returns direction of spin vector in inertial frame
@@ -102,7 +114,6 @@ by the physical parameters of a shape
 		Exclusive push button which, if pressed, indicates that the attitude of the body derives from a fixed-spin regime
 		*/
 		QRadioButton * attitude_from_simple_spin_button ;
-
 
 		/**
 		Exclusive push button which, if pressed, indicates that the attitude of the body is to be loaded from a file

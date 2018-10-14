@@ -67,7 +67,7 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (kg * m ^ 2/ s ^2)
+  @return PGM potential evaluated at the queried point (m ^ 2/ s ^2)
   */
   double GetPotential(double const * point);
 
@@ -76,7 +76,7 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (kg * m ^ 2 / s ^2)
+  @return PGM potential evaluated at the queried point (m ^ 2 / s ^2)
   */
   double GetPotential(const arma::vec & point);
 
@@ -85,8 +85,8 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit as
   the polydata used to construct the PGM
-  @param PGM potential evaluated at the queried point (kg * m^2 / s ^2)
-  @param PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  @param PGM potential evaluated at the queried point (m^2 / s ^2)
+  @param PGM acceleration evaluated at the queried point (m / s ^2)
   */
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec & acc);
@@ -97,8 +97,8 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit as
   the polydata used to construct the PGM
-  @param PGM potential evaluated at the queried point (kg * m^2 / s ^2)
-  @param PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  @param PGM potential evaluated at the queried point (m^2 / s ^2)
+  @param PGM acceleration evaluated at the queried point (m / s ^2)
   */
   void GetPotentialAcceleration(const arma::vec & point,double & potential, 
     arma::vec & acc);
@@ -109,7 +109,7 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit as
   the polydata used to construct the PGM
-  @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  @return PGM acceleration evaluated at the queried point (m / s ^2)
   */
   arma::vec GetAcceleration(const arma::vec & point);
 
@@ -118,7 +118,7 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM acceleration evaluated at the queried point (kg * m / s ^2)
+  @return PGM acceleration evaluated at the queried point (m / s ^2)
   */
   arma::vec GetAcceleration(double const * point);
 

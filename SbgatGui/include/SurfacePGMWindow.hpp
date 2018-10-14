@@ -22,28 +22,47 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_RenderingPropertiesWindow
-#define HEADER_RenderingPropertiesWindow
+#ifndef HEADER_SURFACEPGM_WINDOW
+#define HEADER_SURFACEPGM_WINDOW
 
 #include <QMainWindow>
+#include <QGroupBox>
 #include <QComboBox>
-#include <QVTKOpenGLWidget.h>
-#include <QDialog.h>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QDialog>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include <QLabel>
+#include <QLineEdit>
+
+#include <QVBoxLayout>
+#include <QDialogButtonBox>
+#include <QDoubleSpinBox>
+#include <QSpinBox>
+#include <QRadioButton>
+
+
 #include "Mainwindow.hpp"
+
 
 namespace SBGAT_GUI {
 
 	class Mainwindow;
+	class ShapePropertiesWidget;
 
 /*!
-@class RenderingPropertiesWindow
+@class SurfacePGMWindow
 \author Benjamin Bercovici
-\date January 28, 2017
-\brief RenderingPropertiesWindow
-\details A window where the user can set the camera focus
+\date October, 2018
+\brief SurfacePGMWindow class defining a window where a user 
+evaluate the Polyhedron Gravity Model of a shape model
+\details Enables computation of surface potential, inertial accelerations, 
+body-frame accelerations and surface slopes
 */
 
-	class RenderingPropertiesWindow : public QDialog {
+	class SurfacePGMWindow : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -52,49 +71,27 @@ namespace SBGAT_GUI {
 	Creates the window
 	@param parent pointer to parent window.
 	*/
-		RenderingPropertiesWindow(Mainwindow * parent) ;
-
-
-		public slots:
-		/**
-		Triggered after a prop has been removed from the main window. Ensures that a 
-		deleted shape model/spacecraft can no longer be used 
-		*/
-		void prop_removed_slot();
-
-		/**
-		Triggered after a prop has been added to the main window. Will
-		update the widget to reflect new prop
-		*/
-		void prop_added_slot();
+		SurfacePGMWindow(Mainwindow * parent) ;
 
 		private slots:
-
-		void change_focus();
-		// void add_light();
-		// void remove_light();
-		// void enable_mutual_shadows(int state);
-
+		
+		void compute_surface_pgm();
 
 
 
 	protected:
 
+
+		virtual void init();
+
 		Mainwindow * parent;
-		void init();
-		QComboBox * prop_combo_box;
 
-		// QComboBox * current_light_combo_box;
-		// QPushButton * remove_light_button;
-		// QComboBox * new_light_combo_box ;
+		QComboBox * primary_prop_combo_box;
 
-		// void make_light_box_consistent();
+		QDialogButtonBox * button_box;
 
-
-
-
-
-
+		QPushButton * compute_surface_pgm_button;
+		ShapePropertiesWidget * primary_shape_properties_widget;
 
 	};
 }

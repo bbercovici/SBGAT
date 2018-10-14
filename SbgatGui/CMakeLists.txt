@@ -118,6 +118,8 @@ add_executable(${EXE_NAME}
 	source/LCVisualizer.cpp
 	source/ObsWindow.cpp
 	source/ShapePropertiesWidget.cpp
+	source/SurfacePGMWindow.cpp
+	source/SelectMapperWindow.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
@@ -130,6 +132,9 @@ add_executable(${EXE_NAME}
 	include/LCVisualizer.hpp
 	include/ObsWindow.hpp
 	include/ShapePropertiesWidget.hpp
+	include/SurfacePGMWindow.hpp
+	include/SelectMapperWindow.hpp
+
 	)
 
 set(library_dependencies

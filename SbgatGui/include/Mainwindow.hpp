@@ -271,7 +271,19 @@ through the user interface layer brought by Qt.}
 
 		QAction * open_lightcurve_window_action;
 
+		/**
+		When triggered, opens the dialog window allowing one
+		to evaluate the polyhedron gravity model of the selected shape over its surface
+		*/
+		QAction * open_compute_surface_pgm_window_action;
 
+
+
+		/**
+		When triggered, opens the dialog window allowing one
+		to choose the mapper for each displayed shape
+		*/
+		QAction * open_select_mapper_window_action;
 
 
 		
@@ -319,6 +331,13 @@ through the user interface layer brought by Qt.}
 
 		void open_lightcurve_window();
 
+		/**
+		Opens the dialog window allowing
+		one to choose the mapper for a given shape, allowing
+		computed surface data (if any) to be shown
+		*/
+		void open_select_mapper_window();
+
 
 	/**
 	Removes the selected shape model from Sbgat by querying the name of the selected shape.
@@ -333,6 +352,12 @@ through the user interface layer brought by Qt.}
 		acting on a body
 		*/
 		void open_compute_yorp_window();
+
+		/**
+		Opens a dialong window where the user can select a shape model 
+		and evaluate its polyhedron gravity model over its surface
+		*/
+		void open_compute_surface_pgm_window();
 
 
 		/**
