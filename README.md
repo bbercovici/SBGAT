@@ -77,6 +77,8 @@ to apply the update (if any).
 ### [SBGAT 1.10.1](https://github.com/bbercovici/SBGAT/releases/tag/1.10.1)
 
 #### New:
+- The Polyhedron Gravity Model can now be evaluated at the surface of loaded shape models
+- The surface PGM can then be displayed in the form of surface slopes, gravitional potential, inertial and body-fixed accelerations
 
 #### Improvements:
 
