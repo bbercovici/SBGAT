@@ -105,7 +105,6 @@ void ModelDataWrapper::set_global_pgm_pot(bool global_pgm_pot) {
 }
 
 
-
 void ModelDataWrapper::set_grav_slopes(bool grav_slopes) {
 	this -> consistent_grav_slope = grav_slopes;
 }
@@ -125,7 +124,6 @@ void ModelDataWrapper::set_light_actor(vtkSmartPointer<vtkLightActor> light_acto
 vtkSmartPointer<vtkLightActor> ModelDataWrapper::get_light_actor() const{
 	return this -> light_actor;
 }
-
 
 
 void ModelDataWrapper::set_slopes(std::vector<double> slopes){
@@ -254,5 +252,12 @@ void ModelDataWrapper::set_colorbar_actor(vtkSmartPointer<vtkScalarBarActor> act
 	this -> colorbar_actor = actor;
 }
 
+void ModelDataWrapper::set_scale_factor(double scale_factor){
+	this -> scale_factor =scale_factor;
+}
+
+double ModelDataWrapper::get_scale_factor() const{
+	return this -> scale_factor;
+}
 
 

@@ -241,16 +241,16 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
         if (mm == 0){
 
-          x_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*K1*b_bar_real(nn+1,mm+1) );
-          y_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*K1*b_bar_imag(nn+1,mm+1) );
-          z_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) );
+          x_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K1 * b_bar_real(nn+1,mm+1) );
+          y_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K1 * b_bar_imag(nn+1,mm+1) );
+          z_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0)) * b_bar_real(nn+1,mm) );
 
         }
         else{
 
-          x_ddot += K0 * ( -this -> Cnm(nn,mm)*K2*b_bar_real(nn+1,mm+1) -this -> Snm(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +this -> Cnm(nn,mm)*K3*b_bar_real(nn+1,mm-1) +this -> Snm(nn,mm)*K3*b_bar_imag(nn+1,mm-1));
-          y_ddot += K0 * ( -this -> Cnm(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +this -> Snm(nn,mm)*K2*b_bar_real(nn+1,mm+1) -this -> Cnm(nn,mm)*K3*b_bar_imag(nn+1,mm-1) +this -> Snm(nn,mm)*K3*b_bar_real(nn+1,mm-1));
-          z_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) +this -> Snm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2*n+1.0)/(2.0*n+3.0))*b_bar_imag(nn+1,mm) );
+          x_ddot += K0 * ( -this -> Cnm(nn,mm) * K2 * b_bar_real(nn+1,mm+1) -this -> Snm(nn,mm) * K2 * b_bar_imag(nn+1,mm+1) +this -> Cnm(nn,mm) * K3 * b_bar_real(nn+1,mm-1) +this -> Snm(nn,mm) * K3 * b_bar_imag(nn+1,mm-1));
+          y_ddot += K0 * ( -this -> Cnm(nn,mm) * K2 * b_bar_imag(nn+1,mm+1) +this -> Snm(nn,mm) * K2 * b_bar_real(nn+1,mm+1) -this -> Cnm(nn,mm) * K3 * b_bar_imag(nn+1,mm-1) +this -> Snm(nn,mm) * K3 * b_bar_real(nn+1,mm-1));
+          z_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0)) * b_bar_real(nn+1,mm) +this -> Snm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2*n+1.0)/(2.0*n+3.0)) * b_bar_imag(nn+1,mm) );
 
         } 
 
@@ -260,6 +260,7 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
     arma::vec::fixed<3> acceleration = {x_ddot,y_ddot,z_ddot};
 
+    acceleration *= 1./this -> scaleFactor;
 
     return acceleration;
 
@@ -343,31 +344,31 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
         /*// Partial expressions */
         if (mm == 0){
 
-          ddU_dxdx += 2.0 * K0 * ( this -> Cnm(nn,mm)*K6*b_bar_real(nn+2,mm+2) -(n+2)*(n+1)*K7*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) );
-          ddU_dydy -= 2.0 * K0 * ( this -> Cnm(nn,mm)*K6*b_bar_real(nn+2,mm+2) +(n+2)*(n+1)*K7*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) );
-          ddU_dxdy += 2.0 * K0 * ( this -> Cnm(nn,mm)*K6*b_bar_imag(nn+2,mm+2) );
-          ddU_dxdz += 4.0 * K0 * ( this -> Cnm(nn,mm)*K10*b_bar_real(nn+2,mm+1) );
-          ddU_dydz += 4.0 * K0 * ( this -> Cnm(nn,mm)*K10*b_bar_imag(nn+2,mm+1) );
-          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm)*K2 *b_bar_real(nn+2,mm) );
+          ddU_dxdx += 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_real(nn+2,mm+2) -(n+2)*(n+1) * K7*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) );
+          ddU_dydy -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_real(nn+2,mm+2) +(n+2)*(n+1) * K7*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) );
+          ddU_dxdy += 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_imag(nn+2,mm+2) );
+          ddU_dxdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K10 * b_bar_real(nn+2,mm+1) );
+          ddU_dydz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K10 * b_bar_imag(nn+2,mm+1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2  * b_bar_real(nn+2,mm) );
 
         }
         else if (mm == 1){
 
-          ddU_dxdx += K0 * ( this -> Cnm(nn,mm)*K4*b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm)*K4*b_bar_imag(nn+2,mm+2) -3.0*K5*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) -  K5*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm));
-          ddU_dydy -= K0 * ( this -> Cnm(nn,mm)*K4*b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm)*K4*b_bar_imag(nn+2,mm+2) +  K5*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) +3.0*K5*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm));
-          ddU_dxdy -= K0 * ( this -> Snm(nn,mm)*K4*b_bar_real(nn+2,mm+2) -this -> Cnm(nn,mm)*K4*b_bar_imag(nn+2,mm+2) +  K5*this -> Snm(nn,mm)*b_bar_real(nn+2,mm) +  K5*this -> Cnm(nn,mm)*b_bar_imag(nn+2,mm));
-          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm)*K8*b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm)*K8*b_bar_imag(nn+2,mm+1) -  K9*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm-1) );
-          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm)*K8*b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm)*K8*b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm)*b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm)*b_bar_imag(nn+2,mm-1) );
-          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm)*K2*b_bar_real(nn+2,mm)   +this -> Snm(nn,mm)*K2*b_bar_imag(nn+2,mm));
+          ddU_dxdx += K0 * ( this -> Cnm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) -3.0 * K5*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) -  K5*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dydy -= K0 * ( this -> Cnm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) +  K5*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) +3.0 * K5*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dxdy -= K0 * ( this -> Snm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) -this -> Cnm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) +  K5*this -> Snm(nn,mm) * b_bar_real(nn+2,mm) +  K5*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) -  K9*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2 * b_bar_real(nn+2,mm)   +this -> Snm(nn,mm) * K2 * b_bar_imag(nn+2,mm));
         }
         else{
 
-          ddU_dxdx += K0 * (  this -> Cnm(nn,mm)*K1*b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm)*K1*b_bar_imag(nn+2,mm+2) -2.0*K2*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) -2.0*K2*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm-2));
-          ddU_dydy -= K0 * (  this -> Cnm(nn,mm)*K1*b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm)*K1*b_bar_imag(nn+2,mm+2) +2.0*K2*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm) +2.0*K2*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm-2));
-          ddU_dxdy += K0 * ( -this -> Snm(nn,mm)*K1*b_bar_real(nn+2,mm+2) +this -> Cnm(nn,mm)*K1*b_bar_imag(nn+2,mm+2) +K3*this -> Snm(nn,mm)*b_bar_real(nn+2,mm-2) -K3*this -> Cnm(nn,mm)*b_bar_imag(nn+2,mm-2));
-          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm)*K8*b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm)*K8*b_bar_real(nn+2,mm+1) -  K9*this -> Cnm(nn,mm)*b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm)*b_bar_imag(nn+2,mm-1) );
-          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm)*K8*b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm)*K8*b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm)*b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm)*b_bar_imag(nn+2,mm-1) );
-          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm)*K2*b_bar_real(nn+2,mm)   +this -> Snm(nn,mm)*K2*b_bar_imag(nn+2,mm));
+          ddU_dxdx += K0 * (  this -> Cnm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) -2.0 * K2*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) -2.0 * K2*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dydy -= K0 * (  this -> Cnm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) +2.0 * K2*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) +2.0 * K2*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dxdy += K0 * ( -this -> Snm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Cnm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) +K3*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-2) -K3*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -  K9*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2 * b_bar_real(nn+2,mm)   +this -> Snm(nn,mm) * K2 * b_bar_imag(nn+2,mm));
 
         }
 
@@ -385,6 +386,10 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
     dAccdPos(0,2) = ddU_dxdz;
     dAccdPos(2,0) = ddU_dxdz;
 
+    dAccdPos(1,2) = ddU_dydz;
+    dAccdPos(2,1) = ddU_dydz;
+
+
   }
 
   catch(std::runtime_error & error){
@@ -397,8 +402,8 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
 } 
 
 void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
-  arma::vec & partial_C, 
-  arma::vec & partial_S){
+  arma::mat & partial_C, 
+  arma::mat & partial_S){
 
   int Ccounter = 0;
   int Scounter = 0;
@@ -418,8 +423,8 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
     this -> referenceRadius);
 
 
-  partial_C.set_size(this -> degree + 1);
-  partial_S.set_size(this -> degree + 1);
+  partial_C.set_size(3,static_cast<int>((this -> degree + 1) * (this -> degree + 2)/2));
+  partial_S.set_size(3,static_cast<int>((this -> degree + 1) * (this -> degree + 2)/2 - static_cast<int>(this -> degree + 1)));
 
   for (unsigned int nn = 0; nn <= this -> degree; nn++){
 
@@ -443,22 +448,22 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
 
       if (mm == 0){
 
-        partial_C(3*Ccounter)   = - 2.0 * K0 * ( K1 * b_bar_real(nn+1,mm+1) );
-        partial_C(3*Ccounter+1) = - 2.0 * K0 * ( K1 * b_bar_imag(nn+1,mm+1) );
-        partial_C(3*Ccounter+2) = - 2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
+        partial_C(0,Ccounter)   = - 2.0 * K0 * ( K1 * b_bar_real(nn+1,mm+1) );
+        partial_C(1,Ccounter) = - 2.0 * K0 * ( K1 * b_bar_imag(nn+1,mm+1) );
+        partial_C(2,Ccounter) = - 2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
         Ccounter += 1;
 
       }           
       else{
 
-        partial_C(3*Ccounter)   = K0 * ( -K2 * b_bar_real(nn+1,mm+1) +K3 * b_bar_real(nn+1,mm-1) );
-        partial_C(3*Ccounter+1) = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) -K3 * b_bar_imag(nn+1,mm-1) );
-        partial_C(3*Ccounter+2) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
+        partial_C(0,Ccounter)   = K0 * ( -K2 * b_bar_real(nn+1,mm+1) +K3 * b_bar_real(nn+1,mm-1) );
+        partial_C(1,Ccounter) = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) -K3 * b_bar_imag(nn+1,mm-1) );
+        partial_C(2,Ccounter) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
         Ccounter += 1;
         
-        partial_S(3*Scounter)   = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) + K3 * b_bar_imag(nn+1,mm-1) );
-        partial_S(3*Scounter+1) = K0 * (  K2 * b_bar_real(nn+1,mm+1) + K3 * b_bar_real(nn+1,mm-1) );
-        partial_S(3*Scounter+2) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_imag(nn+1,mm) );
+        partial_S(0,Scounter)   = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) + K3 * b_bar_imag(nn+1,mm-1) );
+        partial_S(1,Scounter) = K0 * (  K2 * b_bar_real(nn+1,mm+1) + K3 * b_bar_real(nn+1,mm-1) );
+        partial_S(2,Scounter) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_imag(nn+1,mm) );
         Scounter += 1;
 
       } 
@@ -466,6 +471,10 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
     } 
 
   }
+
+
+  partial_C *= 1./this -> scaleFactor;
+  partial_S *= 1./this -> scaleFactor;
 
 
 

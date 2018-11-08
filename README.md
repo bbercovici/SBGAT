@@ -79,15 +79,21 @@ to apply the update (if any).
 #### New:
 - The gravity-gradient matrix deriving from the spherical harmonics gravity model can now be evaluated.
 - The partial derivative of the spherical harmonics gravity model with respect to the gravity spherical harmonics coefficients can now be evaluated.
+- A static method `SBGATPolyhedronGravityModel::ComputeSurfacePGM` has been added to `SbgatCore` to facilitate the evaluation of the polyhedron gravity model at the surface of a small body shape.
 
 #### Improvements
 - The CMake configuration of SBGAT will no longer failed if OpenMP cannot be found.
+- A warning will now be issued in `SbgatGui` if the surface polyhedron gravity model is evaluated with a zero rotation period.
+- `SBGATPolyhedronGravityModel` and `SBGATSphericalHarmo` are now returning potentials and accelerations evaluated with the same unit of length as the shape model they were associated with.
+
+### Bug fixes:
+- Fixed bug in `SbgatGui` that was due to a `vtkPolydataMapper` not being properly assigned to the correct `ModelDataWrapper` after aligning the shape
 
 ### [SBGAT 1.10.1](https://github.com/bbercovici/SBGAT/releases/tag/1.10.1)
 
 #### New:
-- The Polyhedron Gravity Model can now be evaluated at the surface of loaded shape models
-- The surface PGM can then be displayed in the form of surface slopes, gravitional potential, inertial and body-fixed accelerations
+- The Polyhedron Gravity Model can now be evaluated at the surface of loaded shape models from `SbgatGui`s
+- The surface PGM can then be overlaid in the form of surface slopes, gravitional potential, inertial and body-fixed accelerations
 
 #### Improvements:
 

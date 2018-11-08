@@ -45,7 +45,6 @@ void test_spherical_harmonics_partials_consistency();
 void test_radar_obs();
 void test_lightcurve_obs();
 void test_frame_conversion();
-void test_openmp_is_enabled();
 
 
 

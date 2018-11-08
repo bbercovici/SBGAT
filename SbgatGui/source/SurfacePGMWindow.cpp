@@ -93,59 +93,36 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	std::string selected_shape_name = this -> primary_prop_combo_box -> currentText().toStdString();
 	vtkSmartPointer<vtkPolyData> selected_shape = this -> parent -> get_wrapped_shape_data()[selected_shape_name]-> get_polydata();
 
-	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputData(selected_shape);
-
-	pgm_filter -> SetDensity(this -> primary_shape_properties_widget -> get_density());
-	pgm_filter -> SetScaleMeters();
-	pgm_filter -> Update();
-
-	int numCells = selected_shape -> GetNumberOfCells();
 
 	arma::vec::fixed<3> omega = this -> primary_shape_properties_widget -> get_spin();
-	omega *= 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
 
+	if (this -> primary_shape_properties_widget -> get_period() == 0){
+		QMessageBox::warning(this, "Evaluate Surface PGM", "The rotation period must be strictly greater than 0!");
+		return;
+	}
+
+
+	omega *= 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
 
 	std::vector<double> slopes,potentials,acc_magnitudes,acc_body_fixed_magnitudes;
 
-    // The facets are browsed 
-	for (int cellId=0; cellId < numCells; cellId++){
+	int numCells = selected_shape -> GetNumberOfCells();
+	std::vector<unsigned int> queried_elements;
+	
+	for (unsigned int i = 0; i < static_cast<unsigned int>(numCells); ++i){
+		queried_elements.push_back(i);
+	}
 
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds -> Allocate(3);
-		selected_shape -> GetCellPoints(cellId,ptIds);
 
-		int p0_index = ptIds -> GetId(0);
-		int p1_index = ptIds -> GetId(1);
-		int p2_index = ptIds -> GetId(2);
-
-		double p0[3];
-		double p1[3];
-		double p2[3];
-
-		selected_shape -> GetPoint(p0_index,p0);
-		selected_shape -> GetPoint(p1_index,p1);
-		selected_shape -> GetPoint(p2_index,p2);
-
-		arma::vec::fixed<3> p0_arma = {p0[0],p0[1],p0[2]};
-		arma::vec::fixed<3> p1_arma = {p1[0],p1[1],p1[2]};
-		arma::vec::fixed<3> p2_arma = {p2[0],p2[1],p2[2]};
-		arma::vec::fixed<3> facet_center = 1./3 * (p0_arma + p1_arma + p2_arma);
-		arma::vec::fixed<3> normal = arma::normalise(arma::cross(p1_arma - p0_arma,p2_arma - p0_arma));
-
-		double potential,slope;
-		arma::vec::fixed<3> acc,acc_body_fixed;
-		
-		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
-		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
-		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
-
-		slopes.push_back(slope);
-		potentials.push_back(potential);
-		acc_magnitudes.push_back(arma::norm(acc));
-		acc_body_fixed_magnitudes.push_back(arma::norm(acc_body_fixed));
-
-	}	
+    SBGATPolyhedronGravityModel::ComputeSurfacePGM(selected_shape,
+	queried_elements,
+	true,
+	this -> primary_shape_properties_widget -> get_density(),
+	omega,
+	slopes,
+	potentials,
+	acc_magnitudes,
+	acc_body_fixed_magnitudes);
 
 	std::shared_ptr<ModelDataWrapper> wrapper = this -> parent -> get_wrapped_shape_data()[selected_shape_name];
 

@@ -149,6 +149,8 @@ void SelectMapperWindow::accept(){
 			
 		}
 
+		
+
 		if (data == nullptr){
 			QDialog::accept();
 		}

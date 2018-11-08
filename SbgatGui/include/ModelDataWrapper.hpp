@@ -90,6 +90,21 @@ elements through a unique interface.
 	*/
 		void set_polydata(vtkSmartPointer<vtkPolyData> polydata);
 
+		/**
+	Setter of scale factor 
+	@param scale_factor scale factor applied to the shape model coordinates to have them scaled to meters
+		*/	
+
+		void set_scale_factor(double scale_factor);
+
+		/**
+	Getter to scale factor 
+	@return  scale factor applied to the shape model coordinates to have them scaled to meters
+		*/	
+
+		double get_scale_factor() const;
+
+
 
 	/**
 	Setter of points.
@@ -276,6 +291,8 @@ elements through a unique interface.
 		bool consistent_global_acceleration = false;
 		bool consistent_global_potential = false;
 		bool consistent_grav_slope = false;
+
+		double scale_factor;
 
 
 

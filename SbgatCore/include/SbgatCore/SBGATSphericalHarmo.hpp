@@ -101,36 +101,72 @@ public:
   }
 
   /*
-  Returns Cnm arrays of coefficients
-  @return Cnm arrays of coefficients
+  Returns Cnm array of coefficients ordered like in the exemple below where degree = 5
+
+    1     0     0     0    0      0
+  C_10  C_11  C_12  C_13  C_14  C_15
+  C_20  C_21  C_22  C_23  C_24  C_25 
+  C_30  C_31  C_32  C_33  C_34  C_35 
+  C_40  C_41  C_42  C_43  C_44  C_45
+  C_50  C_51  C_52  C_53  C_54  C_55
+
+
+  @return Cnm array of coefficients
   */
   arma::mat GetCnm() {this -> Update(); return this -> Cnm;}
 
 
   /*
-  Returns Cnm arrays of coefficients
-  @param Cnm arrays of coefficients
+  Returns Cnm array of coefficients ordered like in the exemple below where degree = 5
+
+    1     0     0     0    0      0
+  C_10  C_11  C_12  C_13  C_14  C_15
+  C_20  C_21  C_22  C_23  C_24  C_25 
+  C_30  C_31  C_32  C_33  C_34  C_35 
+  C_40  C_41  C_42  C_43  C_44  C_45
+  C_50  C_51  C_52  C_53  C_54  C_55
+
+
+  @param[out] Cnm array of coefficients
   */
   void GetCnm(arma::mat & C_nm) {this -> Update(); C_nm = this -> Cnm;}
 
 
   /*
-  Returns Snm arrays of coefficients
-  @return Snm arrays of coefficients
+  
+  Returns Snm array of coefficients ordered like in the exemple below where degree = 5
+
+    0     0     0     0    0      0
+    0  S_11  S_12  S_13  S_14  S_15
+    0  S_21  S_22  S_23  S_24  S_25 
+    0  S_31  S_32  S_33  S_34  S_35 
+    0  S_41  S_42  S_43  S_44  S_45
+    0  S_51  S_52  S_53  S_54  S_55
+
+
+  @return Snm array of coefficients
   */
   arma::mat GetSnm() {this -> Update(); return this -> Snm;}
 
   /*
-  Returns Snm arrays of coefficients
-  @param Snm arrays of coefficients
+  Returns Snm array of coefficients ordered like in the exemple below where degree = 5
+
+    0     0     0     0    0      0
+    0  S_11  S_12  S_13  S_14  S_15
+    0  S_21  S_22  S_23  S_24  S_25 
+    0  S_31  S_32  S_33  S_34  S_35 
+    0  S_41  S_42  S_43  S_44  S_45
+    0  S_51  S_52  S_53  S_54  S_55
+
+  @param[out] Snm array of coefficients
   */
   void GetSnm(arma::mat & S_nm) {this -> Update(); S_nm = this -> Snm;}
 
   /**
   Returns the acceleration due to gravity at the specified point
-  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit as 
+  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit L as 
   the shape used to build the spherical harmonics expansion. 
-  @return acceleration (kg * m / s ^ 2)
+  @return acceleration (L / s ^ 2)
   */
   arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & pos);
 
@@ -139,9 +175,9 @@ public:
   Evaluates the gravity gradient matrix (the partial derivative of the spherical 
   harmonics acceleration with respect to the position vector) at the prescribed
   location
-  @param[in] pos position at which the gravity gradient matrix must be evaluated, expressed in the same frame/same unit as 
+  @param[in] pos position at which the gravity gradient matrix must be evaluated, expressed in the same frame/same unit L as 
   the shape used to build the spherical harmonics expansion.
-  @param[out] dAccdPos container holding the gravity gradient matrix (kg / s ^ 2)
+  @param[out] dAccdPos container holding the gravity gradient matrix (1 / s ^ 2)
   */
   void GetGravityGradientMatrix(const arma::vec::fixed<3> & pos,
     arma::mat::fixed<3,3> & dAccdPos);
@@ -149,17 +185,42 @@ public:
 
   /** 
   Evaluates the partial derivative of the spherical harmonics acceleration
-  with respect to the spherical harmonics coefficients
+  with respect to the spherical harmonics coefficients. The coefficients and the partials of the acceleration w/r to the coefficients
+  are ordered like so:
+  
+  Cnm :
+(C_11 == 1)  0     0    0     0     0
+  C_10     C_11    0    0     0     0 
+  C_20     C_21  C_22   0     0     0  
+  C_30     C_31  C_32  C_33   0     0  
+  C_40     C_41  C_42  C_43  C_44   0
+  C_50     C_51  C_52  C_53  C_54  C_55
+  
+  Snm :
+  0    0     0     0    0      0
+  0  S_11    0     0    0      0
+  0  S_21  S_22    0    0      0 
+  0  S_31  S_32  S_33   0      0 
+  0  S_41  S_42  S_43  S_44    0
+  0  S_51  S_52  S_53  S_54  S_55
+
+  so 
+
+  partial_C = [ dA/C_00,dA/C_10,dA/C_11,dA/C_20,dA/C_21,dA/C_22,...]
+  partial_S = [ dA/S_11,dA/C_21,dA/S_22,dA/S_31,dA/S_32,dA/S_33,...]
+
   @param[in] pos position at which the partial derivatives must be evaluated, expressed in the same frame/same unit as 
   the shape used to build the spherical harmonics expansion.
   @param[out] partial_C container holding the partial derivative of the acceleration 
-  with respect to the Cnm spherical harmonic coefficients
+  with respect to the Cnm spherical harmonic coefficients. If the degree/order is n, then there are (n+1) * (n + 2)/2 non-zero Cnm coefficients
+  
   @param[out] partial_S container holding the partial derivative of the acceleration 
-  with respect to the Snm spherical harmonic coefficients
+  with respect to the Snm spherical harmonic coefficients. If the degree/order is n, then there are (n+1) * (n + 2)/2 - n non-zero Snm coefficients
+
   */
   void GetPartialHarmonics(const arma::vec::fixed<3> & pos,
-    arma::vec & partial_C, 
-    arma::vec & partial_S);
+    arma::mat & partial_C, 
+    arma::mat & partial_S);
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
@@ -205,6 +266,20 @@ public:
   @param path JSON file storing the spherical harmonics model
   */
   void LoadFromJson(std::string path);
+
+  /**
+  Sets the Cnm coefficients. There is normally no need to use this method outside of Sbgat's tests
+  @param[in] Cnm coefficients
+  */
+  void SetCnm(arma::mat Cnm){this ->Cnm =Cnm;}
+
+  /**
+  Sets the Snm coefficients. There is normally no need to use this method outside of Sbgat's tests
+  @param[in] Snm coefficients
+  */
+  void SetSnm(arma::mat Snm){this ->Snm =Snm;}
+
+
 
 protected:
   SBGATSphericalHarmo();

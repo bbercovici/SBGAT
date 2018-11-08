@@ -61,8 +61,7 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
-
-	TestsSBCore::test_openmp_is_enabled();
+	TestsSBCore::test_spherical_harmonics_partials_consistency();
 	TestsSBCore::test_frame_conversion();
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
@@ -77,20 +76,6 @@ void TestsSBCore::run() {
 
 }
 
-/**
-This test prints out whether OpenMP multithreading is active
-*/
-void TestsSBCore::test_openmp_is_enabled(){
-
-	int num_threads = omp_get_max_threads();
-	if (num_threads > 1){
-		std::cout << "OpenMP multithreading enabled: " << num_threads << " are available\n";
-	}
-	else{
-		std::cout << "OpenMP multithreading disabled\n";
-	}
-
-}
 
 
 
@@ -380,7 +365,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
 
 	
-	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
+	std::cout << "- Done running test_spherical_harmonics_coefs_consistency" << std::endl;
 
 }
 
@@ -433,11 +418,69 @@ void TestsSBCore::test_spherical_harmonics_partials_consistency() {
 	spherical_harmonics -> GetGravityGradientMatrix(pos,gravity_gradient_mat);
 
 	arma::vec::fixed<3> dacc_lin = gravity_gradient_mat * dpos;
-	assert(arma::norm(dacc_lin - dacc_true ) / arma::norm(dacc_true) * 100 < 1e-4);
+	assert(arma::norm(dacc_lin - dacc_true ) / arma::norm(dacc_true) * 100 < 2e-1);
+
+
+	// Modifying the coefs and testing the partials
+	arma::mat Cnm = spherical_harmonics-> GetCnm();
+	arma::mat Snm = spherical_harmonics-> GetSnm();
+
+
+	arma::mat dCnm = 1e-2 * Cnm;
+	arma::mat dSnm = 1e-2 * Snm;
+
+	dCnm(0,0) = 0;
+	dSnm.col(0) *= 0;
+
+
+	arma::vec dCnm_vec((degree + 1) * (degree + 2)/2);
+	arma::vec dSnm_vec((degree + 1) * (degree + 2)/2 - degree - 1);
+
+	int counter = 0;
+	for (int i = 0; i <= degree; ++i){
+		for (int j = 0; j <= i; ++j){
+			dCnm_vec(counter) = dCnm(i,j);
+			++counter;
+		}
+		
+	}
+
+	counter = 0;
+	for (int i = 1; i <= degree; ++i){
+		for (int j = 1; j <= i; ++j){
+			dSnm_vec(counter) = dSnm(i,j);
+			++counter;
+		}
+		
+	}
+
+
+	spherical_harmonics -> SetCnm(Cnm + dCnm);
+	spherical_harmonics -> SetSnm(Snm + dSnm);
+
+	sharm_acc_pert = spherical_harmonics -> GetAcceleration(pos);
+	dacc_true = sharm_acc_pert - sharm_acc;
+
+	arma::mat partial_C,partial_S;
+	spherical_harmonics -> GetPartialHarmonics(pos,partial_C, partial_S);
+
+	dacc_lin = partial_C * dCnm_vec + partial_S * dSnm_vec;
+
+
+	assert(arma::norm(dacc_lin - dacc_true ) / arma::norm(dacc_true) * 100 < 1e-2);
+
+
+
+
+
+
+
+
+
 
 
 	
-	std::cout << "-- test_spherical_harmonics_partials_consistency successful" << std::endl;
+	std::cout << "- Done running test_spherical_harmonics_partials_consistency" << std::endl;
 
 }
 
@@ -463,16 +506,9 @@ void TestsSBCore::test_frame_conversion(){
 	arma::vec::fixed<3> zero = {0,0,0};
 
 	assert(arma::norm(frame_graph.convert(zero,"B","N") - origin) == 0);
+	
 	// TODO : complete with rotation tests
 	std::cout << "- Done running test_frame_conversion" << std::endl;
-
-
-
-
-
-
-
-
 
 
 }

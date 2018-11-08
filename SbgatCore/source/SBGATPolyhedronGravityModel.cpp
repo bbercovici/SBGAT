@@ -426,7 +426,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
 	}
 
 	
-	potential *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
+	potential *= 0.5 * arma::datum::G * this -> density;
 
 	return potential;
 
@@ -558,7 +558,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
 
-	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
+	acc *= arma::datum::G  * this -> density;
 
 	return acc;
 
@@ -566,7 +566,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 
 void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & point,double & potential, 
-    arma::vec & acc){
+	arma::vec & acc){
 
 	this -> GetPotentialAcceleration(point.colptr(0),potential, acc);
 
@@ -671,8 +671,8 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 	}
 
 	acc = {acc_x,acc_y,acc_z};
-	acc *= arma::datum::G  * this -> density * this -> scaleFactor;
-	pot *= 0.5 * arma::datum::G * this -> density * std::pow(this -> scaleFactor,2);
+	acc *= arma::datum::G  * this -> density;
+	pot *= 0.5 * arma::datum::G * this -> density;
 
 	potential = pot;
 
@@ -741,6 +741,87 @@ void SBGATPolyhedronGravityModel::PrintSelf(std::ostream& os, vtkIndent indent){
 		return;
 	}
 }
+
+
+
+void SBGATPolyhedronGravityModel::ComputeSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
+	const std::vector<unsigned int> & queried_elements,
+	bool is_in_meters,
+	double density,
+	const arma::vec::fixed<3> & omega,
+	std::vector<double> & slopes,
+	std::vector<double> & potentials,
+	std::vector<double> & acc_magnitudes,
+	std::vector<double> & acc_body_fixed_magnitudes){
+
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputData(selected_shape);
+	pgm_filter -> SetDensity(density);
+	double scale_factor;
+	
+	if (is_in_meters){
+		pgm_filter -> SetScaleMeters();
+		scale_factor = 1 ;
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+		scale_factor = 1000;
+
+	}
+
+	pgm_filter -> Update();
+
+    // The queried facets are browsed 
+	for (unsigned int el : queried_elements){
+
+		unsigned int cellId = queried_elements.at(el);
+
+		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+		ptIds -> Allocate(3);
+		selected_shape -> GetCellPoints(cellId,ptIds);
+
+		int p0_index = ptIds -> GetId(0);
+		int p1_index = ptIds -> GetId(1);
+		int p2_index = ptIds -> GetId(2);
+
+		double p0[3];
+		double p1[3];
+		double p2[3];
+
+		selected_shape -> GetPoint(p0_index,p0);
+		selected_shape -> GetPoint(p1_index,p1);
+		selected_shape -> GetPoint(p2_index,p2);
+
+		arma::vec::fixed<3> p0_arma = {p0[0],p0[1],p0[2]};
+		arma::vec::fixed<3> p1_arma = {p1[0],p1[1],p1[2]};
+		arma::vec::fixed<3> p2_arma = {p2[0],p2[1],p2[2]};
+		arma::vec::fixed<3> facet_center = 1./3 * (p0_arma + p1_arma + p2_arma);
+		arma::vec::fixed<3> normal = arma::normalise(arma::cross(p1_arma - p0_arma,p2_arma - p0_arma));
+
+		double potential,slope;
+		arma::vec::fixed<3> acc,acc_body_fixed;
+		
+		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
+		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
+
+
+
+		// Scaling
+		acc_body_fixed /= scale_factor;
+		acc /= scale_factor;
+		potential /= std::pow(scale_factor,2);
+
+		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
+
+		slopes.push_back(slope);
+		potentials.push_back(potential);
+		acc_magnitudes.push_back(arma::norm(acc));
+		acc_body_fixed_magnitudes.push_back(arma::norm(acc_body_fixed));
+
+	}	
+}
+
+
 
 
 
