@@ -45,7 +45,7 @@
 #
 ################################################################################
 	
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.12.0)
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -57,6 +57,7 @@ project(${LIB_NAME})
 if (${CMAKE_MAJOR_VERSION} LESS 3)
 	message(FATAL_ERROR " You are running an outdated version of CMake")
 endif()
+
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
@@ -143,7 +144,7 @@ set(library_dependencies
 	)
 
 
-if (UNIX AND APPLE)
+if (UNIX AND APPLE AND OpenMP_FOUND)
 	target_link_libraries(${LIB_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
 else()
 	target_link_libraries(${LIB_NAME} ${library_dependencies})

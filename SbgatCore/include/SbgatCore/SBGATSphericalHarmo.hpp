@@ -134,6 +134,32 @@ public:
   */
   arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & pos);
 
+
+  /** 
+  Evaluates the gravity gradient matrix (the partial derivative of the spherical 
+  harmonics acceleration with respect to the position vector) at the prescribed
+  location
+  @param[in] pos position at which the gravity gradient matrix must be evaluated, expressed in the same frame/same unit as 
+  the shape used to build the spherical harmonics expansion.
+  @param[out] dAccdPos container holding the gravity gradient matrix (kg / s ^ 2)
+  */
+  void GetGravityGradientMatrix(const arma::vec::fixed<3> & pos,
+    arma::mat::fixed<3,3> & dAccdPos);
+
+
+  /** 
+  Evaluates the partial derivative of the spherical harmonics acceleration
+  with respect to the spherical harmonics coefficients
+  @param[in] pos position at which the partial derivatives must be evaluated, expressed in the same frame/same unit as 
+  the shape used to build the spherical harmonics expansion.
+  @param[out] partial_C container holding the partial derivative of the acceleration 
+  with respect to the Cnm spherical harmonic coefficients
+  @param[out] partial_S container holding the partial derivative of the acceleration 
+  with respect to the Snm spherical harmonic coefficients
+  */
+  void GetPartialHarmonics(const arma::vec::fixed<3> & pos,
+    arma::vec & partial_C, 
+    arma::vec & partial_S);
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */

@@ -40,9 +40,13 @@ void test_sbgat_mass_properties();
 void test_sbgat_pgm_speed();
 void test_sbgat_pgm();
 void test_spherical_harmonics_coefs_consistency();
+void test_spherical_harmonics_partials_consistency();
+
 void test_radar_obs();
 void test_lightcurve_obs();
 void test_frame_conversion();
+void test_openmp_is_enabled();
+
 
 
 }

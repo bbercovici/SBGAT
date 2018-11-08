@@ -62,6 +62,7 @@ SOFTWARE.
 
 void TestsSBCore::run() {	
 
+	TestsSBCore::test_openmp_is_enabled();
 	TestsSBCore::test_frame_conversion();
 	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm();
@@ -75,6 +76,23 @@ void TestsSBCore::run() {
 	std::cout << "All tests passed.\n";
 
 }
+
+/**
+This test prints out whether OpenMP multithreading is active
+*/
+void TestsSBCore::test_openmp_is_enabled(){
+
+	int num_threads = omp_get_max_threads();
+	if (num_threads > 1){
+		std::cout << "OpenMP multithreading enabled: " << num_threads << " are available\n";
+	}
+	else{
+		std::cout << "OpenMP multithreading disabled\n";
+	}
+
+}
+
+
 
 /**
 This test compares some geometric measures as computed by SBGAT 
@@ -365,6 +383,64 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	std::cout << "-- test_spherical_harmonics_consistency successful" << std::endl;
 
 }
+
+
+
+/**
+This test checks the consistency of the spherical harmonics coefficients computation 
+about a shape model of KW4 
+*/
+
+void TestsSBCore::test_spherical_harmonics_partials_consistency() {
+
+	std::cout << "- Running test_spherical_harmonics_partials_consistency ..." << std::endl;
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../input/KW4Alpha.obj");
+	reader -> Update(); 
+
+	// Harmonics up to degree five are computed
+	int degree = 5;
+
+	// Density of KW4 (kg/m^3). 
+	double density = 2000.0;
+
+	// Reference radius of KW4 (km)
+	double ref_radius = 1.317/2;
+
+
+	// An instance of SBGATSphericalHarmo is created to compute and evaluate the spherical 
+	// expansion of the gravity field about the considered shape model
+	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics = vtkSmartPointer<SBGATSphericalHarmo>::New();
+	spherical_harmonics -> SetInputConnection(reader -> GetOutputPort());
+	spherical_harmonics -> SetDensity(density);
+	spherical_harmonics -> SetScaleKiloMeters();
+	spherical_harmonics -> SetReferenceRadius(ref_radius);
+	spherical_harmonics -> IsNormalized(); // can be skipped as normalized coefficients is the default parameter
+	spherical_harmonics -> SetDegree(degree);
+	spherical_harmonics -> Update();
+
+
+	// The accelerations are evaluated at the query point
+	arma::vec::fixed<3> pos = {3,5,-2};
+	arma::vec::fixed<3> dpos = 1e-3 * pos;
+
+	arma::vec::fixed<3> sharm_acc = spherical_harmonics -> GetAcceleration(pos);
+	arma::vec::fixed<3> sharm_acc_pert = spherical_harmonics -> GetAcceleration(pos + dpos);
+	arma::vec::fixed<3> dacc_true = sharm_acc_pert - sharm_acc;
+	arma::mat::fixed<3,3> gravity_gradient_mat;
+	spherical_harmonics -> GetGravityGradientMatrix(pos,gravity_gradient_mat);
+
+	arma::vec::fixed<3> dacc_lin = gravity_gradient_mat * dpos;
+	assert(arma::norm(dacc_lin - dacc_true ) / arma::norm(dacc_true) * 100 < 1e-4);
+
+
+	
+	std::cout << "-- test_spherical_harmonics_partials_consistency successful" << std::endl;
+
+}
+
 
 void TestsSBCore::test_frame_conversion(){
 

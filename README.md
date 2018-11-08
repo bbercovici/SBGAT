@@ -74,6 +74,15 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 1.11.1](https://github.com/bbercovici/SBGAT/releases/tag/1.11.1)
+
+#### New:
+- The gravity-gradient matrix deriving from the spherical harmonics gravity model can now be evaluated.
+- The partial derivative of the spherical harmonics gravity model with respect to the gravity spherical harmonics coefficients can now be evaluated.
+
+#### Improvements
+- The CMake configuration of SBGAT will no longer failed if OpenMP cannot be found.
+
 ### [SBGAT 1.10.1](https://github.com/bbercovici/SBGAT/releases/tag/1.10.1)
 
 #### New:
