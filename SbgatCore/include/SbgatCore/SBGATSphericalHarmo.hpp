@@ -174,7 +174,7 @@ public:
   /** 
   Evaluates the gravity gradient matrix (the partial derivative of the spherical 
   harmonics acceleration with respect to the position vector) at the prescribed
-  location
+  location. Note that this gravity gradient matrix is expressed in the body-fixed frame of the considered object.
   @param[in] pos position at which the gravity gradient matrix must be evaluated, expressed in the same frame/same unit L as 
   the shape used to build the spherical harmonics expansion.
   @param[out] dAccdPos container holding the gravity gradient matrix (1 / s ^ 2)
@@ -189,7 +189,7 @@ public:
   are ordered like so:
   
   Cnm :
-(C_11 == 1)  0     0    0     0     0
+(C_00 == 1)  0     0    0     0     0
   C_10     C_11    0    0     0     0 
   C_20     C_21  C_22   0     0     0  
   C_30     C_31  C_32  C_33   0     0  
