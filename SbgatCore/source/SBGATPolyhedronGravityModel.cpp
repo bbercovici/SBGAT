@@ -55,6 +55,8 @@ SOFTWARE.
 #include <vtkExtractEdges.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
+#include <vtkCleanPolyData.h>
+
 #include <vtkLine.h>
 #include <set>
 #include <vtkMath.h>
@@ -96,14 +98,21 @@ int SBGATPolyhedronGravityModel::RequestData(
 	inputVector[0]->GetInformationObject(0);
 
 
-
 	if (!(this -> densitySet && this -> scaleFactorSet)){
-		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor may have not been properly set"));
+		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
   // call ExecuteData
-	vtkPolyData * input = vtkPolyData::SafeDownCast(
+	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(
 		inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner->SetInputData (input_unclean);
+	cleaner-> Update();
+
+	vtkPolyData * input = cleaner -> GetOutput();
 
 	vtkIdType cellId, numCells, numPts, numIds;
 
@@ -197,7 +206,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 	}
 
 	// The edges are extracted
-
 	vtkSmartPointer<vtkExtractEdges> extractEdges = 
 	vtkSmartPointer<vtkExtractEdges>::New();
 	extractEdges->SetInputData(input);
@@ -206,7 +214,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	unsigned int edge_count = extractEdges->GetOutput()->GetNumberOfCells();
 	std::vector<std::array<vtkIdType,4>> edge_points_ids_facet_ids(edge_count);
-
 
 	// Should get rid of this map and use a vector instead
 	// This loop cannot be parallelized since GetPointCells is 
@@ -224,13 +231,15 @@ int SBGATPolyhedronGravityModel::RequestData(
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][0],facet_ids_point_1 );
 		input -> GetPointCells	(	edge_points_ids_facet_ids[i][1],facet_ids_point_2 );
 
-		// Now, we find the two indices showing up in both facet_ids_point_1 and facet_ids_point_2
+
+
+		// Now, we find the two facet indices showing up in both facet_ids_point_1 and facet_ids_point_2
 		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
 
 		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
-			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_2 -> GetNumberOfIds())));
+			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_1 -> GetNumberOfIds())));
 		}
-		
+
 		edge_points_ids_facet_ids[i][2] = facet_ids_point_1->GetId(0);
 		edge_points_ids_facet_ids[i][3] = facet_ids_point_1->GetId(1);
 		
@@ -330,12 +339,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 
 
-double SBGATPolyhedronGravityModel::GetPotential(arma::vec point){
+double SBGATPolyhedronGravityModel::GetPotential(const arma::vec & point){
 	return this -> GetPotential(point.colptr(0));
 }
 
 
-double SBGATPolyhedronGravityModel::GetPotential(double * point) {
+double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
 
 	double potential = 0;
 
@@ -383,7 +392,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 	// Edge loop
 	#pragma omp parallel for reduction(+:potential)
-	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
 		double * r1 = this -> vertices[this -> edges[edge_index][1]];
@@ -414,17 +423,17 @@ double SBGATPolyhedronGravityModel::GetPotential(double * point) {
 
 		potential += Le * vtkMath::Dot(r0m,a);
 
-
 	}
 
-	potential *= 0.5 * arma::datum::G / std::pow(this -> scaleFactor,3) * this ->density;
+	
+	potential *= 0.5 * arma::datum::G * this -> density;
 
 	return potential;
 
 }
 
 
-bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
+bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) {
 
 	double laplacian = 0;
 
@@ -470,11 +479,11 @@ bool SBGATPolyhedronGravityModel::Contains(double * point, double tol ) {
 
 
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(arma::vec point){
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec & point){
 	return this-> GetAcceleration(  point.colptr(0));
 }
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
+arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 	double acc_x = 0;
 	double acc_y = 0;
@@ -519,7 +528,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 
 	// Edge loop
 	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z)
-	for (unsigned int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
 		double * r1 = this -> vertices[this -> edges[edge_index][1]];
@@ -548,9 +557,124 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double * point) {
 	}
 
 	arma::vec acc = {acc_x,acc_y,acc_z};
-	acc *= arma::datum::G  / std::pow(this -> scaleFactor,3)* this -> density;
+
+	acc *= arma::datum::G  * this -> density;
 
 	return acc;
+
+}
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & point,double & potential, 
+	arma::vec & acc){
+
+	this -> GetPotentialAcceleration(point.colptr(0),potential, acc);
+
+}
+
+
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point,double & potential, 
+	arma::vec & acc) {
+
+	double pot = 0;
+	double acc_x = 0;
+	double acc_y = 0;
+	double acc_z = 0;
+
+
+	// Facet loop
+	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z,pot)
+	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
+
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
+
+		double r0m[3];
+		double r1m[3];
+		double r2m[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r2,point,r2m);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double R2 = vtkMath::Norm(r2m);
+
+		double r1m_cross_r2m[3];
+
+		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
+
+		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
+			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
+
+		double * F = this -> facet_dyads[facet_index];
+
+
+		double a[3] = {
+			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
+			F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2],
+			F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]
+		};
+
+		acc_x += wf * a[0];
+		acc_y += wf * a[1];
+		acc_z += wf * a[2];
+
+		pot += - wf * vtkMath::Dot(r0m,a);
+
+
+	}
+
+	// Edge loop
+	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z,pot)
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+		double * r1 = this -> vertices[this -> edges[edge_index][1]];
+
+		
+		double r0m[3];
+		double r1m[3];
+		double rem[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r1m,r0m,rem);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double Re = vtkMath::Norm(rem);
+
+		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+
+		double * E = this -> edge_dyads[edge_index];
+
+		double a[3] = {
+			E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2],
+			E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2],
+			E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]
+		};
+
+
+		pot += Le * vtkMath::Dot(r0m,a);
+
+
+
+		acc_x -= Le * a[0];
+		acc_y -= Le * a[1];
+		acc_z -= Le * a[2];
+
+	}
+
+	acc = {acc_x,acc_y,acc_z};
+	acc *= arma::datum::G  * this -> density;
+	pot *= 0.5 * arma::datum::G * this -> density;
+
+	potential = pot;
 
 }
 
@@ -568,38 +692,38 @@ void SBGATPolyhedronGravityModel::Clear(){
 		int N_vertices = this -> N_edges - this -> N_facets + 2;
 
 	//Vertices
-		for(unsigned int i = 0; i < N_vertices; ++i) {
+		for(int i = 0; i < N_vertices; ++i) {
 			delete[] this -> vertices[i];   
 		}
 		delete[] this -> vertices;
 
 	//Facet dyads
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facet_dyads[i];   
 		}
 		delete[] this -> facet_dyads;
 
 	//Facets
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facets[i];   
 		}
 		delete[] this -> facets;
 
 	//Facet normals
-		for(unsigned int i = 0; i < this -> N_facets; ++i) {
+		for(int i = 0; i < this -> N_facets; ++i) {
 			delete[] this -> facet_normals[i];   
 		}
 		delete[] this -> facet_normals;
 
 
 	//Edge dyads
-		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edge_dyads[i];   
 		}
 		delete[] this -> edge_dyads;
 
 	//Edges 
-		for(unsigned int i = 0; i < this -> N_edges; ++i) {
+		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edges[i];   
 		}
 		delete[] this -> edges;
@@ -617,6 +741,87 @@ void SBGATPolyhedronGravityModel::PrintSelf(std::ostream& os, vtkIndent indent){
 		return;
 	}
 }
+
+
+
+void SBGATPolyhedronGravityModel::ComputeSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
+	const std::vector<unsigned int> & queried_elements,
+	bool is_in_meters,
+	double density,
+	const arma::vec::fixed<3> & omega,
+	std::vector<double> & slopes,
+	std::vector<double> & potentials,
+	std::vector<double> & acc_magnitudes,
+	std::vector<double> & acc_body_fixed_magnitudes){
+
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputData(selected_shape);
+	pgm_filter -> SetDensity(density);
+	double scale_factor;
+	
+	if (is_in_meters){
+		pgm_filter -> SetScaleMeters();
+		scale_factor = 1 ;
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+		scale_factor = 1000;
+
+	}
+
+	pgm_filter -> Update();
+
+    // The queried facets are browsed 
+	for (unsigned int el : queried_elements){
+
+		unsigned int cellId = queried_elements.at(el);
+
+		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
+		ptIds -> Allocate(3);
+		selected_shape -> GetCellPoints(cellId,ptIds);
+
+		int p0_index = ptIds -> GetId(0);
+		int p1_index = ptIds -> GetId(1);
+		int p2_index = ptIds -> GetId(2);
+
+		double p0[3];
+		double p1[3];
+		double p2[3];
+
+		selected_shape -> GetPoint(p0_index,p0);
+		selected_shape -> GetPoint(p1_index,p1);
+		selected_shape -> GetPoint(p2_index,p2);
+
+		arma::vec::fixed<3> p0_arma = {p0[0],p0[1],p0[2]};
+		arma::vec::fixed<3> p1_arma = {p1[0],p1[1],p1[2]};
+		arma::vec::fixed<3> p2_arma = {p2[0],p2[1],p2[2]};
+		arma::vec::fixed<3> facet_center = 1./3 * (p0_arma + p1_arma + p2_arma);
+		arma::vec::fixed<3> normal = arma::normalise(arma::cross(p1_arma - p0_arma,p2_arma - p0_arma));
+
+		double potential,slope;
+		arma::vec::fixed<3> acc,acc_body_fixed;
+		
+		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
+		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
+
+
+
+		// Scaling
+		acc_body_fixed /= scale_factor;
+		acc /= scale_factor;
+		potential /= std::pow(scale_factor,2);
+
+		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
+
+		slopes.push_back(slope);
+		potentials.push_back(potential);
+		acc_magnitudes.push_back(arma::norm(acc));
+		acc_body_fixed_magnitudes.push_back(arma::norm(acc_body_fixed));
+
+	}	
+}
+
+
 
 
 

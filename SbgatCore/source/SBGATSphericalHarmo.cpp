@@ -40,6 +40,7 @@ SOFTWARE.
 #include <SBGATSphericalHarmo.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SHARMLib.hpp>
+#include <json.hpp>
 #include <vtkObjectFactory.h>
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -120,6 +121,7 @@ int SBGATSphericalHarmo::RequestData(
 
   this -> Cnm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
   this -> Snm = arma::zeros<arma::mat>(this -> degree + 1  , this -> degree + 1);
+  
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(input);
   mass_properties -> Update();
@@ -127,7 +129,7 @@ int SBGATSphericalHarmo::RequestData(
   // Check that the shape is topologically closed
   assert(mass_properties -> CheckClosed());
 
-  this -> totalMass = mass_properties -> GetVolume() * this -> density;
+  this -> totalMass = mass_properties -> GetVolume() * this -> density * std::pow(this -> scaleFactor,3);
 
   // Looping over all facets
   for (cellId=0; cellId < numCells; cellId++){
@@ -158,9 +160,8 @@ int SBGATSphericalHarmo::RequestData(
 
     double dv = vtkMath::Determinant3x3(r0,r1r0,r2r0) / 6;
 
-
-    arma::mat Cnm2f ;
-    arma::mat Snm2f ;
+    arma::mat Cnm2f( this -> degree + 1, this -> degree + 1);
+    arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
 
     // Call to SHARMLib here
     SHARMLib::ComputePolyhedralCS(
@@ -168,9 +169,6 @@ int SBGATSphericalHarmo::RequestData(
       Snm2f,
       this -> degree,
       this -> referenceRadius,
-      dv * this -> density,
-      this -> density,
-      this -> totalMass,
       &r0[0],
       &r1[0],
       &r2[0],
@@ -178,21 +176,26 @@ int SBGATSphericalHarmo::RequestData(
       );
 
 
-    this -> Cnm += Cnm2f * dv * this -> density;
-    this -> Snm += Snm2f * dv * this -> density;
-    
-    
+
+    this -> Cnm += Cnm2f * dv ;
+    this -> Snm += Snm2f * dv ;
     
   }
 
-  this -> Cnm /= this -> totalMass;
-  this -> Snm /= this -> totalMass;
+  this -> Cnm /= mass_properties -> GetVolume();
+  this -> Snm /= mass_properties -> GetVolume();
 
   return 1;
 }
 
 
-arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
+
+
+
+
+
+
+arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<3> & pos){
 
   try{
 
@@ -209,15 +212,14 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
       pos,
       this -> referenceRadius);
 
-    double G = arma::datum::G / std::pow(this -> scaleFactor,3); 
-    double mu = this -> totalMass * G;
+    double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.5 * mu / this -> referenceRadius / this -> referenceRadius;
+    double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
     double x_ddot = 0;
     double y_ddot = 0;
     double z_ddot = 0;
 
-    for (unsigned int nn = 0; nn<=this -> degree; nn++){
+    for (unsigned int nn = 0; nn <= this -> degree; nn++){
 
       double n = (double) nn;
 
@@ -239,16 +241,16 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
 
         if (mm == 0){
 
-          x_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*K1*b_bar_real(nn+1,mm+1) );
-          y_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*K1*b_bar_imag(nn+1,mm+1) );
-          z_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) );
+          x_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K1 * b_bar_real(nn+1,mm+1) );
+          y_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K1 * b_bar_imag(nn+1,mm+1) );
+          z_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0)) * b_bar_real(nn+1,mm) );
 
         }
         else{
 
-          x_ddot += K0 * ( -this -> Cnm(nn,mm)*K2*b_bar_real(nn+1,mm+1) -this -> Snm(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +this -> Cnm(nn,mm)*K3*b_bar_real(nn+1,mm-1) +this -> Snm(nn,mm)*K3*b_bar_imag(nn+1,mm-1));
-          y_ddot += K0 * ( -this -> Cnm(nn,mm)*K2*b_bar_imag(nn+1,mm+1) +this -> Snm(nn,mm)*K2*b_bar_real(nn+1,mm+1) -this -> Cnm(nn,mm)*K3*b_bar_imag(nn+1,mm-1) +this -> Snm(nn,mm)*K3*b_bar_real(nn+1,mm-1));
-          z_ddot -= 2.0*K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0))*b_bar_real(nn+1,mm) +this -> Snm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2*n+1.0)/(2.0*n+3.0))*b_bar_imag(nn+1,mm) );
+          x_ddot += K0 * ( -this -> Cnm(nn,mm) * K2 * b_bar_real(nn+1,mm+1) -this -> Snm(nn,mm) * K2 * b_bar_imag(nn+1,mm+1) +this -> Cnm(nn,mm) * K3 * b_bar_real(nn+1,mm-1) +this -> Snm(nn,mm) * K3 * b_bar_imag(nn+1,mm-1));
+          y_ddot += K0 * ( -this -> Cnm(nn,mm) * K2 * b_bar_imag(nn+1,mm+1) +this -> Snm(nn,mm) * K2 * b_bar_real(nn+1,mm+1) -this -> Cnm(nn,mm) * K3 * b_bar_imag(nn+1,mm-1) +this -> Snm(nn,mm) * K3 * b_bar_real(nn+1,mm-1));
+          z_ddot -= 2.0 * K0 * ( this -> Cnm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2.0*n+1.0)/(2.0*n+3.0)) * b_bar_real(nn+1,mm) +this -> Snm(nn,mm)*sqrt((n-m+1.0)*(n+m+1.0)*(2*n+1.0)/(2.0*n+3.0)) * b_bar_imag(nn+1,mm) );
 
         } 
 
@@ -256,18 +258,228 @@ arma::vec SBGATSphericalHarmo::GetAcceleration(const arma::vec & pos){
 
     } 
 
-    arma::vec acceleration = {x_ddot,y_ddot,z_ddot};
+    arma::vec::fixed<3> acceleration = {x_ddot,y_ddot,z_ddot};
 
+    acceleration *= 1./this -> scaleFactor;
 
     return acceleration;
 
   }
+
   catch(std::runtime_error & error){
+
+    std::cout << "an std::runtime_error occured inside SBGATSphericalHarmo::GetAcceleration. returning (0,0,0)\n";
     return arma::zeros<arma::vec>(3);
 
   }
 
 } 
+
+
+
+void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & pos,
+  arma::mat::fixed<3,3> & dAccdPos){
+
+  try{
+
+    this -> Update();
+
+    int n_max = 50;
+
+    arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+    arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+
+    SHARMLib::GetBnmNormalizedExterior(this -> degree,
+      b_bar_real,
+      b_bar_imag,
+      pos,
+      this -> referenceRadius);
+
+    double mu = this -> totalMass * arma::datum::G;
+
+    double K0 = 0.25 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,3);
+
+    double ddU_dxdx = 0;
+    double ddU_dydy = 0;
+    double ddU_dxdy = 0;
+    double ddU_dxdz = 0;
+    double ddU_dydz = 0;
+    double ddU_dzdz = 0;
+
+    for (unsigned int nn = 0; nn <= this -> degree; nn++){
+
+      double n = (double) nn;
+
+      for (unsigned int mm = 0; mm<=nn; mm++){
+
+        double m = (double) mm;
+        double delta_1_m,delta_2_m;
+
+        if (mm == 1){
+          delta_1_m = 1.0;
+        }
+        else{
+          delta_1_m = 0.0;
+        } 
+
+        if (mm == 2){
+          delta_2_m = 1.0;
+        }
+        else{
+          delta_2_m = 0.0;
+        }
+
+        double K1 = sqrt( (n+m+4.0) * (n+m+3.0) * (n+m+2.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+5.0) );
+        double K2 = sqrt( (n-m+2.0) * (n-m+1.0) * (n+m+2.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+5.0) );
+        double K3 = sqrt( 2.0 * (n-m+4.0) * (n-m+3.0) * (n-m+2.0) * (n-m+1.0) * (2.0*n+1.0) / (2.0 - delta_2_m) / (2.0*n+5.0) );
+        double K4 = sqrt( (n+5.0) * (n+4.0) * (n+3.0) * (n+2.0) * (2.0*n+1.0) / (2.0*n+5.0) );
+        double K5 = sqrt( (n+3.0) * (n+2.0) * (n+1.0) * n * (2.0*n+1.0) / (2.0*n+5.0) );
+        double K6 = sqrt( (n+4.0) * (n+3.0) * (n+2.0) * (n+1.0) * (2.0*n+1.0) / 2.0 / (2.0*n+5.0) );
+        double K7 = sqrt( (2.0*n+1.0) / (2.0*n+5.0) );
+        double K8 = sqrt( (n-m+1.0) * (n+m+3.0) * (n+m+2.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+5.0) );
+        double K9 = sqrt( 2.0 * (n+m+1.0) * (n-m+3.0) * (n-m+2.0) * (n-m+1.0) * (2.0*n+1.0) / (2.0 - delta_1_m) / (2.0*n+5.0) );
+        double K10= sqrt( (n+3.0) * (n+2.0) * (n+1.0) * (n+1.0) * (2.0*n+1.0) / 2.0 / (2.0*n+5.0) );
+
+
+        /*// Partial expressions */
+        if (mm == 0){
+
+          ddU_dxdx += 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_real(nn+2,mm+2) -(n+2)*(n+1) * K7*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) );
+          ddU_dydy -= 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_real(nn+2,mm+2) +(n+2)*(n+1) * K7*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) );
+          ddU_dxdy += 2.0 * K0 * ( this -> Cnm(nn,mm) * K6 * b_bar_imag(nn+2,mm+2) );
+          ddU_dxdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K10 * b_bar_real(nn+2,mm+1) );
+          ddU_dydz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K10 * b_bar_imag(nn+2,mm+1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2  * b_bar_real(nn+2,mm) );
+
+        }
+        else if (mm == 1){
+
+          ddU_dxdx += K0 * ( this -> Cnm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) -3.0 * K5*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) -  K5*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dydy -= K0 * ( this -> Cnm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) +  K5*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) +3.0 * K5*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dxdy -= K0 * ( this -> Snm(nn,mm) * K4 * b_bar_real(nn+2,mm+2) -this -> Cnm(nn,mm) * K4 * b_bar_imag(nn+2,mm+2) +  K5*this -> Snm(nn,mm) * b_bar_real(nn+2,mm) +  K5*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm));
+          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) -  K9*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2 * b_bar_real(nn+2,mm)   +this -> Snm(nn,mm) * K2 * b_bar_imag(nn+2,mm));
+        }
+        else{
+
+          ddU_dxdx += K0 * (  this -> Cnm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) -2.0 * K2*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) -2.0 * K2*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dydy -= K0 * (  this -> Cnm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Snm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) +2.0 * K2*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm) +2.0 * K2*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm) +K3*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-2) +K3*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dxdy += K0 * ( -this -> Snm(nn,mm) * K1 * b_bar_real(nn+2,mm+2) +this -> Cnm(nn,mm) * K1 * b_bar_imag(nn+2,mm+2) +K3*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-2) -K3*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-2));
+          ddU_dxdz += 2.0 * K0 * ( this -> Cnm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) +this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -  K9*this -> Cnm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Snm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dydz -= 2.0 * K0 * ( this -> Snm(nn,mm) * K8 * b_bar_real(nn+2,mm+1) -this -> Cnm(nn,mm) * K8 * b_bar_imag(nn+2,mm+1) +  K9*this -> Snm(nn,mm) * b_bar_real(nn+2,mm-1) -K9*this -> Cnm(nn,mm) * b_bar_imag(nn+2,mm-1) );
+          ddU_dzdz += 4.0 * K0 * ( this -> Cnm(nn,mm) * K2 * b_bar_real(nn+2,mm)   +this -> Snm(nn,mm) * K2 * b_bar_imag(nn+2,mm));
+
+        }
+
+      } 
+
+    } 
+
+    dAccdPos(0,0) = ddU_dxdx;
+    dAccdPos(1,1) = ddU_dydy;
+    dAccdPos(2,2) = ddU_dzdz;
+
+    dAccdPos(0,1) = ddU_dxdy;
+    dAccdPos(1,0) = ddU_dxdy;
+
+    dAccdPos(0,2) = ddU_dxdz;
+    dAccdPos(2,0) = ddU_dxdz;
+
+    dAccdPos(1,2) = ddU_dydz;
+    dAccdPos(2,1) = ddU_dydz;
+
+
+  }
+
+  catch(std::runtime_error & error){
+
+    std::cout << "an std::runtime_error occured inside SBGATSphericalHarmo::GetGravityGradientMatrix. returning zero matrix\n";
+    dAccdPos = arma::zeros<arma::mat>(3,3);
+
+  }
+
+} 
+
+void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
+  arma::mat & partial_C, 
+  arma::mat & partial_S){
+
+  int Ccounter = 0;
+  int Scounter = 0;
+
+  int n_max = 50;
+  double mu = this -> totalMass * arma::datum::G;
+
+  double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
+  
+  arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+  arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
+
+  SHARMLib::GetBnmNormalizedExterior(this -> degree,
+    b_bar_real,
+    b_bar_imag,
+    pos,
+    this -> referenceRadius);
+
+
+  partial_C.set_size(3,static_cast<int>((this -> degree + 1) * (this -> degree + 2)/2));
+  partial_S.set_size(3,static_cast<int>((this -> degree + 1) * (this -> degree + 2)/2 - static_cast<int>(this -> degree + 1)));
+
+  for (unsigned int nn = 0; nn <= this -> degree; nn++){
+
+    double n = (double) nn;
+
+    for (unsigned int mm = 0; mm<=nn; mm++){
+
+      double m = (double) mm;
+      double delta_1_m;
+
+      if (mm == 1){
+        delta_1_m = 1.0;
+      }
+      else{
+        delta_1_m = 0.0;
+      } 
+
+      double K1 = sqrt( (n+2.0) * (n+1.0) * (2.0*n+1.0) / 2.0 / (2.0*n+3.0) );
+      double K2 = sqrt( (n+m+2.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) );
+      double K3 = sqrt( 2.0 * (n-m+2.0) * (n-m+1.0) * (2.0*n+1.0) / (2.0 - delta_1_m) / (2.0*n+3.0) );
+
+      if (mm == 0){
+
+        partial_C(0,Ccounter)   = - 2.0 * K0 * ( K1 * b_bar_real(nn+1,mm+1) );
+        partial_C(1,Ccounter) = - 2.0 * K0 * ( K1 * b_bar_imag(nn+1,mm+1) );
+        partial_C(2,Ccounter) = - 2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
+        Ccounter += 1;
+
+      }           
+      else{
+
+        partial_C(0,Ccounter)   = K0 * ( -K2 * b_bar_real(nn+1,mm+1) +K3 * b_bar_real(nn+1,mm-1) );
+        partial_C(1,Ccounter) = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) -K3 * b_bar_imag(nn+1,mm-1) );
+        partial_C(2,Ccounter) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_real(nn+1,mm) );
+        Ccounter += 1;
+        
+        partial_S(0,Scounter)   = K0 * ( -K2 * b_bar_imag(nn+1,mm+1) + K3 * b_bar_imag(nn+1,mm-1) );
+        partial_S(1,Scounter) = K0 * (  K2 * b_bar_real(nn+1,mm+1) + K3 * b_bar_real(nn+1,mm-1) );
+        partial_S(2,Scounter) = -2.0 * K0 * ( sqrt( (n-m+1.0) * (n+m+1.0) * (2.0*n+1.0) / (2.0*n+3.0) ) * b_bar_imag(nn+1,mm) );
+        Scounter += 1;
+
+      } 
+
+    } 
+
+  }
+
+
+  partial_C *= 1./this -> scaleFactor;
+  partial_S *= 1./this -> scaleFactor;
+
+
+
+}
+
 
 
 void SBGATSphericalHarmo::PrintHeader(ostream& os, vtkIndent indent) {
@@ -278,7 +490,6 @@ void SBGATSphericalHarmo::PrintTrailer(ostream& os, vtkIndent indent) {
 }
 
 
-
 void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
@@ -286,9 +497,10 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   // The JSON fieds are:
   // - facets == number of facets
   // - vertices == number of vertices
+  // - totalMass : {value, unit}
   // - density : {value, unit}
   // - reference_radius : {value, unit}
-  // - normalized == true if the coefficient are normalized
+  // - normalized == true if the coefficients are normalized
   // - degree == degree of the spherical expansion
   // - Cnm_coefs - vector of coefficients triplets
   // - Snm_coefs - vector of coefficients triplets
@@ -306,14 +518,13 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   spherical_harmo_json["density"]["value"] = this -> density;
 
   spherical_harmo_json["referenceRadius"]["value"] = this -> referenceRadius;
-  
+  spherical_harmo_json["density"]["unit"] = "kg/m^3";
+
   if (this -> scaleFactor == 1){
-    spherical_harmo_json["density"]["unit"] = "kg/m^3";
     spherical_harmo_json["referenceRadius"]["unit"] = "m";
 
   }
   else{
-    spherical_harmo_json["density"]["unit"] = "kg/km^3";
     spherical_harmo_json["referenceRadius"]["unit"] = "km";
 
   }
@@ -346,7 +557,6 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
 }
-
 void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // The JSON container is created
@@ -358,16 +568,15 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // There should be a total of 9 objects in the container
   if (spherical_harmo_json.size() != 9){
-    throw(std::runtime_error("Parsed JSON file should contain 7 objects, but SBGAT found " + std::to_string(spherical_harmo_json.size()) ));
+    throw(std::runtime_error("Parsed JSON file should contain 9 objects, but SBGAT found " + std::to_string(spherical_harmo_json.size()) ));
   }
-
 
   // The fields are parsed and used to set the SBGATSphericalHarmo state
   this -> density = spherical_harmo_json.at("density").at("value");
   this -> referenceRadius = spherical_harmo_json.at("referenceRadius").at("value");
   this -> totalMass = spherical_harmo_json.at("totalMass").at("value");
 
-  if (spherical_harmo_json.at("density").at("unit") == "kg/m^3" ){
+  if (spherical_harmo_json.at("referenceRadius").at("unit") == "m" ){
     this -> scaleFactor = 1;
   }
   else{
@@ -403,16 +612,13 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   this -> setFromJSON = true;
 
-  // Will silence a warning thrown when Update() is called while the spherical harmonics 
+  // Will silence a warning thrown when Update() is called after the spherical harmonics 
   // were loaded from a JSON file since no vtkPolydata was effectively connected
-  // to this
+  // to $this. Obviously $empty_polydata should not (and will not) be used 
   vtkSmartPointer<vtkPolyData> empty_polydata = vtkSmartPointer<vtkPolyData>::New();
   this -> SetInputData(empty_polydata);
 
 }
-
-
-
 
 //----------------------------------------------------------------------------
 void SBGATSphericalHarmo::PrintSelf(std::ostream& os, vtkIndent indent){
