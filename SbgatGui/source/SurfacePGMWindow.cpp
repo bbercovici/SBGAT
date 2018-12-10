@@ -49,20 +49,31 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	// Creating the button box
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
+	// Creating the output folder 
+	this ->  open_output_file_dialog_button = new QPushButton("Select output file",this);
+
 
 	select_shape_layout -> addWidget(new QLabel("Shape model",this));
 	select_shape_layout -> addWidget(this -> primary_prop_combo_box);
 
 	window_layout -> addWidget(select_shape_widget);
 	window_layout -> addWidget(this -> primary_shape_properties_widget);
+	
+
+	window_layout -> addWidget(this -> open_output_file_dialog_button);
 	window_layout -> addWidget(this -> compute_surface_pgm_button);
+
 	window_layout -> addWidget(this -> button_box);
 
 
 
+	this -> compute_surface_pgm_button -> setEnabled(false);
+
 	this -> init();
 	connect(this -> button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(this -> compute_surface_pgm_button, SIGNAL(clicked()), this, SLOT(compute_surface_pgm()));
+	connect(this -> open_output_file_dialog_button,SIGNAL(clicked()),this,
+		SLOT(open_output_file_dialog()));
 
 
 	window_layout -> addStretch(1);
@@ -74,17 +85,12 @@ void SurfacePGMWindow::init(){
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 	
-	if (wrapped_shape_data.size() == 0 ){
-		this -> compute_surface_pgm_button -> setEnabled(false);
-	}
-	else{
-		this -> compute_surface_pgm_button -> setEnabled(true);
-
+	
+	if (wrapped_shape_data.size() != 0 ){
 		for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
 			this -> primary_prop_combo_box -> insertItem(this -> primary_prop_combo_box -> count(),QString::fromStdString(it -> first));
 		}
 	}
-
 
 }
 
@@ -114,15 +120,35 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	}
 
 
-    SBGATPolyhedronGravityModel::ComputeSurfacePGM(selected_shape,
+	SBGATPolyhedronGravityModel::ComputeSurfacePGM(selected_shape,
+		queried_elements,
+		true,
+		this -> primary_shape_properties_widget -> get_density(),
+		omega,
+		slopes,
+		potentials,
+		acc_magnitudes,
+		acc_body_fixed_magnitudes);
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+
+	mass_properties -> SetInputData(selected_shape);
+	mass_properties -> Update();
+	double mass = mass_properties -> GetVolume() * this -> primary_shape_properties_widget -> get_density();
+
+	SBGATPolyhedronGravityModel::SaveSurfacePGM(selected_shape,
 	queried_elements,
 	true,
-	this -> primary_shape_properties_widget -> get_density(),
+	mass,
 	omega,
 	slopes,
 	potentials,
 	acc_magnitudes,
-	acc_body_fixed_magnitudes);
+	acc_body_fixed_magnitudes,
+	this -> output_path );
+
+
 
 	std::shared_ptr<ModelDataWrapper> wrapper = this -> parent -> get_wrapped_shape_data()[selected_shape_name];
 
@@ -136,6 +162,30 @@ void SurfacePGMWindow::compute_surface_pgm(){
 
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
+}
+
+
+void SurfacePGMWindow::open_output_file_dialog(){
+
+	std::string default_name;
+
+	std::string name = this -> primary_prop_combo_box -> currentText().toStdString();
+	auto shape_data = this -> parent -> get_wrapped_shape_data();
+	
+	if ( shape_data.find(name)!= shape_data.end()){
+		default_name = name;
+	}
+
+	QString path = QFileDialog::getSaveFileName(this, tr("Save Surface PGM To File"),
+		QString::fromStdString(default_name),
+		tr("JSON file (*.json)"));
+
+	this -> output_path = path.toStdString();
+
+	if (this -> output_path.size() > 0){
+		this -> compute_surface_pgm_button -> setEnabled(true);
+
+	}
 }
 
 

@@ -164,7 +164,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "-- Creating dyads...\n";
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
-	pgm_filter -> SetDensity(2670.); // density in kg/m^3
+	pgm_filter -> SetDensity(1970); // density in kg/m^3
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
 	std::cout << "-- Done creating dyads...\n";
@@ -198,6 +198,49 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "-- Done computing pgm accelerations in " << elapsed_seconds.count() << " s\n";
+
+
+
+	std::vector<unsigned int> queried_elements;
+	for (int i = 0; i < polydata -> GetNumberOfCells(); ++i){
+		queried_elements.push_back(i);
+	}
+
+	// Rotation period of KW4
+	arma::vec omega = {0,0,0.0006312};
+
+	std::vector<double> slopes,potentials,acc_magnitudes,acc_body_fixed_magnitudes;
+
+	SBGATPolyhedronGravityModel::ComputeSurfacePGM(polydata,
+		queried_elements,
+		false,
+		pgm_filter -> GetDensity(),
+		omega,
+		slopes,
+		potentials,
+		acc_magnitudes,
+		acc_body_fixed_magnitudes);
+
+
+	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
+		queried_elements,
+		false,
+		pgm_filter -> GetMass(),
+		omega,
+		slopes,
+		potentials,
+		acc_magnitudes,
+		acc_body_fixed_magnitudes,
+		"surface_pgm.json");
+
+
+
+
+
+
+
+
+
 
 	std::cout << "- Done running test_sbgat_pgm_speed" << std::endl;
 
@@ -282,8 +325,9 @@ void TestsSBCore::test_sbgat_pgm() {
 		pgm_pot = pgm_filter -> GetPotential(p4);
 
 		double pgm_pot2;
-		arma::vec pgm_acc2;
-		pgm_filter -> GetPotentialAcceleration(p4,pgm_pot2, pgm_acc2);
+		arma::vec::fixed<3> pgm_acc2;
+		arma::mat::fixed<3,3> pgm_gravity_gradient_matrix;
+		pgm_filter -> GetPotentialAccelerationGravityGradient(p4,pgm_pot2, pgm_acc2,pgm_gravity_gradient_matrix);
 
 		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
@@ -291,6 +335,16 @@ void TestsSBCore::test_sbgat_pgm() {
 		assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-10);
 
+
+		arma::vec::fixed<3> p4_perturbed = (1 + 1e-5) * p4;
+		
+
+		arma::vec::fixed<3> pgm_acc2_perturbed = pgm_filter -> GetAcceleration(p4_perturbed);
+
+
+		auto d_acc_true = pgm_acc2_perturbed - pgm_acc2;
+		arma::vec::fixed<3> d_acc_linear = pgm_gravity_gradient_matrix * (p4_perturbed - p4);
+		assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e-2);
 
 	}
 

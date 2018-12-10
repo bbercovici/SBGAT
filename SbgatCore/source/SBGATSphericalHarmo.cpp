@@ -557,6 +557,7 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
 }
+
 void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // The JSON container is created

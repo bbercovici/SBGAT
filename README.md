@@ -74,6 +74,18 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 1.12.1](https://github.com/bbercovici/SBGAT/releases/tag/1.12.1)
+
+### New:
+- The gravity-gradient matrix deriving from the polyhedron gravity model can now be evaluated
+- The evaluation of the surface polyhedron gravity model can now be saved to a JSON file through `SBGATPolyhedronGravityModel::SaveSurfacePGM`
+- This static method is available in `SbgatGUI` as the evaluation of the PGM will now require the specification of an output file
+
+#### Improvements
+- Stronger typing of inputs in `SBGATPolyhedronGravityModel`
+- `SbgatGui` will now ask users whethers a loaded shape should be barycentered/principal-axis aligned, and apply the corresponding transform if answered `yes`
+
+
 ### [SBGAT 1.11.1](https://github.com/bbercovici/SBGAT/releases/tag/1.11.1)
 
 #### New:

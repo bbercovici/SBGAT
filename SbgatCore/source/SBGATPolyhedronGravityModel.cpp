@@ -56,6 +56,7 @@ SOFTWARE.
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
 #include <vtkCleanPolyData.h>
+#include <json.hpp>
 
 #include <vtkLine.h>
 #include <set>
@@ -337,14 +338,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 }
 
 
-
-
-double SBGATPolyhedronGravityModel::GetPotential(const arma::vec & point){
+double SBGATPolyhedronGravityModel::GetPotential(const arma::vec::fixed<3> & point) const{
 	return this -> GetPotential(point.colptr(0));
 }
 
 
-double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
+double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 	double potential = 0;
 
@@ -433,7 +432,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) {
 }
 
 
-bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) {
+bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) const{
 
 	double laplacian = 0;
 
@@ -479,11 +478,11 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) {
 
 
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec & point){
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec::fixed<3> & point) const{
 	return this-> GetAcceleration(  point.colptr(0));
 }
 
-arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * point) const{
 
 	double acc_x = 0;
 	double acc_y = 0;
@@ -556,7 +555,7 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 
 	}
 
-	arma::vec acc = {acc_x,acc_y,acc_z};
+	arma::vec::fixed<3> acc = {acc_x,acc_y,acc_z};
 
 	acc *= arma::datum::G  * this -> density;
 
@@ -565,8 +564,8 @@ arma::vec SBGATPolyhedronGravityModel::GetAcceleration(double const * point) {
 }
 
 
-void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & point,double & potential, 
-	arma::vec & acc){
+void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec::fixed<3> & point,double & potential, 
+	arma::vec::fixed<3> & acc) const{
 
 	this -> GetPotentialAcceleration(point.colptr(0),potential, acc);
 
@@ -574,9 +573,8 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(const arma::vec & poi
 
 
 
-
 void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point,double & potential, 
-	arma::vec & acc) {
+	arma::vec::fixed<3> & acc) const {
 
 	double pot = 0;
 	double acc_x = 0;
@@ -670,10 +668,142 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 
 	}
 
-	acc = {acc_x,acc_y,acc_z};
+	acc(0) = acc_x;
+	acc(1) = acc_y;
+	acc(2) = acc_z;
+
 	acc *= arma::datum::G  * this -> density;
 	pot *= 0.5 * arma::datum::G * this -> density;
 
+	potential = pot;
+
+}
+
+
+void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(const arma::vec::fixed<3> & point,double & potential, 
+	arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const{
+
+	this -> GetPotentialAccelerationGravityGradient(point.colptr(0),potential, acc,gravity_gradient_mat);
+
+}
+
+void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double const  * point,double & potential, 
+	arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const{
+
+	double pot = 0;
+	double acc_x = 0;
+	double acc_y = 0;
+	double acc_z = 0;
+
+	gravity_gradient_mat = arma::zeros<arma::mat>(3,3);
+
+
+	// Facet loop
+	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z,pot)
+	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
+
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		double * r1 = this -> vertices[this -> facets[facet_index][1]];
+		double * r2 = this -> vertices[this -> facets[facet_index][2]];
+
+		double r0m[3];
+		double r1m[3];
+		double r2m[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r2,point,r2m);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double R2 = vtkMath::Norm(r2m);
+
+		double r1m_cross_r2m[3];
+
+		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
+
+		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
+			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
+
+		double * F = this -> facet_dyads[facet_index];
+
+
+		double a[3] = {
+			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
+			F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2],
+			F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]
+		};
+
+		arma::mat::fixed<3,3> F_arma = {
+			{F[0],F[1],F[2]},
+			{F[3],F[4],F[5]},
+			{F[6],F[7],F[8]}
+		};
+
+		acc_x += wf * a[0];
+		acc_y += wf * a[1];
+		acc_z += wf * a[2];
+
+		pot += - wf * vtkMath::Dot(r0m,a);
+
+		gravity_gradient_mat -= F_arma * wf;
+
+	}
+
+	// Edge loop
+	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z,pot)
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+		double * r1 = this -> vertices[this -> edges[edge_index][1]];
+
+
+		double r0m[3];
+		double r1m[3];
+		double rem[3];
+
+		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r1,point,r1m);
+		vtkMath::Subtract(r1m,r0m,rem);
+
+		double R0 = vtkMath::Norm(r0m);
+		double R1 = vtkMath::Norm(r1m);
+		double Re = vtkMath::Norm(rem);
+
+		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+
+		double * E = this -> edge_dyads[edge_index];
+
+		double a[3] = {
+			E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2],
+			E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2],
+			E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]
+		};
+
+		arma::mat::fixed<3,3> E_arma = {
+			{E[0],E[1],E[2]},
+			{E[3],E[4],E[5]},
+			{E[6],E[7],E[8]}
+		};
+
+		pot += Le * vtkMath::Dot(r0m,a);
+
+		acc_x -= Le * a[0];
+		acc_y -= Le * a[1];
+		acc_z -= Le * a[2];
+
+		gravity_gradient_mat += E_arma * Le;
+
+
+	}
+
+	acc(0) = acc_x;
+	acc(1) = acc_y;
+	acc(2) = acc_z;
+
+	acc *= arma::datum::G  * this -> density;
+	pot *= 0.5 * arma::datum::G * this -> density;
+	gravity_gradient_mat *= arma::datum::G  * this -> density;
 	potential = pot;
 
 }
@@ -758,7 +888,7 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(vtkSmartPointer<vtkPolyData>
 	pgm_filter -> SetInputData(selected_shape);
 	pgm_filter -> SetDensity(density);
 	double scale_factor;
-	
+
 	if (is_in_meters){
 		pgm_filter -> SetScaleMeters();
 		scale_factor = 1 ;
@@ -800,7 +930,7 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(vtkSmartPointer<vtkPolyData>
 
 		double potential,slope;
 		arma::vec::fixed<3> acc,acc_body_fixed;
-		
+
 		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
 		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
 
@@ -819,16 +949,106 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(vtkSmartPointer<vtkPolyData>
 		acc_body_fixed_magnitudes.push_back(arma::norm(acc_body_fixed));
 
 	}	
+
 }
 
 
 
+void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
+	const std::vector<unsigned int> & queried_elements,
+	bool is_in_meters,
+	const double & mass,
+	const arma::vec::fixed<3> & omega,
+	const std::vector<double> & slopes,
+	const std::vector<double> & potentials,
+	const std::vector<double> & acc_magnitudes,
+	const std::vector<double> & acc_body_fixed_magnitudes,
+	std::string path){
+
+
+  // The surface gravity model is saved to a JSON file
+  // The JSON fieds are:
+  // - facets == number of facets of the input shape
+  // - vertices == number of vertices of the input shape
+  // - omega : { value : {omega_x,omega_y,omega_z},unit}
+  // - slopes - vector of slopes : {index, value, unit}
+  // - potentials - vector of inertial potentials : {index, value, unit}
+  // - acc_magnitudes - vector of inertial acc_magnitudes : {index, value, unit}
+  // - acc_body_fixed_magnitudes - vector of body-fixed acc_magnitudes : {index, value, unit}
+
+
+	nlohmann::json surface_pgm_json;
+	nlohmann::json omega_json = {
+		{"value",{omega(0),omega(1),omega(2)}},
+		{"unit","rad/s"}
+	};
+
+
+	surface_pgm_json["facets"] = selected_shape -> GetNumberOfCells();
+	surface_pgm_json["vertices"] = selected_shape -> GetNumberOfPoints();
+
+	std::string distance_unit,potential_unit,acceleration_unit;
+	if (is_in_meters){
+		distance_unit = "m";
+		potential_unit = "m^2/s^2";
+		acceleration_unit = "m/s^2";
+
+	}
+	else{
+		distance_unit = "km";
+		potential_unit = "km^2/s^2";
+		acceleration_unit = "km/s^2";
+
+	}
+
+	nlohmann::json slopes_json,potentials_json,acc_magnitudes_json,acc_body_fixed_magnitudes_json;
+
+	for (int i = 0; i < queried_elements.size(); ++i){
+		int index = queried_elements[i];
+		
+		nlohmann::json slope = { 
+			{"index", index}, 
+			{"value", slopes[i]},
+			{"unit","deg"} 
+		};
+
+		nlohmann::json potential = { 
+			{"index", index}, 
+			{"value", potentials[i]},
+			{"unit",potential_unit} 
+		};
+
+		nlohmann::json acc_magnitude = { 
+			{"index", index}, 
+			{"value", acc_magnitudes[i]},
+			{"unit",acceleration_unit} 
+		};
+		nlohmann::json acc_body_fixed_magnitude = { 
+			{"index", index}, 
+			{"value", acc_body_fixed_magnitudes[i]},
+			{"unit",acceleration_unit} 
+		};
+
+
+		slopes_json.push_back(slope);
+		potentials_json.push_back(potential);
+		acc_magnitudes_json.push_back(acc_magnitude);
+		acc_body_fixed_magnitudes_json.push_back(acc_body_fixed_magnitude);
+
+
+	}
+
+	surface_pgm_json["mass"] = mass;
+	surface_pgm_json["omega"] = omega_json;
+	surface_pgm_json["slopes"] = slopes_json;
+	surface_pgm_json["inertia_acc_magnitudes"] = acc_magnitudes_json;
+	surface_pgm_json["body_fixed_acc_magnitudes_json"] = acc_body_fixed_magnitudes_json;
+
+
+	std::ofstream o(path);
+	o << std::setw(4) << surface_pgm_json << std::endl;
 
 
 
-
-
-
-
-
+}
 
