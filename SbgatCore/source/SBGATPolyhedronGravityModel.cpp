@@ -961,7 +961,7 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 
 		slopes[cellId] = slope;
 		inertial_potentials[cellId] = potential;
-		body_fixed_potentials[cellId] = potential;
+		body_fixed_potentials[cellId] = potential + 0.5 * arma::dot(RBK::tilde(omega) * facet_center,RBK::tilde(omega) * facet_center);
 		inertial_acc_magnitudes[cellId] = arma::norm(acc);
 		body_fixed_acc_magnitudes[cellId] = arma::norm(acc_body_fixed);
 
@@ -1072,9 +1072,9 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 	surface_pgm_json["omega"] = omega_json;
 	surface_pgm_json["slopes"] = slopes_json;
 	surface_pgm_json["inertial_acc_magnitudes"] = inertial_acc_magnitudes_json;
-	surface_pgm_json["body_fixed_acc_magnitudes_json"] = body_fixed_acc_magnitudes_json;
-	surface_pgm_json["inertial_potentials_json"] = inertial_potentials_json;
-	surface_pgm_json["body_fixed_potentials_json"] = body_fixed_potentials_json;
+	surface_pgm_json["body_fixed_acc_magnitudes"] = body_fixed_acc_magnitudes_json;
+	surface_pgm_json["inertial_potentials"] = inertial_potentials_json;
+	surface_pgm_json["body_fixed_potentials"] = body_fixed_potentials_json;
 
 
 
@@ -1164,6 +1164,9 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		throw(std::runtime_error("Error loading slopes in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slopes`"));
 	}
 
+	std::cout << "Done with slopes_json\n ";
+
+
 	nlohmann::json inertial_potentials_json;
 	try{
 		inertial_potentials_json = surface_pgm_json.at("inertial_potentials");
@@ -1177,6 +1180,8 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	catch (nlohmann::detail::parse_error & e){
 		throw(std::runtime_error("Error loading inertial potentials in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `inertial_potentials`"));
 	}
+
+	std::cout << "Done with inertial_potentials_json\n ";
 
 	nlohmann::json body_fixed_potentials_json;
 	try{
@@ -1193,6 +1198,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	}
 
 
+	std::cout << "Done with body_fixed_potentials_json\n ";
 	nlohmann::json inertial_acc_json;
 
 	try{
@@ -1200,7 +1206,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		for (auto acc : inertial_acc_json){
 			inertial_acc_magnitudes[acc["index"]] = acc["value"];
 			if (acc["unit"] == "km/s^2"){
-				inertial_acc_magnitudes[acc["index"]] *= 1e6;
+				inertial_acc_magnitudes[acc["index"]] *= 1e3;
 			}
 		}
 
@@ -1216,7 +1222,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		for (auto acc : body_fixed_acc_magnitudes_json){
 			body_fixed_acc_magnitudes[acc["index"]] = acc["value"];
 			if (acc["unit"] == "km/s^2"){
-				body_fixed_acc_magnitudes[acc["index"]] *= 1e6;
+				body_fixed_acc_magnitudes[acc["index"]] *= 1e3;
 			}
 		}
 	}	

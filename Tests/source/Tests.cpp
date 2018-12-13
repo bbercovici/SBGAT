@@ -209,7 +209,10 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	// Rotation period of KW4
 	arma::vec omega = {0,0,0.0006312};
 
-	std::vector<double> slopes,potentials,acc_magnitudes,acc_body_fixed_magnitudes;
+	std::vector<double> slopes,inertial_potentials,
+	body_fixed_potentials,
+	inertial_acc_magnitudes,
+	body_fixed_acc_magnitudes;
 
 	SBGATPolyhedronGravityModel::ComputeSurfacePGM(polydata,
 		queried_elements,
@@ -217,9 +220,10 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 		pgm_filter -> GetDensity(),
 		omega,
 		slopes,
-		potentials,
-		acc_magnitudes,
-		acc_body_fixed_magnitudes);
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes,
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes);
 
 
 	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
@@ -228,9 +232,10 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 		pgm_filter -> GetMass(),
 		omega,
 		slopes,
-		potentials,
-		acc_magnitudes,
-		acc_body_fixed_magnitudes,
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes,
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes,
 		"surface_pgm.json");
 
 
