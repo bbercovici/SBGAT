@@ -213,21 +213,27 @@ elements through a unique interface.
 
 
 	/**
-	Sety surface gravity potentials
+	Set inertial surface gravity potentials
 	*/
-		void set_potentials(std::vector<double> potentials);
+		void set_inertial_potentials(std::vector<double> potentials);
+
+
+	/**
+	Set body fixed surface gravity potentials
+	*/
+		void set_body_fixed_potentials(std::vector<double> potentials);
 
 
 	/**
 	Set surface inertial acceleration magnitudes
 	*/
-		void set_acc_magnitudes(std::vector<double> acc_magnitudes);
+		void set_inertial_acc_magnitudes(std::vector<double> acc_magnitudes);
 
 
 	/**
 	Set surface body-fixed acceleration magnitudes
 	*/
-		void set_acc_body_fixed_magnitudes(std::vector<double> acc_body_fixed_magnitudes);
+		void set_body_fixed_acc_magnitudes(std::vector<double> acc_body_fixed_magnitudes);
 
 
 
@@ -240,21 +246,27 @@ elements through a unique interface.
 
 
 	/**
-	Sety surface gravity potentials
+	Set inertial surface gravity potentials
 	*/
-		vtkSmartPointer<vtkFloatArray> get_potentials();
+		vtkSmartPointer<vtkFloatArray> get_inertial_potentials();
+
+
+	/**
+	Set body-fixed surface gravity potentials
+	*/
+		vtkSmartPointer<vtkFloatArray> get_body_fixed_potentials();
 
 
 	/**
 	Set surface inertial acceleration magnitudes
 	*/
-		vtkSmartPointer<vtkFloatArray> get_acc_magnitudes();
+		vtkSmartPointer<vtkFloatArray> get_inertial_acc_magnitudes();
 
 
 	/**
 	Set surface body-fixed acceleration magnitudes
 	*/
-		vtkSmartPointer<vtkFloatArray> get_acc_body_fixed_magnitudes();
+		vtkSmartPointer<vtkFloatArray> get_body_fixed_acc_magnitudes();
 
 
 
@@ -282,9 +294,11 @@ elements through a unique interface.
 
 
 		vtkSmartPointer<vtkFloatArray> slopes = nullptr;
-		vtkSmartPointer<vtkFloatArray> potentials = nullptr;
-		vtkSmartPointer<vtkFloatArray> acc_magnitudes = nullptr;
-		vtkSmartPointer<vtkFloatArray> acc_body_fixed_magnitudes = nullptr;
+		vtkSmartPointer<vtkFloatArray> inertial_potentials = nullptr;
+		vtkSmartPointer<vtkFloatArray> body_fixed_potentials = nullptr;
+
+		vtkSmartPointer<vtkFloatArray> inertial_acc_magnitudes = nullptr;
+		vtkSmartPointer<vtkFloatArray> body_fixed_acc_magnitudes = nullptr;
 
 
 		bool consistent_shape_model = false;

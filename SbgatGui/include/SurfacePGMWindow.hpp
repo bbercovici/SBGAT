@@ -76,6 +76,7 @@ body-frame accelerations and surface slopes
 		private slots:
 		
 		void compute_surface_pgm();
+		void load_surface_pgm();
 
 		/**
 		Opens a dialog letting the user choose the output file for the computed surface polyhedron gravity model
@@ -99,7 +100,10 @@ body-frame accelerations and surface slopes
 		QPushButton * open_output_file_dialog_button;
 
 		QPushButton * compute_surface_pgm_button;
+		QPushButton * load_surface_pgm_button;
+
 		ShapePropertiesWidget * primary_shape_properties_widget;
+
 		std::string output_path;
 		
 	};

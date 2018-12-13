@@ -94,7 +94,9 @@ void SelectMapperWindow::init(){
 		if (prop_combo_box -> count() == 1){
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("None"));
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Slopes"));
-			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Potential"));
+			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Inertial Potential"));
+			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Body-fixed Potential"));
+
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Inertial acceleration"));
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Body-fixed acceleration"));
 		}
@@ -134,17 +136,22 @@ void SelectMapperWindow::accept(){
 			unit = "(deg)";
 		}
 		else if (current_mapper_index == 2){
-			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_potentials();
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_inertial_potentials();
 			unit = "(m^2/s^2)";
 
 		}
 		else if (current_mapper_index == 3){
-			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_acc_magnitudes();
-			unit = "(m/s^2)";
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_body_fixed_potentials();
+			unit = "(m^2/s^2)";
 
 		}
 		else if (current_mapper_index == 4){
-			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_acc_body_fixed_magnitudes();
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_inertial_acc_magnitudes();
+			unit = "(m/s^2)";
+
+		}
+		else if (current_mapper_index == 5){
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_body_fixed_acc_magnitudes();
 			unit = "(m/s^2)";
 			
 		}

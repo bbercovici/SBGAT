@@ -322,10 +322,9 @@ void Mainwindow::createActions() {
     connect(this -> compute_geometric_measures_action, &QAction::triggered, this, &Mainwindow::compute_geometric_measures);
 
 
-    this -> open_compute_surface_pgm_window_action = new QAction(tr("Evaluate surface PGM"), this);
-    this -> open_compute_surface_pgm_window_action -> setStatusTip(tr("Evaluate Polyhedron Gravity Model over the surface of the considered shape"));
+    this -> open_compute_surface_pgm_window_action = new QAction(tr("Compute/Load surface PGM"), this);
+    this -> open_compute_surface_pgm_window_action -> setStatusTip(tr("Evaluate or loads a surface Polyhedron Gravity Model"));
     connect(this -> open_compute_surface_pgm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_surface_pgm_window);
-
 
     this -> open_rendering_properties_window_action =new QAction(tr("Rendering properties"), this);
     this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
@@ -513,8 +512,6 @@ void Mainwindow::add_shape() {
            vtkSmartPointer<vtkTransform> transform =
            vtkSmartPointer<vtkTransform>::New();
            transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
-
-
 
            vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
            vtkSmartPointer<vtkTransformPolyDataFilter>::New();

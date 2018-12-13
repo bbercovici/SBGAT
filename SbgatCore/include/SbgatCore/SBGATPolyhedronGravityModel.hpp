@@ -207,9 +207,10 @@ the polydata used to construct the PGM
   @param[in] density shape bulk density in kg/m^3
   @param[in] omega fixed angular velocity of shape expressed in rad/s
   @param[out] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
-  @param[out] potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
-  @param[out] acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
-  @param[out] acc_body_fixed_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
+  @param[out] inertial_potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[out] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
   */
   static void ComputeSurfacePGM(
     vtkSmartPointer<vtkPolyData> selected_shape,
@@ -218,9 +219,10 @@ the polydata used to construct the PGM
     double density,
     const arma::vec::fixed<3> & omega,
     std::vector<double> & slopes,
-    std::vector<double> & potentials,
-    std::vector<double> & acc_magnitudes,
-    std::vector<double> & acc_body_fixed_magnitudes);
+    std::vector<double> & inertial_potentials,
+    std::vector<double> & body_fixed_potentials,
+    std::vector<double> & inertial_acc_magnitudes,
+    std::vector<double> & body_fixed_acc_magnitudes);
 
 
 
@@ -233,9 +235,10 @@ the polydata used to construct the PGM
   @param[in] mass mass of shape model (kg)
   @param[in] omega fixed angular velocity of shape (rad/s)
   @param[in] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
-  @param[in] potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
-  @param[in] acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
-  @param[in] acc_body_fixed_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
+  @param[in] inertial_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
+  @param[in] body_fixed_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
+  @param[in] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (L/s^2) evaluated at the center of each queried element 
+  @param[in] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (L/s^2) evaluated at the center of each queried element 
   @param[in] path save path (ex: "pgm_surface.json")
   */
   static void SaveSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
@@ -244,12 +247,31 @@ the polydata used to construct the PGM
     const double & mass,
     const arma::vec::fixed<3> & omega,
     const std::vector<double> & slopes,
-    const std::vector<double> & potentials,
-    const std::vector<double> & acc_magnitudes,
-    const std::vector<double> & acc_body_fixed_magnitudes,
+    const std::vector<double> & inertial_potentials,
+    const std::vector<double> & body_fixed_potentials,
+    const std::vector<double> & inertial_acc_magnitudes,
+    const std::vector<double> & body_fixed_acc_magnitudes,
     std::string path);
 
-
+  /**
+  Loads a previously computed surface Polyhedron Gravity Model from a file
+  @param[out] mass mass of shape model (kg)
+  @param[out] omega fixed angular velocity of shape (rad/s)
+  @param[out] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
+  @param[out] inertial_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_potentials vector storing the body-fixed gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
+  @param[out] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (L/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (L/s^2) evaluated at the center of each queried element 
+  @param[in] path load path (ex: "pgm_surface.json")
+  */
+  static void LoadSurfacePGM(double & mass,
+    arma::vec::fixed<3> & omega,
+    std::vector<double> & slopes,
+    std::vector<double> & inertial_potentials,
+    std::vector<double> & body_fixed_potentials,
+    std::vector<double> & inertial_acc_magnitudes,
+    std::vector<double> & body_fixed_acc_magnitudes,
+    std::string path);
 
 
 protected:

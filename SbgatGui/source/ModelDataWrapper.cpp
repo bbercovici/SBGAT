@@ -152,15 +152,15 @@ void ModelDataWrapper::set_slopes(std::vector<double> slopes){
 }
 
 
-void ModelDataWrapper::set_potentials(std::vector<double> potentials){
+void ModelDataWrapper::set_inertial_potentials(std::vector<double> potentials){
 
 	
 	// Create cell data
-	if (this -> potentials == nullptr){
-		this -> potentials = vtkSmartPointer<vtkFloatArray>::New();
+	if (this -> inertial_potentials == nullptr){
+		this -> inertial_potentials = vtkSmartPointer<vtkFloatArray>::New();
 		
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> potentials -> InsertNextValue(potentials[i]);
+			this -> inertial_potentials -> InsertNextValue(potentials[i]);
 		}
 
 	}
@@ -168,25 +168,26 @@ void ModelDataWrapper::set_potentials(std::vector<double> potentials){
 	else{
 
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> potentials -> SetValue(i,potentials[i]);
+			this -> inertial_potentials -> SetValue(i,potentials[i]);
 		}
 
 	}
-	this -> potentials -> Modified();
+	this -> inertial_potentials -> Modified();
 
 
 	
 }
 
 
-void ModelDataWrapper::set_acc_magnitudes(std::vector<double> acc_magnitudes){
+void ModelDataWrapper::set_body_fixed_potentials(std::vector<double> potentials){
 
+	
 	// Create cell data
-	if (this -> acc_magnitudes == nullptr){
-		this -> acc_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
+	if (this -> body_fixed_potentials == nullptr){
+		this -> body_fixed_potentials = vtkSmartPointer<vtkFloatArray>::New();
 		
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> acc_magnitudes -> InsertNextValue(acc_magnitudes[i]);
+			this -> body_fixed_potentials -> InsertNextValue(potentials[i]);
 		}
 
 	}
@@ -194,23 +195,25 @@ void ModelDataWrapper::set_acc_magnitudes(std::vector<double> acc_magnitudes){
 	else{
 
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> acc_magnitudes -> SetValue(i,acc_magnitudes[i]);
+			this -> body_fixed_potentials -> SetValue(i,potentials[i]);
 		}
 
 	}
-	this -> acc_magnitudes -> Modified();
+	this -> body_fixed_potentials -> Modified();
 
+
+	
 }
 
 
-void ModelDataWrapper::set_acc_body_fixed_magnitudes(std::vector<double> acc_body_fixed_magnitudes){
+void ModelDataWrapper::set_inertial_acc_magnitudes(std::vector<double> acc_magnitudes){
 
 	// Create cell data
-	if (this -> acc_body_fixed_magnitudes == nullptr){
-		this -> acc_body_fixed_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
+	if (this -> inertial_acc_magnitudes == nullptr){
+		this -> inertial_acc_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
 		
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> acc_body_fixed_magnitudes -> InsertNextValue(acc_body_fixed_magnitudes[i]);
+			this -> inertial_acc_magnitudes -> InsertNextValue(acc_magnitudes[i]);
 		}
 
 	}
@@ -218,29 +221,59 @@ void ModelDataWrapper::set_acc_body_fixed_magnitudes(std::vector<double> acc_bod
 	else{
 
 		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
-			this -> acc_body_fixed_magnitudes -> SetValue(i,acc_body_fixed_magnitudes[i]);
+			this -> inertial_acc_magnitudes -> SetValue(i,acc_magnitudes[i]);
 		}
 
 	}
-	this -> acc_body_fixed_magnitudes -> Modified();
-
+	this -> inertial_acc_magnitudes -> Modified();
 
 }
+
+
+void ModelDataWrapper::set_body_fixed_acc_magnitudes(std::vector<double> acc_magnitudes){
+
+	// Create cell data
+	if (this -> body_fixed_acc_magnitudes == nullptr){
+		this -> body_fixed_acc_magnitudes = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> body_fixed_acc_magnitudes -> InsertNextValue(acc_magnitudes[i]);
+		}
+
+	}
+
+	else{
+
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> body_fixed_acc_magnitudes -> SetValue(i,acc_magnitudes[i]);
+		}
+
+	}
+	this -> body_fixed_acc_magnitudes -> Modified();
+
+}
+
+
 
 vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_slopes(){
 	return this -> slopes;
 }
 
-vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_potentials(){
-	return this -> potentials;
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_inertial_potentials(){
+	return this -> inertial_potentials;
 }
 
-vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_acc_magnitudes(){
-	return this -> acc_magnitudes;
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_body_fixed_potentials(){
+	return this -> body_fixed_potentials;
 }
 
-vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_acc_body_fixed_magnitudes(){
-	return this -> acc_body_fixed_magnitudes;
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_inertial_acc_magnitudes(){
+	return this -> inertial_acc_magnitudes;
+}
+
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_body_fixed_acc_magnitudes(){
+	return this -> body_fixed_acc_magnitudes;
 }
 
 
