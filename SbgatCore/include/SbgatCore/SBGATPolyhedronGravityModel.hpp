@@ -85,8 +85,8 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit L as
   the polydata used to construct the PGM
-  @param[out] PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param[out] PGM acceleration evaluated at the queried point (L / s ^2)
+  @param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+  @param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
   */
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec::fixed<3> & acc) const;
@@ -97,8 +97,8 @@ public:
   a constant density
   @param point coordinates of queried point, expressed in the same frame/unit L as
   the polydata used to construct the PGM
-  @param[out] PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param[out] PGM acceleration evaluated at the queried point (L / s ^2)
+  @param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+  @param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
   */
   void GetPotentialAcceleration(const arma::vec::fixed<3> & point,double & potential, 
     arma::vec::fixed<3> & acc) const;
@@ -111,9 +111,9 @@ Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradi
 a constant density
 @param point coordinates of queried point, expressed in the same frame/unit L as
 the polydata used to construct the PGM
-@param[out] PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-@param[out] PGM acceleration evaluated at the queried point (L / s ^2)
-@param[out] PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
+@param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+@param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+@param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
 */
   void GetPotentialAccelerationGravityGradient(double const  * point,double & potential, 
     arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const ;
@@ -125,9 +125,9 @@ Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradi
 a constant density
 @param point coordinates of queried point, expressed in the same frame/unit L as
 the polydata used to construct the PGM
-@param[out] PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-@param[out] PGM acceleration evaluated at the queried point (L / s ^2)
-@param[out] PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
+@param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+@param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+@param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
 */
   void GetPotentialAccelerationGravityGradient(const arma::vec::fixed<3> & point,double & potential, 
     arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const ;

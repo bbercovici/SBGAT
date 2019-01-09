@@ -79,15 +79,15 @@ to apply the update (if any).
 
 ### New:
 - A previously evaluated surface Polyhedron Gravity Model can now be loaded from a JSON file via the static method `SBGATPolyhedronGravityModel::LoadSurfacePGM`
-- `SbgatGui` can now overlay previously computed surface Polyhedron Gravity Model results over a corresponding shape model (aka featuring the same number of facets as the one used to generate the surface PGM)
+- `SbgatGui` can now overlay previously computed surface PGM results over a corresponding shape model (aka featuring the same number of facets as the one used to generate the surface PGM)
 
 #### Improvements
-- The Surface polyhedron gravity model now computes: 
+- The surface polyhedron gravity model now computes: 
     * gravitational slopes
     * inertial gravity potentials
     * body-fixed gravity potentials
-    * inertial gravity acceleration
-    * body-fixed gravity acceleration
+    * inertial gravity acceleration magnitudes
+    * body-fixed gravity acceleration magnitudes
 
 ### [SBGAT 1.12.1](https://github.com/bbercovici/SBGAT/releases/tag/1.12.1)
 

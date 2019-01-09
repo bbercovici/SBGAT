@@ -275,6 +275,8 @@ void SurfacePGMWindow::load_surface_pgm(){
 		this -> parent -> get_renderer() -> RemoveActor2D(wrapper -> get_colorbar_actor());
 
 		this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
+		this -> parent -> log_console -> appendPlainText(QString::fromStdString("\n- Done load surface PGM from file " + path.toStdString()));
+
 	}
 	catch(std::runtime_error & e ){
 		QMessageBox::warning(this, "Load Surface PGM", "An error occured loading the Surface PGM file.");
