@@ -75,6 +75,16 @@ to apply the update (if any).
 ## Changelog
 
 
+### [SBGAT 2.01.1](https://github.com/bbercovici/SBGAT/releases/tag/2.01.1)
+
+### New:
+- Facets can now be individually selected in `SbgatGui` by clicking on them. If the surface PGM of the selected shape is available, the results for the selected facet will be shown in the console
+
+
+#### Improvements
+- The `Set Shape Mapper` option was renamed to `Set Results Overlay`
+- Several GUI minors bug fixes
+
 ### [SBGAT 1.12.2](https://github.com/bbercovici/SBGAT/releases/tag/1.12.2)
 
 ### New:

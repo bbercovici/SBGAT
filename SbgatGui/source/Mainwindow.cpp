@@ -325,7 +325,7 @@ void Mainwindow::createActions() {
     this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
     connect(this -> open_rendering_properties_window_action, &QAction::triggered, this, &Mainwindow::open_rendering_properties_window);
 
-    this -> open_select_mapper_window_action = new QAction(tr("Set shape mapper"), this);
+    this -> open_select_mapper_window_action = new QAction(tr("Set results overlay"), this);
     this -> open_select_mapper_window_action -> setStatusTip(tr("Open window enabling one to set a mapper to represent surface data for a given shape"));
     connect(this -> open_select_mapper_window_action, &QAction::triggered, this, &Mainwindow::open_select_mapper_window);
 
@@ -461,7 +461,7 @@ void Mainwindow::add_shape() {
         if (!ok){
             return;
         }
-        
+
         QMessageBox::StandardButton enforce_centering_aligment = QMessageBox::question(this, "Shape Alignment", "Force centering on barycenter and principal axes alignment?",
             QMessageBox::Yes|QMessageBox::No);
 
