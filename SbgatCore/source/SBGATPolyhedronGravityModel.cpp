@@ -889,7 +889,6 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputData(selected_shape);
 	pgm_filter -> SetDensity(density);
-	double scale_factor;
 
 	slopes.clear();
 	inertial_potentials.clear();
@@ -909,12 +908,9 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 
 	if (is_in_meters){
 		pgm_filter -> SetScaleMeters();
-		scale_factor = 1 ;
 	}
 	else{
 		pgm_filter -> SetScaleKiloMeters();
-		scale_factor = 1000;
-
 	}
 
 	pgm_filter -> Update();
@@ -952,11 +948,6 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
 		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
 
-		// Scaling
-		acc_body_fixed /= scale_factor;
-		acc /= scale_factor;
-		potential /= std::pow(scale_factor,2);
-
 		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
 
 		slopes[cellId] = slope;
@@ -968,8 +959,6 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 	}	
 
 }
-
-
 
 void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
 	const std::vector<unsigned int> & queried_elements,
@@ -1165,7 +1154,6 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	}
 
 	std::cout << "Done with slopes_json\n ";
-
 
 	nlohmann::json inertial_potentials_json;
 	try{

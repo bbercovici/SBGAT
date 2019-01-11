@@ -200,7 +200,8 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "-- Done computing pgm accelerations in " << elapsed_seconds.count() << " s\n";
 
 
-
+	// The surface acceleration are re-calculated, this time using the static method SBGATPolyhedronGravityModel::ComputeSurfacePGM
+	// that will also evaluate the inertial potential and geopotential in the process
 	std::vector<unsigned int> queried_elements;
 	for (int i = 0; i < polydata -> GetNumberOfCells(); ++i){
 		queried_elements.push_back(i);
@@ -401,7 +402,6 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> IsNormalized(); // can be skipped as normalized coefficients is the default parameter
 	spherical_harmonics -> SetDegree(degree);
 	spherical_harmonics -> Update();
-
 
 
 	// The spherical harmonics are saved to a file

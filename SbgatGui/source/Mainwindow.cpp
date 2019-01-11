@@ -330,7 +330,6 @@ void Mainwindow::createActions() {
     connect(this -> open_select_mapper_window_action, &QAction::triggered, this, &Mainwindow::open_select_mapper_window);
 
 
-    
 }
 
 

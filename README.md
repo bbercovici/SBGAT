@@ -85,6 +85,10 @@ to apply the update (if any).
 - The `Set Shape Mapper` option was renamed to `Set Results Overlay`
 - Several GUI minors bug fixes
 
+### Bug fixes:
+- Fixed bug in `SbgatCore` that was due to an unecessary rescaling of the computed potentials and accelerations within `SbgatCore::ComputeSurfacePGM`. This bug was manifesting itself when calling `SbgatCore::ComputeSurfacePGM` with a shape model whose coordinates were expressed in kilometers. This bug was not affecting `SbgatGui` since it automatically rescales input shapes to meters upon loading.
+
+
 ### [SBGAT 1.12.2](https://github.com/bbercovici/SBGAT/releases/tag/1.12.2)
 
 ### New:

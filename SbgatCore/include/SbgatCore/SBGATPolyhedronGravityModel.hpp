@@ -91,7 +91,6 @@ public:
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec::fixed<3> & acc) const;
 
-
   /**
   Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
   a constant density
@@ -102,8 +101,6 @@ public:
   */
   void GetPotentialAcceleration(const arma::vec::fixed<3> & point,double & potential, 
     arma::vec::fixed<3> & acc) const;
-
-
 
 
 /**
@@ -117,7 +114,6 @@ the polydata used to construct the PGM
 */
   void GetPotentialAccelerationGravityGradient(double const  * point,double & potential, 
     arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const ;
-
 
 
 /**
