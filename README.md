@@ -44,7 +44,7 @@ before reinstalling.
 
 ### Linux & Mac users
 
-[Refer to the detailed installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compile-and-install-SBGAT-dependencies).
+[Refer to the detailed installation instructions](https://github.com/bbercovici/SBGAT/wiki/2:-Compiling-and-installing-SBGAT-dependencies).
 
 ## Getting updates
 
@@ -74,6 +74,19 @@ to apply the update (if any).
 
 ## Changelog
 
+
+### [SBGAT 2.01.2](https://github.com/bbercovici/SBGAT/releases/tag/2.01.2)
+
+#### New
+
+- `SBGATMassProperties` now offers a method to save the computed mass properties to a JSON file (`SBGATMassProperties::SaveMassProperties`)
+- A static method evaluating and saving the mass properties of the provided shape is now provided (`SBGATMassProperties::ComputeAndSaveMassProperties`)
+- The `Measures` menu in `SbgatGUI` has been augmented with a `Save geometric measures` action
+
+#### Improvements
+- **The inertia tensor normalization has changed.** When computing the mass properties of a given small body, the following normalization is now applied to the inertia tensor: `I_norm = I / (mass * r_avg ^ 2)`  where `r_avg = cbrt(3/4 *Volume/pi)`. `r_avg` is now computed along with the other properties within `SBGATMassProperties`.
+- The parallel axis theorem is no-longer applied to the small body. That is, the inertia will always be expressed about (0,0,0).
+- Several GUI minors bug fixes
 
 ### [SBGAT 2.01.1](https://github.com/bbercovici/SBGAT/releases/tag/2.01.1)
 

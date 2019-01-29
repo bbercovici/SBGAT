@@ -180,7 +180,7 @@ through the user interface layer brought by Qt.}
 	*/
 		QAction * add_shape_action;
 
-	
+
 
 	/**
 	When triggered, opens settings window.
@@ -225,9 +225,15 @@ through the user interface layer brought by Qt.}
 
 
 	/**
-	When triggered, prints geometry measures of the selected prop to the console
+	When triggered, prints geometry measures of the selected small body shape to the console
 	*/
 		QAction * compute_geometric_measures_action;
+
+
+	/**
+	When triggered, opens a window asking for a file where to save the mass properties of the selected shape model
+	*/
+		QAction * save_geometric_measures_action;
 
 
 	/**
@@ -290,12 +296,12 @@ through the user interface layer brought by Qt.}
 		signals:
 
 		/**
-		Sends the signal that a prop has been added
+		Sends the signal that a small body shape has been added
 		*/
 		void prop_added_signal();
 
 		/**
-		Sends the signal that a prop has been removed
+		Sends the signal that a small body shape has been removed
 		*/
 		void prop_removed_signal();
 
@@ -373,12 +379,19 @@ through the user interface layer brought by Qt.}
 		void align_shape();
 
 		/**
-		Computes and displays a number of geometry measures associated with the selected prop 
+		Computes and displays a number of geometry measures associated with the selected small body shape 
 		*/
 		void compute_geometric_measures();
 
+
+
 		/**
-	Shows/hides the selected prop from the lateral widget.
+		Saves to a JSON file a number of geometry measures associated with the selected small body shape 
+		*/
+		void save_geometric_measures();
+
+		/**
+	Shows/hides the selected small body shape from the lateral widget.
 	@param row row index of calling cell
 	@param col col index of calling cell (should be 1 for the slot to proceed, otherwise the call is ignored)
 	*/
@@ -464,7 +477,7 @@ through the user interface layer brought by Qt.}
 	*/
 		void save_shape();
 
-	
+
 
 	/**
 	Clears the console.

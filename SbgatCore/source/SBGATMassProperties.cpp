@@ -23,10 +23,7 @@ SOFTWARE.
 
 /*=========================================================================
 
-  Program:   Visualization Toolkit
-  Module:    SBGATMassProperties.cxx
-
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -48,6 +45,7 @@ SOFTWARE.
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
+#include <json.hpp>
 vtkStandardNewMacro(SBGATMassProperties);
 
 //----------------------------------------------------------------------------
@@ -127,7 +125,6 @@ int SBGATMassProperties::RequestData(
   double P_xy;
   double P_xz;
   double P_yz;
-  double l; //normalizing length
   double average_surface;
 
   vtkIdType idx;
@@ -151,7 +148,6 @@ int SBGATMassProperties::RequestData(
   input -> GetBounds(this -> bounds);
   arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
   arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
-  l = arma::norm(bbox_max - bbox_min);
 
   for ( idx = 0; idx < 3 ; idx++ ){
     munc[idx] = 0.0;
@@ -172,7 +168,7 @@ int SBGATMassProperties::RequestData(
     // Note that the coordinates are normalized!
     for (idx=0; idx < numIds; idx++){
       input->GetPoint(ptIds->GetId(idx), p);
-      x[idx] = p[0] / l; y[idx] = p[1] / l; z[idx] = p[2] / l;
+      x[idx] = p[0] ; y[idx] = p[1] ; z[idx] = p[2] ;
     }
 
     // get i j k vectors ...
@@ -255,8 +251,6 @@ int SBGATMassProperties::RequestData(
     surfacearea += area;
 
     average_surface += area / numCells;
-
-
 
     if( area < mincellarea )
     {
@@ -365,48 +359,44 @@ int SBGATMassProperties::RequestData(
   }
 
   // Surface Area ...
-  //
-  this->SurfaceArea = surfacearea* std::pow(l,2);
-  this->MinCellArea = mincellarea* std::pow(l,2);
-  this->MaxCellArea = maxcellarea* std::pow(l,2);
+  this->SurfaceArea = surfacearea;
+  this->MinCellArea = mincellarea;
+  this->MaxCellArea = maxcellarea;
 
   // Weighting factors in Discrete Divergence theorem for volume calculation.
   //
   kxyz[0] = (munc[0] + (wxyz/3.0) + ((wxy+wxz)/2.0)) /numCells;
   kxyz[1] = (munc[1] + (wxyz/3.0) + ((wxy+wyz)/2.0)) /numCells;
   kxyz[2] = (munc[2] + (wxyz/3.0) + ((wxz+wyz)/2.0)) /numCells;
-  this->VolumeX = vol[0] * std::pow(l,3) ;
-  this->VolumeY = vol[1] * std::pow(l,3) ;
-  this->VolumeZ = vol[2] * std::pow(l,3) ;
+  this->VolumeX = vol[0] ;
+  this->VolumeY = vol[1] ;
+  this->VolumeZ = vol[2] ;
   this->Kx = kxyz[0];
   this->Ky = kxyz[1];
   this->Kz = kxyz[2];
-  this->Volume =  (kxyz[0] * vol[0] + kxyz[1] * vol[1] + kxyz[2]  * vol[2])* std::pow(l,3);
+  this->Volume =  (kxyz[0] * vol[0] + kxyz[1] * vol[1] + kxyz[2]  * vol[2]);
   this->Volume =  fabs(this->Volume);
-  this->VolumeProjected = volumeproj * std::pow(l,3);
-  this->NormalizedShapeIndex =
-  (sqrt(surfacearea)/std::cbrt(this->Volume))/2.199085233;
-
+  this->VolumeProjected = volumeproj ;
+  this->NormalizedShapeIndex =(sqrt(surfacearea)/std::cbrt(this->Volume))/2.199085233;
 
   // Center of mass
   arma::vec::fixed<3> com_ = {cx,cy,cz};
 
-  this -> center_of_mass = l * com_ / this->Volume * std::pow(l,3);
+  this -> center_of_mass = com_ / this->Volume ;
 
-  // Inertia tensor that was non-dimensionalized by l, not cbrt(V)
   arma::mat I = {
     {P_yy + P_zz, -P_xy, -P_xz},
     { -P_xy, P_xx + P_zz, -P_yz},
     { -P_xz, -P_yz, P_xx + P_yy}};
 
-    double L = std::cbrt(this -> Volume) ;
-    this -> inertia_tensor = std::pow(l / L,5) *  I - RBK::tilde(this -> center_of_mass / L) * RBK::tilde(this -> center_of_mass / L).t();
+
+    this -> r_avg =  std::cbrt( 3./4. * this -> Volume / arma::datum::pi ) ;
+    this -> inertia_tensor = I / (this -> Volume * this -> r_avg * this -> r_avg);
 
     // The principal axes are extracted
     arma::vec eig_val;
     arma::mat eig_vec;
     arma::eig_sym(eig_val,eig_vec,this -> inertia_tensor);
-
 
     // At this stage, eig_vec is (+/- v0,+/- v1 , +/- v2) where |v0| = |v1| = |v2| = 1
     // with their corresponding values sorted in ascending order
@@ -492,3 +482,99 @@ int SBGATMassProperties::RequestData(
     os << "\tNormalized Shape Index: "
     << this->GetNormalizedShapeIndex () << "\n";
   }
+
+
+
+  void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters){
+
+    vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+    mass_properties -> SetInputData(shape);
+    mass_properties -> Update();
+
+    mass_properties -> SaveMassProperties(path,is_in_meters);
+
+  }
+
+  void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters) const {
+
+    nlohmann::json mass_properties_json;
+    std::string length_unit,surface_unit,volume_unit;
+    
+    if(is_in_meters){
+    
+      length_unit = "m";
+      surface_unit = "m^2";
+      volume_unit = "m^3";
+    }
+    else{
+      length_unit = "km";
+      surface_unit = "km^2";
+      volume_unit = "km^3";
+    }
+
+    nlohmann::json com_json = {
+      {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},
+      {"unit",length_unit}
+    };
+
+    nlohmann::json volume_json = {
+      {"value", this -> Volume},
+      {"unit",volume_unit}
+    };
+
+
+    nlohmann::json surface_area_json = {
+      {"value", this -> SurfaceArea},
+      {"unit",surface_unit}
+    };
+
+    nlohmann::json inertia_tensor_json = {
+      {"value", {
+        {this -> inertia_tensor(0,0),this -> inertia_tensor(0,1),this -> inertia_tensor(0,2)},
+        {this -> inertia_tensor(1,0),this -> inertia_tensor(1,1),this -> inertia_tensor(1,2)},
+        {this -> inertia_tensor(2,0),this -> inertia_tensor(2,1),this -> inertia_tensor(2,2)}}
+      },
+      {"unit","none"}
+    };
+
+    nlohmann::json projected_volume_components_json = {
+      {"value",{this->VolumeX,this->VolumeY,this->VolumeZ}},
+      {"unit",volume_unit}
+    };
+
+    nlohmann::json projection_coefs_json = {
+      {"value",{this->Kx,this->Ky,this->Kz}},
+      {"unit","none"}
+    };
+
+    nlohmann::json volume_projected_json = {
+      {"value",this->VolumeProjected},
+      {"unit",volume_unit}
+    };
+
+    nlohmann::json normalized_shape_index_json = {
+      {"value",this->NormalizedShapeIndex},
+      {"unit","none"}
+    };
+
+    nlohmann::json is_open_json = {
+      {"value",this -> IsClosed ? "True" : "False"}
+    };
+
+    mass_properties_json["VOLUME"] = volume_json;
+    mass_properties_json["SURFACE_AREA"] = surface_area_json;
+    mass_properties_json["COM"] = com_json;
+    mass_properties_json["VOLUME_PROJECTED"] = volume_projected_json;
+    mass_properties_json["PROJECTED_VOLUME_VX_VY_VZ"] = projected_volume_components_json;
+    mass_properties_json["PROJECTED_VOLUME_COEFS_KX_KY_KZ"] = projection_coefs_json;
+    mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
+    mass_properties_json["IS_CLOSED"] = is_open_json;
+    mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = inertia_tensor_json;
+
+    std::ofstream o(path);
+    o << std::setw(4) << mass_properties_json << std::endl;
+
+
+
+  }
+

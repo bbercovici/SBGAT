@@ -128,16 +128,16 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
 	mass_filter -> SetInputConnection(transformFilter_trans -> GetOutputPort());
 	mass_filter -> Update();
+	auto com_sbgat = mass_filter -> GetCenterOfMass();
 
 	assert(mass_filter -> CheckClosed());
 
 	// the inertia moments are invariant by rotation/translation
 	arma::vec inertia_moments = {1./6,1./6,1./6}; 
+	double r_avg = std::cbrt(3./ (4 * arma::datum::pi));
+	inertia_moments = inertia_moments / (r_avg * r_avg) + arma::eig_sym(RBK::tilde(translation_vector) * RBK::tilde(translation_vector).t())/ (r_avg * r_avg);
 	auto inertia_moments_sbgat = mass_filter -> GetInertiaMoments();
 
-	// The center of mass should be right where the translation put it 
-	auto com_sbgat = mass_filter -> GetCenterOfMass();
-	
 	assert(arma::norm(inertia_moments - inertia_moments_sbgat)/arma::norm(inertia_moments_sbgat) < 1e-8);
 	assert(arma::norm(translation_vector - com_sbgat)/arma::norm(com_sbgat) < 1e-8);
 

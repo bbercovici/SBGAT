@@ -44,8 +44,8 @@
 #
 #
 ################################################################################
-	
-cmake_minimum_required(VERSION 3.12.0)
+
+cmake_minimum_required(VERSION 3.13.3)
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -93,6 +93,7 @@ endif()
 
 # Find VTK Package
 find_package(VTK REQUIRED)
+
 include(${VTK_USE_FILE})
 
 # Find YORPLib

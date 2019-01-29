@@ -278,7 +278,6 @@ void Mainwindow::createActions() {
     this -> clear_console_action -> setStatusTip(tr("Clears the log console"));
     connect(this -> clear_console_action, &QAction::triggered, this, &Mainwindow::clear_console);
 
-
     this -> open_compute_yorp_window_action = new QAction(tr("Compute YORP Fourier coefficients"), this);
     this -> open_compute_yorp_window_action -> setStatusTip(tr("Computes the Fourier decomposition of YORP force/torques"));
     connect(this -> open_compute_yorp_window_action, &QAction::triggered, this, &Mainwindow::open_compute_yorp_window);
@@ -294,11 +293,9 @@ void Mainwindow::createActions() {
     connect(this -> open_radar_window_action, &QAction::triggered, this, &Mainwindow::open_radar_window);
 
 
-
     this -> open_lightcurve_window_action = new QAction(tr("Generate simulated light curve"), this);
     this -> open_lightcurve_window_action -> setStatusTip(tr("Generates simulated light curve"));
     connect(this -> open_lightcurve_window_action, &QAction::triggered, this, &Mainwindow::open_lightcurve_window);
-
 
 
     this -> align_shape_action = new QAction(tr("Align shape"), this);
@@ -311,10 +308,14 @@ void Mainwindow::createActions() {
     connect(this -> save_console_action, &QAction::triggered, this, &Mainwindow::save_console);
 
 
-
     this -> compute_geometric_measures_action = new QAction(tr("Compute geometric measures"), this);
     this -> compute_geometric_measures_action -> setStatusTip(tr("Compute geometric measures of the selected prop to the console"));
     connect(this -> compute_geometric_measures_action, &QAction::triggered, this, &Mainwindow::compute_geometric_measures);
+
+
+    this -> save_geometric_measures_action = new QAction(tr("Save geometric measures"), this);
+    this -> save_geometric_measures_action -> setStatusTip(tr("Save geometric measures of the selected prop to a file"));
+    connect(this -> save_geometric_measures_action, &QAction::triggered, this, &Mainwindow::save_geometric_measures);
 
 
     this -> open_compute_surface_pgm_window_action = new QAction(tr("Compute/Load surface PGM"), this);
@@ -347,15 +348,17 @@ void Mainwindow::open_select_mapper_window(){
 
 void Mainwindow::update_actions_availability() {
 
-
     if (this -> wrapped_shape_data.size() == 0){
         this -> compute_geometric_measures_action -> setEnabled(false);
+        this -> save_geometric_measures_action -> setEnabled(false);
+
         this -> align_shape_action -> setEnabled(false);
         this -> save_shape_action -> setEnabled(false);
     }
 
     else{
         this -> compute_geometric_measures_action -> setEnabled(true);
+        this -> save_geometric_measures_action -> setEnabled(true);
 
         int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
         std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
@@ -364,9 +367,6 @@ void Mainwindow::update_actions_availability() {
         this -> save_shape_action -> setEnabled(true);
         
     }
-
-
-
 
 }
 
@@ -396,7 +396,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-     tr("Text file (*.txt)"));
+       tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -429,19 +429,19 @@ void Mainwindow::save_shape(){
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
-       int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-       std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+     std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-       vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+     vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
-       writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
+     writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
 
 
-       writer -> SetFileName(fileName.toStdString().c_str());
-       writer -> Update();
-       this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
+     writer -> SetFileName(fileName.toStdString().c_str());
+     writer -> Update();
+     this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
 
-   }
+ }
 
 }
 
@@ -462,7 +462,7 @@ void Mainwindow::add_shape() {
         }
 
         QMessageBox::StandardButton enforce_centering_aligment = QMessageBox::question(this, "Shape Alignment", "Force centering on barycenter and principal axes alignment?",
-            QMessageBox::Yes|QMessageBox::No);
+            QMessageBox::No|QMessageBox::Yes);
 
 
 
@@ -475,80 +475,80 @@ void Mainwindow::add_shape() {
             }
 
             else {
-             scaling_factor = 1000;
-         }
+               scaling_factor = 1000;
+           }
 
-         std::stringstream ss;
-         ss.str(std::string());
+           std::stringstream ss;
+           ss.str(std::string());
 
-         std::string opening_line = "### Loading shape ###";
-         this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-         this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape from ") + fileName);
+           std::string opening_line = "### Loading shape ###";
+           this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+           this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape from ") + fileName);
 
-         std::chrono::time_point<std::chrono::system_clock> start, end;
+           std::chrono::time_point<std::chrono::system_clock> start, end;
 
-         start = std::chrono::system_clock::now();
+           start = std::chrono::system_clock::now();
 
             // The name of the shape model is extracted from the path
-         int dot_index = fileName.lastIndexOf(".");
-         int slash_index = fileName.lastIndexOf("/");
-         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-         std::string basic_name = name;
+           int dot_index = fileName.lastIndexOf(".");
+           int slash_index = fileName.lastIndexOf("/");
+           std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+           std::string basic_name = name;
 
             // A new ModelDataWrapper is created and stored under the name of the shape model
-         std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
+           std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
 
             // The camera is moved to be adjusted to the new shape
-         this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
+           this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
 
             // Reading
-         vtkNew<vtkOBJReader> reader;
-         reader -> SetFileName(fileName.toStdString().c_str());
-         reader -> Update(); 
+           vtkNew<vtkOBJReader> reader;
+           reader -> SetFileName(fileName.toStdString().c_str());
+           reader -> Update(); 
 
             // Scaling
-         vtkSmartPointer<vtkTransform> transform =
-         vtkSmartPointer<vtkTransform>::New();
-         transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
+           vtkSmartPointer<vtkTransform> transform =
+           vtkSmartPointer<vtkTransform>::New();
+           transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
 
-         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
-         vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-         transformFilter->SetInputConnection(reader -> GetOutputPort());
-         transformFilter->SetTransform(transform);
-         transformFilter -> Update();
+           vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+           transformFilter->SetInputConnection(reader -> GetOutputPort());
+           transformFilter->SetTransform(transform);
+           transformFilter -> Update();
 
             // Create a PolyData
-         vtkSmartPointer<vtkPolyData> polygonPolyData = transformFilter -> GetOutput();
+           vtkSmartPointer<vtkPolyData> polygonPolyData = transformFilter -> GetOutput();
 
             // Create a mapper and actor
-         vtkSmartPointer<vtkPolyDataMapper> mapper =
-         vtkSmartPointer<vtkPolyDataMapper>::New();
+           vtkSmartPointer<vtkPolyDataMapper> mapper =
+           vtkSmartPointer<vtkPolyDataMapper>::New();
 
-         mapper -> SetInputConnection(transformFilter -> GetOutputPort());
-         mapper -> ScalarVisibilityOff();
+           mapper -> SetInputConnection(transformFilter -> GetOutputPort());
+           mapper -> ScalarVisibilityOff();
 
-         vtkSmartPointer<vtkActor> actor =
-         vtkSmartPointer<vtkActor>::New();
-         actor -> SetMapper(mapper);
+           vtkSmartPointer<vtkActor> actor =
+           vtkSmartPointer<vtkActor>::New();
+           actor -> SetMapper(mapper);
 
             // Visualize
-         this -> renderer -> AddActor(actor);
+           this -> renderer -> AddActor(actor);
 
             // Render
-         this -> qvtkWidget -> GetRenderWindow() -> Render();
+           this -> qvtkWidget -> GetRenderWindow() -> Render();
 
              // Store
-         model_data -> set_polydata(polygonPolyData);
-         model_data -> set_actor(actor);
-         model_data -> set_mapper(mapper);
-         model_data -> set_scale_factor(scaling_factor);
+           model_data -> set_polydata(polygonPolyData);
+           model_data -> set_actor(actor);
+           model_data -> set_mapper(mapper);
+           model_data -> set_scale_factor(scaling_factor);
 
 
             // The ModelDataWrapper pointer is stored. 
             // If the name is not already taken, nothing special
-         unsigned int count = this -> wrapped_shape_data.count(name);
+           unsigned int count = this -> wrapped_shape_data.count(name);
 
-         if(count == 0){
+           if(count == 0){
             this -> wrapped_shape_data[name] = model_data;
         }
         else{
@@ -578,7 +578,7 @@ void Mainwindow::add_shape() {
 
             // The log console displays the name and content of the loaded shape model
         this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-         + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+           + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
         std::string closing_line(opening_line.length() - 1, '#');
         closing_line.append("\n");
@@ -639,17 +639,20 @@ void Mainwindow::align_shape(){
     this -> get_renderer() -> RemoveActor2D(this -> wrapped_shape_data[name] -> get_colorbar_actor());
 
 
-
-
     this -> qvtkWidget -> GetRenderWindow() -> Render();
     this -> prop_table -> setItem(selected_row_index, 1, new QTableWidgetItem("Modified"));
 
+    std::string displayed_line = "- Translated " + name + " barycenter to (0,0,0) and aligned principal axes with visualization frame";
+    
+    std::string closing_line(displayed_line.length() - 1, '#');
+    closing_line.append("\n");
 
+    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+    this -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
+    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+    
 
 }
-
-
-
 
 
 void Mainwindow::add_prop_to_table_widget(std::string name) {
@@ -760,78 +763,102 @@ void Mainwindow::remove_prop() {
 }
 
 
+void Mainwindow::save_geometric_measures(){
+
+    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save to JSON file"), QString::fromStdString("./" + name + "_measures.json"),tr("JSON file (*.json)"));
+    if (fileName != "") {
+        SBGATMassProperties::ComputeAndSaveMassProperties(this -> wrapped_shape_data[name] -> get_polydata(),fileName.toStdString(),true);
+        
+        std::string displayed_line = "- Saved geometric measures of " + name + " to " + fileName.toStdString();
+        std::string closing_line(displayed_line.length() - 1, '#');
+        closing_line.append("\n");
+
+        this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+        this -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
+        this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+
+    }
+
+}
 
 void Mainwindow::compute_geometric_measures(){
 
- int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
- std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
- std::stringstream ss;
+   std::stringstream ss;
 
- ss.str(std::string());
- ss.precision(10);
+   ss.str(std::string());
+   ss.precision(10);
 
- std::string opening_line = "### Computing shape geometric measures ###";
- this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+   std::string opening_line = "### Computing shape geometric measures ###";
+   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
 
- std::chrono::time_point<std::chrono::system_clock> start, end;
- start = std::chrono::system_clock::now();
+   std::chrono::time_point<std::chrono::system_clock> start, end;
+   start = std::chrono::system_clock::now();
 
- vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
- mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
- mass_properties_filter -> Update();
- end = std::chrono::system_clock::now();
- std::chrono::duration<double> elapsed_seconds = end - start;
-
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
- this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
- this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
-
- double * bbox =  mass_properties_filter -> GetBoundingBox();
-
- this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
- this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
- mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia tensor of " + name ));
- mass_properties_filter -> GetInertiaTensor().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("- Principal axes of " + name ));
- mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("- Dimensionless inertia moments of " + name ));
- mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+   vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
+   mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+   mass_properties_filter -> Update();
+   end = std::chrono::system_clock::now();
+   std::chrono::duration<double> elapsed_seconds = end - start;
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("- Done computing in ")
-     + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
 
- std::string closing_line(opening_line.length() - 1, '#');
- closing_line.append("\n");
- this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
+
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius of " + name + " (m) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
+
+   double * bbox =  mass_properties_filter -> GetBoundingBox();
+
+   this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
+   this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
+   mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia tensor of " + name + " :"));
+   mass_properties_filter -> GetInertiaTensor().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes of " + name + " :"));
+   mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia moments of " + name + " :"));
+   mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
+       + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+   std::string closing_line(opening_line.length() - 1, '#');
+   closing_line.append("\n");
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
 
@@ -861,6 +888,8 @@ void Mainwindow::createMenus() {
 
     this -> MeasuresMenu = menuBar() -> addMenu(tr("&Measures"));
     this -> MeasuresMenu -> addAction(this -> compute_geometric_measures_action);
+    this -> MeasuresMenu -> addAction(this -> save_geometric_measures_action);
+
 
 
     this -> ObservationsMenu = menuBar() -> addMenu(tr("&Observations"));
