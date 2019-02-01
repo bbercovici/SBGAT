@@ -33,6 +33,8 @@ SOFTWARE.
 #include <SBGATObsRadar.hpp>
 #include <SBGATObsLightcurve.hpp>
 #include <SBGATFrameGraph.hpp>
+#include <SBGATShapeUncertainty.hpp>
+
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -61,6 +63,7 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
+	TestsSBCore::test_shape_uq();
 	TestsSBCore::test_spherical_harmonics_partials_consistency();
 	TestsSBCore::test_frame_conversion();
 	TestsSBCore::test_sbgat_mass_properties();
@@ -341,16 +344,15 @@ void TestsSBCore::test_sbgat_pgm() {
 		assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-10);
 		assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-10);
 
-
-		arma::vec::fixed<3> p4_perturbed = (1 + 1e-5) * p4;
-		
+		arma::vec::fixed<3> p4_perturbed = (1 + 1e-3) * p4;
 
 		arma::vec::fixed<3> pgm_acc2_perturbed = pgm_filter -> GetAcceleration(p4_perturbed);
 
-
 		auto d_acc_true = pgm_acc2_perturbed - pgm_acc2;
+
 		arma::vec::fixed<3> d_acc_linear = pgm_gravity_gradient_matrix * (p4_perturbed - p4);
-		assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e-2);
+
+		assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e0);
 
 	}
 
@@ -569,11 +571,61 @@ void TestsSBCore::test_frame_conversion(){
 	// TODO : complete with rotation tests
 	std::cout << "- Done running test_frame_conversion" << std::endl;
 
-
 }
 
+void TestsSBCore::test_shape_uq(){
+	std::cout << "- Running test_shape_uq ..." << std::endl;
+
+	vtkSmartPointer<vtkCubeSource> source = 
+	vtkSmartPointer<vtkCubeSource>::New();
+
+	source->SetCenter(0.0, 0.0, 0.0);
+
+	double density = 1e6;
 
 
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(source->GetOutputPort());
+	triangleFilter -> Update();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+	cleanPolyData->Update();
+
+	vtkSmartPointer<SBGATShapeUncertainty> shape_uq = vtkSmartPointer<SBGATShapeUncertainty>::New();
+	shape_uq -> SetInputConnection(cleanPolyData -> GetOutputPort());
+
+	shape_uq -> Update();
+
+	auto start = std::chrono::system_clock::now();
+	// 
+	shape_uq -> ComputeInertiaStatistics(1,0.05);
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "-- Done computing analytical shape uncertainty in " << elapsed_seconds.count() << " s\n";
+
+	double volume_variance_lin = shape_uq -> GetVolumeVariance();
+
+	shape_uq -> ComputeInertiaStatisticsMC(100,1,0.05);
+	std::cout << "-- Error from linearized volume variance after 100 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	
+	shape_uq -> ComputeInertiaStatisticsMC(1000,1,0.05);
+	std::cout << "-- Error from linearized volume variance after 1000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+
+	shape_uq -> ComputeInertiaStatisticsMC(10000,1,0.05);
+	std::cout << "-- Error from linearized volume variance after 10000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+
+	shape_uq -> ComputeInertiaStatisticsMC(100000,1,0.05);
+	std::cout << "-- Error from linearized volume variance after 100000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+
+
+	std::cout << "- Done running test_shape_uq ..." << std::endl;
+
+
+}
 
 
 

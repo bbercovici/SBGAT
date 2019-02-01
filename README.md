@@ -74,6 +74,14 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 2.02.1](https://github.com/bbercovici/SBGAT/releases/tag/2.02.1)
+
+
+#### Improvements
+- `SBGATMassProperties::SaveMassProperties` is now saving the average radius (`r_avg = cbrt(3/4 *Volume/pi)`) to the JSON file
+
+### Bug fixes:
+- Fixed potential bug in `SBGATPolyhedronGravityModel` involving a parallel computing block where a variable with no viable reduction clause was being operated on
 
 ### [SBGAT 2.01.2](https://github.com/bbercovici/SBGAT/releases/tag/2.01.2)
 
