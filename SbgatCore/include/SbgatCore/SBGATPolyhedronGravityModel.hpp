@@ -198,7 +198,7 @@ the polydata used to construct the PGM
   /**
   Evaluates the Polyhedron Gravity Model at the surface of the specified surface elements in the provided shape
   @param[in] selected_shape shape for which the surface polyhedron gravity model must be computed
-  @param[in] queried_elements shape indices of elements where the polyhedron gravity model should be evaluated
+  @param[in] queried_elements vector of elements indices where the polyhedron gravity model should be evaluated
   @param[in] is_in_meters true if the shape coordinates were expressed in meters, false if they were expressed in kilometers
   @param[in] density shape bulk density in kg/m^3
   @param[in] omega fixed angular velocity of shape expressed in rad/s

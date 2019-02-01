@@ -501,7 +501,7 @@ int SBGATMassProperties::RequestData(
     std::string length_unit,surface_unit,volume_unit;
     
     if(is_in_meters){
-    
+      
       length_unit = "m";
       surface_unit = "m^2";
       volume_unit = "m^3";
@@ -561,6 +561,11 @@ int SBGATMassProperties::RequestData(
       {"value",this -> IsClosed ? "True" : "False"}
     };
 
+    nlohmann::json average_radius_json = {
+      {"value",this -> r_avg},
+      {"unit",length_unit}
+    };
+
     mass_properties_json["VOLUME"] = volume_json;
     mass_properties_json["SURFACE_AREA"] = surface_area_json;
     mass_properties_json["COM"] = com_json;
@@ -570,6 +575,8 @@ int SBGATMassProperties::RequestData(
     mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
     mass_properties_json["IS_CLOSED"] = is_open_json;
     mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = inertia_tensor_json;
+    mass_properties_json["AVERAGE_RADIUS"] = average_radius_json;
+
 
     std::ofstream o(path);
     o << std::setw(4) << mass_properties_json << std::endl;

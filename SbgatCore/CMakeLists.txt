@@ -84,12 +84,12 @@ find_package(OrbitConversions REQUIRED)
 include_directories(${OC_INCLUDE_DIR})
 
 
+# Find ShapeUQLib
+find_package(ShapeUQLib REQUIRED)
+include_directories(${SHAPEUQLIB_INCLUDE_DIR})
+
 # Find OpenMP
 find_package(OpenMP)
-if(OpenMP_FOUND)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
 
 # Find VTK Package
 find_package(VTK REQUIRED)
@@ -124,6 +124,7 @@ add_library(${LIB_NAME}
 	source/SBGATFrameGraph.cpp
 	source/SBGATPolyhedronGravityModel.cpp
 	source/SBGATMassProperties.cpp
+	source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
@@ -142,6 +143,7 @@ set(library_dependencies
 	${YORPLIB_LIBRARY}
 	${SHARMLIB_LIBRARY}
 	${OC_LIBRARY}
+	${SHAPEUQLIB_LIBRARY}
 	)
 
 
@@ -150,6 +152,7 @@ if (UNIX AND APPLE AND OpenMP_FOUND)
 else()
 	target_link_libraries(${LIB_NAME} ${library_dependencies})
 endif()
+
 
 
 # Installing

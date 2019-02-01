@@ -177,7 +177,7 @@ public:
 
     /**
     Computes the mass properties of the provided shape and saves the results to a JSON file
-    @param shape point to considered shape
+    @param shape pointer to considered shape
     @param path savepath (ex: "mass_properties.json")
     @param is_in_meters true if the shape coordinates are expressed in meters, false otherwise
     */
