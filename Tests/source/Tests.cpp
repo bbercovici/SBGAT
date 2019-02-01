@@ -609,17 +609,33 @@ void TestsSBCore::test_shape_uq(){
 
 	double volume_variance_lin = shape_uq -> GetVolumeVariance();
 
+	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(100,1,0.05);
-	std::cout << "-- Error from linearized volume variance after 100 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	end = std::chrono::system_clock::now();
 	
+	elapsed_seconds = end-start;
+	std::cout << "-- Error from linearized volume variance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+		
+	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(1000,1,0.05);
-	std::cout << "-- Error from linearized volume variance after 1000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
 
+	std::cout << "-- Error from linearized volume variance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+
+	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(10000,1,0.05);
-	std::cout << "-- Error from linearized volume variance after 10000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
 
+	std::cout << "-- Error from linearized volume variance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	
+	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(100000,1,0.05);
-	std::cout << "-- Error from linearized volume variance after 100000 MC outcomes : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
+
+	std::cout << "-- Error from linearized volume variance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
 
 
 	std::cout << "- Done running test_shape_uq ..." << std::endl;
