@@ -89,7 +89,9 @@ find_package(ShapeUQLib REQUIRED)
 include_directories(${SHAPEUQLIB_INCLUDE_DIR})
 
 # Find OpenMP
-find_package(OpenMP)
+if (NOT NO_OMP)
+	find_package(OpenMP)
+endif()
 
 # Find VTK Package
 find_package(VTK REQUIRED)
@@ -132,6 +134,7 @@ add_library(${LIB_NAME}
 	source/SBGATObsRadar.cpp
 	source/SBGATObsLightcurve.cpp
 	source/SBGATTrajectory.cpp
+	source/SBGATTransformShape.cpp
 	)
 
 # Linking
@@ -147,7 +150,7 @@ set(library_dependencies
 	)
 
 
-if (UNIX AND APPLE AND OpenMP_FOUND)
+if (OpenMP_FOUND AND NOT NO_OMP)
 	target_link_libraries(${LIB_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
 else()
 	target_link_libraries(${LIB_NAME} ${library_dependencies})

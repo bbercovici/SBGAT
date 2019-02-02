@@ -608,20 +608,31 @@ void TestsSBCore::test_shape_uq(){
 	std::cout << "-- Done computing analytical shape uncertainty in " << elapsed_seconds.count() << " s\n";
 
 	double volume_variance_lin = shape_uq -> GetVolumeVariance();
+	arma::mat::fixed<3,3> com_covariance_lin = shape_uq -> GetCOMCovariance();
+	arma::mat::fixed<3,3> principal_dims_covariance_lin = shape_uq -> GetPrincipalDimensionsCovariance();
+	arma::mat::fixed<4,4> principal_moments_covariance_lin = shape_uq -> GetPrincipalMomentsCovariance();
+	arma::mat::fixed<6,6> inertia_covariance_lin = shape_uq -> GetInertiaParametrizationCovariance();
+
 
 	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(100,1,0.05);
 	end = std::chrono::system_clock::now();
 	
 	elapsed_seconds = end-start;
+
 	std::cout << "-- Error from linearized volume variance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
-		
+	std::cout << "-- Max Error from linearized center-of-mass covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
+	
 	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(1000,1,0.05);
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
+
 	std::cout << "-- Error from linearized volume variance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	std::cout << "-- Max Error from linearized center-of-mass covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
 
 	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(10000,1,0.05);
@@ -629,14 +640,17 @@ void TestsSBCore::test_shape_uq(){
 	elapsed_seconds = end-start;
 
 	std::cout << "-- Error from linearized volume variance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
-	
+	std::cout << "-- Max Error from linearized center-of-mass covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
+		
 	start = std::chrono::system_clock::now();
 	shape_uq -> ComputeInertiaStatisticsMC(100000,1,0.05);
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
 	std::cout << "-- Error from linearized volume variance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
-
+	std::cout << "-- Max Error from linearized center-of-mass covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
 
 	std::cout << "- Done running test_shape_uq ..." << std::endl;
 

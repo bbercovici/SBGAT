@@ -708,7 +708,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 	gravity_gradient_mat = arma::zeros<arma::mat>(3,3);
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z,grav_mat_acc_xx,grav_mat_acc_xy) reduction(-:pot,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z), reduction(-:pot,grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
@@ -772,7 +772,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 	}
 
 	// Edge loop
-	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z,grav_mat_acc_xx,grav_mat_acc_xy) reduction(+:pot,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z), reduction(+:pot,grav_mat_acc_xz,grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
