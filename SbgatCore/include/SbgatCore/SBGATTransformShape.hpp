@@ -15,7 +15,7 @@ public:
 	Shifts origin of provided shape's coordinates to shape's barycenter
 	@param shape pointer to shape to align
 	*/
-	static void ShiftShapeToBarycenter(vtkSmartPointer<vtkPolyData> shape);
+	static void ShiftShapeToBarycenter(vtkSmartPointer<vtkPolyData> & shape);
 
 	/**
 	Shifts origin of provided shape's coordinates to shape's barycenter
@@ -23,14 +23,14 @@ public:
 	in the shape's barycentered principal frame
 	@param shape pointer to shape to align
 	*/
-	static void ShiftShapeToBarycenterAndRotateToPrincipalAxes(vtkSmartPointer<vtkPolyData> shape);
+	static void ShiftShapeToBarycenterAndRotateToPrincipalAxes(vtkSmartPointer<vtkPolyData> & shape);
 
 	/**
 	Applies translation to provided shape
 	@param x translation vector
 	@param shape pointer to shape to align
 	*/
-	static void Translate(const arma::vec::fixed<3> x,vtkSmartPointer<vtkPolyData> shape);
+	static void Translate(const arma::vec::fixed<3> x,vtkSmartPointer<vtkPolyData> & shape);
 
 	/**
 	Applies rotation to provided shape
@@ -39,7 +39,7 @@ public:
 	the rotation, then dcm == [B'B]
 	@param shape pointer to shape to align
 	*/
-	static void Rotate(const arma::mat::fixed<3,3> dcm,vtkSmartPointer<vtkPolyData> shape);
+	static void Rotate(const arma::mat::fixed<3,3> dcm,vtkSmartPointer<vtkPolyData> & shape);
 
 
 

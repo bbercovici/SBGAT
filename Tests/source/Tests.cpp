@@ -34,7 +34,8 @@ SOFTWARE.
 #include <SBGATObsLightcurve.hpp>
 #include <SBGATFrameGraph.hpp>
 #include <SBGATShapeUncertainty.hpp>
-
+#include <SBGATTransformShape.hpp>
+#include <SBGATObjWriter.hpp>
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -63,7 +64,9 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
-	TestsSBCore::test_shape_uq();
+	TestsSBCore::test_sbgat_transform_shape();
+
+	TestsSBCore::test_sbgat_shape_uq();
 	TestsSBCore::test_spherical_harmonics_partials_consistency();
 	TestsSBCore::test_frame_conversion();
 	TestsSBCore::test_sbgat_mass_properties();
@@ -203,53 +206,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "-- Done computing pgm accelerations in " << elapsed_seconds.count() << " s\n";
 
 
-	// The surface acceleration are re-calculated, this time using the static method SBGATPolyhedronGravityModel::ComputeSurfacePGM
-	// that will also evaluate the inertial potential and geopotential in the process
-	std::vector<unsigned int> queried_elements;
-	for (int i = 0; i < polydata -> GetNumberOfCells(); ++i){
-		queried_elements.push_back(i);
-	}
-
-	// Rotation period of KW4
-	arma::vec omega = {0,0,0.0006312};
-
-	std::vector<double> slopes,inertial_potentials,
-	body_fixed_potentials,
-	inertial_acc_magnitudes,
-	body_fixed_acc_magnitudes;
-
-	SBGATPolyhedronGravityModel::ComputeSurfacePGM(polydata,
-		queried_elements,
-		false,
-		pgm_filter -> GetDensity(),
-		omega,
-		slopes,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes);
-
-
-	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
-		queried_elements,
-		false,
-		pgm_filter -> GetMass(),
-		omega,
-		slopes,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes,
-		"surface_pgm.json");
-
-
-
-
-
-
-
-
-
+	
 
 	std::cout << "- Done running test_sbgat_pgm_speed" << std::endl;
 
@@ -573,31 +530,37 @@ void TestsSBCore::test_frame_conversion(){
 
 }
 
-void TestsSBCore::test_shape_uq(){
-	std::cout << "- Running test_shape_uq ..." << std::endl;
+void TestsSBCore::test_sbgat_shape_uq(){
+	std::cout << "- Running test_sbgat_shape_uq ..." << std::endl;
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName("../input/skewed.obj");
+	reader -> Update(); 
+	vtkSmartPointer<vtkPolyData> shape = reader -> GetOutput();
 
-	vtkSmartPointer<vtkCubeSource> source = 
-	vtkSmartPointer<vtkCubeSource>::New();
+	SBGATTransformShape::ShiftShapeToBarycenter(shape);
 
-	source->SetCenter(0.0, 0.0, 0.0);
+	// vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
-	double density = 1e6;
+	// writer -> SetInputData( shape);
+	// writer -> SetFileName("../input/skewed.obj");
+	// writer -> Update();
+
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_properties -> SetInputData(shape);
+	mass_properties -> Update();
+
+	std::cout << "Volume: \n" << mass_properties -> GetVolume();
+	std::cout << "\nCenter-of-mass: \n" << mass_properties -> GetCenterOfMass().t();
+	std::cout << "\nInertia: \n" << mass_properties -> GetInertiaTensorUnitDensity();
 
 
-	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-	vtkSmartPointer<vtkTriangleFilter>::New();
-	triangleFilter -> SetInputConnection(source->GetOutputPort());
-	triangleFilter -> Update();
-
-	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-	cleanPolyData->Update();
 
 	vtkSmartPointer<SBGATShapeUncertainty> shape_uq = vtkSmartPointer<SBGATShapeUncertainty>::New();
-	shape_uq -> SetInputConnection(cleanPolyData -> GetOutputPort());
-
+	shape_uq -> SetInputData(shape);
 	shape_uq -> Update();
+
 
 	auto start = std::chrono::system_clock::now();
 	// 
@@ -609,55 +572,155 @@ void TestsSBCore::test_shape_uq(){
 
 	double volume_variance_lin = shape_uq -> GetVolumeVariance();
 	arma::mat::fixed<3,3> com_covariance_lin = shape_uq -> GetCOMCovariance();
+	arma::mat::fixed<6,6> inertia_covariance_lin = shape_uq -> GetInertiaParametrizationCovariance();
 	arma::mat::fixed<3,3> principal_dims_covariance_lin = shape_uq -> GetPrincipalDimensionsCovariance();
 	arma::mat::fixed<4,4> principal_moments_covariance_lin = shape_uq -> GetPrincipalMomentsCovariance();
-	arma::mat::fixed<6,6> inertia_covariance_lin = shape_uq -> GetInertiaParametrizationCovariance();
+	arma::mat::fixed<9,9> Evectors_covariance_lin = shape_uq -> GetEvectorsPrincipalAxesCovariance();
+	arma::mat::fixed<9,9> eigenvectors_covariance_lin = shape_uq -> GetEigenvectorPrincipalAxesCovariance();
+	arma::mat::fixed<3,3> mrp_covariance_lin = shape_uq -> GetPrincipalAxesMRPCovariance();
+
+	std::cout << "\nVolume variance: \n";
+	std::cout << volume_variance_lin << std::endl;
+
+	std::cout << "\nCOM covariance: \n";
+	std::cout << com_covariance_lin << std::endl;
+
+	std::cout << "\nInertia parametrization covariance: \n";
+	std::cout << inertia_covariance_lin << std::endl;
+
+	std::cout << "\nPrincipal dimensions covariance: \n";
+	std::cout << principal_dims_covariance_lin << std::endl;
+
+	std::cout << "\nPrincipal moments covariance: \n";
+	std::cout << principal_moments_covariance_lin << std::endl;
+
+	std::cout << "\nMRP covariance: \n";
+	std::cout << mrp_covariance_lin << std::endl;
+
+
+
+
 
 
 	start = std::chrono::system_clock::now();
-	shape_uq -> ComputeInertiaStatisticsMC(100,1,0.05);
+	shape_uq -> ComputeInertiaStatisticsMC(100,1,0.01);
 	end = std::chrono::system_clock::now();
 	
 	elapsed_seconds = end-start;
 
-	std::cout << "-- Error from linearized volume variance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
-	std::cout << "-- Max Error from linearized center-of-mass covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
-	std::cout << "-- Max Error from linearized principal moments covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
-	
+	std::cout << "\n-- Error from linearized volume variance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	std::cout << "-- Max Error from linearized center-of-mass covariance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized inertia parametrization covariance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetInertiaParametrizationCovariance() - inertia_covariance_lin).max()/arma::abs(inertia_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal dimensions covariance after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalDimensionsCovariance() - principal_dims_covariance_lin).max()/arma::abs(principal_dims_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized Evectors covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEvectorsPrincipalAxesCovariance() - Evectors_covariance_lin).max()/arma::abs(Evectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized eigenvectors covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEigenvectorPrincipalAxesCovariance() - eigenvectors_covariance_lin).max()/arma::abs(eigenvectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized mrp covariances after 100 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalAxesMRPCovariance() - mrp_covariance_lin).max()/arma::abs(mrp_covariance_lin).max() * 100 << " %\n";
+
 	start = std::chrono::system_clock::now();
-	shape_uq -> ComputeInertiaStatisticsMC(1000,1,0.05);
+	shape_uq -> ComputeInertiaStatisticsMC(1000,1,0.01);
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
 
-	std::cout << "-- Error from linearized volume variance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	std::cout << "\n-- Error from linearized volume variance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
 	std::cout << "-- Max Error from linearized center-of-mass covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized inertia parametrization covariance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetInertiaParametrizationCovariance() - inertia_covariance_lin).max()/arma::abs(inertia_covariance_lin).max() * 100 << " %\n";
 	std::cout << "-- Max Error from linearized principal moments covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal dimensions covariance after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalDimensionsCovariance() - principal_dims_covariance_lin).max()/arma::abs(principal_dims_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized Evectors covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEvectorsPrincipalAxesCovariance() - Evectors_covariance_lin).max()/arma::abs(Evectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized eigenvectors covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEigenvectorPrincipalAxesCovariance() - eigenvectors_covariance_lin).max()/arma::abs(eigenvectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized mrp covariances after 1000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalAxesMRPCovariance() - mrp_covariance_lin).max()/arma::abs(mrp_covariance_lin).max() * 100 << " %\n";
 
 	start = std::chrono::system_clock::now();
-	shape_uq -> ComputeInertiaStatisticsMC(10000,1,0.05);
+	shape_uq -> ComputeInertiaStatisticsMC(10000,1,0.01);
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
-	std::cout << "-- Error from linearized volume variance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	std::cout << "\n-- Error from linearized volume variance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
 	std::cout << "-- Max Error from linearized center-of-mass covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized inertia parametrization covariance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetInertiaParametrizationCovariance() - inertia_covariance_lin).max()/arma::abs(inertia_covariance_lin).max() * 100 << " %\n";
 	std::cout << "-- Max Error from linearized principal moments covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
-		
+	std::cout << "-- Max Error from linearized principal dimensions covariance after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalDimensionsCovariance() - principal_dims_covariance_lin).max()/arma::abs(principal_dims_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized Evectors covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEvectorsPrincipalAxesCovariance() - Evectors_covariance_lin).max()/arma::abs(Evectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized eigenvectors covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEigenvectorPrincipalAxesCovariance() - eigenvectors_covariance_lin).max()/arma::abs(eigenvectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized mrp covariances after 10000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalAxesMRPCovariance() - mrp_covariance_lin).max()/arma::abs(mrp_covariance_lin).max() * 100 << " %\n";
+
 	start = std::chrono::system_clock::now();
-	shape_uq -> ComputeInertiaStatisticsMC(100000,1,0.05);
+	shape_uq -> ComputeInertiaStatisticsMC(100000,1,0.01);
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
-	std::cout << "-- Error from linearized volume variance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
-	std::cout << "-- Max Error from linearized center-of-mass covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
-	std::cout << "-- Max Error from linearized principal moments covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
 
-	std::cout << "- Done running test_shape_uq ..." << std::endl;
+	std::cout << "\n-- Error from linearized volume variance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
+	std::cout << "-- Max Error from linearized center-of-mass covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized inertia parametrization covariance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetInertiaParametrizationCovariance() - inertia_covariance_lin).max()/arma::abs(inertia_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal moments covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalMomentsCovariance() - principal_moments_covariance_lin).max()/arma::abs(principal_moments_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized principal dimensions covariance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalDimensionsCovariance() - principal_dims_covariance_lin).max()/arma::abs(principal_dims_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized Evectors covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEvectorsPrincipalAxesCovariance() - Evectors_covariance_lin).max()/arma::abs(Evectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized eigenvectors covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetEigenvectorPrincipalAxesCovariance() - eigenvectors_covariance_lin).max()/arma::abs(eigenvectors_covariance_lin).max() * 100 << " %\n";
+	std::cout << "-- Max Error from linearized mrp covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetPrincipalAxesMRPCovariance() - mrp_covariance_lin).max()/arma::abs(mrp_covariance_lin).max() * 100 << " %\n";
+
+	std::cout << "\n- Done running test_sbgat_shape_uq ..." << std::endl;
+
+	std::cout << eigenvectors_covariance_lin <<std::endl;
+	std::cout << shape_uq -> GetEigenvectorPrincipalAxesCovariance()<< std::endl << std::endl;
+
+	std::cout << mrp_covariance_lin<<std::endl;
+	std::cout << shape_uq -> GetPrincipalAxesMRPCovariance()<< std::endl;
+
+
 
 
 }
 
+void TestsSBCore::test_sbgat_transform_shape(){
 
+
+	std::cout << "- Running test_sbgat_transform_shape ..." << std::endl;
+
+	vtkSmartPointer<vtkCubeSource> source = 
+	vtkSmartPointer<vtkCubeSource>::New();
+	source -> SetCenter(0.0, 0.0, 0.0);
+
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(source->GetOutputPort());
+	triangleFilter -> Update();
+
+	vtkSmartPointer<vtkLinearSubdivisionFilter> subdivisionFilter = vtkSmartPointer<vtkLinearSubdivisionFilter>::New();
+
+	subdivisionFilter -> SetInputConnection(triangleFilter -> GetOutputPort());
+	subdivisionFilter -> SetNumberOfSubdivisions(6);
+	subdivisionFilter -> Update();
+
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(subdivisionFilter->GetOutputPort());
+	cleanPolyData->Update();
+
+	vtkSmartPointer<vtkPolyData> cube = cleanPolyData -> GetOutput();
+
+	arma::vec x = {1,0,0};
+	SBGATTransformShape::Translate(x,cube);
+
+	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_filter -> SetInputData(cube);
+	mass_filter -> Update();
+	auto com_sbgat = mass_filter -> GetCenterOfMass();
+
+	assert(arma::norm(x - com_sbgat)/arma::norm(x) * 100 < 1e-6);
+
+	SBGATTransformShape::ShiftShapeToBarycenter(cube);
+	mass_filter -> SetInputData(cube);
+	mass_filter -> Update();
+
+	com_sbgat = mass_filter -> GetCenterOfMass();
+
+	std::cout << "- Done running test_sbgat_transform_shape ..." << std::endl;
+
+
+}
 
 // TODO : reimplement these tests
 

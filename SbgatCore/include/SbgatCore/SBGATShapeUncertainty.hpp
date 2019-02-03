@@ -21,7 +21,8 @@
 \author Jay McMahon
 \brief  Computes statistics in inertia properties of considered shape
 \details Computes the standard deviation and covariances in volume, center of mass, 
-inertia tensor, inertia moments, principal dimensions and principal axes. Interfaces with ShapeUQLig
+inertia tensor, inertia moments, principal dimensions and principal axes. Interfaces with ShapeUQLig.
+Note that this class will always shift the origin of the provided shape's coordinates to the shape's barycenter
 \copyright MIT License, Benjamin Bercovici and Jay McMahon
 */
 
@@ -51,7 +52,7 @@ public:
   /**
   Computes the inertia statistics of the provided shape using a linearized approach
   Refer to "Inertia of An Uncertain Small Body Shape" by Benjamin Bercovici and Jay McMahon, Icarus, 2019
-  for further details
+  for further details.
   @param l correlation distance (L). Governs correlation decay
   @param sigma standard deviation of normal uncertainty (L)
   */
@@ -111,10 +112,23 @@ public:
   Return covariance in MRP parametrization of principal axes orientation
   @return covariance in MRP parametrization
   */
-  const arma::mat::fixed<3,3> & GetCovariancePrincipalAxesMRP() {return this -> mrp_covariance; }
+  const arma::mat::fixed<3,3> & GetPrincipalAxesMRPCovariance() {return this -> mrp_covariance; }
 
 
 
+
+   /**
+  Return covariance in non-normalized inertia principal directions
+  @return covariance in non-normalized inertia principal directions
+  */
+  const arma::mat::fixed<9,9> & GetEvectorsPrincipalAxesCovariance() {return this -> Evectors_covariance; }
+
+  
+   /**
+  Return covariance in unit-norm inertia principal directions
+  @return covariance in inertia principal directions
+  */
+  const arma::mat::fixed<9,9> & GetEigenvectorPrincipalAxesCovariance() {return this -> eigenvectors_covariance; }
 
 
 
@@ -131,7 +145,10 @@ protected:
   arma::mat::fixed<6,6> inertia_tensor_parametrization_covariance;
   arma::mat::fixed<3,3> principal_dimensions_covariance;
   arma::mat::fixed<4,4> principal_moments_covariance;
+  arma::mat::fixed<9,9> Evectors_covariance;
+  arma::mat::fixed<9,9> eigenvectors_covariance;
   arma::mat::fixed<3,3> mrp_covariance;
+
 
   std::shared_ptr<ShapeModelBezier<ControlPoint>> shape_model_bezier;
 

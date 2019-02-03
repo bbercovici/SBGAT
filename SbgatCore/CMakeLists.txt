@@ -26,16 +26,6 @@
 # @date   July, 2017
 # @brief  CMake listing enabling compilation and installation of the SbgatCore library
 
-
-################################################################################
-#
-# 								User-defined paths
-#						Should be checked for consistency
-#						Before running 'cmake ..' in build dir
-#
-################################################################################
-
-
 ################################################################################
 #
 #

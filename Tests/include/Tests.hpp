@@ -39,9 +39,11 @@ void run();
 void test_sbgat_mass_properties();
 void test_sbgat_pgm_speed();
 void test_sbgat_pgm();
+void test_sbgat_transform_shape();
+
 void test_spherical_harmonics_coefs_consistency();
 void test_spherical_harmonics_partials_consistency();
-void test_shape_uq();
+void test_sbgat_shape_uq();
 
 
 void test_radar_obs();

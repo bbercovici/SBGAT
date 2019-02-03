@@ -135,12 +135,22 @@ public:
 
   /**
   * Compute and return the dimensionless inertia tensor
-  * at the barycenter, evaluated in the frame of origin assuming a constant density distribution
+  * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
   arma::mat::fixed<3,3> GetInertiaTensor(){
     this -> Update(); return this -> inertia_tensor;
   }
+
+  /**
+  * Compute and return the dimensionless inertia tensor
+  * evaluated in the frame of origin assuming a constant density distribution
+  * across the shape. The normalization applied to the inertia tensor is I_norm = I / (rho) where rho is the density
+  */
+  arma::mat::fixed<3,3> GetInertiaTensorUnitDensity(){
+    this -> Update(); return this -> Volume * this -> r_avg * this -> r_avg * this -> inertia_tensor;
+  }
+
 
   /**
   * Compute and return the principal axes of the inertia tensor
