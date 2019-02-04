@@ -116,24 +116,6 @@ public:
 
 
 
-
-   /**
-  Return covariance in non-normalized inertia principal directions
-  @return covariance in non-normalized inertia principal directions
-  */
-  const arma::mat::fixed<9,9> & GetEvectorsPrincipalAxesCovariance() {return this -> Evectors_covariance; }
-
-  
-   /**
-  Return covariance in unit-norm inertia principal directions
-  @return covariance in inertia principal directions
-  */
-  const arma::mat::fixed<9,9> & GetEigenvectorPrincipalAxesCovariance() {return this -> eigenvectors_covariance; }
-
-
-
-
-
 protected:
   SBGATShapeUncertainty();
   ~SBGATShapeUncertainty() override;
@@ -145,8 +127,6 @@ protected:
   arma::mat::fixed<6,6> inertia_tensor_parametrization_covariance;
   arma::mat::fixed<3,3> principal_dimensions_covariance;
   arma::mat::fixed<4,4> principal_moments_covariance;
-  arma::mat::fixed<9,9> Evectors_covariance;
-  arma::mat::fixed<9,9> eigenvectors_covariance;
   arma::mat::fixed<3,3> mrp_covariance;
 
 

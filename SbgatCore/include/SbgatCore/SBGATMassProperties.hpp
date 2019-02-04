@@ -141,7 +141,7 @@ public:
   arma::mat::fixed<3,3> GetInertiaTensor(){
     this -> Update(); return this -> inertia_tensor;
   }
-
+  
   /**
   * Compute and return the dimensionless inertia tensor
   * evaluated in the frame of origin assuming a constant density distribution
@@ -153,7 +153,10 @@ public:
 
 
   /**
-  * Compute and return the principal axes of the inertia tensor
+  * Compute and return the dcm orienting the principal axes of the small body relative to 
+  the body coordinates frame. That is, denoting P the principal frame and B the frame in which the
+  coordinates of the body are currently expressed, this method returns [PB]
+  @return [PB] direction cosine matrix
   */
   arma::mat::fixed<3,3> GetPrincipalAxes(){
     this -> Update(); return this -> principal_axes;

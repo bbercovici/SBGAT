@@ -396,192 +396,195 @@ int SBGATMassProperties::RequestData(
     // The principal axes are extracted
     arma::vec eig_val;
     arma::mat eig_vec;
+
     arma::eig_sym(eig_val,eig_vec,this -> inertia_tensor);
 
-    // At this stage, eig_vec is (+/- v0,+/- v1 , +/- v2) where |v0| = |v1| = |v2| = 1
-    // with their corresponding values sorted in ascending order
-    // But it is not guaranteed that det(eig_vec) = +1
-    // The 8 total configurations of the principal axes matrix M that exist are
-    // M1: (v0,v1,v2) == eig_vec
-    // M2: (v0,v1,-v2)
-    // M3: (v0,-v1,v2)
-    // M4: (v0,-v1,-v2)
-    // M5: (-v0,v1,v2)
-    // M6: (-v0,v1,-v2)
-    // M7: (-v0,-v1,v2)
-    // M8: (-v0,-v1,-v2)
-
-    // Note that M1,M4,M6,M7 and M2,M3,M5,M8 have the same determinant respectively
-
     if (arma::det(eig_vec) < 0){
-      eig_vec = - eig_vec;
+      eig_vec.col(2) *= -1;
     }
 
-    if(eig_vec(0,0) > 0 && eig_vec(1,1) < 0){
+    arma::mat::fixed<3,3> PB_1 = eig_vec.t();
+    arma::mat::fixed<3,3> PB_2,PB_3,PB_4;
 
-      eig_vec.col(1) = - eig_vec.col(1);
-      eig_vec.col(2) = - eig_vec.col(2);
-    }
+    PB_2.row(0) = -PB_1.row(0);
+    PB_2.row(1) = -PB_1.row(1);
+    PB_2.row(2) = PB_1.row(2);
 
-    else if(eig_vec(0,0) < 0 && eig_vec(2,2) < 0){
+    PB_3.row(0) = PB_1.row(0);
+    PB_3.row(1) = -PB_1.row(1);
+    PB_3.row(2) = -PB_1.row(2);
 
-      eig_vec.col(0) = - eig_vec.col(0);
-      eig_vec.col(2) = - eig_vec.col(2);
-    }
+    PB_4.row(0) = -PB_1.row(0);
+    PB_4.row(1) = PB_1.row(1);
+    PB_4.row(2) = -PB_1.row(2);
 
-    else if(eig_vec(0,0) < 0 && eig_vec(1,1) < 0){
+    arma::vec::fixed<4> mrp_norms;
 
-      eig_vec.col(0) = - eig_vec.col(0);
-      eig_vec.col(1) = - eig_vec.col(1);
-    }
+    mrp_norms(0) = arma::norm(RBK::dcm_to_mrp(PB_1));
+    mrp_norms(1) = arma::norm(RBK::dcm_to_mrp(PB_2));
+    mrp_norms(2) = arma::norm(RBK::dcm_to_mrp(PB_3));
+    mrp_norms(3) = arma::norm(RBK::dcm_to_mrp(PB_4));
 
-    this -> principal_axes = eig_vec;
+  // The stable principal axes are extracted by finding the dcm that yields the 
+  // smallest-norm MRP
 
+    if (mrp_norms.index_min() == 0){
+     this -> principal_axes = PB_1;
+   }
+   else if (mrp_norms.index_min() == 1){
+     this -> principal_axes = PB_2;
+   }
+   else if (mrp_norms.index_min() == 2){
+     this -> principal_axes = PB_3;
+   }
+   else{
+     this -> principal_axes = PB_4;
+   }
 
     // Closeness of topology given sum of oriented surface
-    if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
-      this -> IsClosed = true;
-    }
-    else{
-      this -> IsClosed = false;
-    }
-
-    return 1;
+   if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
+    this -> IsClosed = true;
+  }
+  else{
+    this -> IsClosed = false;
   }
 
+  return 1;
+}
 
 
-  void SBGATMassProperties::PrintHeader(ostream& os, vtkIndent indent) {
 
-  }
-  void SBGATMassProperties::PrintTrailer(ostream& os, vtkIndent indent) {
+void SBGATMassProperties::PrintHeader(ostream& os, vtkIndent indent) {
 
-  }
+}
+void SBGATMassProperties::PrintTrailer(ostream& os, vtkIndent indent) {
+
+}
 
 
 //----------------------------------------------------------------------------
-  void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
+void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
 
-    vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
-    if (!input){
-      return;
-    }
-    os << "\tVolumeX: " << this->GetVolumeX () << "\n";
-    os << "\tVolumeY: " << this->GetVolumeY () << "\n";
-    os << "\tVolumeZ: " << this->GetVolumeZ () << "\n";
-    os << "\tKx: " << this->GetKx () << "\n";
-    os << "\tKy: " << this->GetKy () << "\n";
-    os << "\tKz: " << this->GetKz () << "\n";
-    os << "\tVolume:  " << this->GetVolume  () << "\n";
+  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
+  if (!input){
+    return;
+  }
+  os << "\tVolumeX: " << this->GetVolumeX () << "\n";
+  os << "\tVolumeY: " << this->GetVolumeY () << "\n";
+  os << "\tVolumeZ: " << this->GetVolumeZ () << "\n";
+  os << "\tKx: " << this->GetKx () << "\n";
+  os << "\tKy: " << this->GetKy () << "\n";
+  os << "\tKz: " << this->GetKz () << "\n";
+  os << "\tVolume:  " << this->GetVolume  () << "\n";
   //os << indent << "Volume Projected:  " << this->GetVolumeProjected  () << "\n";
   //os << indent << "Volume Error:  " <<
   //  fabs(this->GetVolume() - this->GetVolumeProjected())   << "\n";
-    os << "\tSurface Area: " << this->GetSurfaceArea () << "\n";
-    os << "\tMin Cell Area: " << this->GetMinCellArea () << "\n";
-    os << "\tMax Cell Area: " << this->GetMaxCellArea () << "\n";
-    os << "\tNormalized Shape Index: "
-    << this->GetNormalizedShapeIndex () << "\n";
+  os << "\tSurface Area: " << this->GetSurfaceArea () << "\n";
+  os << "\tMin Cell Area: " << this->GetMinCellArea () << "\n";
+  os << "\tMax Cell Area: " << this->GetMaxCellArea () << "\n";
+  os << "\tNormalized Shape Index: "
+  << this->GetNormalizedShapeIndex () << "\n";
+}
+
+
+
+void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters){
+
+  vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+  mass_properties -> SetInputData(shape);
+  mass_properties -> Update();
+
+  mass_properties -> SaveMassProperties(path,is_in_meters);
+
+}
+
+void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters) const {
+
+  nlohmann::json mass_properties_json;
+  std::string length_unit,surface_unit,volume_unit;
+  
+  if(is_in_meters){
+
+    length_unit = "m";
+    surface_unit = "m^2";
+    volume_unit = "m^3";
+  }
+  else{
+    length_unit = "km";
+    surface_unit = "km^2";
+    volume_unit = "km^3";
   }
 
+  nlohmann::json com_json = {
+    {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},
+    {"unit",length_unit}
+  };
+
+  nlohmann::json volume_json = {
+    {"value", this -> Volume},
+    {"unit",volume_unit}
+  };
 
 
-  void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters){
+  nlohmann::json surface_area_json = {
+    {"value", this -> SurfaceArea},
+    {"unit",surface_unit}
+  };
 
-    vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-    mass_properties -> SetInputData(shape);
-    mass_properties -> Update();
+  nlohmann::json inertia_tensor_json = {
+    {"value", {
+      {this -> inertia_tensor(0,0),this -> inertia_tensor(0,1),this -> inertia_tensor(0,2)},
+      {this -> inertia_tensor(1,0),this -> inertia_tensor(1,1),this -> inertia_tensor(1,2)},
+      {this -> inertia_tensor(2,0),this -> inertia_tensor(2,1),this -> inertia_tensor(2,2)}}
+    },
+    {"unit","none"}
+  };
 
-    mass_properties -> SaveMassProperties(path,is_in_meters);
+  nlohmann::json projected_volume_components_json = {
+    {"value",{this->VolumeX,this->VolumeY,this->VolumeZ}},
+    {"unit",volume_unit}
+  };
 
-  }
+  nlohmann::json projection_coefs_json = {
+    {"value",{this->Kx,this->Ky,this->Kz}},
+    {"unit","none"}
+  };
 
-  void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters) const {
+  nlohmann::json volume_projected_json = {
+    {"value",this->VolumeProjected},
+    {"unit",volume_unit}
+  };
 
-    nlohmann::json mass_properties_json;
-    std::string length_unit,surface_unit,volume_unit;
-    
-    if(is_in_meters){
-      
-      length_unit = "m";
-      surface_unit = "m^2";
-      volume_unit = "m^3";
-    }
-    else{
-      length_unit = "km";
-      surface_unit = "km^2";
-      volume_unit = "km^3";
-    }
+  nlohmann::json normalized_shape_index_json = {
+    {"value",this->NormalizedShapeIndex},
+    {"unit","none"}
+  };
 
-    nlohmann::json com_json = {
-      {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},
-      {"unit",length_unit}
-    };
+  nlohmann::json is_open_json = {
+    {"value",this -> IsClosed ? "True" : "False"}
+  };
 
-    nlohmann::json volume_json = {
-      {"value", this -> Volume},
-      {"unit",volume_unit}
-    };
+  nlohmann::json average_radius_json = {
+    {"value",this -> r_avg},
+    {"unit",length_unit}
+  };
 
-
-    nlohmann::json surface_area_json = {
-      {"value", this -> SurfaceArea},
-      {"unit",surface_unit}
-    };
-
-    nlohmann::json inertia_tensor_json = {
-      {"value", {
-        {this -> inertia_tensor(0,0),this -> inertia_tensor(0,1),this -> inertia_tensor(0,2)},
-        {this -> inertia_tensor(1,0),this -> inertia_tensor(1,1),this -> inertia_tensor(1,2)},
-        {this -> inertia_tensor(2,0),this -> inertia_tensor(2,1),this -> inertia_tensor(2,2)}}
-      },
-      {"unit","none"}
-    };
-
-    nlohmann::json projected_volume_components_json = {
-      {"value",{this->VolumeX,this->VolumeY,this->VolumeZ}},
-      {"unit",volume_unit}
-    };
-
-    nlohmann::json projection_coefs_json = {
-      {"value",{this->Kx,this->Ky,this->Kz}},
-      {"unit","none"}
-    };
-
-    nlohmann::json volume_projected_json = {
-      {"value",this->VolumeProjected},
-      {"unit",volume_unit}
-    };
-
-    nlohmann::json normalized_shape_index_json = {
-      {"value",this->NormalizedShapeIndex},
-      {"unit","none"}
-    };
-
-    nlohmann::json is_open_json = {
-      {"value",this -> IsClosed ? "True" : "False"}
-    };
-
-    nlohmann::json average_radius_json = {
-      {"value",this -> r_avg},
-      {"unit",length_unit}
-    };
-
-    mass_properties_json["VOLUME"] = volume_json;
-    mass_properties_json["SURFACE_AREA"] = surface_area_json;
-    mass_properties_json["COM"] = com_json;
-    mass_properties_json["VOLUME_PROJECTED"] = volume_projected_json;
-    mass_properties_json["PROJECTED_VOLUME_VX_VY_VZ"] = projected_volume_components_json;
-    mass_properties_json["PROJECTED_VOLUME_COEFS_KX_KY_KZ"] = projection_coefs_json;
-    mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
-    mass_properties_json["IS_CLOSED"] = is_open_json;
-    mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = inertia_tensor_json;
-    mass_properties_json["AVERAGE_RADIUS"] = average_radius_json;
+  mass_properties_json["VOLUME"] = volume_json;
+  mass_properties_json["SURFACE_AREA"] = surface_area_json;
+  mass_properties_json["COM"] = com_json;
+  mass_properties_json["VOLUME_PROJECTED"] = volume_projected_json;
+  mass_properties_json["PROJECTED_VOLUME_VX_VY_VZ"] = projected_volume_components_json;
+  mass_properties_json["PROJECTED_VOLUME_COEFS_KX_KY_KZ"] = projection_coefs_json;
+  mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
+  mass_properties_json["IS_CLOSED"] = is_open_json;
+  mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = inertia_tensor_json;
+  mass_properties_json["AVERAGE_RADIUS"] = average_radius_json;
 
 
-    std::ofstream o(path);
-    o << std::setw(4) << mass_properties_json << std::endl;
+  std::ofstream o(path);
+  o << std::setw(4) << mass_properties_json << std::endl;
 
 
 
-  }
+}
 

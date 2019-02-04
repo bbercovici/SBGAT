@@ -76,12 +76,19 @@ to apply the update (if any).
 
 ### [SBGAT 2.02.1](https://github.com/bbercovici/SBGAT/releases/tag/2.02.1)
 
+#### New
+- Second-moments about the mean in the volume, center-of-mass, unit-densiy inertia tensor, principal moments, principal dimensions and orientation of the principal axes can now be evaluated through the static methods of `SBGATShapeUncertainty`
+- `SBGATShapeUncertainty` provides two methods to evaluate the statistical moments: a monte-carlo method `ComputeInertiaStatisticsMC`, and another method `ComputeInertiaStatistics` leveraging a linearized uncertainty model as proposed by Bercovici and McMahon (`Inertia statistics of an uncertain small body shape, ICARUS 2019 (In Review`). Both methods take the same argument (correleation length `l` and the standard deviation governing the error in the control point coordinates, directed along the average normal at these points). Both these methods assume that the shape error can be described as normally distributed and zero-mean.
+- Added a new function in `Tests` to illustrate the convergence of the Monte-Carlo shape uncertainty sampling to the analytical prediction
 
 #### Improvements
 - `SBGATMassProperties::SaveMassProperties` is now saving the average radius (`r_avg = cbrt(3/4 *Volume/pi)`) to the JSON file
+- `SBGATMassproperties::GetPrincipalAxes` could return 4 dcms, all representative of the same inertia ellipsoid. To enforce stability in the principal axes extractions, `SBGATMassproperties::GetPrincipalAxes` now returns the dcm that has the smallest-norm corresponding MRP.  
+- `SBGAT` will try to link against `OpenMP` by default. This behaviour can now be disabled by passing the `--without-libomp` flag to Homebrew or by passing the `-DNO_OMP:BOOL=TRUE` flag to CMake
 
 ### Bug fixes:
 - Fixed potential bug in `SBGATPolyhedronGravityModel` involving a parallel computing block where a variable with no viable reduction clause was being operated on
+- `SBGATMassproperties::GetPrincipalAxes` is now returning the DCM `[PB]` converting from the body coordinate frame to the body principal frame. It was previously returning `[BP]`
 
 ### [SBGAT 2.01.2](https://github.com/bbercovici/SBGAT/releases/tag/2.01.2)
 

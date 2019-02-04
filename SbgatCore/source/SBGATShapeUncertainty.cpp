@@ -170,8 +170,6 @@ void SBGATShapeUncertainty::ComputeInertiaStatistics(double l,double sigma){
   this -> inertia_tensor_parametrization_covariance = this -> shape_model_bezier -> get_inertia_cov();
   this -> principal_dimensions_covariance = this -> shape_model_bezier -> get_P_dims();
   this -> principal_moments_covariance = this -> shape_model_bezier -> get_P_moments();
-  this -> Evectors_covariance = this -> shape_model_bezier -> get_P_Evectors();
-  this -> eigenvectors_covariance = this -> shape_model_bezier -> get_P_eigenvectors();
   this -> mrp_covariance = this -> shape_model_bezier ->  get_mrp_cov();
 
 }
@@ -183,8 +181,7 @@ void SBGATShapeUncertainty::ComputeInertiaStatisticsMC(int N_samples,double l,do
   this -> shape_model_bezier -> compute_shape_covariance_sqrt();
 
   arma::vec results_volume;
-  arma::mat results_cm,results_inertia,results_moments,results_mrp,results_lambda_I,results_eigenvectors,results_Evectors,results_Y,results_MI,
-  results_dims;
+  arma::mat results_cm,results_inertia,results_moments,results_mrp,results_dims;
 
   this -> shape_model_bezier -> run_monte_carlo(N_samples,
     results_volume,
@@ -192,35 +189,21 @@ void SBGATShapeUncertainty::ComputeInertiaStatisticsMC(int N_samples,double l,do
     results_inertia,
     results_moments,
     results_mrp,
-    results_lambda_I,
-    results_eigenvectors,
-    results_Evectors,
-    results_Y,
-    results_MI,
     results_dims,
     output_dir);
+
 
   arma::vec results_cm_mean = arma::mean(results_cm,1);
   arma::vec results_inertia_mean = arma::mean(results_inertia,1);
   arma::vec results_moments_mean = arma::mean(results_moments,1);
   arma::vec results_dims_mean = arma::mean(results_dims,1);
-  arma::vec results_Evectors_mean = arma::mean(results_Evectors,1);
-  arma::vec results_eigenvectors_mean = arma::mean(results_eigenvectors,1);
   arma::vec results_mrp_mean = arma::mean(results_mrp,1);
-
-
-
-
 
   arma::mat cov_cm_mc = arma::zeros(3,3);
   arma::mat cov_inertia_mc = arma::zeros(6,6);
   arma::mat cov_moments_mc = arma::zeros(4,4);
   arma::mat cov_dims_mc = arma::zeros<arma::mat>(3,3);
-  arma::mat cov_Evectors_mc = arma::zeros<arma::mat>(9,9);
-  arma::mat cov_eigenvectors_mc = arma::zeros<arma::mat>(9,9);
   arma::mat cov_mrp_mc = arma::zeros(3,3);
-
-
   
   for (unsigned int i = 0; i < results_cm.n_cols; ++i){
 
@@ -228,8 +211,6 @@ void SBGATShapeUncertainty::ComputeInertiaStatisticsMC(int N_samples,double l,do
     cov_inertia_mc +=  (results_inertia.col(i) - results_inertia_mean) * (results_inertia.col(i) - results_inertia_mean).t();
     cov_moments_mc +=  (results_moments.col(i) - results_moments_mean) * (results_moments.col(i) - results_moments_mean).t();
     cov_dims_mc +=  (results_dims.col(i) - results_dims_mean) * (results_dims.col(i) - results_dims_mean).t();
-    cov_Evectors_mc +=  (results_Evectors.col(i) - results_Evectors_mean) * (results_Evectors.col(i) - results_Evectors_mean).t();
-    cov_eigenvectors_mc +=  (results_eigenvectors.col(i) - results_eigenvectors_mean) * (results_eigenvectors.col(i) - results_eigenvectors_mean).t();
     cov_mrp_mc +=  (RBK::dcm_to_mrp(RBK::mrp_to_dcm(results_mrp.col(i))*RBK::mrp_to_dcm(results_mrp_mean).t())) * (RBK::dcm_to_mrp(RBK::mrp_to_dcm(results_mrp.col(i))*RBK::mrp_to_dcm(results_mrp_mean).t())).t();
 
   }
@@ -238,19 +219,13 @@ void SBGATShapeUncertainty::ComputeInertiaStatisticsMC(int N_samples,double l,do
   cov_inertia_mc *= 1./(results_inertia.n_cols-1);
   cov_moments_mc *= 1./(results_moments.n_cols-1);
   cov_dims_mc *= 1./(results_dims.n_cols-1);
-  cov_Evectors_mc *= 1./(results_Evectors.n_cols-1);
-  cov_eigenvectors_mc *= 1./(results_eigenvectors.n_cols-1);
   cov_mrp_mc *= 1./(results_mrp.n_cols-1);
-
 
   this -> volume_variance = std::pow(arma::stddev(results_volume,1),2);
   this -> center_of_mass_covariance = cov_cm_mc;
   this -> inertia_tensor_parametrization_covariance = cov_inertia_mc;
   this -> principal_dimensions_covariance = cov_dims_mc;
   this -> principal_moments_covariance = cov_moments_mc;
-
-  this -> Evectors_covariance = cov_Evectors_mc;
-  this -> eigenvectors_covariance = cov_eigenvectors_mc;
 
   this -> mrp_covariance = cov_mrp_mc;
 
