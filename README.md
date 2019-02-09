@@ -74,6 +74,14 @@ to apply the update (if any).
 
 ## Changelog
 
+
+### [SBGAT 2.02.2](https://github.com/bbercovici/SBGAT/releases/tag/2.02.2)
+
+
+
+### Bug fixes:
+- Fixed bug in SBGATGui that prevented proper alignment of the shape model with its principal axes
+
 ### [SBGAT 2.02.1](https://github.com/bbercovici/SBGAT/releases/tag/2.02.1)
 
 #### New
@@ -89,6 +97,8 @@ to apply the update (if any).
 ### Bug fixes:
 - Fixed potential bug in `SBGATPolyhedronGravityModel` involving a parallel computing block where a variable with no viable reduction clause was being operated on
 - `SBGATMassproperties::GetPrincipalAxes` is now returning the DCM `[PB]` converting from the body coordinate frame to the body principal frame. It was previously returning `[BP]`
+
+**Note that *ShapeUQLib* is now a dependency of SBGAT and should be installed prior to compiling the newest *SBGATCore* and *SBGATGui*. [Instructions are provided on the corresponding wiki page.](https://github.com/bbercovici/SBGAT/wiki/2:-Compiling-and-installing-SBGAT-dependencies#shapeuqlib)** 
 
 ### [SBGAT 2.01.2](https://github.com/bbercovici/SBGAT/releases/tag/2.01.2)
 

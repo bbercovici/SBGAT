@@ -33,6 +33,7 @@ SOFTWARE.
 #include <vtkPolyDataMapper.h>
 #include <vtkFloatArray.h>
 #include <vtkScalarBarActor.h>
+#include <vtkKdTreePointLocator.h>
 
 
 namespace SBGAT_GUI {
@@ -282,6 +283,18 @@ elements through a unique interface.
 		void set_colorbar_actor(vtkSmartPointer<vtkScalarBarActor> actor);
 
 
+	/**
+	Set kd tree 
+	*/
+		void set_tree(vtkSmartPointer<vtkKdTreePointLocator> tree);
+
+
+	/**
+	Set kd tree 
+	*/
+		vtkSmartPointer<vtkKdTreePointLocator> get_tree();
+
+
 	protected:
 
 		vtkSmartPointer<vtkPolyData>  polydata;
@@ -291,7 +304,7 @@ elements through a unique interface.
 		vtkSmartPointer<vtkLight> light;
 		vtkSmartPointer<vtkLightActor> light_actor;
 		vtkSmartPointer<vtkScalarBarActor> colorbar_actor;
-
+		vtkSmartPointer<vtkKdTreePointLocator> tree;
 
 		vtkSmartPointer<vtkFloatArray> slopes = nullptr;
 		vtkSmartPointer<vtkFloatArray> inertial_potentials = nullptr;

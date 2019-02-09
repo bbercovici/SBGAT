@@ -293,4 +293,13 @@ double ModelDataWrapper::get_scale_factor() const{
 	return this -> scale_factor;
 }
 
+void ModelDataWrapper::set_tree(vtkSmartPointer<vtkKdTreePointLocator> tree){
+	this -> tree = tree;
+}
+
+vtkSmartPointer<vtkKdTreePointLocator> ModelDataWrapper::get_tree(){
+	return this -> tree;
+}
+
+
 

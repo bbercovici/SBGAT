@@ -34,6 +34,9 @@ int main( int argc, char** argv ) {
 	QLocale::setDefault(QLocale::c());
 
 	SBGAT_GUI::Mainwindow window;
+	window.setWindowState(Qt::WindowMaximized);
+	// window.setWindowFlags(Qt::CustomizeWindowHint | Qt::FramelessWindowHint);
+	window.showFullScreen();
 
 	return app.exec();
 

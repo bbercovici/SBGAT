@@ -25,7 +25,7 @@ SOFTWARE.
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    CellPickInteractorStyle.hpp
+  Module:    PickInteractorStyle.hpp
 
   Derived class from VTK examples by Benjamin Bercovici  
 
@@ -38,8 +38,8 @@ SOFTWARE.
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#ifndef CELLPICKINTERACTOR_STYLE_HEADER
-#define CELLPICKINTERACTOR_STYLE_HEADER
+#ifndef PICKINTERACTOR_STYLE_HEADER
+#define PICKINTERACTOR_STYLE_HEADER
 
 #include <vtkPolyData.h>
 #include <vtkDataSetMapper.h>
@@ -51,11 +51,13 @@ namespace SBGAT_GUI {
   class Mainwindow;
 
 // Catch mouse events
-  class CellPickInteractorStyle : public vtkInteractorStyleTrackballCamera {
+  class PickInteractorStyle : public vtkInteractorStyleTrackballCamera {
   public:
-    static CellPickInteractorStyle* New();
+    static PickInteractorStyle* New();
 
-    CellPickInteractorStyle();
+    vtkTypeMacro(PickInteractorStyle,vtkInteractorStyleTrackballCamera);
+
+    PickInteractorStyle();
     void SetMainwindow(Mainwindow * mainwindow);
     void Clear();
 

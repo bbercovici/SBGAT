@@ -49,16 +49,19 @@ SOFTWARE.
 #include <vtkLightCollection.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBJReader.h>
+#include <vtkPointData.h>
 
 #include <vtkCenterOfMass.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkGenericRenderWindowInteractor.h>
 #include <vtkActor2DCollection.h>
 #include <vtkCellData.h>
 #include <vtkTextProperty.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkProperty.h>
-
+#include <vtkIdFilter.h>
+#include <vtkDataSetSurfaceFilter.h>
 #include <SBGATMassProperties.hpp>
 #include <SBGATObjWriter.hpp>
 
@@ -71,7 +74,8 @@ SOFTWARE.
 #include "LCWindow.hpp"
 #include "SurfacePGMWindow.hpp"
 #include "SelectMapperWindow.hpp"
-#include "CellPickInteractorStyle.hpp"
+
+
 
 
 using namespace SBGAT_GUI;
@@ -89,7 +93,7 @@ Mainwindow::Mainwindow() {
 }
 
 void Mainwindow::setupUi() {
-    this -> resize(1024, 768);
+    // this -> resize(1024, 768);
 
     // The widget are created
     this -> right_dockwidget = new QDockWidget(this);
@@ -97,7 +101,7 @@ void Mainwindow::setupUi() {
     this -> status_bar = new QStatusBar(this);
     this -> log_console = new QPlainTextEdit(this);
     this -> log_console -> setReadOnly(true);
-    this -> prop_table = new QTableWidget(0, 4, this);
+    this -> prop_table = new QTableWidget(0, 5, this);
 
 
     // The status bar is populated
@@ -105,9 +109,9 @@ void Mainwindow::setupUi() {
     this -> statusBar() -> showMessage("Ready");
 
     // Headers are added to the shape table
-    QStringList header_lists = {"Name", "State" , "Show", "Erase"};
+    QStringList header_lists = {"Name", "State" , "Visibility", "Selection",""};
     this -> prop_table -> setHorizontalHeaderLabels(header_lists);
-    this -> prop_table -> horizontalHeader()->setStretchLastSection(true);
+    this -> prop_table -> horizontalHeader() -> setStretchLastSection(true);
     this -> prop_table -> setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
     // Selecting an item in the table highlights the entire row
@@ -116,7 +120,6 @@ void Mainwindow::setupUi() {
 
     // Prevents edition of labels
     this -> prop_table -> setEditTriggers(QAbstractItemView::NoEditTriggers);
-
 
     // Central window
     this -> setCentralWidget(this -> qvtkWidget);
@@ -137,7 +140,6 @@ void Mainwindow::setupUi() {
     this -> qvtkWidget -> update();
 
 
-    this -> qvtkWidget -> GetRenderWindow() -> Render();
 
     // The lateral dockwidgets are initialized
     // This is delayed until after the renderer is updated so
@@ -146,6 +148,8 @@ void Mainwindow::setupUi() {
     this -> show();
 
     this -> init_right_dockwidget();
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
+
 
 
 
@@ -164,15 +168,16 @@ void Mainwindow::init_rendering_window(){
     this -> renderer -> SetBackground (0.5, 0.5, 1);
 
 
-    vtkSmartPointer<CellPickInteractorStyle> style = vtkSmartPointer<CellPickInteractorStyle>::New();
+
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+    vtkSmartPointer<vtkRenderWindowInteractor>::New();
     
-    style -> SetDefaultRenderer(this -> renderer);
-    style -> SetMainwindow(this);
 
-    render_window -> GetInteractor() -> SetInteractorStyle(style);
+    renderWindowInteractor -> SetRenderWindow(this -> qvtkWidget -> GetRenderWindow());
+    
 
-    vtkSmartPointer<vtkAxesActor> axes =
-    vtkSmartPointer<vtkAxesActor>::New();
+
+    vtkSmartPointer<vtkAxesActor> axes = vtkSmartPointer<vtkAxesActor>::New();
 
     this -> orientation_widget =
     vtkSmartPointer<vtkOrientationMarkerWidget>::New();
@@ -181,6 +186,17 @@ void Mainwindow::init_rendering_window(){
     orientation_widget -> SetViewport( 0.0, 0.0, 0.2, 0.2 );
     orientation_widget -> SetEnabled( 1 );
     orientation_widget -> InteractiveOff();
+
+
+    this -> cell_picker = vtkSmartPointer<PickInteractorStyle>::New();
+    this -> cell_picker -> SetDefaultRenderer(this -> renderer);
+    this -> cell_picker -> SetCurrentRenderer(this -> renderer);
+    this -> cell_picker -> SetMainwindow(this);
+
+
+
+    render_window -> GetInteractor() -> SetInteractorStyle(this -> cell_picker);
+
 
 }
 
@@ -193,17 +209,77 @@ void Mainwindow::init_right_dockwidget(){
 
     QWidget * right_dockwidget_container = new QWidget(this);
     QVBoxLayout * right_dockwidget_container_layout = new QVBoxLayout();
+    QWidget * selection_widget = new QWidget(this);
+    QHBoxLayout * selection_widget_layout = new QHBoxLayout(selection_widget);
+
+    this -> select_facets_button = new QPushButton(selection_widget);
+    this -> select_points_button = new QPushButton(selection_widget);
+
+    selection_widget_layout -> addWidget(select_facets_button);
+    selection_widget_layout -> addWidget(select_points_button);
+
+    select_facets_button -> setText("Select facets");
+    select_points_button -> setText("Select points");
 
     right_dockwidget_container -> setLayout(right_dockwidget_container_layout);
+    
     right_dockwidget_container_layout -> addWidget( this -> prop_table );
+    right_dockwidget_container_layout -> addWidget( selection_widget );
     right_dockwidget_container_layout -> addWidget( this -> log_console );
 
     this -> right_dockwidget -> setWidget(right_dockwidget_container);
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> right_dockwidget);
 
+    connect(this -> select_facets_button,SIGNAL(clicked(bool)),this, SLOT(select_facets()));
+    connect(this -> select_points_button,SIGNAL(clicked(bool)),this, SLOT(select_points()));
 
-
+    this -> select_points_button -> setEnabled(1);
+    this -> select_facets_button -> setEnabled(0);
+    
 }
+
+void Mainwindow::select_facets(){
+
+   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+
+   this -> select_facets_button -> setEnabled(0);
+   this -> select_points_button -> setEnabled(1);
+
+   std::string opening_line = "Switching to facet selection\n";
+
+   std::string closing_line(opening_line.length() - 1, '#');
+   closing_line.append("\n");
+
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+
+
+   this -> facet_selection_mode = true;
+
+};
+
+void Mainwindow::select_points(){
+
+    PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+    PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+
+    this -> select_facets_button -> setEnabled(1);
+    this -> select_points_button -> setEnabled(0);
+
+    std::string opening_line = "Switching to vertex selection\n";
+
+    std::string closing_line(opening_line.length() - 1, '#');
+    closing_line.append("\n");
+
+    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+    this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+    this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+    this -> facet_selection_mode = false;
+
+};
+
 
 
 void Mainwindow::set_action_status(bool enabled, QAction * action) {
@@ -425,7 +501,6 @@ void Mainwindow::save_shape(){
 
     default_name = name;
     
-
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
@@ -453,102 +528,110 @@ void Mainwindow::add_shape() {
 
         QStringList items_length_unit;
         items_length_unit << tr("Meters") << tr("Kilometers");
-
         bool ok;
         QString length_unit = QInputDialog::getItem(this, tr("Length Unit Of Loaded Shape Model:"),tr("Shape Units:"), items_length_unit, 0, false, &ok);
-
+        
         if (!ok){
             return;
         }
 
-        QMessageBox::StandardButton enforce_centering_aligment = QMessageBox::question(this, "Shape Alignment", "Force centering on barycenter and principal axes alignment?",
-            QMessageBox::No|QMessageBox::Yes);
+        QMessageBox::StandardButton enforce_centering_aligment = QMessageBox::question(this, "Shape Alignment", "Force centering on barycenter and principal axes alignment?", QMessageBox::No|QMessageBox::Yes);
+        double scaling_factor;
+        length_unit == "Meters" ?  scaling_factor = 1 : scaling_factor = 1000;
 
+        std::stringstream ss;
+        ss.str(std::string());
 
+        std::string opening_line = "### Loading shape ###";
+        this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+        this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape from ") + fileName);
 
-        if (ok) {
+        std::chrono::time_point<std::chrono::system_clock> start, end;
 
-            double scaling_factor;
-            
-            if (length_unit == "Meters"){
-                scaling_factor = 1;
-            }
-
-            else {
-               scaling_factor = 1000;
-           }
-
-           std::stringstream ss;
-           ss.str(std::string());
-
-           std::string opening_line = "### Loading shape ###";
-           this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-           this -> log_console -> appendPlainText(QString::fromStdString("- Loading shape from ") + fileName);
-
-           std::chrono::time_point<std::chrono::system_clock> start, end;
-
-           start = std::chrono::system_clock::now();
+        start = std::chrono::system_clock::now();
 
             // The name of the shape model is extracted from the path
-           int dot_index = fileName.lastIndexOf(".");
-           int slash_index = fileName.lastIndexOf("/");
-           std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
-           std::string basic_name = name;
+        int dot_index = fileName.lastIndexOf(".");
+        int slash_index = fileName.lastIndexOf("/");
+        std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);
+        std::string basic_name = name;
 
             // A new ModelDataWrapper is created and stored under the name of the shape model
-           std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
-
-            // The camera is moved to be adjusted to the new shape
-           this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 1.5 * scaling_factor);
+        std::shared_ptr<ModelDataWrapper> model_data = std::make_shared<ModelDataWrapper>();
 
             // Reading
-           vtkNew<vtkOBJReader> reader;
-           reader -> SetFileName(fileName.toStdString().c_str());
-           reader -> Update(); 
+        vtkNew<vtkOBJReader> reader;
+        reader -> SetFileName(fileName.toStdString().c_str());
+        reader -> Update(); 
 
             // Scaling
-           vtkSmartPointer<vtkTransform> transform =
-           vtkSmartPointer<vtkTransform>::New();
-           transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
+        vtkSmartPointer<vtkTransform> transform =vtkSmartPointer<vtkTransform>::New();
+        transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
 
-           vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
-           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-           transformFilter->SetInputConnection(reader -> GetOutputPort());
-           transformFilter->SetTransform(transform);
-           transformFilter -> Update();
+        vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+        transformFilter->SetInputConnection(reader -> GetOutputPort());
+        transformFilter->SetTransform(transform);
+        transformFilter -> Update();
+
+
+
+        vtkSmartPointer<vtkIdFilter> idFilter =
+        vtkSmartPointer<vtkIdFilter>::New();
+        idFilter -> SetInputConnection(transformFilter->GetOutputPort());
+        idFilter -> SetIdsArrayName("OriginalIds");
+        idFilter -> Update();
+
+        vtkSmartPointer<vtkDataSetSurfaceFilter> surfaceFilter = vtkSmartPointer<vtkDataSetSurfaceFilter>::New();
+        surfaceFilter -> SetInputConnection(idFilter -> GetOutputPort());
+        surfaceFilter -> Update();
 
             // Create a PolyData
-           vtkSmartPointer<vtkPolyData> polygonPolyData = transformFilter -> GetOutput();
+        vtkSmartPointer<vtkPolyData> polygonPolyData = surfaceFilter -> GetOutput();
+
+
+            // The camera is moved to be adjusted to the new shape
+        vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
+        vtkSmartPointer<SBGATMassProperties>::New();
+
+        center_of_mass_filter -> SetInputData(polygonPolyData);
+        center_of_mass_filter -> Update();
+        
+        this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 10 * std::cbrt(3./4. / arma::datum::pi * center_of_mass_filter -> GetVolume()) );
 
             // Create a mapper and actor
-           vtkSmartPointer<vtkPolyDataMapper> mapper =
-           vtkSmartPointer<vtkPolyDataMapper>::New();
+        vtkSmartPointer<vtkPolyDataMapper> mapper =
+        vtkSmartPointer<vtkPolyDataMapper>::New();
 
-           mapper -> SetInputConnection(transformFilter -> GetOutputPort());
-           mapper -> ScalarVisibilityOff();
+        mapper -> SetInputData(polygonPolyData);
 
-           vtkSmartPointer<vtkActor> actor =
-           vtkSmartPointer<vtkActor>::New();
-           actor -> SetMapper(mapper);
+        mapper -> ScalarVisibilityOff();
+
+        vtkSmartPointer<vtkActor> actor =vtkSmartPointer<vtkActor>::New();
+        actor -> SetMapper(mapper);
 
             // Visualize
-           this -> renderer -> AddActor(actor);
+        this -> renderer -> AddActor(actor);
 
-            // Render
-           this -> qvtkWidget -> GetRenderWindow() -> Render();
 
-             // Store
-           model_data -> set_polydata(polygonPolyData);
-           model_data -> set_actor(actor);
-           model_data -> set_mapper(mapper);
-           model_data -> set_scale_factor(scaling_factor);
+        // Create the tree
+        vtkSmartPointer<vtkKdTreePointLocator> tree =  vtkSmartPointer<vtkKdTreePointLocator>::New();
+        tree -> SetDataSet(polygonPolyData);
+        tree -> BuildLocator();
+
+        // Store
+        model_data -> set_polydata(polygonPolyData);
+        model_data -> set_actor(actor);
+        model_data -> set_mapper(mapper);
+        model_data -> set_scale_factor(scaling_factor);
+        model_data -> set_tree(tree);
+
 
 
             // The ModelDataWrapper pointer is stored. 
             // If the name is not already taken, nothing special
-           unsigned int count = this -> wrapped_shape_data.count(name);
+        unsigned int count = this -> wrapped_shape_data.count(name);
 
-           if(count == 0){
+        if(count == 0){
             this -> wrapped_shape_data[name] = model_data;
         }
         else{
@@ -560,6 +643,7 @@ void Mainwindow::add_shape() {
                 name = basic_name + suffix;
                 ++count;
             }
+
             this -> wrapped_shape_data[name] = model_data;
         }
 
@@ -571,30 +655,31 @@ void Mainwindow::add_shape() {
         this -> add_prop_to_table_widget(name);
 
 
-        
+
             // The GUI actions are updated
         this -> update_actions_availability();
         this -> update_GUI_changed_prop();
 
             // The log console displays the name and content of the loaded shape model
-        this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")
-           + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+        this -> log_console -> appendPlainText(QString::fromStdString("- Loading completed in ")+ QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
 
         std::string closing_line(opening_line.length() - 1, '#');
         closing_line.append("\n");
         this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
+    // The shape that was just added is already selected
         if (enforce_centering_aligment ==  QMessageBox::Yes){
-            // The shape that was just added is already selected
             this -> align_shape();
         }
 
-
-
-
     }
+
+    this -> qvtkWidget -> GetRenderWindow() -> Modified();
+
+    this -> qvtkWidget -> GetRenderWindow() -> Render();
+
 }
-}
+
 
 void Mainwindow::align_shape(){
 
@@ -610,7 +695,7 @@ void Mainwindow::align_shape(){
     double center[3];
     center_of_mass_filter -> GetCenterOfMass(center);
     arma::mat::fixed<3,3> principal_axes = center_of_mass_filter -> GetPrincipalAxes();
-    auto prv = RBK::dcm_to_prv(principal_axes);
+    auto prv = RBK::dcm_to_prv(principal_axes.t());
     double angle = 180 / arma::datum::pi * arma::norm(prv);
     arma::vec axis = arma::normalise(prv);
     
@@ -661,64 +746,71 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
     QTableWidgetItem * nameItem = new QTableWidgetItem(QString::fromStdString(name));
     nameItem -> setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
-
     this -> prop_table -> insertRow(this -> prop_table -> rowCount());
     this -> prop_table -> setItem(this -> prop_table -> rowCount() - 1, 0, nameItem);
 
+    QWidget * toggle_visibility_button_container = new QWidget(this -> prop_table -> cellWidget(this -> prop_table -> rowCount() - 1, 0));
+    QHBoxLayout* toggle_visibility_button_layout = new QHBoxLayout(toggle_visibility_button_container);
+    QPushButton * toggle_visibility_button = new QPushButton(toggle_visibility_button_container);
+    toggle_visibility_button -> setText("Hide");
+    toggle_visibility_button -> setProperty("name", QVariant(QString::fromStdString(name)));
+    toggle_visibility_button_layout -> addWidget(toggle_visibility_button);
+    toggle_visibility_button_layout -> setAlignment(Qt::AlignCenter);
+    toggle_visibility_button_layout -> setContentsMargins(0, 0, 0, 0);
+    toggle_visibility_button_container -> setLayout(toggle_visibility_button_layout);
+    this -> prop_table -> setCellWidget(this -> prop_table -> rowCount() - 1, 2, toggle_visibility_button_container);
 
-    QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
-    checkBoxItem -> setCheckState(Qt::Checked);
-    
-    this -> prop_table -> setItem(this -> prop_table -> rowCount() - 1, 2, checkBoxItem);
-
-    QWidget * button_container = new QWidget(this -> prop_table -> cellWidget(this -> prop_table -> rowCount() - 1, 0));
-    QHBoxLayout* layout = new QHBoxLayout(button_container);
-
-    QPushButton * erase_shape_button = new QPushButton(button_container);
-    erase_shape_button -> setText("X");
-    
+    QWidget * erase_button_container = new QWidget(this -> prop_table -> cellWidget(this -> prop_table -> rowCount() - 1, 0));
+    QHBoxLayout* layout = new QHBoxLayout(erase_button_container);
+    QPushButton * erase_shape_button = new QPushButton(erase_button_container);
+    erase_shape_button -> setText("Delete");
     erase_shape_button -> setProperty("name", QVariant(QString::fromStdString(name)));
     layout -> addWidget(erase_shape_button);
     layout -> setAlignment(Qt::AlignCenter);
     layout -> setContentsMargins(0, 0, 0, 0);
-    button_container -> setLayout(layout);
+    erase_button_container -> setLayout(layout);
+    this -> prop_table -> setCellWidget(this -> prop_table -> rowCount() - 1, 3, erase_button_container);
 
-    this -> prop_table -> setCellWidget(this -> prop_table -> rowCount() - 1, 3, button_container);
 
-    // The push button is connected to the proper slot
-    connect(erase_shape_button, SIGNAL(clicked(bool)), this, SLOT(remove_prop()));
 
     // The check box is connected to the proper slot
-    connect(this -> prop_table, SIGNAL(cellChanged(int, int)), this, SLOT(toggle_prop_visibility(int, int)));
+    connect(toggle_visibility_button, SIGNAL(clicked(bool)), this, SLOT(toggle_prop_visibility()));
+
+    // The check box is connected to the proper slot
+    connect(erase_shape_button, SIGNAL(clicked(bool)), this, SLOT(remove_prop()));
 
     // This prop is selected
     this -> prop_table -> selectRow(this -> prop_table -> rowCount() - 1);
 
-
 }
 
 
-void Mainwindow::toggle_prop_visibility(int row, int col) {
+void Mainwindow::toggle_prop_visibility() {
+
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+
     // Showing/hiding small body shape model actor
+     QPushButton * senderObj = qobject_cast<QPushButton*>(sender()); // This will give Sender object
 
-    if (this -> prop_table -> rowCount() > 0){
+  // This will give obejct name for above it will give "A", "B", "C"
+     QString state_string = senderObj -> text(); 
 
-        if (col == 2) {
+     if (state_string == "Hide") {
 
-            std::string name = this -> prop_table -> item(row, 0) -> text() .toStdString();
-            auto item = this -> prop_table -> item(row, col);
+        this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOff();
 
-            if (item -> checkState() == Qt::Checked) {
-                this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOn();
-            }
-
-            else {
-                this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOff();
-            }
-            
-
-        }
+        senderObj -> setText("Show"); 
     }
+
+    else {
+        this -> wrapped_shape_data[name] -> get_actor() -> VisibilityOn();
+
+        senderObj -> setText("Hide"); 
+
+    }
+
+    
 
     // The Render window is updated
     this -> qvtkWidget -> GetRenderWindow() -> Render();
@@ -738,11 +830,11 @@ void Mainwindow::remove_prop() {
     this -> renderer -> RemoveActor2D(this -> wrapped_shape_data[name] -> get_colorbar_actor());
 
     // This emulated left click will lead to the removal of any facet-highlighting actor that could be remaining
-    CellPickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+
 
     // The data wrapper is removed
     this -> wrapped_shape_data.erase(name);
-    
+
 
     // The corresponding row in the table widget is removed
     // This will trigger the corresponding signal/slot mechanism updating the GUI
@@ -938,6 +1030,10 @@ void Mainwindow::set_skybox_directory(std::string skybox_dir){
 
 vtkSmartPointer<vtkRenderer> Mainwindow::get_renderer() {
     return this -> renderer;
+}
+
+bool Mainwindow::get_selection_mode()const{
+    return this -> facet_selection_mode;
 }
 
 

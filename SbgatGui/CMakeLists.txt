@@ -120,9 +120,9 @@ add_executable(${EXE_NAME}
 	source/ShapePropertiesWidget.cpp
 	source/SurfacePGMWindow.cpp
 	source/SelectMapperWindow.cpp
-	source/CellPickInteractorStyle.cpp
+	source/PickInteractorStyle.cpp
 	include/RenderingPropertiesWindow.hpp
-	include/CellPickInteractorStyle.hpp
+	include/PickInteractorStyle.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
 	include/SettingsWindow.hpp

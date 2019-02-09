@@ -40,6 +40,7 @@ SOFTWARE.
 #include <QStatusBar>
 #include <QPlainTextEdit>
 #include <QTableWidget>
+#include <QPushButton>
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
@@ -47,7 +48,7 @@ SOFTWARE.
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPolyData.h>
 #include <QVTKOpenGLWidget.h>
-
+#include "PickInteractorStyle.hpp"
 
 #include <map>
 #include <chrono>
@@ -292,6 +293,15 @@ through the user interface layer brought by Qt.}
 		QAction * open_select_mapper_window_action;
 
 
+
+		/**
+		Returns true if facets are being selected, 
+		false otherwise
+		*/
+		bool get_selection_mode()const;
+
+
+
 		
 		signals:
 
@@ -307,12 +317,20 @@ through the user interface layer brought by Qt.}
 
 
 
+
 	// Slots
 		private slots:
-
 		
+		/**
+		When triggered, switches the interactor style to facet selection
+		*/
+		void select_facets();
 
-
+		/**
+		When triggered, switches the interactor style to point selection
+		*/
+		void select_points();
+		
 
 
 	/**
@@ -392,10 +410,8 @@ through the user interface layer brought by Qt.}
 
 		/**
 	Shows/hides the selected small body shape from the lateral widget.
-	@param row row index of calling cell
-	@param col col index of calling cell (should be 1 for the slot to proceed, otherwise the call is ignored)
 	*/
-		void toggle_prop_visibility(int row, int col) ;
+		void toggle_prop_visibility() ;
 
 
 	/**
@@ -415,6 +431,7 @@ through the user interface layer brought by Qt.}
 	Open settings window.
 	*/
 		void open_settings_window();
+
 
 
 
@@ -503,10 +520,14 @@ through the user interface layer brought by Qt.}
 
 		std::shared_ptr<SBGATFrameGraph> frame_graph;
 
+		QPushButton * select_facets_button;
+		QPushButton * select_points_button;
 
 		DataMap wrapped_shape_data;
 
+		vtkSmartPointer<PickInteractorStyle> cell_picker;
 
+		bool facet_selection_mode = true;
 
 
 
