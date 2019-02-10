@@ -320,6 +320,13 @@ through the user interface layer brought by Qt.}
 
 	// Slots
 		private slots:
+
+
+		/**
+		When triggered, opens a non-modal window allowing the edition of the selected entities
+		(facets or points)
+		*/
+		void edit_selection();
 		
 		/**
 		When triggered, switches the interactor style to facet selection
@@ -522,6 +529,8 @@ through the user interface layer brought by Qt.}
 
 		QPushButton * select_facets_button;
 		QPushButton * select_points_button;
+		QPushButton * edit_selection_button;
+
 
 		DataMap wrapped_shape_data;
 

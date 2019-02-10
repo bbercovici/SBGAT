@@ -53,6 +53,9 @@ SOFTWARE.
 #include <vtkPointData.h>
 #include <vtkTriangle.h>
 #include <vtkLinearExtrusionFilter.h>
+#include <vtkDoubleArray.h>
+#include <vtkFloatArray.h>
+
 #include "Mainwindow.hpp"
 
 using namespace SBGAT_GUI;
@@ -95,6 +98,17 @@ void PickInteractorStyle::OnLeftButtonDown(){
 
 	if(picker -> GetCellId() != -1){
 
+
+
+
+		double bounds[6];
+		this -> Data -> GetBounds(bounds);
+
+		arma::vec mins = {bounds[0],bounds[2],bounds[4]};
+		arma::vec maxs = {bounds[1],bounds[3],bounds[5]};
+
+		this -> object_size = arma::abs(maxs - mins).max();
+
 		if (this -> mainwindow -> get_selection_mode()){
 
 			// Facet picking
@@ -107,7 +121,6 @@ void PickInteractorStyle::OnLeftButtonDown(){
 			vtkCell * picked_cell = this -> Data ->GetCell(picker -> GetCellId());
 
 			vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-
 
 			double p0[3];
 			double p1[3];
@@ -180,7 +193,7 @@ void PickInteractorStyle::OnLeftButtonDown(){
 
 			// Points picking
 			double * pick_coordinates = picker->GetPickPosition();
-			vtkIdType iD = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_tree() -> FindClosestPoint(pick_coordinates);
+			this -> selected_point_id = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_tree() -> FindClosestPoint(pick_coordinates);
 
 			double vertex_coordinates[3]; 
 			vtkTriangle* triangle  = dynamic_cast<vtkTriangle*>(this -> Data ->GetCell(picker -> GetCellId()));
@@ -193,9 +206,9 @@ void PickInteractorStyle::OnLeftButtonDown(){
 			triangle->GetPoints()->GetPoint(2, p2);
 			double area = vtkTriangle::TriangleArea(p0, p1, p2);
 
-			this -> Data -> GetPoint(iD, vertex_coordinates); 
+			this -> Data -> GetPoint(this -> selected_point_id, vertex_coordinates); 
 
-			this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("Picked vertex " + std::to_string(iD)));
+			this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("Picked vertex " + std::to_string(this -> selected_point_id)));
 			
 			// Create the geometry of a point (the coordinate)
 
@@ -226,14 +239,45 @@ void PickInteractorStyle::OnLeftButtonDown(){
 		
 	}
 	else{
-		this->Clear();
+		this -> Clear();
 	}
 	// Forward events
 	vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 }
 
 void PickInteractorStyle::Clear(){
-	this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(this -> selectedActor);
-	this -> GetInteractor() -> GetRenderWindow()->Render();
+	this -> Interactor -> GetRenderWindow() -> GetRenderers() -> GetFirstRenderer() -> RemoveActor(this -> selectedActor);
+	this -> Data = nullptr;
+	this -> GetInteractor() -> GetRenderWindow() -> Render();
 }		
 
+
+int PickInteractorStyle::GetSelectionSize() const{
+
+	if (this -> Data == nullptr){
+		return 0;
+	}
+	return std::max(this -> selectedMapper -> GetInput() -> GetNumberOfPoints(),
+		this -> selectedMapper -> GetInput() -> GetNumberOfCells());
+
+}
+
+void PickInteractorStyle::GetNormalAtSelectedPoint(double * normal) const{
+	
+	vtkFloatArray * normalDataFloat = vtkFloatArray::SafeDownCast(this -> Data ->GetPointData()->GetArray("Normals"));
+	normalDataFloat -> GetTuple(this -> selected_point_id,normal);
+
+}
+
+void PickInteractorStyle::GetNormalAtPoint(vtkIdType id, double * normal) const{
+
+	vtkFloatArray * normalDataFloat = vtkFloatArray::SafeDownCast(this -> Data ->GetPointData()->GetArray("Normals"));
+	normalDataFloat -> GetTuple(id,normal);
+
+}
+
+
+void PickInteractorStyle::GetQueriedPoint(double * query){
+	this -> Data -> GetPoint(this -> selected_point_id, query);
+
+}

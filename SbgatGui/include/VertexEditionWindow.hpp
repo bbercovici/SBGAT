@@ -22,13 +22,18 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_RenderingPropertiesWindow
-#define HEADER_RenderingPropertiesWindow
+#ifndef HEADER_VertexEditionWindow
+#define HEADER_VertexEditionWindow
 
 #include <QMainWindow>
 #include <QComboBox>
 #include <QVTKOpenGLWidget.h>
 #include <QDialog.h>
+#include <QSlider>
+#include <vtkActor.h>
+#include <vtkDataSetMapper.h>
+#include <QSpinBox.h>
+
 #include "Mainwindow.hpp"
 
 namespace SBGAT_GUI {
@@ -36,14 +41,14 @@ namespace SBGAT_GUI {
 	class Mainwindow;
 
 /*!
-@class RenderingPropertiesWindow
+@class VertexEditionWindow
 \author Benjamin Bercovici
-\date January 28, 2017
-\brief RenderingPropertiesWindow
-\details A window where the user can set the camera focus
+\date February 2019
+\brief VertexEditionWindow
+\details A window where the user can move the selected vertex or vertex neighborhood
 */
 
-	class RenderingPropertiesWindow : public QDialog {
+	class VertexEditionWindow : public QDialog {
 		Q_OBJECT
 
 	public:
@@ -52,34 +57,34 @@ namespace SBGAT_GUI {
 	Creates the window
 	@param parent pointer to parent window.
 	*/
-		RenderingPropertiesWindow(Mainwindow * parent) ;
-
-		public slots:
-		/**
-		Triggered after a prop has been removed from the main window. Ensures that a 
-		deleted shape model/spacecraft can no longer be used 
-		*/
-		void prop_removed_slot();
-
-		/**
-		Triggered after a prop has been added to the main window. Will
-		update the widget to reflect new prop
-		*/
-		void prop_added_slot();
+		VertexEditionWindow(Mainwindow * parent) ;
 
 		private slots:
-
-		void change_focus();
+		void move_vertex();
+		void update_direction(int index);
+		void close();
+		void accept();
+		void update_neighborhood_size(int neighborhood_size);
+		void update_neighbors_positions();
 
 
 	protected:
 
+		vtkSmartPointer<vtkActor> line_actor;
+		vtkSmartPointer<vtkDataSetMapper> line_mapper;
+		std::vector< vtkSmartPointer<vtkActor> > neighbors_actors_vector;
+		std::vector< double > neighbors_distances_vector;
+
+
+		std::vector< vtkIdType > neighbors_indices_vector;
+
+		QSlider * position_slider;
+		QComboBox * direction_combo_box;
+		QSpinBox * neighborhood_spin_box;
 		Mainwindow * parent;
+		double dir[3];
+		double queried_point[3];
 		void init();
-		QComboBox * prop_combo_box;
-
-
-
 
 
 

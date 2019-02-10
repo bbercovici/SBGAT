@@ -121,8 +121,10 @@ add_executable(${EXE_NAME}
 	source/SurfacePGMWindow.cpp
 	source/SelectMapperWindow.cpp
 	source/PickInteractorStyle.cpp
+	source/VertexEditionWindow.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/PickInteractorStyle.hpp
+	include/VertexEditionWindow.hpp
 	include/Mainwindow.hpp
 	include/ModelDataWrapper.hpp
 	include/SettingsWindow.hpp

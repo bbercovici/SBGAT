@@ -111,11 +111,6 @@ void RenderingPropertiesWindow::prop_removed_slot(){
 }
 
 
-
-
-
-
-
 void RenderingPropertiesWindow::prop_added_slot(){
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();
 

@@ -62,6 +62,7 @@ SOFTWARE.
 #include <vtkProperty.h>
 #include <vtkIdFilter.h>
 #include <vtkDataSetSurfaceFilter.h>
+#include <vtkPolyDataNormals.h>
 #include <SBGATMassProperties.hpp>
 #include <SBGATObjWriter.hpp>
 
@@ -74,8 +75,7 @@ SOFTWARE.
 #include "LCWindow.hpp"
 #include "SurfacePGMWindow.hpp"
 #include "SelectMapperWindow.hpp"
-
-
+#include "VertexEditionWindow.hpp"
 
 
 using namespace SBGAT_GUI;
@@ -101,7 +101,7 @@ void Mainwindow::setupUi() {
     this -> status_bar = new QStatusBar(this);
     this -> log_console = new QPlainTextEdit(this);
     this -> log_console -> setReadOnly(true);
-    this -> prop_table = new QTableWidget(0, 5, this);
+    this -> prop_table = new QTableWidget(0, 4, this);
 
 
     // The status bar is populated
@@ -109,7 +109,7 @@ void Mainwindow::setupUi() {
     this -> statusBar() -> showMessage("Ready");
 
     // Headers are added to the shape table
-    QStringList header_lists = {"Name", "State" , "Visibility", "Selection",""};
+    QStringList header_lists = {"Name", "State" , "Visibility", ""};
     this -> prop_table -> setHorizontalHeaderLabels(header_lists);
     this -> prop_table -> horizontalHeader() -> setStretchLastSection(true);
     this -> prop_table -> setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -214,24 +214,28 @@ void Mainwindow::init_right_dockwidget(){
 
     this -> select_facets_button = new QPushButton(selection_widget);
     this -> select_points_button = new QPushButton(selection_widget);
+    this -> edit_selection_button = new QPushButton(this);
 
     selection_widget_layout -> addWidget(select_facets_button);
     selection_widget_layout -> addWidget(select_points_button);
 
-    select_facets_button -> setText("Select facets");
-    select_points_button -> setText("Select points");
+    this -> select_facets_button -> setText("Select facets");
+    this -> select_points_button -> setText("Select points");
+    this -> edit_selection_button -> setText("Edit selection");
 
     right_dockwidget_container -> setLayout(right_dockwidget_container_layout);
     
-    right_dockwidget_container_layout -> addWidget( this -> prop_table );
-    right_dockwidget_container_layout -> addWidget( selection_widget );
-    right_dockwidget_container_layout -> addWidget( this -> log_console );
+    right_dockwidget_container_layout -> addWidget(this -> prop_table);
+    right_dockwidget_container_layout -> addWidget(selection_widget);
+    right_dockwidget_container_layout -> addWidget(this -> edit_selection_button);
+    right_dockwidget_container_layout -> addWidget(this -> log_console );
 
     this -> right_dockwidget -> setWidget(right_dockwidget_container);
     this -> addDockWidget(Qt::RightDockWidgetArea, this -> right_dockwidget);
 
     connect(this -> select_facets_button,SIGNAL(clicked(bool)),this, SLOT(select_facets()));
     connect(this -> select_points_button,SIGNAL(clicked(bool)),this, SLOT(select_points()));
+    connect(this -> edit_selection_button,SIGNAL(clicked(bool)),this, SLOT(edit_selection()));
 
     this -> select_points_button -> setEnabled(1);
     this -> select_facets_button -> setEnabled(0);
@@ -240,23 +244,23 @@ void Mainwindow::init_right_dockwidget(){
 
 void Mainwindow::select_facets(){
 
-   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
-   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+ PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+ PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
 
-   this -> select_facets_button -> setEnabled(0);
-   this -> select_points_button -> setEnabled(1);
+ this -> select_facets_button -> setEnabled(0);
+ this -> select_points_button -> setEnabled(1);
 
-   std::string opening_line = "Switching to facet selection\n";
+ std::string opening_line = "Switching to facet selection\n";
 
-   std::string closing_line(opening_line.length() - 1, '#');
-   closing_line.append("\n");
+ std::string closing_line(opening_line.length() - 1, '#');
+ closing_line.append("\n");
 
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
-   this -> facet_selection_mode = true;
+ this -> facet_selection_mode = true;
 
 };
 
@@ -472,7 +476,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-       tr("Text file (*.txt)"));
+     tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -504,19 +508,19 @@ void Mainwindow::save_shape(){
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
-     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-     std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+       int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+       std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-     vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+       vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
-     writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
+       writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
 
 
-     writer -> SetFileName(fileName.toStdString().c_str());
-     writer -> Update();
-     this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
+       writer -> SetFileName(fileName.toStdString().c_str());
+       writer -> Update();
+       this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
 
- }
+   }
 
 }
 
@@ -565,12 +569,12 @@ void Mainwindow::add_shape() {
         reader -> Update(); 
 
             // Scaling
-        vtkSmartPointer<vtkTransform> transform =vtkSmartPointer<vtkTransform>::New();
+        vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
         transform -> Scale(scaling_factor,scaling_factor,scaling_factor);
 
         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-        transformFilter->SetInputConnection(reader -> GetOutputPort());
-        transformFilter->SetTransform(transform);
+        transformFilter -> SetInputConnection(reader -> GetOutputPort());
+        transformFilter -> SetTransform(transform);
         transformFilter -> Update();
 
 
@@ -585,9 +589,19 @@ void Mainwindow::add_shape() {
         surfaceFilter -> SetInputConnection(idFilter -> GetOutputPort());
         surfaceFilter -> Update();
 
-            // Create a PolyData
-        vtkSmartPointer<vtkPolyData> polygonPolyData = surfaceFilter -> GetOutput();
 
+
+        vtkSmartPointer<vtkPolyDataNormals> normals =
+        vtkSmartPointer<vtkPolyDataNormals>::New();
+        normals -> SetInputConnection(surfaceFilter-> GetOutputPort());
+        normals -> SplittingOff();
+        normals -> ConsistencyOn();
+        normals -> ComputeCellNormalsOff();
+        normals -> ComputePointNormalsOn();
+        normals -> Update();
+
+        // Create a PolyData
+        vtkSmartPointer<vtkPolyData> polygonPolyData = normals -> GetOutput();
 
             // The camera is moved to be adjusted to the new shape
         vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
@@ -599,8 +613,7 @@ void Mainwindow::add_shape() {
         this -> renderer -> GetActiveCamera() -> SetPosition(0, 0, 10 * std::cbrt(3./4. / arma::datum::pi * center_of_mass_filter -> GetVolume()) );
 
             // Create a mapper and actor
-        vtkSmartPointer<vtkPolyDataMapper> mapper =
-        vtkSmartPointer<vtkPolyDataMapper>::New();
+        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
         mapper -> SetInputData(polygonPolyData);
 
@@ -718,11 +731,25 @@ void Mainwindow::align_shape(){
 
     mapper -> ScalarVisibilityOff();
     this -> wrapped_shape_data[name] -> set_polydata(filter -> GetOutput());
-    this -> wrapped_shape_data[name] -> get_polydata() -> Modified();
+
     this -> wrapped_shape_data[name] -> set_mapper(mapper);
     this -> wrapped_shape_data[name] -> get_actor() -> SetMapper(mapper);
     this -> get_renderer() -> RemoveActor2D(this -> wrapped_shape_data[name] -> get_colorbar_actor());
 
+
+    // Should update normals and kd tree here
+    vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normals -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+    normals -> SplittingOff();
+    normals -> ConsistencyOn();
+    normals -> ComputeCellNormalsOff();
+    normals -> ComputePointNormalsOn();
+    normals -> Update();
+
+    this -> wrapped_shape_data[name] -> get_polydata() -> GetPointData() -> GetArray("Normals")-> ShallowCopy(normals -> GetOutput() -> GetPointData() -> GetArray("Normals"));
+
+    this -> wrapped_shape_data[name] -> get_polydata() -> GetPointData() -> Modified();
+    this -> wrapped_shape_data[name] -> get_polydata() -> Modified();
 
     this -> qvtkWidget -> GetRenderWindow() -> Render();
     this -> prop_table -> setItem(selected_row_index, 1, new QTableWidgetItem("Modified"));
@@ -787,8 +814,8 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
 
 void Mainwindow::toggle_prop_visibility() {
 
-   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+ int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+ std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
     // Showing/hiding small body shape model actor
      QPushButton * senderObj = qobject_cast<QPushButton*>(sender()); // This will give Sender object
@@ -847,6 +874,10 @@ void Mainwindow::remove_prop() {
     }
 
 
+    PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+    PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+
+
     this -> update_actions_availability();
 
     // The Render window is updated
@@ -878,79 +909,79 @@ void Mainwindow::save_geometric_measures(){
 
 void Mainwindow::compute_geometric_measures(){
 
-   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+ int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+ std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-   std::stringstream ss;
+ std::stringstream ss;
 
-   ss.str(std::string());
-   ss.precision(10);
+ ss.str(std::string());
+ ss.precision(10);
 
-   std::string opening_line = "### Computing shape geometric measures ###";
-   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+ std::string opening_line = "### Computing shape geometric measures ###";
+ this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
 
-   std::chrono::time_point<std::chrono::system_clock> start, end;
-   start = std::chrono::system_clock::now();
+ std::chrono::time_point<std::chrono::system_clock> start, end;
+ start = std::chrono::system_clock::now();
 
-   vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
-   mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
-   mass_properties_filter -> Update();
-   end = std::chrono::system_clock::now();
-   std::chrono::duration<double> elapsed_seconds = end - start;
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
+ vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
+ mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+ mass_properties_filter -> Update();
+ end = std::chrono::system_clock::now();
+ std::chrono::duration<double> elapsed_seconds = end - start;
 
 
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius of " + name + " (m) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
+ this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
 
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
-
-   double * bbox =  mass_properties_filter -> GetBoundingBox();
-
-   this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
-   this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
-   mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia tensor of " + name + " :"));
-   mass_properties_filter -> GetInertiaTensor().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes of " + name + " :"));
-   mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia moments of " + name + " :"));
-   mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
+ this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
 
 
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
-       + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius of " + name + " (m) :"));
+ this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
 
-   std::string closing_line(opening_line.length() - 1, '#');
-   closing_line.append("\n");
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
+
+ double * bbox =  mass_properties_filter -> GetBoundingBox();
+
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
+ mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia tensor of " + name + " :"));
+ mass_properties_filter -> GetInertiaTensor().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes of " + name + " :"));
+ mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia moments of " + name + " :"));
+ mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
+     + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+ std::string closing_line(opening_line.length() - 1, '#');
+ closing_line.append("\n");
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
 
@@ -1037,7 +1068,25 @@ bool Mainwindow::get_selection_mode()const{
 }
 
 
+void Mainwindow::edit_selection(){
 
+    int selection_size = PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> GetSelectionSize();
+
+    if (selection_size != 0){
+        if (this -> facet_selection_mode){
+
+            // FacetEditionWindow facet_edition_window(this);
+            // facet_edition_window.show();
+        }
+        else{
+
+            VertexEditionWindow vertex_edition_window(this);
+            vertex_edition_window.exec();
+
+        }
+    }
+
+}
 
 
 

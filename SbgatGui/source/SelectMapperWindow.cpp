@@ -182,6 +182,7 @@ void SelectMapperWindow::accept(){
 			shape_mapper -> SetScalarRange(min_data,max_data);
 			shape_mapper -> SetLookupTable(lut);
 			shape_mapper -> ScalarVisibilityOn();
+			shape_mapper -> SetScalarModeToUseCellData();
 			shape_mapper -> Update();
 
 			shape_actor -> Modified();
@@ -218,10 +219,7 @@ void SelectMapperWindow::accept(){
 
 	}
 
-
 	QDialog::accept();
-
-
 
 }
 

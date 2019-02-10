@@ -59,11 +59,49 @@ namespace SBGAT_GUI {
 
     PickInteractorStyle();
     void SetMainwindow(Mainwindow * mainwindow);
+
+    /**
+    Returns the number of plotted entities in the current selection. Does not necessarily return 1 if one
+    facet is selected, since the facet actor is constituted by a number of edges/points
+    */
+    int GetSelectionSize() const;
+
     void Clear();
 
     virtual void OnLeftButtonDown();
 
+    /**
+  Returns world coordinates of query point 
+    */
+    void GetQueriedPoint(double * query);
+
+    /**
+    Get coordinates of normal at queried point
+    */
+    void GetNormalAtSelectedPoint(double * normal) const;
+
+     /**
+    Get coordinates of normal at specified point
+    */
+    void GetNormalAtPoint(vtkIdType id, double * normal) const;
+
+    /**
+    Returns selected actor
+    */
+    vtkSmartPointer<vtkActor> GetSelectedActor(){return this -> selectedActor;}
+
+    /**
+  Returns index of query point 
+    */
+    vtkIdType GetQueriedPointId() const {return this -> selected_point_id;}
+
+
+    double GetSelectedBodySize() const{return this -> object_size;}
+
+
     vtkSmartPointer<vtkPolyData> Data = nullptr;
+    double object_size;
+    vtkIdType selected_point_id;
     vtkSmartPointer<vtkDataSetMapper> selectedMapper;
     vtkSmartPointer<vtkActor> selectedActor;
     Mainwindow * mainwindow;
