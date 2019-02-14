@@ -195,6 +195,79 @@ the polydata used to construct the PGM
     return this -> density * this -> mass_properties -> GetVolume() * std::pow(this -> scaleFactor,3);
   }
 
+
+  /**
+  Returns the performance factor of the f-th facet at the specified position
+  @param pos position of field point
+  @param f facet index
+  @return omega_f
+  */
+  double GetOmegaf(const arma::vec::fixed<3> & pos, const int & f) const;
+
+  /**
+  Returns the performance factor of the f-th facet at the specified position
+  @param pos position of field point
+  @param f facet index
+  @return omega_f
+  */
+  double GetOmegaf( const double * pos, const int & f) const;
+
+  /**
+  Returns the wire potential of the e-th edge at the specified position
+  @param pos position of field point
+  @param e edge index
+  @return L_e
+  */
+  double GetLe(const arma::vec::fixed<3> & pos, const int & e) const;
+
+  /**
+  Returns the wire potential of the e-th edge at the specified position
+  @param pos position of field point
+  @param e edge index
+  @return L_e
+  */
+  double GetLe( const double * pos, const int & e) const;
+
+
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated edge
+  @param pos field point
+  @param e edge index
+  @return the vector from the field point to the first vertex on the designated edge
+  */
+  arma::vec::fixed<3> GetRe(const arma::vec::fixed<3> & pos,const int & e) const;
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated edge
+  @param pos field point
+  @param e edge index
+  @return the vector from the field point to the first vertex on the designated edge
+  */
+  arma::vec::fixed<3> GetRe(const double * pos,const int & e) const;
+
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated facet
+  @param pos field point
+  @param f facet index
+  @return the vector from the field point to the first vertex on the designated facet
+  */
+  arma::vec::fixed<3> GetRf(const arma::vec::fixed<3> & pos,const int & f) const;
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated facet
+  @param pos field point
+  @param f facet index
+  @return the vector from the field point to the first vertex on the designated facet
+  */
+  arma::vec::fixed<3> GetRf(const double * pos,const int & f) const;
+
+
   /**
   Evaluates the Polyhedron Gravity Model at the surface of the specified surface elements in the provided shape
   @param[in] selected_shape shape for which the surface polyhedron gravity model must be computed
@@ -270,6 +343,76 @@ the polydata used to construct the PGM
     std::string path);
 
 
+  /**
+  Returns the Xe^E vector holding the e-th edge dyadic factors (Le,r_ie_0^T,Ee^T)^T
+  @param pos field point
+  @param e edge index
+  @return Xe^E vector holding the e-th edge dyadic factors
+  */
+  arma::vec::fixed<10> GetXe(const arma::vec::fixed<3> & pos,const int & e) const;
+
+
+  /**
+  Returns the Xf^F vector holding the f-th facet dyadic factors (omega_f,r_if_0^T,Ff^T)^T
+  @param pos field point
+  @param f facet index
+  @return Xf^F vector holding the f-th facet dyadic factors
+  */
+  arma::vec::fixed<10> GetXf(const arma::vec::fixed<3> & pos,const int & f) const;
+
+  /**
+  Returns the parametrization of the designated edge dyad Ee. This dyad 
+  is stored in a flattened double container holding nine values and ordered like so
+
+  E = {
+    {E[0], E[1],  E[2]},
+    {E[3], E[4],  E[5]},
+    {E[6], E[7],  E[8]}
+  };
+  Due to the symmetric nature of E, its parametrization is 
+  {E[0],E[4],E[8],E[1],E[2],E[5]};
+
+  @param e edge index 
+  @return Ee dyad parametrization
+  */  
+  arma::vec::fixed<6> GetEeParam(const int & e) const;
+
+
+  /**
+  Returns the parametrization of the designated facet dyad Ff. This dyad 
+  is stored in a flattened double container holding nine values and ordered like so
+
+  F = {
+    {F[0], F[1],  F[2]},
+    {F[3], F[4],  F[5]},
+    {F[6], F[7],  F[8]}
+  };
+  Due to the symmetric nature of E, its parametrization is 
+  {F[0],F[4],F[8],F[1],F[2],F[5]};
+
+  @param f facet index 
+  @return Ff dyad parametrization
+  */  
+  arma::vec::fixed<6> GetFfParam(const int & f) const;
+
+
+  /**
+  Returns the contribution of a specific edge to the potential at a specified field point
+  @param Xe vector of dyadic coefficients for edge e at the prescribed fieldpoint
+  @return contribution to the potential of this specific edge at the prescribed fieldpoint
+  */
+  static double GetUe(const arma::vec::fixed<10> & Xe);
+
+
+  /**
+  Returns the contribution of a specific facet to the potential at a specified field point
+  @param Xf vector of dyadic coefficients for facet f at the prescribed fieldpoint
+  @return contribution to the potential of this specific facet at the prescribed fieldpoint
+  */
+  static double GetUf(const arma::vec::fixed<10> & Xf);
+
+
+
 protected:
   SBGATPolyhedronGravityModel();
   ~SBGATPolyhedronGravityModel() override;
@@ -292,6 +435,8 @@ protected:
 
   int ** edges;
   int ** facets;
+  int ** edge_facets_ids;
+
 
   bool scaleFactorSet;
   bool densitySet;

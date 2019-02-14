@@ -115,6 +115,7 @@ add_library(${LIB_NAME}
 	source/SBGATRefFrame.cpp
 	source/SBGATFrameGraph.cpp
 	source/SBGATPolyhedronGravityModel.cpp
+	source/SBGATPolyhedronGravityModelUQ.cpp
 	source/SBGATMassProperties.cpp
 	source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp

@@ -78,7 +78,7 @@ to apply the update (if any).
 ### [SBGAT 2.02.2](https://github.com/bbercovici/SBGAT/releases/tag/2.02.2)
 
 ### New
-- Shape models can now be modified from within SBGATGui, by selecting a vertex and applying a Gaussian interpolation of the vertex displacement to a neighborhood of arbitrary choice. 
+- Shape models can now be modified from within SBGATGui, by selecting a vertex and applying a Gaussian interpolation of the vertex displacement to a k-neighbor neighborhood.
 
 ### Improvements
 - Camera is now positioned at the correct distance from the targeted shape body upon loading

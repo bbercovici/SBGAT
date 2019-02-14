@@ -79,7 +79,6 @@ SBGATPolyhedronGravityModel::~SBGATPolyhedronGravityModel(){
 
 	this -> Clear();
 
-
 }
 
 
@@ -93,7 +92,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkInformationVector** inputVector,
 	vtkInformationVector* vtkNotUsed( outputVector )){
 	vtkInformation *inInfo =
-	inputVector[0]->GetInformationObject(0);
+	inputVector[0] -> GetInformationObject(0);
 
 
 	if (!(this -> densitySet && this -> scaleFactorSet)){
@@ -247,11 +246,14 @@ int SBGATPolyhedronGravityModel::RequestData(
 	// The edges dyads are created
 	this -> edge_dyads = new double * [edge_points_ids_facet_ids.size()];
 	this -> edges = new int * [edge_points_ids_facet_ids.size()];
+	this -> edge_facets_ids = new int * [edge_points_ids_facet_ids.size()];
+
 
 	#pragma omp parallel for
 	for(unsigned int i = 0; i < edge_points_ids_facet_ids.size(); ++i) {
 		this -> edge_dyads[i] = new double[9];
 		this -> edges[i] = new int[2];
+		this -> edge_facets_ids[i] = new int[2];
 
 		unsigned int p0_index = edge_points_ids_facet_ids[i][0];
 		unsigned int p1_index = edge_points_ids_facet_ids[i][1];
@@ -313,13 +315,16 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> edges[i][0] = p0_index;
 		this -> edges[i][1] = p1_index;
 
+		this -> edge_facets_ids[i][0] = fA_index;
+		this -> edge_facets_ids[i][1] = fB_index;
+
+
 
 	}
 
 	this -> N_edges = edge_count;
 	this -> N_facets = numCells;
 	this -> N_facets = numCells;
-
 
 	this -> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
 	this -> mass_properties -> SetInputData(input);
@@ -349,30 +354,12 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 
-		double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		double * r1 = this -> vertices[this -> facets[facet_index][1]];
-		double * r2 = this -> vertices[this -> facets[facet_index][2]];
-
-
+		const double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		
 		double r0m[3];
-		double r1m[3];
-		double r2m[3];
-
+		
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r2,point,r2m);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double R2 = vtkMath::Norm(r2m);
-
-		double r1m_cross_r2m[3];
-
-		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
-
-		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
-			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
-
+		
 		double * F = this -> facet_dyads[facet_index];
 
 		double a[3] = {
@@ -382,7 +369,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 		};
 		
 
-		potential += - wf * vtkMath::Dot(r0m,a);
+		potential += - this -> GetOmegaf( point, facet_index) * vtkMath::Dot(r0m,a);
 
 	}
 
@@ -391,23 +378,10 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-		double * r1 = this -> vertices[this -> edges[edge_index][1]];
-
-		
 		double r0m[3];
-		double r1m[3];
-		double rem[3];
 
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r1m,r0m,rem);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double Re = vtkMath::Norm(rem);
-
-		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
-
+		
 		double * E = this -> edge_dyads[edge_index];
 
 		double a[3] = {
@@ -417,7 +391,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 		};
 
 
-		potential += Le * vtkMath::Dot(r0m,a);
+		potential += this -> GetLe( point, edge_index) * vtkMath::Dot(r0m,a);
 
 	}
 
@@ -437,30 +411,7 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-		double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		double * r1 = this -> vertices[this -> facets[facet_index][1]];
-		double * r2 = this -> vertices[this -> facets[facet_index][2]];
-
-		double r0m[3];
-		double r1m[3];
-		double r2m[3];
-
-		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r2,point,r2m);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double R2 = vtkMath::Norm(r2m);
-
-		double r1m_cross_r2m[3];
-
-		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
-
-		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
-			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
-
-		laplacian += wf;
+		laplacian += this -> GetOmegaf(point, facet_index);
 
 	}
 
@@ -491,28 +442,13 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		double * r1 = this -> vertices[this -> facets[facet_index][1]];
-		double * r2 = this -> vertices[this -> facets[facet_index][2]];
 
 		double r0m[3];
-		double r1m[3];
-		double r2m[3];
+		
 
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r2,point,r2m);
 
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double R2 = vtkMath::Norm(r2m);
-
-		double r1m_cross_r2m[3];
-
-		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
-
-		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
-			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
-
+		double wf = this -> GetOmegaf( point, facet_index);
 		double * F = this -> facet_dyads[facet_index];
 
 		acc_x += wf *( F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2]);
@@ -527,22 +463,13 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-		double * r1 = this -> vertices[this -> edges[edge_index][1]];
 
 		
 		double r0m[3];
-		double r1m[3];
-		double rem[3];
-
+		
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r1m,r0m,rem);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double Re = vtkMath::Norm(rem);
-
-		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+		
+		double Le = this -> GetLe( point, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -584,27 +511,12 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		double * r1 = this -> vertices[this -> facets[facet_index][1]];
-		double * r2 = this -> vertices[this -> facets[facet_index][2]];
-
+		
 		double r0m[3];
-		double r1m[3];
-		double r2m[3];
 
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r2,point,r2m);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double R2 = vtkMath::Norm(r2m);
-
-		double r1m_cross_r2m[3];
-
-		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
-
-		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
-			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
+		
+		double wf = this -> GetOmegaf( point, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
 
@@ -629,22 +541,14 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-		double * r1 = this -> vertices[this -> edges[edge_index][1]];
 
 		
 		double r0m[3];
-		double r1m[3];
-		double rem[3];
-
+		
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r1m,r0m,rem);
-
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double Re = vtkMath::Norm(rem);
-
-		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+		
+		
+		double Le = this -> GetLe( point, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -712,30 +616,15 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		double * r1 = this -> vertices[this -> facets[facet_index][1]];
-		double * r2 = this -> vertices[this -> facets[facet_index][2]];
-
+		
 		double r0m[3];
-		double r1m[3];
-		double r2m[3];
 
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r2,point,r2m);
 
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double R2 = vtkMath::Norm(r2m);
 
-		double r1m_cross_r2m[3];
-
-		vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
-
-		double wf = 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
-			R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
+		double wf = this -> GetOmegaf( point, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
-
 
 		double a[3] = {
 			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
@@ -776,22 +665,13 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-		double * r1 = this -> vertices[this -> edges[edge_index][1]];
 
 
 		double r0m[3];
-		double r1m[3];
-		double rem[3];
 
 		vtkMath::Subtract(r0,point,r0m);
-		vtkMath::Subtract(r1,point,r1m);
-		vtkMath::Subtract(r1m,r0m,rem);
 
-		double R0 = vtkMath::Norm(r0m);
-		double R1 = vtkMath::Norm(r1m);
-		double Re = vtkMath::Norm(rem);
-
-		double Le = std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+		double Le = this -> GetLe( point, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -896,6 +776,13 @@ void SBGATPolyhedronGravityModel::Clear(){
 			delete[] this -> edges[i];   
 		}
 		delete[] this -> edges;
+
+	// Edge facets ids
+
+		for (int i = 0; i < this -> N_edges; ++i){
+			delete[] this -> edge_facets_ids[i];
+		}
+		delete[] this -> edge_facets_ids;
 	}
 }
 
@@ -1258,7 +1145,187 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	}
 
 
+}
+
+double SBGATPolyhedronGravityModel::GetOmegaf(const arma::vec::fixed<3> & pos, const int & f) const{
+	return this -> GetOmegaf(pos.colptr(0),f);
+}
+
+double SBGATPolyhedronGravityModel::GetOmegaf( const double * pos, const int & f) const{
+
+	const double * r0 = this -> vertices[this -> facets[f][0]];
+	const double * r1 = this -> vertices[this -> facets[f][1]];
+	const double * r2 = this -> vertices[this -> facets[f][2]];
+
+	double r0m[3];
+	double r1m[3];
+	double r2m[3];
+
+	vtkMath::Subtract(r0,pos,r0m);
+	vtkMath::Subtract(r1,pos,r1m);
+	vtkMath::Subtract(r2,pos,r2m);
+
+	double R0 = vtkMath::Norm(r0m);
+	double R1 = vtkMath::Norm(r1m);
+	double R2 = vtkMath::Norm(r2m);
+
+	double r1m_cross_r2m[3];
+
+	vtkMath::Cross(r1m,r2m,r1m_cross_r2m);
+
+	return 2 * std::atan2(vtkMath::Dot(r0m,r1m_cross_r2m),R0 * R1 * R2 + 
+		R0 * vtkMath::Dot(r1m,r2m) + R1 * vtkMath::Dot(r0m,r2m) + R2 * vtkMath::Dot(r0m,r1m));
 
 
 }
+
+double SBGATPolyhedronGravityModel::GetLe(const arma::vec::fixed<3> & pos, const int & e) const{
+	return this -> GetLe(pos.colptr(0),e);
+
+}
+
+double SBGATPolyhedronGravityModel::GetLe( const double * pos, const int & e) const{
+
+	double * r0 = this -> vertices[this -> edges[e][0]];
+	double * r1 = this -> vertices[this -> edges[e][1]];
+
+
+	double r0m[3];
+	double r1m[3];
+	double rem[3];
+
+	vtkMath::Subtract(r0,pos,r0m);
+	vtkMath::Subtract(r1,pos,r1m);
+	vtkMath::Subtract(r1m,r0m,rem);
+
+	double R0 = vtkMath::Norm(r0m);
+	double R1 = vtkMath::Norm(r1m);
+	double Re = vtkMath::Norm(rem);
+
+	return std::log((R0 + R1 + Re) / (R0 + R1 - Re));
+
+}
+
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const arma::vec::fixed<3> & pos,const int & e) const{
+	
+	return this -> GetRe(pos.colptr(0),e);
+}
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const double * pos,const int & e) const{
+		
+	
+	double re[3];
+
+	vtkMath::Subtract(this -> vertices[this -> edges[e][0]],pos,re);
+
+	return {re[0],re[1],re[2]};
+}
+
+arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXe(const arma::vec::fixed<3> & pos,const int & e) const{
+
+	arma::vec::fixed<10> Xe;
+
+	Xe(0) = this -> GetLe(pos,e);
+	Xe.subvec(1,3) = this -> GetRe(pos,e);
+	Xe.subvec(4,9) = this -> GetEeParam(e);
+	return Xe;
+
+}
+
+
+
+
+
+arma::vec::fixed<6> SBGATPolyhedronGravityModel::GetEeParam(const int & e) const{
+
+
+	const double * E = this -> edge_dyads[e];
+
+	
+
+	return {E[0],E[4],E[8],E[1],E[2],E[5]};
+
+}
+
+double SBGATPolyhedronGravityModel::GetUe(const arma::vec::fixed<10> & Xe){
+
+   // {E[0],E[4],E[8],E[1],E[2],E[5]};
+
+	const arma::vec::fixed<6> & E_vec = Xe.subvec(4,9);
+	const arma::vec::fixed<3> & r_ei_0= Xe.subvec(1,3);
+	const double & Le = Xe(0);
+
+	arma::mat::fixed<3,3> Ee = {
+		{E_vec[0],E_vec[3],E_vec[4]},
+		{E_vec[3],E_vec[1],E_vec[5]},
+		{E_vec[4],E_vec[5],E_vec[2]}
+	};
+
+	return Le * arma::dot(r_ei_0,Ee * r_ei_0);
+
+
+}
+
+
+
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const arma::vec::fixed<3> & pos,const int & f) const{
+	
+	return this -> GetRf(pos.colptr(0),f);
+}
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const double * pos,const int & f) const{
+		
+	
+	double rf[3];
+
+	vtkMath::Subtract(this -> vertices[this -> facets[f][0]],pos,rf);
+
+	return {rf[0],rf[1],rf[2]};
+}
+
+arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXf(const arma::vec::fixed<3> & pos,const int & f) const{
+
+	arma::vec::fixed<10> Xf;
+
+	Xf(0) = this -> GetOmegaf(pos,f);
+	Xf.subvec(1,3) = this -> GetRf(pos,f);
+	Xf.subvec(4,9) = this -> GetFfParam(f);
+	return Xf;
+
+}
+
+
+
+
+
+arma::vec::fixed<6> SBGATPolyhedronGravityModel::GetFfParam(const int & f) const{
+
+
+	const double * F = this -> facet_dyads[f];
+
+	return {F[0],F[4],F[8],F[1],F[2],F[5]};
+
+}
+
+double SBGATPolyhedronGravityModel::GetUf(const arma::vec::fixed<10> & Xf){
+
+   // {F[0],F[4],F[8],F[1],F[2],F[5]};
+
+	const arma::vec::fixed<6> & F_vec = Xf.subvec(4,9);
+	const arma::vec::fixed<3> & r_fi_0= Xf.subvec(1,3);
+	const double & omega_f = Xf(0);
+
+	arma::mat::fixed<3,3> F = {
+		{F_vec[0],F_vec[3],F_vec[4]},
+		{F_vec[3],F_vec[1],F_vec[5]},
+		{F_vec[4],F_vec[5],F_vec[2]}
+	};
+
+	return omega_f * arma::dot(r_fi_0,F * r_fi_0);
+
+
+}
+
 

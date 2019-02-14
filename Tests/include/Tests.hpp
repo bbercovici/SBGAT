@@ -49,6 +49,8 @@ void test_sbgat_shape_uq();
 void test_radar_obs();
 void test_lightcurve_obs();
 void test_frame_conversion();
+void test_PGM_UQ_partials();
+
 
 
 
