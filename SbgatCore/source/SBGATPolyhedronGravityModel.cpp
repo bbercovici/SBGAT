@@ -94,27 +94,25 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkInformation *inInfo =
 	inputVector[0] -> GetInformationObject(0);
 
-
 	if (!(this -> densitySet && this -> scaleFactorSet)){
 		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
-  // call ExecuteData
-	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(
-		inInfo->Get(vtkDataObject::DATA_OBJECT()));
-
+  	// call ExecuteData
+	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
 	vtkSmartPointer<vtkCleanPolyData> cleaner =
 	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleaner->SetInputData (input_unclean);
-	cleaner-> Update();
+	cleaner -> SetInputData (input_unclean);
+	cleaner -> Update();
 
 	vtkPolyData * input = cleaner -> GetOutput();
+	// vtkPolyData * input = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
 	vtkIdType cellId, numCells, numPts, numIds;
 
-	numCells = input->GetNumberOfCells();
-	numPts = input->GetNumberOfPoints();
+	numCells = input -> GetNumberOfCells();
+	numPts = input -> GetNumberOfPoints();
 	if (numCells < 1 || numPts < 1){
 		vtkErrorMacro( << "No data to measure...!");
 		return 1;
@@ -162,7 +160,9 @@ int SBGATPolyhedronGravityModel::RequestData(
 	for(int i = 0; i < input -> GetNumberOfPoints(); ++i) {
 		this -> vertices[i] = new double[3];
 		input -> GetPoint(i,this -> vertices[i]);
+		
 	}
+
 
 	// The facet dyads are created
 	this -> facet_dyads = new double * [numCells];
@@ -203,13 +203,11 @@ int SBGATPolyhedronGravityModel::RequestData(
 	}
 
 	// The edges are extracted
-	vtkSmartPointer<vtkExtractEdges> extractEdges = 
-	vtkSmartPointer<vtkExtractEdges>::New();
-	extractEdges->SetInputData(input);
-	extractEdges->Update();
+	vtkSmartPointer<vtkExtractEdges> extractEdges = vtkSmartPointer<vtkExtractEdges>::New();
+	extractEdges -> SetInputData(input);
+	extractEdges -> Update();
 
-
-	unsigned int edge_count = extractEdges->GetOutput()->GetNumberOfCells();
+	unsigned int edge_count = extractEdges -> GetOutput() -> GetNumberOfCells();
 	std::vector<std::array<vtkIdType,4>> edge_points_ids_facet_ids(edge_count);
 
 	// Should get rid of this map and use a vector instead
@@ -319,11 +317,10 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> edge_facets_ids[i][1] = fB_index;
 
 
-
 	}
 
+
 	this -> N_edges = edge_count;
-	this -> N_facets = numCells;
 	this -> N_facets = numCells;
 
 	this -> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
@@ -1079,8 +1076,6 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		throw(std::runtime_error("Error loading slopes in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slopes`"));
 	}
 
-	std::cout << "Done with slopes_json\n ";
-
 	nlohmann::json inertial_potentials_json;
 	try{
 		inertial_potentials_json = surface_pgm_json.at("inertial_potentials");
@@ -1094,8 +1089,6 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	catch (nlohmann::detail::parse_error & e){
 		throw(std::runtime_error("Error loading inertial potentials in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `inertial_potentials`"));
 	}
-
-	std::cout << "Done with inertial_potentials_json\n ";
 
 	nlohmann::json body_fixed_potentials_json;
 	try{
@@ -1111,8 +1104,6 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		throw(std::runtime_error("Error loading inertial potentials in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `body_fixed_potentials`"));
 	}
 
-
-	std::cout << "Done with body_fixed_potentials_json\n ";
 	nlohmann::json inertial_acc_json;
 
 	try{
@@ -1213,7 +1204,7 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const arma::vec::fixed<3>
 }
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const double * pos,const int & e) const{
-		
+
 	
 	double re[3];
 
@@ -1276,7 +1267,7 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const arma::vec::fixed<3>
 }
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const double * pos,const int & f) const{
-		
+
 	
 	double rf[3];
 
@@ -1327,5 +1318,44 @@ double SBGATPolyhedronGravityModel::GetUf(const arma::vec::fixed<10> & Xf){
 
 
 }
+
+void SBGATPolyhedronGravityModel::GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const{
+
+	r0[0] = this -> vertices[this -> facets[f][0]][0];
+	r0[1] = this -> vertices[this -> facets[f][0]][1];
+	r0[2] = this -> vertices[this -> facets[f][0]][2];
+
+	r1[0] = this -> vertices[this -> facets[f][1]][0];
+	r1[1] = this -> vertices[this -> facets[f][1]][1];
+	r1[2] = this -> vertices[this -> facets[f][1]][2];
+
+	r2[0] = this -> vertices[this -> facets[f][2]][0];
+	r2[1] = this -> vertices[this -> facets[f][2]][1];
+	r2[2] = this -> vertices[this -> facets[f][2]][2];
+
+
+}
+
+
+void SBGATPolyhedronGravityModel::GetVerticesOnEdge(const int & e,double * r0,double * r1) const{
+
+	r0[0] = this -> vertices[this -> edges[e][0]][0];
+	r0[1] = this -> vertices[this -> edges[e][0]][1];
+	r0[2] = this -> vertices[this -> edges[e][0]][2];
+
+	r1[0] = this -> vertices[this -> edges[e][1]][0];
+	r1[1] = this -> vertices[this -> edges[e][1]][1];
+	r1[2] = this -> vertices[this -> edges[e][1]][2];
+
+}
+
+
+void SBGATPolyhedronGravityModel::GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) const{
+
+	f0 = this -> edge_facets_ids[e][0];
+	f1 = this -> edge_facets_ids[e][1];
+
+}
+
 
 

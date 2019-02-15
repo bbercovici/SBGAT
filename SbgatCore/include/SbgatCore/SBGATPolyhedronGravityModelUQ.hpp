@@ -129,14 +129,35 @@ public:
 
 
 
+   /**
+  Returns the partial derivative of OOmega_f (as in wf = 2 * arctan(OOmegaf) )
+  with respect to the unit vectors from the field point to the facet vertices
+  @param UnitRf 3 unit vectors stacked up
+  @return PartialOOmegafVectorPartialUnitRf (2x9)
+  */
+  static arma::mat::fixed<2,9> PartialOOmegafVectorPartialUnitRf(const arma::vec::fixed<9> & UnitRf);
+
+
+  static arma::rowvec::fixed<2>  PartialOOmegafPartialOOmegafVector(const arma::vec::fixed<2> & OOmega_vector);
+
+
+
+
+  /**
+  Returns the partial derivative of arctan(y/x)
+  @param xy input
+  @return partial derivative
+  */
+  static arma::rowvec::fixed<2> PartialOmegafPartialXY(const arma::vec::fixed<2> & xy);
+
+
   /**
   Returns the partial derivative of the facet dyad parametrization (Ff)
   with respect to the vertices coordinates constitutive of the f-th triangle (Tf) 
-  @param pos position where to evaluate the partial
   @param f facet index
   @return PartialFfPartialTf (6x9)
   */
-  arma::mat::fixed<6,9> PartialFfPartialTf(const arma::vec::fixed<3> & pos,const int & f) const;
+  arma::mat::fixed<6,9> PartialFfPartialTf(const int & f) const;
 
 
 
@@ -153,10 +174,9 @@ public:
   Returns the partial derivative of the non-normalized normal at the f-th facet 
   with respect to the vertices coordinates constitutive of the f-th triangle (Tf) 
   @param f facet index
-  @return PartialNfPartialTf (3x3)
-
+  @return PartialNfPartialTf (3x9)
   */
-  arma::mat::fixed<3,3> PartialNfPartialTf(const arma::vec::fixed<3> & pos,const int & f) const;
+  arma::mat::fixed<3,9> PartialNfPartialTf(const int & f) const;
 
 
 
@@ -164,10 +184,10 @@ public:
   Returns the partial derivative of the f-th facet dyad parametrization with respect to the 
   normalized normal of the f-th facet
   @param f facet index
-  @return PartialFfPartialnf (3x3)
+  @return PartialFfPartialnf (6x3)
 
   */
-  arma::mat::fixed<3,3> PartialFfPartialnf(const int & f) const;
+  arma::mat::fixed<6,3> PartialFfPartialnf(const int & f) const;
 
 
 
@@ -184,75 +204,54 @@ public:
   /**
   Returns the partial derivative of field-point to edge-point vector
   with respect to the coordinates of the two vertices forming the edge (stacked in Ae)
-  @param pos position where to evaluate the partial
-  @param e edge index
   @return PartialRadiusEePartialAe (3x6)
   */
-  arma::mat::fixed<3,6> PartialRadiusEePartialAe(const arma::vec::fixed<3> & pos,const int & e) const;
+  arma::mat::fixed<3,6> PartialRadiusEePartialAe() const;
   
 
-
   /**
-  Returns the partial derivative of the parametrization of the Ee dyad 
-  with respect to the coordinates of the two vertices forming the edge (stacked in Ae)
-  @param pos position where to evaluate the partial
-  @param e edge index
-  @return PartialEePartialAe (6x6)
+  Returns the partial derivative of field-point to facet-point vector
+  with respect to the coordinates of the three vertices forming the facet (stacked in Tf)
+  @return PartialRadiusFfPartialTf (3x9)
   */
-  arma::mat::fixed<6,6> PartialEePartialAe(const arma::vec::fixed<3> & pos,const int & e) const;
-
-
-
-  /**
-  Returns the partial derivative of the parametrization of the Ee dyad 
-  with respect to the coordinates of one of the facets adjacent to it
-  @param pos position where to evaluate the partial
-  @param f facet index
-  @return PartialEePartialAe (6x9)
-  */
-  arma::mat::fixed<6,9> PartialEePartialTf(const arma::vec::fixed<3> & pos,const int & f) const;
+  arma::mat::fixed<3,9> PartialRadiusFfPartialTf() const;
   
-
-
-
 
   /**
   Returns the partial derivative of the parametrization of the Xe dyadic vector
   with respect to the coordinates of the edges points and adjacent facets points
   @param pos position where to evaluate the partial
   @param e edge index
-  @return PartialEePartialAe (10x24)
+  @return PartialXePartialBe (10x24)
   */
   arma::mat::fixed<10,24> PartialXePartialBe(const arma::vec::fixed<3> & pos,const int & e) const;
   
   /**
   Returns the partial derivative of the edge length le
   with respect to the coordinates of the edges points
-  @param pos position where to evaluate the partial
   @param e edge index
-  @return PartialEePartialAe (10x24)
+  @return PartialEdgeLengthPartialAe (10x24)
   */
-  arma::rowvec::fixed<6> PartialEdgeLengthPartialAe(const arma::vec::fixed<3> & pos,const int & e) const;
+  arma::rowvec::fixed<6> PartialEdgeLengthPartialAe(const int & e) const;
   
   /**
   Returns the partial derivative of the (q,r) component of the Ee dyad with respect to the 
   with respect to the coordinates of the edges points and adjacent facets points
-  @param pos position where to evaluate the partial
   @param e edge index
   @param q row index
   @param r col index
   @return PartialEqrPartialBe (1x24)
   */
-  arma::rowvec::fixed<24> PartialEqrPartialBe(const arma::vec::fixed<3> & pos,const int & e,const int & q,const int & r) const;
+  arma::rowvec::fixed<24> PartialEqrPartialBe(const int & e,const int & q,const int & r) const;
 
   /**
   Returns the partial derivative of the Ee dyad parametrization with respect 
   to the coordinates of the edges points and adjacent facets points
-  @param pos position where to evaluate the partial
   @param e edge index
-  @return PartialEqrPartialBe (6x24)
+  @return PartialEPartialBe (6x24)
   */
-  arma::mat::fixed<6,24> PartialEPartialBe(const arma::vec::fixed<3> & pos,const int & e,const int & q,const int & r) const;
+  arma::mat::fixed<6,24> PartialEPartialBe(const int & e) const;
+
 
 
 
@@ -261,30 +260,62 @@ public:
   Runs a finite-differencing based test of the implemented PGM partials
   @param tol relative tolerance
   */
-  void TestPartials(double tol = 1e-2) const;
+  static void TestPartials(double tol = 1e-2);
 
 
+  /**
+  Applies deviation to the coordinates of the vertices on the prescribed edge
+  and updates the pgm
+  @param delta_Ae deviation
+  @param e edge index
+  */
+  void ApplyAeDeviation(arma::vec::fixed<6> delta_Ae,const int & e);
+
+
+  /**
+  Applies deviation to the coordinates of the vertices in the prescribed facet
+  and updates the pgm
+  @param delta_Tf deviation
+  @param f facet index
+  */
+  void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
+
+
+
+
+
+
+
+
+
+
+
+
+
+  vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
 protected:
 
 
 
 
-  void TestPartialUePartialXe(double tol) const;
-  void TestPartialUfPartialXf(double tol) const;
-  void TestPartialXfPartialTf(double tol) const;
-  void TestPartialOmegafPartialTf(double tol) const;
-  void TestPartialFfPartialTf(double tol) const;
-  void TestPartialNormalizedVPartialNonNormalizedV(double tol) const;
-  void TestPartialNfPartialTf(double tol) const;
-  void TestPartialFfPartialnf(double tol) const;
-  void TestPartialLePartialAe(double tol) const;
-  void TestPartialRadiusEePartialAe(double tol) const;
-  void TestPartialEePartialAe(double tol) const;
-  void TestPartialEePartialTf(double tol) const;
-  void TestPartialXePartialBe(double tol) const;
-  void TestPartialEdgeLengthPartialAe(double tol) const;
-  void TestPartialEqrPartialBe(double tol) const;
-  void TestPartialEPartialBe(double tol) const;
+  static void TestPartialUePartialXe(double tol) ;
+  static void TestPartialUfPartialXf(double tol) ;
+  static void TestPartialXfPartialTf(double tol) ;
+  static void TestPartialOmegafPartialTf(double tol) ;
+  static void TestPartialFfPartialTf(double tol) ;
+  static void TestPartialNormalizedVPartialNonNormalizedV(double tol) ;
+  static void TestPartialOmegafPartialXY(double tol);
+  static void TestPartialOOmegafVectorPartialUnitRf(double tol);
+
+  static void TestPartialNfPartialTf(double tol) ;
+  static void TestPartialFfPartialnf(double tol) ;
+  static void TestPartialLePartialAe(double tol) ;
+  static void TestPartialEePartialAe(double tol) ;
+  static void TestPartialEePartialTf(double tol) ;
+  static void TestPartialXePartialBe(double tol) ;
+  static void TestPartialEdgeLengthPartialAe(double tol) ;
+  static void TestPartialEqrPartialBe(double tol) ;
+  static void TestPartialEPartialBe(double tol) ;
 
 
 

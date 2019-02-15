@@ -229,6 +229,41 @@ the polydata used to construct the PGM
   double GetLe( const double * pos, const int & e) const;
 
 
+  /**
+  Returns coordinates of the three vertices forming a facet
+  @param[in] f facet index
+  @param[out] r0 first vertex coordinates
+  @param[out] r1 first vertex coordinates
+  @param[out] r2 first vertex coordinates
+  */
+  void GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const;
+
+
+
+  /**
+  Returns coordinates of the two vertices forming an edge
+  @param[in] e edge index
+  @param[out] r0 first vertex coordinates
+  @param[out] r1 first vertex coordinates
+  */
+  void GetVerticesOnEdge(const int & e,double * r0,double * r1) const;
+
+
+  /**
+  Returns normal of facet f
+  @param[in] f facet index
+  @param[out] n normal at facet
+  */
+  void GetFacetNormal(const int & f, double * n) const{n[0] = this -> facet_normals[f][0];n[1] = this -> facet_normals[f][1];n[2] = this -> facet_normals[f][2];}
+
+
+  /**
+  Returns the indices of the two facets adjacent to the specified edge
+  @param[in] e edge index
+  @param[out] f0 index of first facet
+  @param[out] f1 index of second facet
+  */
+  void GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) const;
 
 
   /**
@@ -410,6 +445,28 @@ the polydata used to construct the PGM
   @return contribution to the potential of this specific facet at the prescribed fieldpoint
   */
   static double GetUf(const arma::vec::fixed<10> & Xf);
+
+
+  /**
+  Returns the indices of the vertices forming the prescribed edge
+  @param[in] e edge index
+  @param[out] v0 first vertex index
+  @param[out] v1 second vertex index
+  */
+  void GetIndicesVerticesOnEdge(const int & e, int & v0,int & v1){v0 = this -> edges[e][0];v1 = this -> edges[e][1];}
+
+  /**
+  Returns the indices of the vertices forming the prescribed facet
+  @param[in] f facet index
+  @param[out] v0 first vertex index
+  @param[out] v1 second vertex index
+  @param[out] v2 third vertex index
+  */
+  void GetIndicesVerticesInFacet(const int & f, int & v0,int & v1,int & v2){v0 = this -> facets[f][0];v1 = this -> facets[f][1];v2 = this -> facets[f][2];}
+
+
+
+
 
 
 
