@@ -16,31 +16,15 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Mac users
 
-[Homebrew](https://brew.sh/) can be used to install SBGAT's components and dependencies. Homebrew install options differ whether you want to use *SbgatGui* or just the core classes of *SbgatCore*. This is justified by *SbgatCore*'s dependency on *VTK*, as *VTK* needs to know whether it must be linked against *Qt* at build time.
-
-#### With SbgatGui
-
-    brew tap bbercovici/self
-    brew update
-    brew install vtk --with-qt
-    brew install sbgat-core
-    brew install sbgat-gui
-
-The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
-
-#### Without SbgatGui
+[Homebrew](https://brew.sh/) can be used to install SBGAT's components and dependencies. 
 
     brew tap bbercovici/self
     brew update
     brew install vtk
     brew install sbgat-core
+    brew install sbgat-gui
 
-If you change your mind and decide you want the *SbgatGui* component, run:
-
-    brew uninstall sbgat-core
-    brew uninstall vtk
-    
-before reinstalling.
+The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
 
 ### Linux & Mac users
 

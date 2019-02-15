@@ -121,45 +121,6 @@ arma::mat::fixed<3,9> SBGATPolyhedronGravityModelUQ::PartialRadiusFfPartialTf() 
 
 
 
-arma::rowvec::fixed<2> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialXY(const arma::vec::fixed<2> & xy){
-
-	
-	arma::vec::fixed<2> ex = {1,0};
-	arma::vec::fixed<2> ey = {0,1};
-
-	arma::rowvec::fixed<2> partial = ((arma::norm(xy) + arma::dot(xy,ex)) * ey.t()  
-		- arma::dot(ey,xy) * (ex.t() + xy.t() / arma::norm(xy)));
-
-
-	return 2./ (std::pow(arma::norm(xy) + arma::dot(xy,ex),2) + std::pow(arma::dot(ey,xy),2)) * partial;
-
-}
-
-
-
-void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialXY(double tol){
-
-
-	std::cout << "\t In TestPartialOmegafPartialXY ...\n";
-	arma::vec::fixed<2> xy ={-0.2,0.1};
-
-	double omega = std::atan2(xy(1),xy(0));
-
-	arma::vec::fixed<2> dxy = {-1e-3,1e-3};
-
-	arma::vec::fixed<2> xy_p = xy + dxy;
-
-	double omega_p = std::atan2(xy_p(1),xy_p(0));
-	double domega = omega_p - omega;
-	double domega_lin = arma::dot(SBGATPolyhedronGravityModelUQ::PartialOmegafPartialXY(xy),dxy);
-
-	assert(std::abs(domega_lin - domega) / std::abs(domega_lin) < tol);
-
-	std::cout << "\t Passed TestPartialOmegafPartialXY ...\n";
-
-}
-
-
 
 
 arma::rowvec::fixed<9> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialTf(const arma::vec::fixed<3> & pos,const int & f) const{
@@ -184,12 +145,9 @@ arma::rowvec::fixed<9> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialTf(con
 	};
 
 	double alpha = 1 + arma::dot(r0_hat,r1_hat) + arma::dot(r0_hat,r2_hat) + arma::dot(r1_hat,r2_hat);
-	double Y = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
-	double X = alpha;
+	double gamma = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
 
-	arma::vec::fixed<2> xy = {X,Y};
-	arma::vec::fixed<2> ex = {1,0};
-	arma::vec::fixed<2> ey = {0,1};
+	arma::vec::fixed<2> Zf = {alpha,gamma};
 
 	arma::mat::fixed<9,9> partial_r_normalized_partial_R = arma::zeros<arma::mat>(9,9);
 
@@ -197,16 +155,13 @@ arma::rowvec::fixed<9> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialTf(con
 	partial_r_normalized_partial_R.submat(3,3,5,5) = SBGATPolyhedronGravityModelUQ::PartialNormalizedVPartialNonNormalizedV(R1);
 	partial_r_normalized_partial_R.submat(6,6,8,8) = SBGATPolyhedronGravityModelUQ::PartialNormalizedVPartialNonNormalizedV(R2);
 
-	return ( SBGATPolyhedronGravityModelUQ::PartialOmegafPartialXY(xy) 
-		* SBGATPolyhedronGravityModelUQ::PartialOOmegafVectorPartialUnitRf(r_hat)
-		* partial_r_normalized_partial_R);
-
+	return ( 2 * SBGATPolyhedronGravityModelUQ::PartialAtan2PartialZf(Zf) * SBGATPolyhedronGravityModelUQ::PartialZfPartialUnitRf(r_hat) * partial_r_normalized_partial_R);
 
 }
 
 
 
-arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialOOmegafVectorPartialUnitRf(const arma::vec::fixed<9> & UnitRf){
+arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialZfPartialUnitRf(const arma::vec::fixed<9> & UnitRf){
 
 
 	arma::mat::fixed<9,2> partial;
@@ -217,15 +172,15 @@ arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialOOmegafVectorPartial
 
 	double dot_prod = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
 
-	double alpha = (1 + arma::dot(r0_hat,r1_hat) + arma::dot(r0_hat,r2_hat) + arma::dot(r1_hat,r2_hat));
+	partial.submat(0,0,2,0) = r1_hat + r2_hat;
+	partial.submat(3,0,5,0) = r0_hat + r2_hat;
+	partial.submat(6,0,8,0) = r0_hat + r1_hat;
 
-	partial.submat(0,0,2,0) = RBK::tilde(r1_hat) * r2_hat/alpha;;
-	partial.submat(3,0,5,0) = RBK::tilde(r2_hat) * r0_hat/alpha;;
-	partial.submat(6,0,8,0) = RBK::tilde(r0_hat) * r1_hat/alpha;;
 
-	partial.submat(0,1,2,1) = - dot_prod * (r1_hat + r2_hat)/(alpha * alpha);
-	partial.submat(3,1,5,1) = - dot_prod * (r0_hat + r2_hat)/(alpha * alpha);
-	partial.submat(6,1,8,1) = - dot_prod * (r0_hat + r1_hat)/(alpha * alpha);
+	partial.submat(0,1,2,1) = RBK::tilde(r1_hat) * r2_hat;
+	partial.submat(3,1,5,1) = RBK::tilde(r2_hat) * r0_hat;
+	partial.submat(6,1,8,1) = RBK::tilde(r0_hat) * r1_hat;
+
 
 	return partial.t();
 
@@ -234,79 +189,15 @@ arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialOOmegafVectorPartial
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialOOmegafVectorPartialUnitRf(double tol){
+arma::rowvec::fixed<2> SBGATPolyhedronGravityModelUQ::PartialAtan2PartialZf(const arma::vec::fixed<2> & Zf){
 
-	std::cout << "\t In TestPartialOOmegafVectorPartialUnitRf ...\n";
+	arma::vec::fixed<2> e1 = {1,0};
+	arma::vec::fixed<2> e2 = {0,1};
 
-	arma::vec r0 = {1,2,3};
-	arma::vec r1 = {4,5,6};
-	arma::vec r2 = {2,1,2};
-
-	arma::vec::fixed<3>	r0_hat = arma::normalise(r0);
-	arma::vec::fixed<3>	r1_hat = arma::normalise(r1);
-	arma::vec::fixed<3>	r2_hat = arma::normalise(r2);
-
-	arma::vec::fixed<9> r_hat = {
-		r0_hat[0],r0_hat[1],r0_hat[2],
-		r1_hat[0],r1_hat[1],r1_hat[2],
-		r2_hat[0],r2_hat[1],r2_hat[2]
-	};
-
-	double alpha = 1 + arma::dot(r0_hat,r1_hat) + arma::dot(r0_hat,r2_hat) + arma::dot(r1_hat,r2_hat);
-	double Y = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
-	double X = alpha;
-
-	double OOmega_f = Y / X;
-
-	arma::vec::fixed<9> dr_hat = {1e-4,-1e-4,1e-4,-1e-4,1e-4,1e-4,1e-4,1e-4,1e-4};
-
-
-	arma::vec::fixed<3> r0_hat_p = r0_hat + dr_hat.subvec(0,2);
-	arma::vec::fixed<3> r1_hat_p = r1_hat + dr_hat.subvec(3,5);
-	arma::vec::fixed<3> r2_hat_p = r2_hat + dr_hat.subvec(6,8);
-
-
-	alpha = 1 + arma::dot(r0_hat_p,r1_hat_p) + arma::dot(r0_hat_p,r2_hat_p) + arma::dot(r1_hat_p,r2_hat_p);
-	Y = arma::dot(r0_hat_p,arma::cross(r1_hat_p,r2_hat_p));
-	X = alpha;
-	arma::vec::fixed<2> OOmega_vector = {X,Y};
-
-
-	double OOmega_f_p = Y / X;
-
-	double dOOmega  = OOmega_f_p - OOmega_f;
-
-
-	double dOOmega_ling = arma::dot(SBGATPolyhedronGravityModelUQ::PartialOOmegafPartialOOmegafVector(OOmega_vector),SBGATPolyhedronGravityModelUQ::PartialOOmegafVectorPartialUnitRf(r_hat) *  dr_hat);
-
-
-	std::cout << dOOmega << std::endl;
-	std::cout << dOOmega_ling << std::endl;
-	std::cout << std::abs(dOOmega - dOOmega_ling) / std::abs(dOOmega_ling)  << std::endl;
-
-
-
-	assert(std::abs(dOOmega - dOOmega_ling) / std::abs(dOOmega_ling) < tol);
-
-
-	std::cout << "\t Passed TestPartialOOmegafVectorPartialUnitRf ...\n";
-
-
-
-}
-
-arma::rowvec::fixed<2> SBGATPolyhedronGravityModelUQ::PartialOOmegafPartialOOmegafVector(const arma::vec::fixed<2> & OOmega_vector){
-
-
-
-	arma::vec::fixed<2> ex = {1,0};
-	arma::vec::fixed<2> ey = {0,1};
-
-	arma::rowvec::fixed<2> partial = (arma::dot(ex,OOmega_vector) * ey.t() - arma::dot(ey,OOmega_vector) * ex.t())/(arma::dot(ex , OOmega_vector) * arma::dot(ex , OOmega_vector));
+	arma::rowvec::fixed<2> partial = 2 * (
+		((arma::norm(Zf) + arma::dot(e1,Zf)) * e2.t() - arma::dot(e2,Zf) * (e1.t() + Zf.t()/arma::norm(Zf)))
+		/(std::pow(arma::norm(Zf) + arma::dot(e1,Zf),2) + std::pow(arma::dot(e2,Zf),2)));
 	return partial;
-
-
-
 
 }
 
@@ -573,13 +464,13 @@ arma::mat::fixed<6,24> SBGATPolyhedronGravityModelUQ::PartialEPartialBe(const in
 
 void SBGATPolyhedronGravityModelUQ::TestPartials(double tol){
 
-	SBGATPolyhedronGravityModelUQ::TestPartialOOmegafVectorPartialUnitRf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialXY(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(tol);
 	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(tol);
 	// SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(tol);
@@ -825,7 +716,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 	double omega_f = pgm_filter -> GetOmegaf(pos,f);
 
 	// Deviation
-	arma::vec::fixed<9> delta_Tf = {1e-2,1e-2,1e-2,0e-2,-0e-2,0e-2,0e-2,0e-2,-0e-2};
+	arma::vec::fixed<9> delta_Tf = {1e-2,1e-2,1e-2,1e-2,-1e-2,1e-2,1e-2,1e-2,-1e-2};
 
 	// Apply Tf deviation
 	shape_uq. ApplyTfDeviation(delta_Tf,f);
@@ -1142,11 +1033,77 @@ void SBGATPolyhedronGravityModelUQ::ApplyTfDeviation(arma::vec::fixed<9> delta_T
 
 	this -> pgm_model -> Update();
 
+}
 
 
+void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(double tol){
 
+	std::cout << "\t In TestPartialAtan2PartialZf ...\n";
+
+	arma::vec::fixed<2> e1 = {1,0};
+	arma::vec::fixed<2> e2 = {0,1};
+
+	arma::vec::fixed<2> Zf = {0.1,-0.2};
+
+	double at2 = 2 * std::atan(arma::dot(Zf,e2) / (arma::norm(Zf) + arma::dot(Zf,e1)));
+
+
+	arma::vec::fixed<2> dZf = {1e-3,-1e-3};
+
+	double at2_p = 2 * std::atan(arma::dot(Zf + dZf,e2) / (arma::norm(Zf + dZf) + arma::dot(Zf + dZf,e1)));
+
+
+	double dat2 = at2_p - at2;
+
+	double dat2_lin = arma::dot(SBGATPolyhedronGravityModelUQ::PartialAtan2PartialZf(Zf),dZf);
+
+	assert(std::abs(dat2 - dat2_lin)/std::abs(dat2_lin) < tol);
+	std::cout << "\t Passed TestPartialAtan2PartialZf ...\n";
 
 }
 
+
+void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(double tol){
+
+	std::cout << "\t In TestPartialZfPartialUnitRf ...\n";
+
+	arma::vec::fixed<9> Rf = {0,1,2,3,4,5,6,7,8};
+	Rf.subvec(0,2) = arma::normalise(Rf.subvec(0,2));
+	Rf.subvec(3,5) = arma::normalise(Rf.subvec(3,5));
+	Rf.subvec(6,8) = arma::normalise(Rf.subvec(6,8));
+
+
+
+	arma::vec::fixed<3> r0_hat = Rf.subvec(0,2);
+	arma::vec::fixed<3> r1_hat = Rf.subvec(3,5);
+	arma::vec::fixed<3> r2_hat = Rf.subvec(6,8);
+
+	double alpha = 1 + arma::dot(r0_hat,r1_hat) + arma::dot(r0_hat,r2_hat) + arma::dot(r1_hat,r2_hat);
+	double gamma = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
+
+	arma::vec::fixed<2> Zf = {alpha,gamma};
+
+
+	arma::vec::fixed<9> dRf = {1e-3,1e-3,-1e-3,2e-3,-1e-3,2e-3,1e-3,1e-3,-1e-3};
+
+	arma::vec::fixed<9> Rf_p = Rf + dRf;
+
+	arma::vec::fixed<3> r0_hat_p = Rf_p.subvec(0,2);
+	arma::vec::fixed<3> r1_hat_p = Rf_p.subvec(3,5);
+	arma::vec::fixed<3> r2_hat_p = Rf_p.subvec(6,8);
+
+	double alpha_p = 1 + arma::dot(r0_hat_p,r1_hat_p) + arma::dot(r0_hat_p,r2_hat_p) + arma::dot(r1_hat_p,r2_hat_p);
+	double gamma_p = arma::dot(r0_hat_p,arma::cross(r1_hat_p,r2_hat_p));
+
+	arma::vec::fixed<2> Zf_p = {alpha_p,gamma_p};
+
+
+	arma::vec::fixed<2> dZf = Zf_p - Zf;
+	arma::vec::fixed<2> dZf_lin = SBGATPolyhedronGravityModelUQ::PartialZfPartialUnitRf(Rf) * dRf;
+
+	assert(arma::norm(dZf - dZf_lin)/arma::norm(dZf_lin) < tol);
+	std::cout << "\t Passed TestPartialZfPartialUnitRf ...\n";
+
+}
 
 

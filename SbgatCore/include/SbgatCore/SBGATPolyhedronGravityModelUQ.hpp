@@ -129,18 +129,22 @@ public:
 
 
 
-   /**
-  Returns the partial derivative of OOmega_f (as in wf = 2 * arctan(OOmegaf) )
+  /**
+  Returns the partial derivative of Z_f = (alpha_f,gamma_f)^T (as in wf = 2 * arctan2(Z_f) )
   with respect to the unit vectors from the field point to the facet vertices
   @param UnitRf 3 unit vectors stacked up
-  @return PartialOOmegafVectorPartialUnitRf (2x9)
+  @return PartialZfPartialUnitRf (2x9)
   */
-  static arma::mat::fixed<2,9> PartialOOmegafVectorPartialUnitRf(const arma::vec::fixed<9> & UnitRf);
+  static arma::mat::fixed<2,9> PartialZfPartialUnitRf(const arma::vec::fixed<9> & UnitRf);
 
 
-  static arma::rowvec::fixed<2>  PartialOOmegafPartialOOmegafVector(const arma::vec::fixed<2> & OOmega_vector);
-
-
+  /**
+  Returns the partial derivative of arctan2(Z_f) w/r to Z_f 
+  with respect to the unit vectors from the field point to the facet vertices
+  @param Zf 
+  @return PartialAtan2PartialZf (1x2)
+  */
+  static arma::rowvec::fixed<2> PartialAtan2PartialZf(const arma::vec::fixed<2> & Zf);
 
 
   /**
@@ -302,11 +306,10 @@ protected:
   static void TestPartialUfPartialXf(double tol) ;
   static void TestPartialXfPartialTf(double tol) ;
   static void TestPartialOmegafPartialTf(double tol) ;
+  static void TestPartialZfPartialUnitRf(double tol);
   static void TestPartialFfPartialTf(double tol) ;
   static void TestPartialNormalizedVPartialNonNormalizedV(double tol) ;
-  static void TestPartialOmegafPartialXY(double tol);
-  static void TestPartialOOmegafVectorPartialUnitRf(double tol);
-
+  static void TestPartialAtan2PartialZf(double tol);
   static void TestPartialNfPartialTf(double tol) ;
   static void TestPartialFfPartialnf(double tol) ;
   static void TestPartialLePartialAe(double tol) ;

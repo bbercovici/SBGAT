@@ -695,23 +695,7 @@ void TestsSBCore::test_PGM_UQ_partials(){
 
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
 
-	std::string filename  = "../input/cube.obj";
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName(filename.c_str());
-	reader -> Update(); 
-
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
-	pgm_filter -> SetDensity(1970); // density in kg/m^3
-	pgm_filter -> SetScaleMeters();
-	pgm_filter -> Update();
-
-	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
-	shape_uq.TestPartials(1e-2);
+	SBGATPolyhedronGravityModelUQ::TestPartials(1e-2);
 
 	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
 
