@@ -176,7 +176,6 @@ arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialZfPartialUnitRf(cons
 	partial.submat(3,0,5,0) = r0_hat + r2_hat;
 	partial.submat(6,0,8,0) = r0_hat + r1_hat;
 
-
 	partial.submat(0,1,2,1) = RBK::tilde(r1_hat) * r2_hat;
 	partial.submat(3,1,5,1) = RBK::tilde(r2_hat) * r0_hat;
 	partial.submat(6,1,8,1) = RBK::tilde(r0_hat) * r1_hat;
@@ -463,19 +462,20 @@ arma::mat::fixed<6,24> SBGATPolyhedronGravityModelUQ::PartialEPartialBe(const in
 }
 
 void SBGATPolyhedronGravityModelUQ::TestPartials(double tol){
+	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
 
+	SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(tol);	
 	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(tol);
-	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(tol);
-	// SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(tol);
-	// SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
-	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(tol);
+
+	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(tol);
+
 	// SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(tol);
 	// SBGATPolyhedronGravityModelUQ::TestPartialEePartialAe(tol);
 	// SBGATPolyhedronGravityModelUQ::TestPartialEePartialTf(tol);
@@ -497,6 +497,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 	reader -> SetFileName(filename.c_str());
 	reader -> Update(); 
 
+	// Cleaning
 	vtkSmartPointer<vtkCleanPolyData> cleaner =
 	vtkSmartPointer<vtkCleanPolyData>::New();
 	cleaner -> SetInputConnection (reader -> GetOutputPort());
@@ -627,9 +628,17 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 	reader -> SetFileName(filename.c_str());
 	reader -> Update(); 
 
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> Update();
+
+
+
 	// Creating the PGM dyads
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
+	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
 	pgm_filter -> SetDensity(1970); // density in kg/m^3
 	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
@@ -664,6 +673,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 	// Linear dXf
 	arma::vec::fixed<10> dXf_lin = shape_uq.PartialXfPartialTf(pos,f) * delta_Tf;
 
+	std::cout << dXf_lin.t();
+	std::cout << dXf.t();
+
+
 	assert(arma::norm(dXf - dXf_lin) / arma::norm(dXf_lin) < 1e-2);
 
 
@@ -688,8 +701,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 
 
-
-
 	std::cout << "\t In TestPartialOmegafPartialTf ...\n";
 
 	std::string filename  = "../input/cube.obj";
@@ -699,9 +710,15 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 	reader -> SetFileName(filename.c_str());
 	reader -> Update(); 
 
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> Update();
+
 	// Creating the PGM dyads
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
+	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
 	pgm_filter -> SetDensity(1970); // density in kg/m^3
 	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
@@ -718,20 +735,29 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 	// Deviation
 	arma::vec::fixed<9> delta_Tf = {1e-2,1e-2,1e-2,1e-2,-1e-2,1e-2,1e-2,1e-2,-1e-2};
 
+
+	double C0[3], C1[3], C2[3];
+
+	shape_uq.GetPGMModel() -> GetVerticesInFacet(f,C0,C1,C2);
+
 	// Apply Tf deviation
 	shape_uq. ApplyTfDeviation(delta_Tf,f);
 
 	// Perturbed omega_f
 	double omega_f_p = pgm_filter -> GetOmegaf(pos,f);
+
+
+	double C0_p[3], C1_p[3], C2_p[3];
+
+	shape_uq.GetPGMModel() -> GetVerticesInFacet(f,C0_p,C1_p,C2_p);
+
+
 	
 	// Non-linear domega_f
 	double domega_f = omega_f_p - omega_f;
 
 	// Linear dXf
 	double domega_f_lin = arma::dot(shape_uq.PartialOmegafPartialTf(pos,f), delta_Tf);
-
-	std::cout << "linear : " << domega_f_lin << std::endl;
-	std::cout << "non-linear : " << domega_f << std::endl;
 
 
 	assert(std::abs(domega_f - domega_f_lin) / std::abs(domega_f_lin) < 1e-2);
@@ -752,6 +778,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(double tol){
 
 void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(double tol){
 
+	std::cout << "\t In TestPartialNormalizedVPartialNonNormalizedV ...\n";
   	// non-normalized vector
 	arma::vec::fixed<3> X = {1,2,3};
 
@@ -774,9 +801,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(
 	arma::vec::fixed<3> dx_lin = SBGATPolyhedronGravityModelUQ::PartialNormalizedVPartialNonNormalizedV(X) * dX;
 
 
-	assert(arma::norm(x_p - x - dx_lin)/arma::norm(dx_lin) < tol);
+	assert(arma::norm(dx - dx_lin)/arma::norm(dx_lin) < tol);
 
 
+	std::cout << "\t Passed TestPartialNormalizedVPartialNonNormalizedV ...\n";
 
 }
 void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
@@ -825,11 +853,15 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 	shape_uq. ApplyTfDeviation(delta_Tf,f);
 
 	// Perturbed normal
-	shape_uq.GetPGMModel() -> GetVerticesInFacet(f,r0,r1,r2);
+	double r0_p[3],r1_p[3],r2_p[3];
 
-	arma::vec::fixed<3> r0_arma_p = {r0[0],r0[1],r0[2]};
-	arma::vec::fixed<3> r1_arma_p = {r1[0],r1[1],r1[2]};
-	arma::vec::fixed<3> r2_arma_p = {r2[0],r2[1],r2[2]};
+	shape_uq.GetPGMModel() -> GetVerticesInFacet(f,r0_p,r1_p,r2_p);
+
+	arma::vec::fixed<3> r0_arma_p = {r0_p[0],r0_p[1],r0_p[2]};
+	arma::vec::fixed<3> r1_arma_p = {r1_p[0],r1_p[1],r1_p[2]};
+	arma::vec::fixed<3> r2_arma_p = {r2_p[0],r2_p[1],r2_p[2]};
+
+
 
 	assert(arma::norm(r0_arma_p - r0_arma - delta_Tf.subvec(0,2))/arma::abs(delta_Tf.subvec(0,2)).max() < 1e-4);
 	assert(arma::norm(r1_arma_p - r1_arma - delta_Tf.subvec(3,5))/arma::abs(delta_Tf.subvec(3,5)).max() < 1e-4);
@@ -844,7 +876,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 	arma::vec::fixed<3> dN_lin = shape_uq . PartialNfPartialTf(f) * delta_Tf;
 
 
-	assert(arma::abs(dN - dN_lin).max()/arma::abs(dN_lin).max() < tol);
+	assert(arma::norm(dN - dN_lin)/arma::norm(dN_lin) < tol);
 	
 
 	std::cout << "\t Passed TestPartialNfPartialTf ...\n";
