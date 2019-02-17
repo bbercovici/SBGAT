@@ -187,11 +187,11 @@ public:
   /**
   Returns the partial derivative of the f-th facet dyad parametrization with respect to the 
   normalized normal of the f-th facet
-  @param f facet index
+  @param nf facet normal
   @return PartialFfPartialnf (6x3)
 
   */
-  arma::mat::fixed<6,3> PartialFfPartialnf(const int & f) const;
+  static arma::mat::fixed<6,3> PartialFfPartialnf(const arma::vec::fixed<3> & nf);
 
 
 
@@ -257,6 +257,20 @@ public:
   arma::mat::fixed<6,24> PartialEPartialBe(const int & e) const;
 
 
+  /**
+  Returns the connectivity table associated with vector Be
+  @param e edge index
+  @return connectivity table
+  */
+  arma::sp_mat  PartialBePartialC(int e) const;
+
+  /**
+  Given a prescribed global deviation of all of the shape's N control points,
+  applies it and returns the deviation in each of the Be's vector (one per edge in the shape)
+  @param delta deviation in all of the shape's N control points (3 x N_vertices)
+  @return deviation in all of the shape's Be vectors (24 x N_edges)
+  */
+  arma::vec ApplyAndGetBeDeviation(const arma::vec & delta);
 
 
 
@@ -312,13 +326,16 @@ protected:
   static void TestPartialAtan2PartialZf(double tol);
   static void TestPartialNfPartialTf(double tol) ;
   static void TestPartialFfPartialnf(double tol) ;
+  static void TestPartialFfPartialNonNormalizedNf(double tol);
   static void TestPartialLePartialAe(double tol) ;
   static void TestPartialEePartialAe(double tol) ;
   static void TestPartialEePartialTf(double tol) ;
   static void TestPartialXePartialBe(double tol) ;
   static void TestPartialEdgeLengthPartialAe(double tol) ;
-  static void TestPartialEqrPartialBe(double tol) ;
   static void TestPartialEPartialBe(double tol) ;
+  static void TestPartialUfPartialTf(double tol);
+  static void TestPartialUePartialBe(double tol);
+
 
 
 

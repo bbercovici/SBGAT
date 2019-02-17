@@ -245,6 +245,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 	this -> edge_dyads = new double * [edge_points_ids_facet_ids.size()];
 	this -> edges = new int * [edge_points_ids_facet_ids.size()];
 	this -> edge_facets_ids = new int * [edge_points_ids_facet_ids.size()];
+	this -> edge_flipping = new int [edge_points_ids_facet_ids.size()];
 
 
 	#pragma omp parallel for
@@ -283,7 +284,12 @@ int SBGATPolyhedronGravityModel::RequestData(
 		
 		if (vtkMath::Dot(p1_m_p0,edge_dir) < 0){
 			vtkMath::MultiplyScalar(edge_dir,-1.);
+			this -> edge_flipping[i] = -1;
 		} 
+		else{
+			this -> edge_flipping[i] = 1;
+		}
+		
 
 		double edge_normal_A_to_B[3];
 		double edge_normal_B_to_A[3];
@@ -780,6 +786,11 @@ void SBGATPolyhedronGravityModel::Clear(){
 			delete[] this -> edge_facets_ids[i];
 		}
 		delete[] this -> edge_facets_ids;
+
+	// Edge switching variables
+
+		delete[] this -> edge_flipping;
+
 	}
 }
 
@@ -1294,6 +1305,18 @@ arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXf(const arma::vec::fixed<3
 arma::vec::fixed<6> SBGATPolyhedronGravityModel::GetFfParam(const int & f) const{
 
 
+	//  this -> facet_dyads[i][0] = normal[0] * normal[0];
+	// 	this -> facet_dyads[i][1] = normal[0] * normal[1];
+	// 	this -> facet_dyads[i][2] = normal[0] * normal[2];
+	// 	this -> facet_dyads[i][3] = normal[1] * normal[0];
+	// 	this -> facet_dyads[i][4] = normal[1] * normal[1];
+	// 	this -> facet_dyads[i][5] = normal[1] * normal[2];
+	// 	this -> facet_dyads[i][6] = normal[2] * normal[0];
+	// 	this -> facet_dyads[i][7] = normal[2] * normal[1];
+	// 	this -> facet_dyads[i][8] = normal[2] * normal[2];
+
+
+
 	const double * F = this -> facet_dyads[f];
 
 	return {F[0],F[4],F[8],F[1],F[2],F[5]};
@@ -1318,6 +1341,21 @@ double SBGATPolyhedronGravityModel::GetUf(const arma::vec::fixed<10> & Xf){
 
 
 }
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetNonNormalizedFacetNormal(const int & f) const{
+
+	double r0[3], r1[3], r2[3];
+
+	this -> GetVerticesInFacet(f,r0,r1,r2);
+
+	arma::vec::fixed<3> r0_arma = {r0[0],r0[1],r0[2]};
+	arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
+	arma::vec::fixed<3> r2_arma = {r2[0],r2[1],r2[2]};
+	return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma);
+
+
+}
+
 
 void SBGATPolyhedronGravityModel::GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const{
 

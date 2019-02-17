@@ -465,9 +465,21 @@ the polydata used to construct the PGM
   void GetIndicesVerticesInFacet(const int & f, int & v0,int & v1,int & v2){v0 = this -> facets[f][0];v1 = this -> facets[f][1];v2 = this -> facets[f][2];}
 
 
+  /**
+  Returns the non-normalized facet normal at this facet
+  @param f facet index
+  @return non-normalized facet normal
+  */
+  arma::vec::fixed<3> GetNonNormalizedFacetNormal(const int & f) const;
 
 
-
+  /**
+  Returns -1 if the provided edge's parametrization had to be flipped upon constructing
+  the edge dyad, +1 if not
+  @param e edge index
+  @return edge flip (+1 or -1)
+  */
+  int GetEdgeFlipping(const int & e) const {return this -> edge_flipping[e];}
 
 
 protected:
@@ -493,6 +505,7 @@ protected:
   int ** edges;
   int ** facets;
   int ** edge_facets_ids;
+  int * edge_flipping;
 
 
   bool scaleFactorSet;

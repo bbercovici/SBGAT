@@ -695,7 +695,7 @@ void TestsSBCore::test_PGM_UQ_partials(){
 
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
 
-	SBGATPolyhedronGravityModelUQ::TestPartials(1e-2);
+	SBGATPolyhedronGravityModelUQ::TestPartials(5e-2);
 
 	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
 
