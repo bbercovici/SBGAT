@@ -387,6 +387,13 @@ protected:
   static void TestPartialEPartialBe(double tol) ;
   static void TestPartialUfPartialTf(double tol);
   static void TestPartialUePartialBe(double tol);
+  static void TestPartialUPartialC(double tol);
+
+  static void TestPartialUfPartialC(double tol);
+  static void TestPartialUePartialC(double tol);
+
+
+
 
 
 

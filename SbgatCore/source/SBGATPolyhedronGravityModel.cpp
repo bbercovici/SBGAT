@@ -352,7 +352,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 	double potential = 0;
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:potential)
+	#pragma omp parallel for reduction(-:potential)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 
@@ -371,7 +371,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 		};
 		
 
-		potential += - this -> GetOmegaf( point, facet_index) * vtkMath::Dot(r0m,a);
+		potential -= this -> GetOmegaf( point, facet_index) * vtkMath::Dot(r0m,a);
 
 	}
 

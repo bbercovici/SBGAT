@@ -704,15 +704,15 @@ void TestsSBCore::test_PGM_UQ(){
 
 	std::cout << "- Running test_PGM_UQ ..." << std::endl;
 
-
-	int successes = 0;
 	int N = 10000;
 
-	arma::mat P_CC = arma::diagmat<arma::mat>(1e-3 * arma::randu<arma::vec>(24));
+	arma::mat P_CC = arma::diagmat<arma::mat>(1e-6 * arma::randu<arma::vec>(24));
 	arma::mat C_CC = arma::chol(P_CC,"lower");
 
+	assert(arma::abs(P_CC - C_CC * C_CC.t()).max() < 1e-10); 
 
 	arma::vec pos = {2,3,4};
+	double density = 1970;
 
 	arma::vec U_mc(N);
 
@@ -725,20 +725,18 @@ void TestsSBCore::test_PGM_UQ(){
 	reader -> Update(); 
 
 	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cleaner =
-	vtkSmartPointer<vtkCleanPolyData>::New();
+	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 	cleaner -> SetInputConnection (reader -> GetOutputPort());
 	cleaner -> Update();
 
 	// Creating the PGM dyads
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
-	pgm_filter -> SetDensity(1970); 
+	pgm_filter -> SetDensity(density); 
 	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
-
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -765,7 +763,7 @@ void TestsSBCore::test_PGM_UQ(){
 	// Creating the PGM dyads
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 		pgm_filter_mc -> SetInputConnection(cleaner -> GetOutputPort());
-		pgm_filter_mc -> SetDensity(1970000); 
+		pgm_filter_mc -> SetDensity(density); 
 		pgm_filter_mc -> SetScaleMeters();
 		pgm_filter_mc -> Update();
 
