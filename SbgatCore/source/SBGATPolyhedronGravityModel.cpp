@@ -163,7 +163,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 		
 	}
 
-
 	// The facet dyads are created
 	this -> facet_dyads = new double * [numCells];
 	this -> facet_normals = new double * [numCells];

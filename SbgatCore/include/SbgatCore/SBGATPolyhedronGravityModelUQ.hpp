@@ -30,7 +30,11 @@ public:
   Sets the PGM model associated to this uncertainty quantification run
   @param[in] pgm pointer to valid polyhedron gravity model
   */
-  void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm){this -> pgm_model = pgm;}
+  void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm){
+    this -> pgm_model = pgm;
+    int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+    this -> P_CC = arma::zeros<arma::mat>(3 * N_C,3 * N_C);
+  }
 
   /**
   Get the PGM model associated to this uncertainty quantification run
@@ -46,7 +50,7 @@ public:
   the polydata
   @return PGM potential variance evaluated at the queried point (L ^ 4/ s ^4)
   */
-  double GetPotentialVariance(double const * point) const;
+  double GetVariancePotential(double const * point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance at the specified point assuming 
@@ -55,7 +59,7 @@ public:
   the polydata
   @return PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
   */
-  double GetPotentialVariance(const arma::vec::fixed<3> & point) const;
+  double GetVariancePotential(const arma::vec::fixed<3> & point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
@@ -65,7 +69,7 @@ public:
   @param[out] potential_var PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
   @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (L^2 / s ^4)
   */
-  void GetPotentialVarianceAccelerationCovariance(double const * point,double & potential_var, 
+  void GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
 
   /**
@@ -76,7 +80,7 @@ public:
   @param[out] potential_var PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
   @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (L^2 / s ^4)
   */
-  void GetPotentialVarianceAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
+  void GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
 
 
@@ -87,14 +91,10 @@ public:
   @param pos position where to evaluate the partial
   @param e edge index
   @return PartialUePartialXe (1x10)
-
   */
   arma::rowvec::fixed<10> PartialUePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
 
   
-
-  
-
   /**
   Returns the partial derivative of an individual facet contribution to the potential (Uf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
@@ -105,6 +105,27 @@ public:
   */
   arma::rowvec::fixed<10> PartialUfPartialXf(const arma::vec::fixed<3> & pos,
     const int & f) const;
+
+
+
+  /**
+  Returns the partial derivative of an individual edge contribution to the acceleration (Ae) 
+  with respect to the Xe^E vector holding the e-th edge dyadic factors
+  @param pos position where to evaluate the partial
+  @param e edge index
+  @return PartialAePartialXe (3x10)
+  */
+  arma::mat::fixed<3,10> PartialAePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
+
+  
+  /**
+  Returns the partial derivative of an individual facet contribution to the acceleration (Af) 
+  with respect to the Xf^F vector holding the f-th facet dyadic factors
+  @param pos position where to evaluate the partial
+  @param f facet index
+  @return PartialAfPartialXf (3x10)
+  */
+  arma::mat::fixed<3,10> PartialAfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const;
 
 
 
@@ -262,7 +283,15 @@ public:
   @param e edge index
   @return connectivity table
   */
-  arma::sp_mat  PartialBePartialC(int e) const;
+  arma::sp_mat  PartialBePartialC(const int & e) const;
+
+
+  /**
+  Returns the connectivity table associated with vector Tf
+  @param f facet index
+  @return connectivity table
+  */
+  arma::sp_mat  PartialTfPartialC(const int & f) const;
 
   /**
   Given a prescribed global deviation of all of the shape's N control points,
@@ -299,21 +328,44 @@ public:
   void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
 
 
+  /**
+  Obtain the partial derivative of the potential at the prescribed location
+  due to a infinitesimal variation in the shape's control points
+  @param pos position where to evaluate the partial derivative
+  @return partial derivative of the potential with respect to the variation in the shape's control points
+  */
+
+  arma::rowvec GetPartialUPartialC(const arma::vec::fixed<3> & pos) const;
+
+  /**
+  Obtain the partial derivative of the acceleration at the prescribed location
+  due to a infinitesimal variation in the shape's control points
+  @param pos position where to evaluate the partial derivative
+  @return partial derivative of the acceleration with respect to the variation in the shape's control points
+  */
+  arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
 
 
+  /**
+  Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
+  When v0 != v1, this function must be called twice to set the two symmetric blocks
+  on both sides of the diagonal
+  @param P covariance/correlation of Cv0 and Cv1
+  @param v0 index of first vertex
+  @param v1 index of second vertex
+  */
+  void SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1);
 
-
-
-
-
-
-
+  /**
+  Applies prescribed deviation to all the N_C control points and updates pgm
+  @param delta_C deviation (3 * N_C x 1)
+  */  
+  void ApplyDeviation(const arma::vec & delta_C);
 
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
+
 protected:
-
-
 
 
   static void TestPartialUePartialXe(double tol) ;
@@ -340,6 +392,8 @@ protected:
 
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
+
+  arma::mat P_CC;
 
 
 };

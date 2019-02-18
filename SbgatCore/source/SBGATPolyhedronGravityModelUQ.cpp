@@ -2,23 +2,34 @@
 #include <RigidBodyKinematics.hpp>
 #include <vtkOBJReader.h>
 #include <vtkCleanPolyData.h>
+#pragma omp declare reduction( + : arma::rowvec : omp_out += omp_in ) \
+initializer( omp_priv = arma::zeros<arma::rowvec>(omp_orig.n_cols))
 
+#pragma omp declare reduction( + : arma::mat : omp_out += omp_in ) \
+initializer( omp_priv = arma::zeros<arma::mat>(omp_orig.n_rows,omp_orig.n_cols))
 
-double SBGATPolyhedronGravityModelUQ::GetPotentialVariance(double const * point) const{
+double SBGATPolyhedronGravityModelUQ::GetVariancePotential(double const * point) const{
+
+	arma::rowvec partial = this -> GetPartialUPartialC(point);
+
+	return arma::dot(partial, this -> P_CC * partial.t());
 
 }
 
-double SBGATPolyhedronGravityModelUQ::GetPotentialVariance(const arma::vec::fixed<3> & point) const{
+double SBGATPolyhedronGravityModelUQ::GetVariancePotential(const arma::vec::fixed<3> & point) const{
+
+	return this -> GetVariancePotential(point.colptr(0));
 
 }
 
-void SBGATPolyhedronGravityModelUQ::GetPotentialVarianceAccelerationCovariance(double const * point,double & potential_var, 
+void SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
 	arma::mat::fixed<3,3> & acc_cov) const{
 
 }
 
-void SBGATPolyhedronGravityModelUQ::GetPotentialVarianceAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
+void SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
 	arma::mat::fixed<3,3> & acc_cov) const{
+
 
 }
 
@@ -163,8 +174,6 @@ arma::mat::fixed<2,9> SBGATPolyhedronGravityModelUQ::PartialZfPartialUnitRf(cons
 	const arma::vec::fixed<3> & r0_hat = UnitRf.subvec(0,2);
 	const arma::vec::fixed<3> & r1_hat = UnitRf.subvec(3,5);
 	const arma::vec::fixed<3> & r2_hat = UnitRf.subvec(6,8);
-
-	double dot_prod = arma::dot(r0_hat,arma::cross(r1_hat,r2_hat));
 
 	partial.submat(0,0,2,0) = r1_hat + r2_hat;
 	partial.submat(3,0,5,0) = r0_hat + r2_hat;
@@ -458,8 +467,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
 
 	std::cout << "\t In TestPartialUfPartialTf ... ";
 	int successes = 0;
+	int N = 1000;
 
-	for (int i = 0; i < 100 ; ++i){
+	for (int i = 0; i < N ; ++i){
 
 		std::string filename  = "../input/cube.obj";
 
@@ -518,7 +528,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
 
 	}
 
-	std::cout << "\t Passed TestPartialUfPartialTf with " << successes << " \% of sucesses. \n";
+	std::cout << "\t Passed TestPartialUfPartialTf with " << double(successes)/N * 100 << " \% of sucesses. \n";
 
 
 }
@@ -1162,7 +1172,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(double tol){
 
 		int e = 1;
 		arma::vec::fixed<6> delta_Ae = 1e-3 * arma::randn<arma::vec>(6);
-	
+
 		double Le = shape_uq .GetPGMModel() -> GetLe(pos,e);
 		
 
@@ -1375,7 +1385,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(double tol){
 }
 
 
-arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialBePartialC(int e) const{
+arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialBePartialC(const int & e) const{
 
 	arma::sp_mat table(24, 3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
 
@@ -1408,6 +1418,62 @@ arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialBePartialC(int e) const{
 	return table;
 
 }
+
+
+arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialTfPartialC(const int & f) const{
+
+	arma::sp_mat table(9, 3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
+
+	
+	int v0_f,v1_f,v2_f;
+	this -> pgm_model -> GetIndicesVerticesInFacet(f, v0_f,v1_f,v2_f);
+
+	table.submat(0,3 * v0_f, 2,3 * v0_f + 2) = arma::eye<arma::mat>(3,3);
+	table.submat(3,3 * v1_f, 5,3 * v1_f + 2) = arma::eye<arma::mat>(3,3);
+	table.submat(6,3 * v2_f, 8,3 * v2_f + 2) = arma::eye<arma::mat>(3,3);
+
+	return table;
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::ApplyDeviation(const arma::vec & delta_C){
+	
+	vtkPolyData * polydata = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput());
+	int N_C = polydata -> GetNumberOfPoints();
+	assert(3 * N_C == delta_C.n_rows);
+
+	double r[3];
+
+	for (int i = 0; i < N_C; ++i){
+
+		polydata -> GetPoint(i,r);
+
+		r[0] += delta_C(3 * i);
+		r[1] += delta_C(3 * i + 1);
+		r[2] += delta_C(3 * i + 2);
+
+		polydata -> GetPoints() -> SetPoint(i,r);
+	}
+
+	polydata -> GetPoints() -> Modified();
+
+	polydata -> Modified();
+
+
+	this -> pgm_model -> Modified();
+
+	this -> pgm_model -> Update();
+
+
+}
+
+
+
+
+
+
+
 
 
 
@@ -1614,5 +1680,103 @@ void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(double tol){
 	std::cout << "\t Passed TestPartialZfPartialUnitRf with " << double(successes) / N * 100 << " \% of successes. \n";
 
 }
+
+
+
+arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialUPartialC(const arma::vec::fixed<3> & pos) const{
+
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+	int N_e = N_C + N_f - 2;
+
+
+	arma::rowvec partial = arma::zeros<arma::rowvec>(3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
+
+	#pragma omp parallel for reduction(+:partial)
+	for (int f = 0; f < N_f; ++f){
+		partial += this -> PartialUfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
+	}
+
+	#pragma omp parallel for reduction(+:partial)
+	for (int e = 0; e < N_e; ++e){
+		partial += this -> PartialUePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
+	}
+
+	return arma::datum::G * this -> pgm_model -> GetDensity() / 2 * partial;
+
+
+}
+
+arma::mat SBGATPolyhedronGravityModelUQ::GetPartialAPartialC(const arma::vec::fixed<3> & pos) const{
+
+
+
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+	int N_e = N_C + N_f - 2;
+
+	arma::mat partial = arma::zeros<arma::mat>(3,3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
+
+	#pragma omp parallel for reduction(+:partial)
+	for (int f = 0; f < N_f; ++f){
+		partial += this -> PartialAfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
+	}
+
+	#pragma omp parallel for reduction(+:partial)
+	for (int e = 0; e < N_e; ++e){
+		partial += this -> PartialAePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
+	}
+
+	return arma::datum::G * this -> pgm_model -> GetDensity() * partial;
+
+}
+
+arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAePartialXe(const arma::vec::fixed<3> & pos,const int & e) const{
+
+	arma::mat::fixed<3,10> partial;
+
+	double Le = this -> pgm_model -> GetLe(pos,e);
+	arma::vec::fixed<3> r_ei_0 = this -> pgm_model -> GetRe(pos,e); 
+	arma::mat::fixed<3,6> R_ei_0 = {
+		{r_ei_0[0],0,0,r_ei_0[1],r_ei_0[2],0},
+		{0,r_ei_0[1],0,r_ei_0[0],0,r_ei_0[2]},
+		{0,0,r_ei_0[2],0,r_ei_0[0],r_ei_0[1]}
+	};
+
+	arma::vec::fixed<3> Ee_times_r_ei_0 = R_ei_0 * this -> pgm_model -> GetEeParam(e);
+
+	partial.col(0) = Ee_times_r_ei_0;
+	partial.cols(1,3) = Le * Ee_times_r_ei_0;
+	partial.cols(4,9) = Le * R_ei_0;
+
+	return partial;
+}
+
+arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const{
+
+	arma::mat::fixed<3,10> partial;
+
+	double omega_f = this -> pgm_model -> GetOmegaf(pos,f);
+	arma::vec::fixed<3> r_fi_0 = this -> pgm_model -> GetRf(pos,f); 
+	arma::mat::fixed<3,6> R_fi_0 = {
+		{r_fi_0[0],0,0,r_fi_0[1],r_fi_0[2],0},
+		{0,r_fi_0[1],0,r_fi_0[0],0,r_fi_0[2]},
+		{0,0,r_fi_0[2],0,r_fi_0[0],r_fi_0[1]}
+	};
+
+	arma::vec::fixed<3> F_times_r_fi_0 = R_fi_0 * this -> pgm_model -> GetFfParam(f);
+
+	partial.col(0) = F_times_r_fi_0;
+	partial.cols(1,3) = omega_f * F_times_r_fi_0;
+	partial.cols(4,9) = omega_f * R_fi_0;
+
+	return partial;
+
+}
+
+void SBGATPolyhedronGravityModelUQ::SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1){
+	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P;
+}
+
 
 

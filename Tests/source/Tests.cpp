@@ -64,6 +64,7 @@ SOFTWARE.
 
 void TestsSBCore::run() {	
 	TestsSBCore::test_PGM_UQ_partials();
+	TestsSBCore::test_PGM_UQ();
 	TestsSBCore::test_sbgat_transform_shape();
 
 	TestsSBCore::test_sbgat_shape_uq();
@@ -691,17 +692,104 @@ void TestsSBCore::test_sbgat_transform_shape(){
 }
 
 void TestsSBCore::test_PGM_UQ_partials(){
-
-
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
 
 	SBGATPolyhedronGravityModelUQ::TestPartials(5e-2);
 
 	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
 
+}
+
+void TestsSBCore::test_PGM_UQ(){
+
+	std::cout << "- Running test_PGM_UQ ..." << std::endl;
+
+
+	int successes = 0;
+	int N = 10000;
+
+	arma::mat P_CC = arma::diagmat<arma::mat>(1e-3 * arma::randu<arma::vec>(24));
+	arma::mat C_CC = arma::chol(P_CC,"lower");
+
+
+	arma::vec pos = {2,3,4};
+
+	arma::vec U_mc(N);
+
+
+	std::string filename  = "../input/cube.obj";
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName(filename.c_str());
+	reader -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> Update();
+
+	// Creating the PGM dyads
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+	pgm_filter -> SetDensity(1970); 
+	pgm_filter -> SetScaleMeters();
+	pgm_filter -> Update();
+
+	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
+
+
+	SBGATPolyhedronGravityModelUQ shape_uq;
+	shape_uq.SetPGM(pgm_filter);
+
+	for (int i = 0; i < N_C; ++i){
+		for (int j = 0; j <= i; ++j){
+
+			const arma::mat::fixed<3,3> & P = P_CC.submat(3 * i,3 * j, 3 * i + 2,3 * j + 2);
+			shape_uq.SetCovarianceComponent(P,i,j);
+			shape_uq.SetCovarianceComponent(P.t(),j,i);
+		}
+	}
+
+	auto start = std::chrono::system_clock::now();
+	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "Analytical variance in potential computed in " << elapsed_seconds.count() << " seconds\n";
+
+	// MC
+
+	for (int i = 0; i < N ; ++i){
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter_mc -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter_mc -> SetDensity(1970000); 
+		pgm_filter_mc -> SetScaleMeters();
+		pgm_filter_mc -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq_mc;
+		shape_uq_mc.SetPGM(pgm_filter_mc);
+		
+		arma::vec deviation = C_CC * arma::randn<arma::vec>(24);
+		shape_uq_mc.ApplyDeviation(deviation);
+
+		U_mc(i) = shape_uq_mc.GetPGMModel() -> GetPotential(pos);
+
+	}
+
+	std::cout << "\tMC variance in potential: " << arma::var(U_mc) << std::endl;
+	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tError: " << (arma::var(U_mc) - variance_U_analytical)/variance_U_analytical * 100 << " \%\n";
+
+
+	std::cout << "- Done running test_PGM_UQ ..." << std::endl;
+
 
 
 }
+
 
 
 
