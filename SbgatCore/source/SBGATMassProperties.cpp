@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
+#include <vtkCleanPolyData.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
@@ -86,8 +87,17 @@ int SBGATMassProperties::RequestData(
   inputVector[0]->GetInformationObject(0);
 
   // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  vtkSmartPointer<vtkCleanPolyData> cleaner =
+  vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner -> SetInputData (input_unclean);
+  cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+  cleaner -> Update();
+
+  vtkPolyData * input = cleaner -> GetOutput();
+
+
 
   vtkIdType cellId, numCells, numPts, numIds;
   double p[3];

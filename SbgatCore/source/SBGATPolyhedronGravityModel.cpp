@@ -60,6 +60,12 @@ SOFTWARE.
 #include <vtkMath.h>
 #include <array>
 
+#pragma omp declare reduction( + : arma::vec : omp_out += omp_in ) \
+initializer( omp_priv = arma::zeros<arma::vec>(omp_orig.n_rows))
+
+#pragma omp declare reduction( - : arma::vec : omp_out -= omp_in ) \
+initializer( omp_priv = arma::zeros<arma::vec>(omp_orig.n_rows))
+
 vtkStandardNewMacro(SBGATPolyhedronGravityModel);
 
 //----------------------------------------------------------------------------
@@ -104,10 +110,10 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkSmartPointer<vtkCleanPolyData> cleaner =
 	vtkSmartPointer<vtkCleanPolyData>::New();
 	cleaner -> SetInputData (input_unclean);
+	cleaner -> SetOutputPointsPrecision	( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 	cleaner -> Update();
 
 	vtkPolyData * input = cleaner -> GetOutput();
-	// vtkPolyData * input = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
 	vtkIdType cellId, numCells, numPts, numIds;
 
@@ -350,28 +356,13 @@ double SBGATPolyhedronGravityModel::GetPotential(const arma::vec::fixed<3> & poi
 double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 	double potential = 0;
+	arma::vec::fixed<3> point_arma = {point[0],point[1],point[2]};
 
 	// Facet loop
-	#pragma omp parallel for reduction(-:potential)
+	#pragma omp parallel for reduction(+:potential)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-
-		const double * r0 = this -> vertices[this -> facets[facet_index][0]];
-		
-		double r0m[3];
-		
-		vtkMath::Subtract(r0,point,r0m);
-		
-		double * F = this -> facet_dyads[facet_index];
-
-		double a[3] = {
-			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
-			F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2],
-			F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]
-		};
-		
-
-		potential -= this -> GetOmegaf( point, facet_index) * vtkMath::Dot(r0m,a);
+		potential += this -> GetUf(this -> GetXf(point_arma,facet_index));
 
 	}
 
@@ -379,28 +370,11 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 	#pragma omp parallel for reduction(+:potential)
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
-		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-		double r0m[3];
-
-		vtkMath::Subtract(r0,point,r0m);
-		
-		double * E = this -> edge_dyads[edge_index];
-
-		double a[3] = {
-			E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2],
-			E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2],
-			E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]
-		};
-
-
-		potential += this -> GetLe( point, edge_index) * vtkMath::Dot(r0m,a);
+		potential += this -> GetUe(this -> GetXe(point_arma,edge_index));
 
 	}
 
-	
-	potential *= 0.5 * arma::datum::G * this -> density;
-
-	return potential;
+	return potential * 0.5 * arma::datum::G * this -> density;;
 
 }
 
@@ -434,38 +408,32 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * point) const{
 
-	double acc_x = 0;
-	double acc_y = 0;
-	double acc_z = 0;
-
+	arma::vec::fixed<3> acc = arma::zeros<arma::vec>(3);
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z)
+	#pragma omp parallel for reduction(+:acc)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
 
 		double r0m[3];
 		
-
 		vtkMath::Subtract(r0,point,r0m);
 
 		double wf = this -> GetOmegaf( point, facet_index);
 		double * F = this -> facet_dyads[facet_index];
 
-		acc_x += wf *( F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2]);
-		acc_y += wf *( F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2]);
-		acc_z += wf *( F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]);
-
+		acc(0) += wf *( F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2]);
+		acc(1) += wf *( F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2]);
+		acc(2) += wf *( F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]);
 
 	}
 
 	// Edge loop
-	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z)
+	#pragma omp parallel for reduction(+:acc)
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
-
 		
 		double r0m[3];
 		
@@ -475,17 +443,13 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 
 		double * E = this -> edge_dyads[edge_index];
 
-		acc_x -= Le *( E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2]);
-		acc_y -= Le *( E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2]);
-		acc_z -= Le *( E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]);
+		acc(0) += - Le *( E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2]);
+		acc(1) += - Le *( E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2]);
+		acc(2) += - Le *( E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]);
 
 	}
 
-	arma::vec::fixed<3> acc = {acc_x,acc_y,acc_z};
-
-	acc *= arma::datum::G  * this -> density;
-
-	return acc;
+	return acc * arma::datum::G  * this -> density;
 
 }
 
@@ -1265,8 +1229,25 @@ double SBGATPolyhedronGravityModel::GetUe(const arma::vec::fixed<10> & Xe){
 
 	return Le * arma::dot(r_ei_0,Ee * r_ei_0);
 
+}
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAe(const arma::vec::fixed<10> & Xe){
+
+
+	const arma::vec::fixed<6> & E_vec = Xe.subvec(4,9);
+	const arma::vec::fixed<3> & r_ei_0= Xe.subvec(1,3);
+	const double & Le = Xe(0);
+
+	arma::mat::fixed<3,3> Ee = {
+		{E_vec[0],E_vec[3],E_vec[4]},
+		{E_vec[3],E_vec[1],E_vec[5]},
+		{E_vec[4],E_vec[5],E_vec[2]}
+	};
+
+	return - Le * Ee * r_ei_0;
 
 }
+
 
 
 
@@ -1336,7 +1317,26 @@ double SBGATPolyhedronGravityModel::GetUf(const arma::vec::fixed<10> & Xf){
 		{F_vec[4],F_vec[5],F_vec[2]}
 	};
 
-	return omega_f * arma::dot(r_fi_0,F * r_fi_0);
+	return - omega_f * arma::dot(r_fi_0,F * r_fi_0);
+
+
+}
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAf(const arma::vec::fixed<10> & Xf){
+
+   // {F[0],F[4],F[8],F[1],F[2],F[5]};
+
+	const arma::vec::fixed<6> & F_vec = Xf.subvec(4,9);
+	const arma::vec::fixed<3> & r_fi_0= Xf.subvec(1,3);
+	const double & omega_f = Xf(0);
+
+	arma::mat::fixed<3,3> F = {
+		{F_vec[0],F_vec[3],F_vec[4]},
+		{F_vec[3],F_vec[1],F_vec[5]},
+		{F_vec[4],F_vec[5],F_vec[2]}
+	};
+
+	return omega_f * F * r_fi_0;
 
 
 }
@@ -1351,7 +1351,6 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetNonNormalizedFacetNormal(con
 	arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
 	arma::vec::fixed<3> r2_arma = {r2[0],r2[1],r2[2]};
 	return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma);
-
 
 }
 

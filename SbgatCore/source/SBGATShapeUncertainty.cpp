@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vtkCell.h>
 #include <vtkDataObject.h>
 #include <vtkIdList.h>
+#include <vtkCleanPolyData.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
 #include <vtkInformation.h>
@@ -73,9 +74,15 @@ SBGATShapeUncertainty::~SBGATShapeUncertainty(){
 int SBGATShapeUncertainty::RequestData(vtkInformation* vtkNotUsed( request ),vtkInformationVector** inputVector,vtkInformationVector* vtkNotUsed( outputVector )){
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
 
-  // call ExecuteData
-  vtkPolyData * input = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+ vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
+  vtkSmartPointer<vtkCleanPolyData> cleaner =
+  vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner -> SetInputData (input_unclean);
+  cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+  cleaner -> Update();
+
+  vtkPolyData * input = cleaner -> GetOutput();
 
   vtkSmartPointer<SBGATMassProperties> center_of_mass_filter =
   vtkSmartPointer<SBGATMassProperties>::New();

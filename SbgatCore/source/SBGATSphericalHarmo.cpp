@@ -45,6 +45,7 @@ SOFTWARE.
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
 #include <vtkInformation.h>
+#include <vtkCleanPolyData.h>
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
 vtkStandardNewMacro(SBGATSphericalHarmo);
@@ -89,9 +90,15 @@ int SBGATSphericalHarmo::RequestData(
   inputVector[0]->GetInformationObject(0);
 
   // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
+  vtkSmartPointer<vtkCleanPolyData> cleaner =
+  vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner -> SetInputData (input_unclean);
+  cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+  cleaner -> Update();
+
+  vtkPolyData * input = cleaner -> GetOutput();
   vtkIdType cellId, numCells, numPts, numIds;
 
   numCells = input->GetNumberOfCells();
@@ -140,7 +147,6 @@ int SBGATSphericalHarmo::RequestData(
     numIds = ptIds->GetNumberOfIds();
     assert(numIds == 3);
 
-    // store current vertex (x,y,z) coordinates ...
     double r0[3];
     double r1[3];
     double r2[3];
@@ -149,15 +155,7 @@ int SBGATSphericalHarmo::RequestData(
     input->GetPoint(ptIds->GetId(1), r1);
     input->GetPoint(ptIds->GetId(2), r2);
 
-    double r1r0[3];
-    double r2r0[3];
-
-    vtkMath::Subtract(r1,r0,r1r0);
-    vtkMath::Subtract(r2,r0,r2r0);
-
-    double dv = vtkMath::Determinant3x3(r0,r1r0,r2r0) / 6;
-
-    arma::mat Cnm2f( this -> degree + 1, this -> degree + 1);
+    arma::mat Cnm2f(this -> degree + 1, this -> degree + 1);
     arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
 
     // Call to SHARMLib here
@@ -172,11 +170,9 @@ int SBGATSphericalHarmo::RequestData(
       this -> normalized
       );
 
+    this -> Cnm += Cnm2f ;
+    this -> Snm += Snm2f ;
 
-
-    this -> Cnm += Cnm2f * dv ;
-    this -> Snm += Snm2f * dv ;
-    
   }
 
   this -> Cnm /= mass_properties -> GetVolume();

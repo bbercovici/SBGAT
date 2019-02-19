@@ -5,6 +5,7 @@
 #pragma omp declare reduction( + : arma::rowvec : omp_out += omp_in ) \
 initializer( omp_priv = arma::zeros<arma::rowvec>(omp_orig.n_cols))
 
+
 #pragma omp declare reduction( + : arma::mat : omp_out += omp_in ) \
 initializer( omp_priv = arma::zeros<arma::mat>(omp_orig.n_rows,omp_orig.n_cols))
 
@@ -22,16 +23,25 @@ double SBGATPolyhedronGravityModelUQ::GetVariancePotential(const arma::vec::fixe
 
 }
 
-void SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
-	arma::mat::fixed<3,3> & acc_cov) const{
+
+arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::GetCovarianceAcceleration(double const * point) const{
+
+	arma::mat partial = this -> GetPartialAPartialC(point);
+	return partial *  this -> P_CC * partial.t();
 
 }
+
+arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const{
+	return this -> GetCovarianceAcceleration(point.colptr(0));
+}
+
 
 void SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
 	arma::mat::fixed<3,3> & acc_cov) const{
 
 
 }
+
 
 
 arma::rowvec::fixed<10> SBGATPolyhedronGravityModelUQ::PartialUePartialXe(const arma::vec::fixed<3> & pos,const int & e) const{
@@ -80,11 +90,7 @@ arma::rowvec::fixed<10> SBGATPolyhedronGravityModelUQ::PartialUfPartialXf(const 
 	partial.subvec(1,3) = 2 * omega_f * F_times_r_fi_0.t();
 	partial.subvec(4,9) = omega_f * r_fi_0.t() * R_fi_0;
 
-	return partial;
-
-
-
-
+	return - partial;
 
 }
 
@@ -438,6 +444,7 @@ arma::mat::fixed<6,24> SBGATPolyhedronGravityModelUQ::PartialEPartialBe(const in
 }
 
 void SBGATPolyhedronGravityModelUQ::TestPartials(double tol){
+
 	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(tol);	
 	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(tol);
@@ -449,24 +456,20 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(double tol){
 	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(tol);
-
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(tol);
-
-
 	SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(tol);
-
 	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(tol);
 	SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(tol);
-
-
-
-
-
+	SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(tol);
 }
 
 void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
@@ -475,6 +478,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
 
 	std::cout << "\t In TestPartialUfPartialTf ... ";
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	int N = 1000;
 	std::string filename  = "../input/cube.obj";
 
@@ -492,6 +496,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 
@@ -549,10 +554,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(double tol){
 	std::string filename  = "../input/cube.obj";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	int N = 1000;
-	arma::vec::fixed<3> pos = {1,2,3};
+	arma::vec::fixed<3> pos = {1,3,4};
 	
-
 	for(int i = 0; i < N; ++i){
 
 		// Reading
@@ -564,6 +569,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -615,6 +621,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 	std::cout << "\t In TestPartialUePartialXe ... ";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
 	std::string filename  = "../input/cube.obj";
@@ -633,6 +640,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -647,7 +655,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 
 
   	// Test point 
-		arma::vec::fixed<3> pos = {3,2,3};
+		arma::vec::fixed<3> pos = {1,3,4};
 
   	// Pick e
 		int e = 1;
@@ -695,6 +703,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(double tol){
 	std::cout << "\t In TestPartialUfPartialXf ... ";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 
 	for (int i =0; i < 100; ++i){
 		std::string filename  = "../input/cube.obj";
@@ -715,7 +724,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(double tol){
 		shape_uq.SetPGM(pgm_filter);
 
 	// Test point 
-		arma::vec::fixed<3> pos = {3,2,3};
+		arma::vec::fixed<3> pos = {1,3,4};
 
   	// Pick f
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
@@ -766,6 +775,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 
 	std::cout << "\t In TestPartialXfPartialTf ... ";
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 
 	for (int i = 0; i < 100 ; ++i){
 
@@ -780,6 +790,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 
@@ -839,6 +850,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 	std::cout << "\t In TestPartialOmegafPartialTf ... ";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 
 	for (int i = 0; i < 100; ++i){
 		std::string filename  = "../input/cube.obj";
@@ -852,6 +864,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 		vtkSmartPointer<vtkPolyData> polydata = cleaner -> GetOutput();
@@ -907,6 +920,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(double tol){
 
 	std::cout << "\t In TestPartialFfPartialTf ... ";
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	for (int i = 0; i < 100; ++i){
 		std::string filename  = "../input/cube.obj";
 
@@ -919,6 +933,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -971,6 +986,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(
 
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	for (int i = 0; i < N ;++i){
   	// non-normalized vector
 		arma::vec::fixed<3> X = arma::randn<arma::vec>(3);
@@ -1007,6 +1023,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 	std::string filename  = "../input/cube.obj";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	for (int i = 0; i < 100; ++i){
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -1017,6 +1034,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1063,8 +1081,11 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(double tol){
 
 	std::cout << "\t In TestPartialFfPartialnf ... ";
+
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
 	for (int i = 0; i < N; ++i){
 
 		arma::vec::fixed<3> nf = {1,2,-3};
@@ -1111,6 +1132,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(double t
 
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
 	for (int i =0; i < N; ++i){
 		arma::vec::fixed<3> Nf = {1,2,3};
 		arma::vec::fixed<3> nf = arma::normalise(Nf);
@@ -1163,6 +1186,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(double tol){
 	std::string filename  = "../input/cube.obj";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	arma::vec pos = {1,2,3};
 
 	for (int i = 0; i < 100; ++i){
@@ -1175,6 +1199,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1223,6 +1248,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(double tol){
 	std::string filename  = "../input/cube.obj";
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 
 	for (int i = 0; i < 100; ++i){
 	// Reading
@@ -1234,6 +1260,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1267,8 +1294,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(double tol){
 		arma::vec::fixed<3> r0_arma_p = {r0[0],r0[1],r0[2]};
 		arma::vec::fixed<3> r1_arma_p = {r1[0],r1[1],r1[2]};
 
-		assert(arma::norm(r0_arma_p - r0_arma - delta_Ae.subvec(0,2))/arma::abs(delta_Ae.subvec(0,2)).max()<1e-3);
-		assert(arma::norm(r1_arma_p - r1_arma - delta_Ae.subvec(3,5))/arma::abs(delta_Ae.subvec(3,5)).max()<1e-3);
+		assert(arma::norm(r0_arma_p - r0_arma - delta_Ae.subvec(0,2))/arma::norm(delta_Ae.subvec(0,2))<1e-10);
+		assert(arma::norm(r1_arma_p - r1_arma - delta_Ae.subvec(3,5))/arma::norm(delta_Ae.subvec(3,5))<1e-10);
 
 
 	// Perturbed length
@@ -1299,6 +1326,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(double tol){
 
 
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
 	for(int i = 0; i < N; ++i){
@@ -1312,6 +1340,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1626,6 +1655,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(double tol){
 
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	for (int i =0; i < N; ++i){
 		arma::vec::fixed<2> e1 = {1,0};
 		arma::vec::fixed<2> e2 = {0,1};
@@ -1658,6 +1688,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(double tol){
 	std::cout << "\t In TestPartialZfPartialUnitRf ...";
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 
 	for (int i = 0; i < N ; ++i){
 		arma::vec::fixed<9> Rf = {0,1,2,3,4,5,6,7,8};
@@ -1706,46 +1737,84 @@ void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(double tol){
 
 arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialUPartialC(const arma::vec::fixed<3> & pos) const{
 
-	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	arma::rowvec partial = arma::zeros<arma::rowvec>(3 * N_C);
+
+	this -> AddPartialSumUePartialC(pos,partial);
+	this -> AddPartialSumUfPartialC(pos,partial);
+
+	return 0.5 * arma::datum::G * this -> pgm_model -> GetDensity() * partial;
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
 	int N_e = N_C + N_f - 2;
-
-	arma::rowvec partial = arma::zeros<arma::rowvec>(3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
-
-	#pragma omp parallel for reduction(+:partial)
-	for (int f = 0; f < N_f; ++f){
-		partial += this -> PartialUfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
-	}
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int e = 0; e < N_e; ++e){
 		partial += this -> PartialUePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
 	}
 
-	return arma::datum::G * this -> pgm_model -> GetDensity() / 2 * partial;
+}
+
+void SBGATPolyhedronGravityModelUQ::AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+
+	#pragma omp parallel for reduction(+:partial)
+	for (int f = 0; f < N_f; ++f){
+		partial += this -> PartialUfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
+	}
 
 
 }
 
-arma::mat SBGATPolyhedronGravityModelUQ::GetPartialAPartialC(const arma::vec::fixed<3> & pos) const{
 
 
-
+void SBGATPolyhedronGravityModelUQ::AddPartialSumAePartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const{
 	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
 	int N_e = N_C + N_f - 2;
 
-	arma::mat partial = arma::zeros<arma::mat>(3,3 * vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints());
+	#pragma omp parallel for reduction(+:partial)
+	for (int e = 0; e < N_e; ++e){
+		partial += this -> PartialAePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
+	}
+
+}
+
+void SBGATPolyhedronGravityModelUQ::AddPartialSumAfPartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const{
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int f = 0; f < N_f; ++f){
 		partial += this -> PartialAfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
 	}
 
-	#pragma omp parallel for reduction(+:partial)
-	for (int e = 0; e < N_e; ++e){
-		partial += this -> PartialAePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
-	}
+}
+
+
+
+
+
+
+
+arma::mat SBGATPolyhedronGravityModelUQ::GetPartialAPartialC(const arma::vec::fixed<3> & pos) const{
+
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	arma::mat partial = arma::zeros<arma::mat>(3,3 * N_C);
+
+	this -> AddPartialSumAePartialC(pos,partial);
+	this -> AddPartialSumAfPartialC(pos,partial);
 
 	return arma::datum::G * this -> pgm_model -> GetDensity() * partial;
 
@@ -1763,13 +1832,21 @@ arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAePartialXe(const a
 		{0,0,r_ei_0[2],0,r_ei_0[0],r_ei_0[1]}
 	};
 
-	arma::vec::fixed<3> Ee_times_r_ei_0 = R_ei_0 * this -> pgm_model -> GetEeParam(e);
+	arma::vec::fixed<6> Ee = this -> pgm_model -> GetEeParam(e);
+	
+	arma::mat::fixed<3,3> Ee_mat = {
+		{Ee(0),Ee(3),Ee(4)},
+		{Ee(3),Ee(1),Ee(5)},
+		{Ee(4),Ee(5),Ee(2)}
+	};
 
-	partial.col(0) = Ee_times_r_ei_0;
-	partial.cols(1,3) = Le * Ee_times_r_ei_0;
+
+
+	partial.col(0) = Ee_mat * r_ei_0;
+	partial.cols(1,3) = Le * Ee_mat;
 	partial.cols(4,9) = Le * R_ei_0;
 
-	return partial;
+	return - partial;
 }
 
 arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const{
@@ -1784,10 +1861,16 @@ arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAfPartialXf(const a
 		{0,0,r_fi_0[2],0,r_fi_0[0],r_fi_0[1]}
 	};
 
-	arma::vec::fixed<3> F_times_r_fi_0 = R_fi_0 * this -> pgm_model -> GetFfParam(f);
+	arma::vec::fixed<6> Ff = this -> pgm_model -> GetFfParam(f);
 
-	partial.col(0) = F_times_r_fi_0;
-	partial.cols(1,3) = omega_f * F_times_r_fi_0;
+	arma::mat::fixed<3,3> Ff_mat = {
+		{Ff(0),Ff(3),Ff(4)},
+		{Ff(3),Ff(1),Ff(5)},
+		{Ff(4),Ff(5),Ff(2)}
+	};
+
+	partial.col(0) = Ff_mat * r_fi_0;
+	partial.cols(1,3) = omega_f * Ff_mat;
 	partial.cols(4,9) = omega_f * R_fi_0;
 
 	return partial;
@@ -1798,20 +1881,292 @@ void SBGATPolyhedronGravityModelUQ::SetCovarianceComponent(const arma::mat::fixe
 	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P;
 }
 
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(double tol){
+
+	std::cout << "\t In TestAddPartialSumUePartialC ...";
+
+	// MC
+	int N = 1000;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	arma::vec::fixed<3> pos = {1,3,4};
+
+	std::string filename  = "../input/cube.obj";
+
+	for (int i = 0; i < N ; ++i){
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		double SumUe = 0;
+
+		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
+
+		for (int e = 0; e < N_edges; ++e){
+			SumUe += shape_uq.GetPGMModel() -> GetUe(shape_uq.GetPGMModel() -> GetXe(pos,e));
+		}
+
+		arma::rowvec partial = arma::zeros<arma::rowvec>(24);
+		shape_uq.AddPartialSumUePartialC(pos,partial);
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		double SumUe_p = 0;
+
+		for (int e = 0; e < N_edges; ++e){
+			SumUe_p += shape_uq.GetPGMModel() -> GetUe(shape_uq.GetPGMModel() -> GetXe(pos,e));
+		}
+
+		double dSumUe = SumUe_p - SumUe;
+		double dSumUe_lin = arma::dot(partial,deviation);
+
+		if(std::abs(dSumUe - dSumUe_lin)/std::abs(dSumUe_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestAddPartialSumUePartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(double tol){
+
+	std::cout << "\t In TestAddPartialSumAePartialC ...";
+
+	// MC
+	int N = 1000;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	arma::vec::fixed<3> pos = {1,3,4};
+
+	std::string filename  = "../input/cube.obj";
+
+	for (int i = 0; i < N ; ++i){
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> SumAe = arma::zeros<arma::vec>(3);
+
+		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
+
+		for (int e = 0; e < N_edges; ++e){
+			SumAe += shape_uq.GetPGMModel() -> GetAe(shape_uq.GetPGMModel() -> GetXe(pos,e));
+		}
+
+		arma::mat partial = arma::zeros<arma::mat>(3,24);
+		shape_uq.AddPartialSumAePartialC(pos,partial);
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec::fixed<3> SumAe_p = arma::zeros<arma::vec>(3);
+
+		for (int e = 0; e < N_edges; ++e){
+			SumAe_p += shape_uq.GetPGMModel() -> GetAe(shape_uq.GetPGMModel() -> GetXe(pos,e));
+		}
+
+		arma::vec::fixed<3> dSumAe = SumAe_p - SumAe;
+		arma::vec::fixed<3> dSumAe_lin = partial * deviation;
+
+		if(arma::norm(dSumAe - dSumAe_lin)/arma::norm(dSumAe_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestAddPartialSumAePartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+}
+
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(double tol){
+
+	std::cout << "\t In TestAddPartialSumAfPartialC ...";
+
+	// MC
+	int N = 1000;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	arma::vec::fixed<3> pos = {1,3,4};
+
+	std::string filename  = "../input/cube.obj";
+
+	for (int i = 0; i < N ; ++i){
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> SumAf = arma::zeros<arma::vec>(3);
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() ;
+
+		for (int f = 0; f < N_facets; ++f){
+			SumAf += shape_uq.GetPGMModel() -> GetAf(shape_uq.GetPGMModel() -> GetXf(pos,f));
+		}
+
+		arma::mat partial = arma::zeros<arma::mat>(3,24);
+		shape_uq.AddPartialSumAfPartialC(pos,partial);
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec::fixed<3> SumAf_p = arma::zeros<arma::vec>(3);
+
+		for (int f = 0; f < N_facets; ++f){
+			SumAf_p += shape_uq.GetPGMModel() -> GetAf(shape_uq.GetPGMModel() -> GetXf(pos,f));
+		}
+
+		arma::vec::fixed<3> dSumAf = SumAf_p - SumAf;
+		arma::vec::fixed<3> dSumAf_lin = partial * deviation;
+
+		if(arma::norm(dSumAf - dSumAf_lin)/arma::norm(dSumAf_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestAddPartialSumAfPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+}
+
+
+
+
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(double tol){
+
+	std::cout << "\t In TestAddPartialSumUfPartialC ...";
+
+	// MC
+	int N = 1000;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	arma::vec::fixed<3> pos = {1,3,4};
+
+	std::string filename  = "../input/cube.obj";
+
+	for (int i = 0; i < N ; ++i){
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		double SumUf = 0;
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+
+		for (int f = 0; f < N_facets; ++f){
+			SumUf += shape_uq.GetPGMModel() -> GetUf(shape_uq.GetPGMModel() -> GetXf(pos,f));
+		}
+
+		arma::rowvec partial = arma::zeros<arma::rowvec>(24);
+		shape_uq.AddPartialSumUfPartialC(pos,partial);
+		
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		double SumUf_p = 0;
+
+		for (int f = 0; f < N_facets ; ++f){
+			SumUf_p += shape_uq.GetPGMModel() -> GetUf(shape_uq.GetPGMModel() -> GetXf(pos,f));
+		}
+
+		double dSumUf = SumUf_p - SumUf;
+		double dSumUf_lin = arma::dot(partial,deviation);
+
+		if(std::abs(dSumUf - dSumUf_lin)/std::abs(dSumUf_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestAddPartialSumUfPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+
+
+}
 
 void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 
 	std::cout << "\t In TestPartialUPartialC ...";
 
 	// MC
-
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
 	std::string filename  = "../input/cube.obj";
-
-
 
 	for (int i = 0; i < N ; ++i){
 
@@ -1823,6 +2178,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 	// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1836,7 +2192,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 		shape_uq.SetPGM(pgm_filter);
 
 		double U = shape_uq.GetPGMModel() -> GetPotential(pos);
-		auto dUdC = shape_uq.GetPartialUPartialC(pos);
+		arma::rowvec dUdC = shape_uq.GetPartialUPartialC(pos);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
 
 		shape_uq.ApplyDeviation(deviation);
@@ -1844,7 +2200,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 		double U_p = shape_uq.GetPGMModel() -> GetPotential(pos);
 		double dU = U_p - U;
 		double dU_lin = arma::dot(dUdC,deviation);
-		std::cout << dU << " | " << dU_lin << std::endl;
 
 		if(std::abs(dU - dU_lin)/std::abs(dU_lin) < tol){
 			++successes;
@@ -1857,6 +2212,63 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 
 }
 
+
+void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(double tol){
+
+	std::cout << "\t In TestPartialAPartialC ...";
+
+	// MC
+	int N = 1000;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	arma::vec::fixed<3> pos = {1,3,4};
+
+	std::string filename  = "../input/cube.obj";
+
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> A = shape_uq.GetPGMModel() -> GetAcceleration(pos);
+		arma::mat dAdC = shape_uq.GetPartialAPartialC(pos);
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(24);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec::fixed<3> A_p = shape_uq.GetPGMModel() -> GetAcceleration(pos);
+		arma::vec::fixed<3> dA = A_p - A;
+		arma::vec::fixed<3> dA_lin = dAdC * deviation;
+
+		if(arma::norm(dA - dA_lin)/arma::norm(dA_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestPartialAPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+
+}
+
 void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(double tol){
 
 
@@ -1865,8 +2277,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(double tol){
 
 	
 
-	arma::vec::fixed<3> pos = {1,2,3};
+	arma::vec::fixed<3> pos = {1,3,4};
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
 	for(int i = 0; i < N; ++i){
@@ -1880,6 +2293,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(double tol){
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1935,6 +2349,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(double tol){
 
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
 	std::string filename  = "../input/cube.obj";
@@ -1949,6 +2364,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(double tol){
 	// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -1996,6 +2412,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(double tol){
 
 	int N = 1000;
 	int successes = 0;
+	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
 	std::string filename  = "../input/cube.obj";
@@ -2010,6 +2427,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(double tol){
 	// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 		cleaner -> Update();
 
 	// Creating the PGM dyads

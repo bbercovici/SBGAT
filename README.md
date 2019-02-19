@@ -58,18 +58,30 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 2.03.1]
+
+#### New
+
+#### Improvements
+- Defined a few additional shortcut methods in `SBGATPolyhedronGravityModel`
+
+
+#### Bug fixes
+- Fixed bug in `SBGATSphericalHarmo` that could have made the evaluation of the spherical harmonics over a non-barycented shape incorrect. 
+- Pushed fix to latest version of `SHARMLib` dependency to address the same issue
+
 
 ### [SBGAT 2.02.2](https://github.com/bbercovici/SBGAT/releases/tag/2.02.2)
 
-### New
+#### New
 - Shape models can now be modified from within SBGATGui, by selecting a vertex and applying a Gaussian interpolation of the vertex displacement to a k-neighbor neighborhood.
 
-### Improvements
+#### Improvements
 - Camera is now positioned at the correct distance from the targeted shape body upon loading
 - Improved visual aspect of selected facet
 - Improved visual aspect of loaded shapes
 
-### Bug fixes:
+#### Bug fixes:
 - Fixed bug in SBGATGui that prevented proper alignment of the shape model with its principal axes
 
 ### [SBGAT 2.02.1](https://github.com/bbercovici/SBGAT/releases/tag/2.02.1)
@@ -108,14 +120,12 @@ to apply the update (if any).
 ### New:
 - Facets can now be individually selected in `SbgatGui` by clicking on them. If the surface PGM of the selected shape is available, the results for the selected facet will be shown in the console
 
-
 #### Improvements
 - The `Set Shape Mapper` option was renamed to `Set Results Overlay`
 - Several GUI minors bug fixes
 
 ### Bug fixes:
 - Fixed bug in `SbgatCore` that was due to an unecessary rescaling of the computed potentials and accelerations within `SbgatCore::ComputeSurfacePGM`. This bug was manifesting itself when calling `SbgatCore::ComputeSurfacePGM` with a shape model whose coordinates were expressed in kilometers. This bug was not affecting `SbgatGui` since it automatically rescales input shapes to meters upon loading.
-
 
 ### [SBGAT 1.12.2](https://github.com/bbercovici/SBGAT/releases/tag/1.12.2)
 

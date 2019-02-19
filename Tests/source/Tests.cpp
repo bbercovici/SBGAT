@@ -63,10 +63,10 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
+
 	TestsSBCore::test_PGM_UQ_partials();
 	TestsSBCore::test_PGM_UQ();
 	TestsSBCore::test_sbgat_transform_shape();
-
 	TestsSBCore::test_sbgat_shape_uq();
 	TestsSBCore::test_spherical_harmonics_partials_consistency();
 	TestsSBCore::test_frame_conversion();
@@ -226,7 +226,7 @@ void TestsSBCore::test_sbgat_pgm() {
 		vtkSmartPointer<vtkCubeSource> source = 
 		vtkSmartPointer<vtkCubeSource>::New();
 
-		source->SetCenter(0.0, 0.0, 0.0);
+		source -> SetCenter(0.0, 0.0, 0.0);
 
 		double density = 1e6;
 
@@ -706,7 +706,7 @@ void TestsSBCore::test_PGM_UQ(){
 
 	int N = 10000;
 
-	arma::mat P_CC = arma::diagmat<arma::mat>(1e-6 * arma::randu<arma::vec>(24));
+	arma::mat P_CC = arma::diagmat<arma::mat>(1e-2 * arma::randu<arma::vec>(24));
 	arma::mat C_CC = arma::chol(P_CC,"lower");
 
 	assert(arma::abs(P_CC - C_CC * C_CC.t()).max() < 1e-10); 
@@ -715,7 +715,7 @@ void TestsSBCore::test_PGM_UQ(){
 	double density = 1970;
 
 	arma::vec U_mc(N);
-
+	arma::mat A_mc(3,N);
 
 	std::string filename  = "../input/cube.obj";
 
@@ -743,26 +743,36 @@ void TestsSBCore::test_PGM_UQ(){
 
 	for (int i = 0; i < N_C; ++i){
 		for (int j = 0; j <= i; ++j){
-
 			const arma::mat::fixed<3,3> & P = P_CC.submat(3 * i,3 * j, 3 * i + 2,3 * j + 2);
 			shape_uq.SetCovarianceComponent(P,i,j);
 			shape_uq.SetCovarianceComponent(P.t(),j,i);
 		}
 	}
 
-	auto start = std::chrono::system_clock::now();
+	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
+	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
+
 	std::chrono::duration<double> elapsed_seconds = end-start;
-	std::cout << "Analytical variance in potential computed in " << elapsed_seconds.count() << " seconds\n";
+	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
 
 	// MC
-
 	for (int i = 0; i < N ; ++i){
+
+		// Reading
+		vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
+		reader_mc -> SetFileName(filename.c_str());
+		reader_mc -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+		cleaner_mc -> Update();
 
 	// Creating the PGM dyads
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-		pgm_filter_mc -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter_mc -> SetInputConnection(cleaner_mc -> GetOutputPort());
 		pgm_filter_mc -> SetDensity(density); 
 		pgm_filter_mc -> SetScaleMeters();
 		pgm_filter_mc -> Update();
@@ -773,15 +783,40 @@ void TestsSBCore::test_PGM_UQ(){
 		arma::vec deviation = C_CC * arma::randn<arma::vec>(24);
 		shape_uq_mc.ApplyDeviation(deviation);
 
-		U_mc(i) = shape_uq_mc.GetPGMModel() -> GetPotential(pos);
 
+		arma::vec::fixed<3> acc;
+		double pot;
+		shape_uq_mc.GetPGMModel() -> GetPotentialAcceleration(pos,pot,acc);
+
+
+		U_mc(i) = pot;
+		A_mc.col(i) = acc;
+
+		if (i < 20){
+			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
+			writer -> SetInputData(vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()));
+			std::string path = "../shape_output/mc_shape_" + std::to_string(i) + ".obj";
+			writer -> SetFileName(path.c_str());
+			writer -> Update();
+		}
 	}
 
-	std::cout << "\tMC variance in potential: " << arma::var(U_mc) << std::endl;
 	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
-	std::cout << "\tError: " << (arma::var(U_mc) - variance_U_analytical)/variance_U_analytical * 100 << " \%\n";
+	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
+	std::vector<int> steps = {10,100,1000,N};
 
+	for (auto step : steps){
+
+		std::cout << "\t After " << step << " MC outcomes:\n";
+
+		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError: " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << " \%\n";
+
+		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
+		std::cout << "\t\tError: \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << " \%\n";
+
+	}
 	std::cout << "- Done running test_PGM_UQ ..." << std::endl;
 
 

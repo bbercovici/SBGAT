@@ -363,6 +363,53 @@ public:
   void ApplyDeviation(const arma::vec & delta_C);
 
 
+  /**
+  Adds to the properly initialized vector the partial derivative of the sum of all Ue
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
+
+   /**
+  Add to the properly initialized vector the partial derivative of the sum of all Uf
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
+
+
+  /**
+  Adds to the properly initialized vector the partial derivative of the sum of all Ae
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumAePartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
+
+   /**
+  Add to the properly initialized vector the partial derivative of the sum of all Af
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumAfPartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
+
+  /**
+  Get covariance in acceleration arising from the uncertain shape
+  @param point coordinates where to evaluate the covariance
+  @return covariance of acceleration
+  */
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(double const * point) const;
+
+   /**
+  Get covariance in acceleration arising from the uncertain shape
+  @param point coordinates where to evaluate the covariance
+  @return covariance of acceleration
+  */
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
+
+
+
+
+
   vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
 
 protected:
@@ -388,9 +435,14 @@ protected:
   static void TestPartialUfPartialTf(double tol);
   static void TestPartialUePartialBe(double tol);
   static void TestPartialUPartialC(double tol);
+  static void TestPartialAPartialC(double tol);
 
   static void TestPartialUfPartialC(double tol);
   static void TestPartialUePartialC(double tol);
+  static void TestAddPartialSumUePartialC(double tol);
+  static void TestAddPartialSumUfPartialC(double tol);
+  static void TestAddPartialSumAfPartialC(double tol);
+  static void TestAddPartialSumAePartialC(double tol);
 
 
 

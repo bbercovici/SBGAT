@@ -448,6 +448,22 @@ the polydata used to construct the PGM
 
 
   /**
+  Returns the contribution of a specific edge to the acceleration at a specified field point
+  @param Xe vector of dyadic coefficients for edge e at the prescribed fieldpoint
+  @return contribution to the potential of this specific edge at the prescribed fieldpoint
+  */
+  static arma::vec::fixed<3> GetAe(const arma::vec::fixed<10> & Xe);
+
+
+  /**
+  Returns the contribution of a specific facet to the acceleration at a specified field point
+  @param Xf vector of dyadic coefficients for facet f at the prescribed fieldpoint
+  @return contribution to the potential of this specific facet at the prescribed fieldpoint
+  */
+  static arma::vec::fixed<3> GetAf(const arma::vec::fixed<10> & Xf);
+
+
+  /**
   Returns the indices of the vertices forming the prescribed edge
   @param[in] e edge index
   @param[out] v0 first vertex index
