@@ -109,6 +109,13 @@ if(UNIX AND NOT APPLE AND ${CMAKE_MINOR_VERSION} GREATER 0 )
 	endif()
 endif()
 
+
+# Removing spurious include sometimes brought in by one of VTK's dependencies
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+list(REMOVE_ITEM dirs "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include")
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${dirs})
+
+
 # Add source files in root directory
 add_library(${LIB_NAME} 
 	SHARED

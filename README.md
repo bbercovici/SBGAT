@@ -16,31 +16,15 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
 ### Mac users
 
-[Homebrew](https://brew.sh/) can be used to install SBGAT's components and dependencies. Homebrew install options differ whether you want to use *SbgatGui* or just the core classes of *SbgatCore*. This is justified by *SbgatCore*'s dependency on *VTK*, as *VTK* needs to know whether it must be linked against *Qt* at build time.
-
-#### With SbgatGui
-
-    brew tap bbercovici/self
-    brew update
-    brew install vtk --with-qt
-    brew install sbgat-core
-    brew install sbgat-gui
-
-The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
-
-#### Without SbgatGui
+[Homebrew](https://brew.sh/) can be used to install SBGAT's components and dependencies. 
 
     brew tap bbercovici/self
     brew update
     brew install vtk
     brew install sbgat-core
+    brew install sbgat-gui
 
-If you change your mind and decide you want the *SbgatGui* component, run:
-
-    brew uninstall sbgat-core
-    brew uninstall vtk
-    
-before reinstalling.
+The *SbgatGui* executable will be simlinked to `/usr/local/bin` .
 
 ### Linux & Mac users
 
@@ -74,18 +58,25 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)
+
+#### Bug fixes
+- Fixed bug in `SBGATSphericalHarmo` that could have caused the evaluation of the spherical harmonics over a non-barycented shape to be incorrect. 
+- Pushed fix to latest version of `SHARMLib` dependency to address the same issue
+- Modified `CMakeLists.txt` in Tests to fix issue caused by a conflicting header being sometimes included by one of VTK's dependencies
+
 
 ### [SBGAT 2.02.2](https://github.com/bbercovici/SBGAT/releases/tag/2.02.2)
 
-### New
-- Shape models can now be modified from within SBGATGui, by selecting a vertex and applying a Gaussian interpolation of the vertex displacement to a neighborhood of arbitrary choice. 
+#### New
+- Shape models can now be modified from within SBGATGui, by selecting a vertex and applying a Gaussian interpolation of the vertex displacement to a k-neighbor neighborhood.
 
-### Improvements
+#### Improvements
 - Camera is now positioned at the correct distance from the targeted shape body upon loading
 - Improved visual aspect of selected facet
 - Improved visual aspect of loaded shapes
 
-### Bug fixes:
+#### Bug fixes:
 - Fixed bug in SBGATGui that prevented proper alignment of the shape model with its principal axes
 
 ### [SBGAT 2.02.1](https://github.com/bbercovici/SBGAT/releases/tag/2.02.1)
@@ -124,14 +115,12 @@ to apply the update (if any).
 ### New:
 - Facets can now be individually selected in `SbgatGui` by clicking on them. If the surface PGM of the selected shape is available, the results for the selected facet will be shown in the console
 
-
 #### Improvements
 - The `Set Shape Mapper` option was renamed to `Set Results Overlay`
 - Several GUI minors bug fixes
 
 ### Bug fixes:
 - Fixed bug in `SbgatCore` that was due to an unecessary rescaling of the computed potentials and accelerations within `SbgatCore::ComputeSurfacePGM`. This bug was manifesting itself when calling `SbgatCore::ComputeSurfacePGM` with a shape model whose coordinates were expressed in kilometers. This bug was not affecting `SbgatGui` since it automatically rescales input shapes to meters upon loading.
-
 
 ### [SBGAT 1.12.2](https://github.com/bbercovici/SBGAT/releases/tag/1.12.2)
 
