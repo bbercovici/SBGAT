@@ -160,7 +160,7 @@ of Eros for benchmarking purposes
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
 	
-	std::string filename  = "../input/KW4Alpha.obj";
+	std::string filename  = "../../resources/shape_models/KW4Alpha.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -331,7 +331,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../input/KW4Alpha.obj");
+	reader -> SetFileName("../../resources/shape_models/KW4Alpha.obj");
 	reader -> Update(); 
 
 	// Harmonics up to degree five are computed
@@ -365,7 +365,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 
 	// The spherical harmonics are saved to a file
-	spherical_harmonics -> SaveToJson("../gravity_output/harmo.json");
+	spherical_harmonics -> SaveToJson("../output/KW4Alpha_harmo.json");
 
 
 	// The accelerations are evaluated at the query point
@@ -376,7 +376,7 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
-	spherical_harmonics_from_file -> LoadFromJson("../gravity_output/harmo.json");
+	spherical_harmonics_from_file -> LoadFromJson("../output/KW4Alpha_harmo.json");
 	arma::vec::fixed<3> sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 	// The accelerations should be consistent with the one previously computed
@@ -401,7 +401,7 @@ void TestsSBCore::test_spherical_harmonics_partials_consistency() {
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../input/KW4Alpha.obj");
+	reader -> SetFileName("../../resources/shape_models/KW4Alpha.obj");
 	reader -> Update(); 
 
 	// Harmonics up to degree five are computed
@@ -536,7 +536,7 @@ void TestsSBCore::test_sbgat_shape_uq(){
 	
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../input/skewed.obj");
+	reader -> SetFileName("../../resources/shape_models/skewed.obj");
 	reader -> Update(); 
 	vtkSmartPointer<vtkPolyData> shape = reader -> GetOutput();
 
@@ -693,8 +693,8 @@ void TestsSBCore::test_sbgat_transform_shape(){
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
-
-	SBGATPolyhedronGravityModelUQ::TestPartials(5e-2);
+	std::string filename  = "../../resources/shape_models/cube.obj";
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2);
 
 	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
 
@@ -717,7 +717,7 @@ void TestsSBCore::test_PGM_UQ(){
 	arma::vec U_mc(N);
 	arma::mat A_mc(3,N);
 
-	std::string filename  = "../input/cube.obj";
+	std::string filename  = "../../resources/shape_models/cube.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -795,7 +795,7 @@ void TestsSBCore::test_PGM_UQ(){
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
 			writer -> SetInputData(vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()));
-			std::string path = "../shape_output/mc_shape_" + std::to_string(i) + ".obj";
+			std::string path = "../output/mc_shape_" + std::to_string(i) + ".obj";
 			writer -> SetFileName(path.c_str());
 			writer -> Update();
 		}
@@ -846,7 +846,7 @@ void TestsSBCore::test_PGM_UQ(){
 
 // 	// Loading in the shape model
 // 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-// 	reader -> SetFileName("../input/KW4Alpha.obj");
+// 	reader -> SetFileName("../../resources/shape_models/KW4Alpha.obj");
 // 	reader -> Update(); 
 
 // 	// Creating the radar object
@@ -903,7 +903,7 @@ void TestsSBCore::test_PGM_UQ(){
 
 // 	// Loading in the shape model
 // 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-// 	reader -> SetFileName("../input/KW4Alpha.obj");
+// 	reader -> SetFileName("../../resources/shape_models/KW4Alpha.obj");
 // 	reader -> Update(); 
 
 // 	// Creating the radar object

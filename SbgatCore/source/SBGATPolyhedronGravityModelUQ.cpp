@@ -443,47 +443,43 @@ arma::mat::fixed<6,24> SBGATPolyhedronGravityModelUQ::PartialEPartialBe(const in
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartials(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol){
 
-	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(tol);	
-	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(tol);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(tol);
-	SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(input,tol);	
+	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(input,tol);
+	SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(input,tol);
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
-
+void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,double tol){
 
 
 	std::cout << "\t In TestPartialUfPartialTf ... ";
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
-	std::string filename  = "../input/cube.obj";
-
 	
-
 	for (int i = 0; i < N ; ++i){
 
 		
@@ -546,13 +542,12 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(double tol){
 
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename, double tol){
 
 
 
 	std::cout << "\t In TestPartialUePartialBe ... ";
-	std::string filename  = "../input/cube.obj";
-
+	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
@@ -616,7 +611,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialUePartialXe ... ";
 
@@ -624,8 +619,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
-	std::string filename  = "../input/cube.obj";
-
+	
 
 
 
@@ -697,7 +691,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(double tol){
 
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialUfPartialXf ... ";
@@ -706,8 +700,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(double tol){
 	arma::arma_rng::set_seed(0);
 
 	for (int i =0; i < 100; ++i){
-		std::string filename  = "../input/cube.obj";
-
+		
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 		reader -> SetFileName(filename.c_str());
@@ -770,7 +763,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialXfPartialTf ... ";
@@ -779,8 +772,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 
 	for (int i = 0; i < 100 ; ++i){
 
-		std::string filename  = "../input/cube.obj";
-
+		
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 		reader -> SetFileName(filename.c_str());
@@ -844,7 +836,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(double tol){
 	std::cout << "\t Passed TestPartialXfPartialTf with " << successes << " \% of sucesses. \n";
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialOmegafPartialTf ... ";
@@ -853,8 +845,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 	arma::arma_rng::set_seed(0);
 
 	for (int i = 0; i < 100; ++i){
-		std::string filename  = "../input/cube.obj";
-
+		
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 		reader -> SetFileName(filename.c_str());
@@ -915,15 +906,14 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(double tol){
 
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialFfPartialTf ... ";
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	for (int i = 0; i < 100; ++i){
-		std::string filename  = "../input/cube.obj";
-
+		
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 		reader -> SetFileName(filename.c_str());
@@ -980,7 +970,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialNormalizedVPartialNonNormalizedV ... ";
 
@@ -1016,12 +1006,11 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(
 	std::cout << "\t Passed TestPartialNormalizedVPartialNonNormalizedV with " << double (successes) /N * 100<< " \% of successes.\n";
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialNfPartialTf ... ";
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	for (int i = 0; i < 100; ++i){
@@ -1078,7 +1067,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(double tol){
 
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialFfPartialnf ... ";
 
@@ -1126,7 +1115,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialFfPartialNonNormalizedNf ... ";
 
@@ -1179,12 +1168,11 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(double t
 
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialLePartialAe ... ";
-	std::string filename  = "../input/cube.obj";
-
+	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	arma::vec pos = {1,2,3};
@@ -1242,11 +1230,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialEdgeLengthPartialAe ... ";
-	std::string filename  = "../input/cube.obj";
-
+	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
@@ -1316,12 +1303,11 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(double tol){
 	std::cout << "\t Passed TestPartialEdgeLengthPartialAe with " << successes<< " \% of successes. \n";
 
 }
-void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialEPartialBe ... ";
-	std::string filename  = "../input/cube.obj";
-
+	
 	
 
 
@@ -1649,7 +1635,7 @@ arma::vec SBGATPolyhedronGravityModelUQ::ApplyAndGetBeDeviation(const arma::vec 
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialAtan2PartialZf ... ";
 
@@ -1683,7 +1669,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialZfPartialUnitRf ...";
 	int N = 1000;
@@ -1881,7 +1867,7 @@ void SBGATPolyhedronGravityModelUQ::SetCovarianceComponent(const arma::mat::fixe
 	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P;
 }
 
-void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestAddPartialSumUePartialC ...";
 
@@ -1891,8 +1877,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 			// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -1950,7 +1935,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestAddPartialSumAePartialC ...";
 
@@ -1960,8 +1945,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 			// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -2017,7 +2001,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAePartialC(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestAddPartialSumAfPartialC ...";
 
@@ -2027,8 +2011,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 			// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -2087,7 +2070,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAfPartialC(double tol){
 
 
 
-void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestAddPartialSumUfPartialC ...";
 
@@ -2097,8 +2080,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 			// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -2156,7 +2138,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialUPartialC ...";
 
@@ -2166,8 +2148,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -2213,7 +2194,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialAPartialC ...";
 
@@ -2223,8 +2204,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -2269,12 +2249,11 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename, double tol){
 
 
 	std::cout << "\t In TestPartialXePartialBe ... ";
-	std::string filename  = "../input/cube.obj";
-
+	
 	
 
 	arma::vec::fixed<3> pos = {1,3,4};
@@ -2341,7 +2320,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(double tol){
 
 }
 
-void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialUePartialC ...";
 
@@ -2352,8 +2331,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -2404,7 +2382,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(double tol){
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(double tol){
+void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename, double tol){
 
 	std::cout << "\t In TestPartialUfPartialC ...";
 
@@ -2415,8 +2393,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(double tol){
 	arma::arma_rng::set_seed(0);
 	arma::vec::fixed<3> pos = {1,3,4};
 
-	std::string filename  = "../input/cube.obj";
-
+	
 	for (int i = 0; i < N ; ++i){
 
 			// Reading

@@ -305,9 +305,10 @@ public:
 
   /**
   Runs a finite-differencing based test of the implemented PGM partials
+  @param input path to obj file used to test the partials
   @param tol relative tolerance
   */
-  static void TestPartials(double tol = 1e-2);
+  static void TestPartials(std::string input , double tol = 1e-2);
 
 
   /**
@@ -414,35 +415,33 @@ public:
 
 protected:
 
-
-  static void TestPartialUePartialXe(double tol) ;
-  static void TestPartialUfPartialXf(double tol) ;
-  static void TestPartialXfPartialTf(double tol) ;
-  static void TestPartialOmegafPartialTf(double tol) ;
-  static void TestPartialZfPartialUnitRf(double tol);
-  static void TestPartialFfPartialTf(double tol) ;
-  static void TestPartialNormalizedVPartialNonNormalizedV(double tol) ;
-  static void TestPartialAtan2PartialZf(double tol);
-  static void TestPartialNfPartialTf(double tol) ;
-  static void TestPartialFfPartialnf(double tol) ;
-  static void TestPartialFfPartialNonNormalizedNf(double tol);
-  static void TestPartialLePartialAe(double tol) ;
-  static void TestPartialEePartialAe(double tol) ;
-  static void TestPartialEePartialTf(double tol) ;
-  static void TestPartialXePartialBe(double tol) ;
-  static void TestPartialEdgeLengthPartialAe(double tol) ;
-  static void TestPartialEPartialBe(double tol) ;
-  static void TestPartialUfPartialTf(double tol);
-  static void TestPartialUePartialBe(double tol);
-  static void TestPartialUPartialC(double tol);
-  static void TestPartialAPartialC(double tol);
-
-  static void TestPartialUfPartialC(double tol);
-  static void TestPartialUePartialC(double tol);
-  static void TestAddPartialSumUePartialC(double tol);
-  static void TestAddPartialSumUfPartialC(double tol);
-  static void TestAddPartialSumAfPartialC(double tol);
-  static void TestAddPartialSumAePartialC(double tol);
+  static void TestPartialUePartialXe(std::string input,double tol) ;
+  static void TestPartialUfPartialXf(std::string input,double tol) ;
+  static void TestPartialXfPartialTf(std::string input,double tol) ;
+  static void TestPartialOmegafPartialTf(std::string input,double tol) ;
+  static void TestPartialZfPartialUnitRf(std::string input,double tol);
+  static void TestPartialFfPartialTf(std::string input,double tol) ;
+  static void TestPartialNormalizedVPartialNonNormalizedV(std::string input,double tol) ;
+  static void TestPartialAtan2PartialZf(std::string input,double tol);
+  static void TestPartialNfPartialTf(std::string input,double tol) ;
+  static void TestPartialFfPartialnf(std::string input,double tol) ;
+  static void TestPartialFfPartialNonNormalizedNf(std::string input,double tol);
+  static void TestPartialLePartialAe(std::string input,double tol) ;
+  static void TestPartialEePartialAe(std::string input,double tol) ;
+  static void TestPartialEePartialTf(std::string input,double tol) ;
+  static void TestPartialXePartialBe(std::string input,double tol) ;
+  static void TestPartialEdgeLengthPartialAe(std::string input,double tol) ;
+  static void TestPartialEPartialBe(std::string input,double tol) ;
+  static void TestPartialUfPartialTf(std::string input,double tol);
+  static void TestPartialUePartialBe(std::string input,double tol);
+  static void TestPartialUPartialC(std::string input,double tol);
+  static void TestPartialAPartialC(std::string input,double tol);
+  static void TestPartialUfPartialC(std::string input,double tol);
+  static void TestPartialUePartialC(std::string input,double tol);
+  static void TestAddPartialSumUePartialC(std::string input,double tol);
+  static void TestAddPartialSumUfPartialC(std::string input,double tol);
+  static void TestAddPartialSumAfPartialC(std::string input,double tol);
+  static void TestAddPartialSumAePartialC(std::string input,double tol);
 
 
 
