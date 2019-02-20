@@ -38,7 +38,8 @@ namespace TestsSBCore {
 void run();
 void test_sbgat_mass_properties();
 void test_sbgat_pgm_speed();
-void test_sbgat_pgm();
+void test_sbgat_pgm_cube();
+void test_sbgat_pgm_sphere();
 void test_sbgat_transform_shape();
 
 void test_spherical_harmonics_coefs_consistency();

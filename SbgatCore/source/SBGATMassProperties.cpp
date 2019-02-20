@@ -156,8 +156,9 @@ int SBGATMassProperties::RequestData(
 
 
   input -> GetBounds(this -> bounds);
-  arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
-  arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
+
+  arma::vec::fixed<3> bbox_min = {this -> scaleFactor * this -> bounds[0],this -> scaleFactor * this -> bounds[2],this -> scaleFactor * this -> bounds[4]};
+  arma::vec::fixed<3> bbox_max = {this -> scaleFactor * this -> bounds[1],this -> scaleFactor * this -> bounds[3],this -> scaleFactor * this -> bounds[5]};
 
   for ( idx = 0; idx < 3 ; idx++ ){
     munc[idx] = 0.0;
@@ -175,10 +176,10 @@ int SBGATMassProperties::RequestData(
     assert(numIds == 3);
 
     // store current vertex (x,y,z) coordinates ...
-    // Note that the coordinates are normalized!
+    // Note that the coordinates are scaled to meters if need be!
     for (idx=0; idx < numIds; idx++){
       input->GetPoint(ptIds->GetId(idx), p);
-      x[idx] = p[0] ; y[idx] = p[1] ; z[idx] = p[2] ;
+      x[idx] = this -> scaleFactor * p[0] ; y[idx] = this -> scaleFactor * p[1] ; z[idx] = this -> scaleFactor * p[2] ;
     }
 
     // get i j k vectors ...
@@ -498,32 +499,27 @@ void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
 
 
 
-void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters){
+void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path){
 
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(shape);
+  mass_properties -> SetScaleMeters();
+
   mass_properties -> Update();
 
-  mass_properties -> SaveMassProperties(path,is_in_meters);
+  mass_properties -> SaveMassProperties(path);
 
 }
 
-void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters) const {
+void SBGATMassProperties::SaveMassProperties(std::string path) const {
 
   nlohmann::json mass_properties_json;
   std::string length_unit,surface_unit,volume_unit;
   
-  if(is_in_meters){
-
-    length_unit = "m";
-    surface_unit = "m^2";
-    volume_unit = "m^3";
-  }
-  else{
-    length_unit = "km";
-    surface_unit = "km^2";
-    volume_unit = "km^3";
-  }
+  length_unit = "m";
+  surface_unit = "m^2";
+  volume_unit = "m^3";
+  
 
   nlohmann::json com_json = {
     {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},

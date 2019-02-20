@@ -114,6 +114,7 @@ public:
 
 
 
+
   /**
   Returns the partial derivative of an individual edge contribution to the acceleration (Ae) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
@@ -421,6 +422,10 @@ public:
 
 protected:
 
+  arma::vec GetBe() const;
+
+
+
   static void TestPartialUePartialXe(std::string input,double tol) ;
   static void TestPartialUfPartialXf(std::string input,double tol) ;
   static void TestPartialXfPartialTf(std::string input,double tol) ;
@@ -448,6 +453,7 @@ protected:
   static void TestAddPartialSumUfPartialC(std::string input,double tol);
   static void TestAddPartialSumAfPartialC(std::string input,double tol);
   static void TestAddPartialSumAePartialC(std::string input,double tol);
+  static void TestPartialBePartialC(std::string input,double tol);
 
 
 

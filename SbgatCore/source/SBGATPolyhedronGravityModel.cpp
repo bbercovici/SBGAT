@@ -82,11 +82,8 @@ SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
 //----------------------------------------------------------------------------
 // Destroy any allocated memory.
 SBGATPolyhedronGravityModel::~SBGATPolyhedronGravityModel(){
-
 	this -> Clear();
-
 }
-
 
 //----------------------------------------------------------------------------
 // Description:
@@ -357,7 +354,12 @@ double SBGATPolyhedronGravityModel::GetPotential(const arma::vec::fixed<3> & poi
 double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 	double potential = 0;
-	arma::vec::fixed<3> point_arma = {point[0],point[1],point[2]};
+
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
+
+	arma::vec::fixed<3> point_arma = {point_scaled[0],point_scaled[1],point_scaled[2]};
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:potential)
@@ -375,7 +377,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 	}
 
-	return potential * 0.5 * arma::datum::G * this -> density* this -> scaleFactor* this -> scaleFactor;
+	return potential * 0.5 * arma::datum::G * this -> density * this -> scaleFactor* this -> scaleFactor;
 
 }
 
@@ -383,12 +385,16 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) const{
 
 	double laplacian = 0;
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
+
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
-		laplacian += this -> GetOmegaf(point, facet_index);
+		laplacian += this -> GetOmegaf(point_scaled, facet_index);
 
 	}
 
@@ -409,6 +415,10 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * point) const{
 
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
+
 	arma::vec::fixed<3> acc = arma::zeros<arma::vec>(3);
 
 	// Facet loop
@@ -419,9 +429,9 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 
 		double r0m[3];
 		
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetOmegaf( point_scaled, facet_index);
 		double * F = this -> facet_dyads[facet_index];
 
 		acc(0) += wf *( F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2]);
@@ -438,9 +448,9 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 		
 		double r0m[3];
 		
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 		
-		double Le = this -> GetLe( point, edge_index);
+		double Le = this -> GetLe( point_scaled, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -472,6 +482,9 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 	double acc_y = 0;
 	double acc_z = 0;
 
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z,pot)
@@ -481,9 +494,9 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 		
 		double r0m[3];
 
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 		
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetOmegaf( point_scaled, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
 
@@ -512,10 +525,10 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 		
 		double r0m[3];
 		
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 		
 		
-		double Le = this -> GetLe( point, edge_index);
+		double Le = this -> GetLe( point_scaled, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -558,6 +571,12 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(const 
 void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double const  * point,double & potential, 
 	arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const{
 
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
+
+
+
 	double pot = 0;
 	double acc_x = 0;
 	double acc_y = 0;
@@ -586,9 +605,9 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 		
 		double r0m[3];
 
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetOmegaf( point_scaled, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
 
@@ -635,9 +654,9 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 		double r0m[3];
 
-		vtkMath::Subtract(r0,point,r0m);
+		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double Le = this -> GetLe( point, edge_index);
+		double Le = this -> GetLe( point_scaled, edge_index);
 
 		double * E = this -> edge_dyads[edge_index];
 
@@ -893,18 +912,11 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 	surface_pgm_json["vertices"] = selected_shape -> GetNumberOfPoints();
 
 	std::string distance_unit,potential_unit,acceleration_unit;
-	if (is_in_meters){
-		distance_unit = "m";
-		potential_unit = "m^2/s^2";
-		acceleration_unit = "m/s^2";
+	distance_unit = "m";
+	potential_unit = "m^2/s^2";
+	acceleration_unit = "m/s^2";
 
-	}
-	else{
-		distance_unit = "km";
-		potential_unit = "km^2/s^2";
-		acceleration_unit = "km/s^2";
-
-	}
+	
 
 	nlohmann::json slopes_json,
 	inertial_potentials_json,
@@ -1055,9 +1067,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		inertial_potentials_json = surface_pgm_json.at("inertial_potentials");
 		for (auto inertial_potential : inertial_potentials_json){
 			inertial_potentials[inertial_potential["index"]] = inertial_potential["value"];
-			if (inertial_potential["unit"] == "km^2/s^2"){
-				inertial_potentials[inertial_potential["index"]] *= 1e6;
-			}
+			
 		}
 	}
 	catch (nlohmann::detail::parse_error & e){
@@ -1069,9 +1079,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		body_fixed_potentials_json = surface_pgm_json.at("body_fixed_potentials");
 		for (auto body_fixed_potential : body_fixed_potentials_json){
 			body_fixed_potentials[body_fixed_potential["index"]] = body_fixed_potential["value"];
-			if (body_fixed_potential["unit"] == "km^2/s^2"){
-				body_fixed_potentials[body_fixed_potential["index"]] *= 1e6;
-			}
+			
 		}
 	}
 	catch (nlohmann::detail::parse_error & e){
@@ -1084,9 +1092,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		inertial_acc_json = surface_pgm_json.at("inertial_acc_magnitudes");
 		for (auto acc : inertial_acc_json){
 			inertial_acc_magnitudes[acc["index"]] = acc["value"];
-			if (acc["unit"] == "km/s^2"){
-				inertial_acc_magnitudes[acc["index"]] *= 1e3;
-			}
+			
 		}
 
 	}
@@ -1100,9 +1106,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		body_fixed_acc_magnitudes_json = surface_pgm_json.at("body_fixed_acc_magnitudes");
 		for (auto acc : body_fixed_acc_magnitudes_json){
 			body_fixed_acc_magnitudes[acc["index"]] = acc["value"];
-			if (acc["unit"] == "km/s^2"){
-				body_fixed_acc_magnitudes[acc["index"]] *= 1e3;
-			}
+			
 		}
 	}	
 	catch (nlohmann::detail::parse_error & e){

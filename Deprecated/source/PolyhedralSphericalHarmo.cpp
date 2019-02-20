@@ -160,9 +160,6 @@ void	AccumulateOneSimplex (
 
 	const double overallFactor = density * det / polygon_mass;
 
-
-
-
 	if (overallFactor == 0.0) return; /* nothing to do */
 
 	/* normalize coordinates */

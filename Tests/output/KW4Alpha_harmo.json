@@ -221,7 +221,7 @@
     "facets": 9168,
     "normalized": true,
     "referenceRadius": {
-        "unit": "km",
+        "unit": "m",
         "value": 658.5
     },
     "totalMass": {

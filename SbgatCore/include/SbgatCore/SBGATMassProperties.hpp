@@ -48,7 +48,7 @@ public:
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
   /**
-   * Compute and return the volume (m or km^3)
+   * Compute and return the volume (m^3)
    */
   double GetVolume() {this->Update(); return this->Volume;}
 
@@ -78,19 +78,19 @@ public:
   double GetKz() {this->Update(); return this->Kz;}
 
   /**
-   * Compute and return the area.
+   * Compute and return the area in m^2
    */
   double GetSurfaceArea() {this->Update(); return this->SurfaceArea;
   }
 
   /**
-   * Compute and return the min cell area.
+   * Compute and return the min cell area in m^2
    */
   double GetMinCellArea() {this->Update(); return this->MinCellArea;
   }
 
   /**
-   * Compute and return the max cell area.
+   * Compute and return the max cell area in m^2
    */
   double GetMaxCellArea() {this->Update(); return this->MaxCellArea;
   }
@@ -111,9 +111,19 @@ public:
   {this->Update(); return this->NormalizedShapeIndex;
   }
 
+  /**
+  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
+  */
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
 
   /**
-  * Compute and return the coordinates of the center of mass
+  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
+  */
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+
+
+  /**
+  * Compute and return the coordinates of the center of mass (m)
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
@@ -122,7 +132,7 @@ public:
   }
 
   /**
-  * Compute and return the coordinates of the center of mass
+  * Compute and return the coordinates of the center of mass (m)
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
@@ -172,16 +182,14 @@ public:
   }
 
   /**
-  Computes the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m or km)
+  Returns the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m)
   */
-
   double GetAverageRadius(){
     this -> Update(); return this -> r_avg;
   }
 
-
   /**
-  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax)
+  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
   */
   double * GetBoundingBox(){
     this -> Update(); return this -> bounds;
@@ -192,18 +200,16 @@ public:
     Computes the mass properties of the provided shape and saves the results to a JSON file
     @param shape pointer to considered shape
     @param path savepath (ex: "mass_properties.json")
-    @param is_in_meters true if the shape coordinates are expressed in meters, false otherwise
     */
-  static void ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters);
+  static void ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path);
 
 
   /**
   Save the computed mass properties to a JSON file
   @param path savepath (ex: "mass_properties.json")
-    @param is_in_meters true if the shape coordinates are expressed in meters, false otherwise
 
   */
-  void SaveMassProperties(std::string path,bool is_in_meters) const ;
+  void SaveMassProperties(std::string path) const ;
 
 
 protected:
@@ -233,6 +239,10 @@ protected:
   double bounds[6];
   double r_avg;
   bool IsClosed;
+  double scaleFactor = 1;
+
+  bool scaleFactorSet;
+
 
 private:
   SBGATMassProperties(const SBGATMassProperties&) = delete;

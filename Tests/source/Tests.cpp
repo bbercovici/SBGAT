@@ -63,18 +63,19 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
-
-	// TestsSBCore::test_PGM_UQ_partials();
-	TestsSBCore::test_PGM_UQ_cube();
-	TestsSBCore::test_PGM_UQ_itokawa();
 	// TestsSBCore::test_sbgat_transform_shape();
 	// TestsSBCore::test_sbgat_shape_uq();
 	// TestsSBCore::test_spherical_harmonics_partials_consistency();
 	// TestsSBCore::test_frame_conversion();
 	// TestsSBCore::test_sbgat_mass_properties();
-	// TestsSBCore::test_sbgat_pgm();
-	// TestsSBCore::test_sbgat_pgm_speed();
-	// TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	// TestsSBCore::test_sbgat_pgm_cube();
+	TestsSBCore::test_sbgat_pgm_sphere();
+	TestsSBCore::test_sbgat_pgm_speed();
+	TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	TestsSBCore::test_PGM_UQ_partials();
+	TestsSBCore::test_PGM_UQ_cube();
+	TestsSBCore::test_PGM_UQ_itokawa();
+	
 
 	// TestsSBCore::test_lightcurve_obs();
 	// TestsSBCore::test_radar_obs();
@@ -114,7 +115,6 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	vtkSmartPointer<vtkCleanPolyData>::New();
 	cleanPolyData->SetInputConnection(subdivisionFilter->GetOutputPort());
 	cleanPolyData->Update();
-
 
 	vtkSmartPointer<vtkTransform> transform_rot = vtkSmartPointer<vtkTransform>::New();
 	transform_rot->RotateWXYZ(10, 0, 1, 0);
@@ -218,11 +218,11 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 /**
 This test computes the pgm acceleration and potential
-about a cube and compares the SBGAT outputs to analytical ones 
+about a unit cube and compares the SBGAT outputs to analytical ones 
 */
-void TestsSBCore::test_sbgat_pgm() {
+void TestsSBCore::test_sbgat_pgm_cube() {
 
-	std::cout << "- Running test_sbgat_pgm ..." << std::endl;
+	std::cout << "- Running test_sbgat_pgm_cube ..." << std::endl;
 
 	{
 		vtkSmartPointer<vtkCubeSource> source = 
@@ -231,7 +231,6 @@ void TestsSBCore::test_sbgat_pgm() {
 		source -> SetCenter(0.0, 0.0, 0.0);
 
 		double density = 1e6;
-
 
 		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
 		vtkSmartPointer<vtkTriangleFilter>::New();
@@ -268,7 +267,6 @@ void TestsSBCore::test_sbgat_pgm() {
 		assert(pgm_filter -> Contains(p3));
 
 
-
 	// The attracting shape is a cube of dimensions 1 x 1 x 1 m of density rho = 1e6 kg/m^3
 	// The analytic potential and acceleration at (1,2,3) (m) in the shape model's barycentric frame is computed
 	// Assumes that G = 6.67408e-11 m^3 / (kg * s ^2)
@@ -288,7 +286,6 @@ void TestsSBCore::test_sbgat_pgm() {
 		double pgm_pot = pgm_filter -> GetPotential(p4.colptr(0));
 
 		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-10);
-		
 		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-10);
 
 		pgm_acc = pgm_filter -> GetAcceleration(p4);
@@ -317,9 +314,95 @@ void TestsSBCore::test_sbgat_pgm() {
 
 	}
 
-	std::cout << "- Done running test_sbgat_pgm" << std::endl;
+	std::cout << "- Done running test_sbgat_pgm_cube" << std::endl;
 
 }
+
+
+/**
+This test computes the pgm acceleration and potential
+about a sphere and compares the SBGAT outputs to analytical ones 
+*/
+void TestsSBCore::test_sbgat_pgm_sphere() {
+
+	std::cout << "- Running test_sbgat_pgm_sphere ..." << std::endl;
+
+	{
+		vtkSmartPointer<vtkSphereSource> source = 
+		vtkSmartPointer<vtkSphereSource>::New();
+
+		source -> SetCenter(0.0, 0.0, 0.0);
+		source -> SetRadius(6370);
+		source -> SetThetaResolution (300);
+		source -> SetPhiResolution (300);
+
+		double density = 5.51e3;
+
+		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+		vtkSmartPointer<vtkTriangleFilter>::New();
+		triangleFilter -> SetInputConnection(source->GetOutputPort());
+		triangleFilter -> Update();
+
+		vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+		cleanPolyData->Update();
+
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+		pgm_filter -> SetDensity(density);
+		pgm_filter -> SetScaleKiloMeters();
+		pgm_filter -> Update();
+
+		vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+
+		mass_properties -> SetInputConnection(cleanPolyData -> GetOutputPort());
+		mass_properties -> SetScaleKiloMeters();
+		mass_properties -> Update();
+
+		// Queried point for pgm validation
+		arma::vec p = {6371e3, 0, 0};
+
+		arma::vec acc_true = - arma::datum::G * density * mass_properties -> GetVolume() / arma::dot(p,p) * arma::normalise(p);
+		double pot_true = arma::datum::G * density * mass_properties -> GetVolume() / arma::norm(p);
+
+		arma::vec pgm_acc = pgm_filter -> GetAcceleration(p);
+		double pgm_pot = pgm_filter -> GetPotential(p);
+
+		
+		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
+		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
+
+		pgm_acc = pgm_filter -> GetAcceleration(p);
+		pgm_pot = pgm_filter -> GetPotential(p);
+
+		double pgm_pot2;
+		arma::vec::fixed<3> pgm_acc2;
+		arma::mat::fixed<3,3> pgm_gravity_gradient_matrix;
+		pgm_filter -> GetPotentialAccelerationGravityGradient(p,pgm_pot2, pgm_acc2,pgm_gravity_gradient_matrix);
+
+		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
+		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
+
+		assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-4);
+		assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-4);
+
+		arma::vec::fixed<3> p4_perturbed = (1 + 1e-3) * p;
+
+		arma::vec::fixed<3> pgm_acc2_perturbed = pgm_filter -> GetAcceleration(p4_perturbed);
+
+		auto d_acc_true = pgm_acc2_perturbed - pgm_acc2;
+
+		arma::vec::fixed<3> d_acc_linear = pgm_gravity_gradient_matrix * (p4_perturbed - p);
+
+		assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e0);
+
+	}
+
+	std::cout << "- Done running test_sbgat_pgm_sphere" << std::endl;
+
+}
+
 
 /**
 This test checks the consistency of the spherical harmonics coefficients computation 
@@ -345,7 +428,6 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// Reference radius of KW4 (m)
 	double ref_radius = 1.317/2 * 1000;
 
-
 	// An instance of SBGATPolyhedronGravityModel is created to evaluate the PGM of 
 	// the considered polytdata
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
@@ -369,12 +451,13 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	// The spherical harmonics are saved to a file
 	spherical_harmonics -> SaveToJson("../output/KW4Alpha_harmo.json");
 
+	
+
 
 	// The accelerations are evaluated at the query point
 	arma::vec::fixed<3> pos = {3e3,5e3,-2e3};
 	arma::vec::fixed<3> pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
 	arma::vec::fixed<3> sharm_acc = spherical_harmonics -> GetAcceleration(pos);
-
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
 	vtkSmartPointer<SBGATSphericalHarmo> spherical_harmonics_from_file = vtkSmartPointer<SBGATSphericalHarmo>::New();
@@ -382,9 +465,15 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	arma::vec::fixed<3> sharm_acc_from_file = spherical_harmonics_from_file -> GetAcceleration(pos);
 
 	// The accelerations should be consistent with the one previously computed
+
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_properties -> SetInputConnection(reader -> GetOutputPort());
+	mass_properties -> SetScaleKiloMeters();
+	mass_properties -> Update();
+
+
 	assert(arma::norm(pgm_acc - sharm_acc_from_file) / arma::norm(sharm_acc_from_file) * 100 < 1e-4);
 	assert(arma::norm(sharm_acc_from_file - sharm_acc) / arma::norm(sharm_acc) * 100 < 1e-8);
-
 	
 	std::cout << "- Done running test_spherical_harmonics_coefs_consistency" << std::endl;
 
@@ -633,7 +722,6 @@ void TestsSBCore::test_sbgat_shape_uq(){
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 
-
 	std::cout << "\n-- Error from linearized volume variance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : "<< (shape_uq -> GetVolumeVariance() - volume_variance_lin)/volume_variance_lin * 100 << " %\n";
 	std::cout << "-- Max Error from linearized center-of-mass covariances after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetCOMCovariance() - com_covariance_lin).max()/arma::abs(com_covariance_lin).max() * 100 << " %\n";
 	std::cout << "-- Max Error from linearized inertia parametrization covariance after 100000 MC outcomes (in " << elapsed_seconds.count() <<  " seconds) : " << arma::abs(shape_uq -> GetInertiaParametrizationCovariance() - inertia_covariance_lin).max()/arma::abs(inertia_covariance_lin).max() * 100 << " %\n";
@@ -646,7 +734,6 @@ void TestsSBCore::test_sbgat_shape_uq(){
 }
 
 void TestsSBCore::test_sbgat_transform_shape(){
-
 
 	std::cout << "- Running test_sbgat_transform_shape ..." << std::endl;
 
@@ -695,8 +782,12 @@ void TestsSBCore::test_sbgat_transform_shape(){
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
+
 	std::string filename  = "../../resources/shape_models/cube.obj";
 	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2);
+	filename  = "../../resources/shape_models/skewed.obj";
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2);
+
 
 	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
 
@@ -708,15 +799,12 @@ void TestsSBCore::test_PGM_UQ_cube(){
 
 	int N = 10000;
 
-	arma::mat P_CC = std::pow(1e-1,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(24));
+	arma::arma_rng::set_seed(N) ;
 
 	arma::vec pos = {200,300,400};
 	double density = 1970;
 
-	arma::vec U_mc(N);
-	arma::mat A_mc(3,N);
-
-	std::string filename  = "../../resources/shape_models/cube.obj";
+	std::string filename  = "../../resources/shape_models/skewed.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -726,6 +814,8 @@ void TestsSBCore::test_PGM_UQ_cube(){
 	// Cleaning
 	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
 	cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -735,7 +825,19 @@ void TestsSBCore::test_PGM_UQ_cube(){
 	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
 
+	arma::vec::fixed<3> nom_acc;
+	double nom_pot;
+	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
+	std::cout << "Nominal potential : " << nom_pot << std::endl;
+	std::cout << "Nominal acceleration : " << nom_acc.t();
+
+
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
+	arma::mat P_CC = std::pow(1e-1,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
+
+	arma::vec U_mc(N);
+	arma::mat A_mc(3,N);
+	arma::mat deviations(3 * N_C,N);
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -757,8 +859,14 @@ void TestsSBCore::test_PGM_UQ_cube(){
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
+	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
 	// MC
+	start = std::chrono::system_clock::now();	
+	boost::progress_display progress(N);
+	#pragma omp parallel for
+
 	for (int i = 0; i < N ; ++i){
 
 		// Reading
@@ -769,6 +877,8 @@ void TestsSBCore::test_PGM_UQ_cube(){
 	// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+		cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
 		cleaner_mc -> Update();
 
 	// Creating the PGM dyads
@@ -781,9 +891,8 @@ void TestsSBCore::test_PGM_UQ_cube(){
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetPGM(pgm_filter_mc);
 		
-		arma::vec deviation = C_CC * arma::randn<arma::vec>(24);
-		shape_uq_mc.ApplyDeviation(deviation);
-
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
 		arma::vec::fixed<3> acc;
 		double pot;
@@ -800,10 +909,11 @@ void TestsSBCore::test_PGM_UQ_cube(){
 			writer -> SetFileName(path.c_str());
 			writer -> Update();
 		}
+		++progress;
 	}
-
-	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
-	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
+	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
 
 	std::vector<int> steps = {10,100,1000,N};
 
@@ -818,7 +928,15 @@ void TestsSBCore::test_PGM_UQ_cube(){
 		std::cout << "\t\tError: \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << " \%\n";
 
 	}
-	std::cout << "- Done running test_PGM_UQ ..." << std::endl;
+
+	
+	arma::mat P_deviations = arma::cov(deviations.t(),deviations.t());
+
+	P_deviations.save("../output/cube_mc_cov.txt",arma::raw_ascii);
+
+	P_CC.save("../output/cube_analytical_cov.txt",arma::raw_ascii);
+
+	std::cout << "- Done running test_PGM_UQ_cube ..." << std::endl;
 
 
 
@@ -833,14 +951,14 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 	std::cout << "- Running test_PGM_UQ_itokawa ..." << std::endl;
 
 	int N = 10000;
+	arma::arma_rng::set_seed(N) ;
+
 
 	arma::vec pos = {200,300,400};
 	double density = 1970;
 
-	arma::vec U_mc(N);
-	arma::mat A_mc(3,N);
 
-	std::string filename  = "../../resources/shape_models/cube.obj";
+	std::string filename  = "../../resources/shape_models/itokawa_8_scaled.obj";
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -850,6 +968,8 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 	// Cleaning
 	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
 	cleaner -> Update();
 
 	// Creating the PGM dyads
@@ -868,6 +988,9 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
 
+	arma::vec U_mc(N);
+	arma::mat A_mc(3,N);
+	arma::mat deviations(3 * N_C,N);
 
 	arma::mat P_CC = std::pow(1e-1,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
 
@@ -895,8 +1018,14 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
+	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
 	// MC
+	start = std::chrono::system_clock::now();	
+	boost::progress_display progress(N);
+
+	#pragma omp parallel for
 	for (int i = 0; i < N ; ++i){
 
 		// Reading
@@ -907,6 +1036,8 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 	// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+		cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
 		cleaner_mc -> Update();
 
 	// Creating the PGM dyads
@@ -919,9 +1050,8 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetPGM(pgm_filter_mc);
 		
-		arma::vec deviation = C_CC * arma::randn<arma::vec>(3 * N_C);
-		shape_uq_mc.ApplyDeviation(deviation);
-
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
 		arma::vec::fixed<3> acc;
 		double pot;
@@ -933,14 +1063,16 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
 			writer -> SetInputData(vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()));
-			std::string path = "../output/itokowa_mc_shape_" + std::to_string(i) + ".obj";
+			std::string path = "../output/itokawa_mc_shape_" + std::to_string(i) + ".obj";
 			writer -> SetFileName(path.c_str());
 			writer -> Update();
 		}
+		++progress;
 	}
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
+	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
 
-	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
-	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
 	std::vector<int> steps = {10,100,1000,N};
 
@@ -955,6 +1087,14 @@ void TestsSBCore::test_PGM_UQ_itokawa(){
 		std::cout << "\t\tError: \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << " \%\n";
 
 	}
+	
+	arma::mat P_deviations = arma::cov(deviations.t(),deviations.t());
+
+	P_deviations.save("../output/itokawa_mc_cov.txt",arma::raw_ascii);
+	P_CC.save("../output/itokawa_analytical_cov.txt",arma::raw_ascii);
+
+
+
 	std::cout << "- Done running test_PGM_UQ_itokawa ..." << std::endl;
 
 

@@ -893,7 +893,7 @@ void Mainwindow::save_geometric_measures(){
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to JSON file"), QString::fromStdString("./" + name + "_measures.json"),tr("JSON file (*.json)"));
     if (fileName != "") {
-        SBGATMassProperties::ComputeAndSaveMassProperties(this -> wrapped_shape_data[name] -> get_polydata(),fileName.toStdString(),true);
+        SBGATMassProperties::ComputeAndSaveMassProperties(this -> wrapped_shape_data[name] -> get_polydata(),fileName.toStdString());
         
         std::string displayed_line = "- Saved geometric measures of " + name + " to " + fileName.toStdString();
         std::string closing_line(displayed_line.length() - 1, '#');

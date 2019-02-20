@@ -78,10 +78,7 @@ SBGATSphericalHarmo::~SBGATSphericalHarmo(){
 // used in the spherical harmonics expansion of exterior gravity 
 // about a constant-density polyhedron
 
-int SBGATSphericalHarmo::RequestData(
-  vtkInformation* vtkNotUsed( request ),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector )){
+int SBGATSphericalHarmo::RequestData(vtkInformation* vtkNotUsed( request ),vtkInformationVector** inputVector,vtkInformationVector* vtkNotUsed( outputVector )){
 
   if (this -> setFromJSON){
     return 1;
@@ -99,21 +96,14 @@ int SBGATSphericalHarmo::RequestData(
   cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
   cleaner -> Update();
 
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform -> Scale(this -> scaleFactor,this -> scaleFactor,this -> scaleFactor);
 
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  transformFilter -> SetInputConnection(cleaner -> GetOutputPort());
-  transformFilter -> SetTransform(transform);
-  transformFilter -> Update();
 
-  vtkPolyData * input = transformFilter -> GetOutput();
+  vtkPolyData * input = cleaner -> GetOutput();
   vtkIdType cellId, numCells, numPts, numIds;
 
   numCells = input->GetNumberOfCells();
   numPts = input->GetNumberOfPoints();
-  if (numCells < 1 || numPts < 1)
-  {
+  if (numCells < 1 || numPts < 1){
     vtkErrorMacro( << "No data to measure...!");
     return 1;
   }
@@ -137,57 +127,58 @@ int SBGATSphericalHarmo::RequestData(
   
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(input);
-  mass_properties -> Update();
+  if (this -> scaleFactor ==1){
+    mass_properties -> SetScaleMeters();
+  }
+  else{
+   mass_properties -> SetScaleKiloMeters();
+ }
+ mass_properties -> Update();
 
   // Check that the shape is topologically closed
-  assert(mass_properties -> CheckClosed());
+ assert(mass_properties -> CheckClosed());
 
-  this -> totalMass = mass_properties -> GetVolume() * this -> density;
+ this -> totalMass = mass_properties -> GetVolume() * this -> density;
 
   // Looping over all facets
-  for (cellId=0; cellId < numCells; cellId++){
+ for (cellId=0; cellId < numCells; cellId++){
 
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE){
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not " << input->GetCellType(cellId));
-      continue;
-    }
-
-    input->GetCellPoints(cellId,ptIds);
-    numIds = ptIds->GetNumberOfIds();
-    assert(numIds == 3);
-
-    double r0[3];
-    double r1[3];
-    double r2[3];
-
-    input->GetPoint(ptIds->GetId(0), r0);
-    input->GetPoint(ptIds->GetId(1), r1);
-    input->GetPoint(ptIds->GetId(2), r2);
-
-    arma::mat Cnm2f(this -> degree + 1, this -> degree + 1);
-    arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
-
-    // Call to SHARMLib here
-    SHARMLib::ComputePolyhedralCS(
-      Cnm2f,
-      Snm2f,
-      this -> degree,
-      this -> referenceRadius,
-      &r0[0],
-      &r1[0],
-      &r2[0],
-      this -> normalized
-      );
-
-    this -> Cnm += Cnm2f ;
-    this -> Snm += Snm2f ;
-
+  if ( input->GetCellType(cellId) != VTK_TRIANGLE){
+    vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not " << input->GetCellType(cellId));
+    continue;
   }
 
-  this -> Cnm /= mass_properties -> GetVolume();
-  this -> Snm /= mass_properties -> GetVolume();
+  input->GetCellPoints(cellId,ptIds);
+  numIds = ptIds->GetNumberOfIds();
+  assert(numIds == 3);
 
-  return 1;
+  double r0[3];
+  double r1[3];
+  double r2[3];
+
+  input->GetPoint(ptIds->GetId(0), r0);
+  input->GetPoint(ptIds->GetId(1), r1);
+  input->GetPoint(ptIds->GetId(2), r2);
+
+  vtkMath::MultiplyScalar(r0,this -> scaleFactor);
+  vtkMath::MultiplyScalar(r1,this -> scaleFactor);
+  vtkMath::MultiplyScalar(r2,this -> scaleFactor);
+
+  arma::mat Cnm2f(this -> degree + 1, this -> degree + 1);
+  arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
+
+    // Call to SHARMLib here
+  SHARMLib::ComputePolyhedralCS(Cnm2f,Snm2f,this -> degree,this -> referenceRadius,&r0[0],&r1[0],&r2[0],this -> normalized);
+
+  this -> Cnm += Cnm2f ;
+  this -> Snm += Snm2f ;
+
+}
+
+this -> Cnm /= mass_properties -> GetVolume();
+this -> Snm /= mass_properties -> GetVolume();
+
+return 1;
 }
 
 
@@ -393,10 +384,8 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
   }
 
   catch(std::runtime_error & error){
-
     std::cout << "an std::runtime_error occured inside SBGATSphericalHarmo::GetGravityGradientMatrix. returning zero matrix\n";
     dAccdPos = arma::zeros<arma::mat>(3,3);
-
   }
 
 } 
@@ -516,14 +505,8 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   spherical_harmo_json["referenceRadius"]["value"] = this -> referenceRadius;
   spherical_harmo_json["density"]["unit"] = "kg/m^3";
 
-  if (this -> scaleFactor == 1){
-    spherical_harmo_json["referenceRadius"]["unit"] = "m";
+  spherical_harmo_json["referenceRadius"]["unit"] = "m";
 
-  }
-  else{
-    spherical_harmo_json["referenceRadius"]["unit"] = "km";
-
-  }
 
   spherical_harmo_json["normalized"] = this -> normalized;
   spherical_harmo_json["degree"] = this -> degree;
@@ -573,12 +556,6 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
   this -> referenceRadius = spherical_harmo_json.at("referenceRadius").at("value");
   this -> totalMass = spherical_harmo_json.at("totalMass").at("value");
 
-  if (spherical_harmo_json.at("referenceRadius").at("unit") == "m" ){
-    this -> scaleFactor = 1;
-  }
-  else{
-    this -> scaleFactor = 1000;
-  }
 
   this -> normalized = spherical_harmo_json.at("normalized");
   this -> degree = spherical_harmo_json.at("degree");
