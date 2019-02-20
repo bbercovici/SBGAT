@@ -58,17 +58,12 @@ to apply the update (if any).
 
 ## Changelog
 
-### [SBGAT 2.03.1]
-
-#### New
-
-#### Improvements
-- Defined a few additional shortcut methods in `SBGATPolyhedronGravityModel`
-
+### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)
 
 #### Bug fixes
-- Fixed bug in `SBGATSphericalHarmo` that could have made the evaluation of the spherical harmonics over a non-barycented shape incorrect. 
+- Fixed bug in `SBGATSphericalHarmo` that could have caused the evaluation of the spherical harmonics over a non-barycented shape to be incorrect. 
 - Pushed fix to latest version of `SHARMLib` dependency to address the same issue
+- Modified `CMakeLists.txt` in Tests to fix issue caused by a conflicting header being sometimes included by one of VTK's dependencies
 
 
 ### [SBGAT 2.02.2](https://github.com/bbercovici/SBGAT/releases/tag/2.02.2)
