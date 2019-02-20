@@ -48,26 +48,26 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential variance evaluated at the queried point (L ^ 4/ s ^4)
+  @return PGM potential variance evaluated at the queried point (m ^ 4/ s ^4)
   */
   double GetVariancePotential(double const * point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/same unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
+  @return PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
   */
   double GetVariancePotential(const arma::vec::fixed<3> & point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata used to construct the PGM
-  @param[out] potential_var PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
-  @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (L^2 / s ^4)
+  @param[out] potential_var PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
+  @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (m^2 / s ^4)
   */
   void GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
@@ -75,13 +75,19 @@ public:
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata used to construct the PGM
-  @param[out] potential_var PGM potential variance evaluated at the queried point (L ^ 4 / s ^4)
-  @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (L^2 / s ^4)
+  @param[out] potential_var PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
+  @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (m^2 / s ^4)
   */
   void GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
+
+  /**
+  Returns a square root of the covariance matrix using a cholesky decomposition
+  @return covariance square root
+  */
+  arma::mat GetCovarianceSquareRoot() const;
 
 
 
@@ -350,7 +356,7 @@ public:
   /**
   Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
   When v0 != v1, this function must be called twice to set the two symmetric blocks
-  on both sides of the diagonal
+  on both sides of the diagonal. The covariance is expressed in the original shape's unit squared
   @param P covariance/correlation of Cv0 and Cv1
   @param v0 index of first vertex
   @param v1 index of second vertex

@@ -47,6 +47,8 @@ SOFTWARE.
 #include <vtkInformation.h>
 #include <vtkCleanPolyData.h>
 #include <vtkInformationVector.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <RigidBodyKinematics.hpp>
 vtkStandardNewMacro(SBGATSphericalHarmo);
 
@@ -85,9 +87,8 @@ int SBGATSphericalHarmo::RequestData(
     return 1;
   }
 
-
-  vtkInformation *inInfo =
-  inputVector[0]->GetInformationObject(0);
+  vtkInformation * inInfo =
+  inputVector[0] -> GetInformationObject(0);
 
   // call ExecuteData
   vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
@@ -98,7 +99,15 @@ int SBGATSphericalHarmo::RequestData(
   cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
   cleaner -> Update();
 
-  vtkPolyData * input = cleaner -> GetOutput();
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform -> Scale(this -> scaleFactor,this -> scaleFactor,this -> scaleFactor);
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  transformFilter -> SetInputConnection(cleaner -> GetOutputPort());
+  transformFilter -> SetTransform(transform);
+  transformFilter -> Update();
+
+  vtkPolyData * input = transformFilter -> GetOutput();
   vtkIdType cellId, numCells, numPts, numIds;
 
   numCells = input->GetNumberOfCells();
@@ -133,7 +142,7 @@ int SBGATSphericalHarmo::RequestData(
   // Check that the shape is topologically closed
   assert(mass_properties -> CheckClosed());
 
-  this -> totalMass = mass_properties -> GetVolume() * this -> density * std::pow(this -> scaleFactor,3);
+  this -> totalMass = mass_properties -> GetVolume() * this -> density;
 
   // Looping over all facets
   for (cellId=0; cellId < numCells; cellId++){
@@ -207,7 +216,7 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
     double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
+    double K0 = 0.5 * mu / std::pow(this -> referenceRadius,2);
     double x_ddot = 0;
     double y_ddot = 0;
     double z_ddot = 0;
@@ -253,8 +262,6 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
     arma::vec::fixed<3> acceleration = {x_ddot,y_ddot,z_ddot};
 
-    acceleration *= 1./this -> scaleFactor;
-
     return acceleration;
 
   }
@@ -290,7 +297,7 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
 
     double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.25 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,3);
+    double K0 = 0.25 * mu / std::pow(this -> referenceRadius,3);
 
     double ddU_dxdx = 0;
     double ddU_dydy = 0;
@@ -404,7 +411,7 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
   int n_max = 50;
   double mu = this -> totalMass * arma::datum::G;
 
-  double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
+  double K0 = 0.5 * mu / std::pow(this -> referenceRadius,2);
   
   arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
   arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
@@ -464,10 +471,6 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
     } 
 
   }
-
-
-  partial_C *= 1./this -> scaleFactor;
-  partial_S *= 1./this -> scaleFactor;
 
 
 

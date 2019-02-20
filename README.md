@@ -58,6 +58,13 @@ to apply the update (if any).
 
 ## Changelog
 
+### [SBGAT 2.02.4](https://github.com/bbercovici/SBGAT/releases/tag/2.02.4)
+
+#### Improvements
+- `SBGATPolyhedronGravityModel` is initialized by default for a shape whose shapes are expressed in meters (i.e its `scaleFactor` member is set to `1` by default)
+- `SBGATPolyhedronGravityModel` now returns potentials & accelerations in meters squared per second squared and meters per second squared, no matter whether the input shape is in meters or kilometers (provided that the user does inform the instance of `SBGATPolyhedronGravityModel` of the input unit through `SetScaleMeters` or `SetScaleKiloMeters`
+
+
 ### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)
 
 #### Bug fixes

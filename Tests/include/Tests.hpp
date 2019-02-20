@@ -50,7 +50,9 @@ void test_radar_obs();
 void test_lightcurve_obs();
 void test_frame_conversion();
 void test_PGM_UQ_partials();
-void test_PGM_UQ();
+void test_PGM_UQ_cube();
+void test_PGM_UQ_itokawa();
+
 
 
 

@@ -61,32 +61,32 @@ public:
   void PrintHeader(std::ostream& os, vtkIndent indent) override;
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
-  
+ 
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (L ^ 2/ s ^2)
+  @return PGM potential evaluated at the queried point (m ^ 2/ s ^2)
   */
   double GetPotential(double const * point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/same unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+  @return PGM potential evaluated at the queried point (m ^ 2 / s ^2)
   */
   double GetPotential(const arma::vec::fixed<3> & point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata used to construct the PGM
-  @param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+  @param[out] potential PGM potential evaluated at the queried point (m ^ 2 / s ^2)
+  @param[out] acc PGM acceleration evaluated at the queried point (m / s ^2)
   */
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec::fixed<3> & acc) const;
@@ -94,10 +94,10 @@ public:
   /**
   Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata used to construct the PGM
-  @param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+  @param[out] potential PGM potential evaluated at the queried point (m ^ 2 / s ^2)
+  @param[out] acc PGM acceleration evaluated at the queried point (m / s ^2)
   */
   void GetPotentialAcceleration(const arma::vec::fixed<3> & point,double & potential, 
     arma::vec::fixed<3> & acc) const;
@@ -106,10 +106,10 @@ public:
 /**
 Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradient matrix at the specified point assuming 
 a constant density
-@param point coordinates of queried point, expressed in the same frame/unit L as
+@param point coordinates of queried point, expressed in the same frame as
 the polydata used to construct the PGM
-@param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-@param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+@param[out] potential PGM potential evaluated at the queried point (m ^ 2 / s ^2)
+@param[out] acc PGM acceleration evaluated at the queried point (m / s ^2)
 @param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
 */
   void GetPotentialAccelerationGravityGradient(double const  * point,double & potential, 
@@ -119,10 +119,10 @@ the polydata used to construct the PGM
 /**
 Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradient matrix at the specified point assuming 
 a constant density
-@param point coordinates of queried point, expressed in the same frame/unit L as
+@param point coordinates of queried point, expressed in the same frame as
 the polydata used to construct the PGM
-@param[out] potential PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-@param[out] acc PGM acceleration evaluated at the queried point (L / s ^2)
+@param[out] potential PGM potential evaluated at the queried point (m ^ 2 / s ^2)
+@param[out] acc PGM acceleration evaluated at the queried point (m / s ^2)
 @param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
 */
   void GetPotentialAccelerationGravityGradient(const arma::vec::fixed<3> & point,double & potential, 
@@ -134,18 +134,18 @@ the polydata used to construct the PGM
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata used to construct the PGM
-  @return PGM acceleration evaluated at the queried point (L / s ^2)
+  @return PGM acceleration evaluated at the queried point (m / s ^2)
   */
   arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & point) const;
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point pointer to coordinates of queried point, expressed in the same frame/same unit L as
+  @param point pointer to coordinates of queried point, expressed in the same frame as
   the input polydata
-  @return PGM acceleration evaluated at the queried point (L / s ^2)
+  @return PGM acceleration evaluated at the queried point (m / s ^2)
   */
   arma::vec::fixed<3> GetAcceleration(double const * point) const;
 
@@ -168,6 +168,11 @@ the polydata used to construct the PGM
   */
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
 
+  /**
+  Returns the shape's scale factor
+  @return scale factor
+  */
+  double GetScaleFactor() const {return this -> scaleFactor;}
 
   /**
   Sets polyhedron density
@@ -194,7 +199,6 @@ the polydata used to construct the PGM
   double GetMass() const{
     return this -> density * this -> mass_properties -> GetVolume() * std::pow(this -> scaleFactor,3);
   }
-
 
   /**
   Returns the performance factor of the f-th facet at the specified position
@@ -339,10 +343,10 @@ the polydata used to construct the PGM
   @param[in] mass mass of shape model (kg)
   @param[in] omega fixed angular velocity of shape (rad/s)
   @param[in] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
-  @param[in] inertial_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
-  @param[in] body_fixed_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
-  @param[in] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (L/s^2) evaluated at the center of each queried element 
-  @param[in] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (L/s^2) evaluated at the center of each queried element 
+  @param[in] inertial_potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[in] body_fixed_potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[in] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
+  @param[in] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
   @param[in] path save path (ex: "pgm_surface.json")
   */
   static void SaveSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
@@ -362,10 +366,10 @@ the polydata used to construct the PGM
   @param[out] mass mass of shape model (kg)
   @param[out] omega fixed angular velocity of shape (rad/s)
   @param[out] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
-  @param[out] inertial_potentials vector storing the inertial gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
-  @param[out] body_fixed_potentials vector storing the body-fixed gravitational potentials (L^2/s^2) evaluated at the center of each queried element 
-  @param[out] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (L/s^2) evaluated at the center of each queried element 
-  @param[out] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (L/s^2) evaluated at the center of each queried element 
+  @param[out] inertial_potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_potentials vector storing the body-fixed gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
+  @param[out] inertial_acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
+  @param[out] body_fixed_acc_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
   @param[in] path load path (ex: "pgm_surface.json")
   */
   static void LoadSurfacePGM(double & mass,
@@ -515,14 +519,13 @@ protected:
   double ** facet_normals;
   double ** vertices;
 
-  double scaleFactor;
+  double scaleFactor = 1;
   double density;
 
   int ** edges;
   int ** facets;
   int ** edge_facets_ids;
   int * edge_flipping;
-
 
   bool scaleFactorSet;
   bool densitySet;

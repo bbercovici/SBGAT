@@ -164,9 +164,8 @@ public:
 
   /**
   Returns the acceleration due to gravity at the specified point
-  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit L as 
-  the shape used to build the spherical harmonics expansion. 
-  @return acceleration (L / s ^ 2)
+  @param pos position at which the acceleration must be evaluated (meters)
+  @return acceleration (m / s ^ 2)
   */
   arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & pos);
 

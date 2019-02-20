@@ -165,6 +165,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 	#pragma omp parallel for
 	for(int i = 0; i < input -> GetNumberOfPoints(); ++i) {
 		this -> vertices[i] = new double[3];
+
 		input -> GetPoint(i,this -> vertices[i]);
 		
 	}
@@ -374,7 +375,7 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 	}
 
-	return potential * 0.5 * arma::datum::G * this -> density;;
+	return potential * 0.5 * arma::datum::G * this -> density* this -> scaleFactor* this -> scaleFactor;
 
 }
 
@@ -449,7 +450,7 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 
 	}
 
-	return acc * arma::datum::G  * this -> density;
+	return acc * arma::datum::G * this -> density * this -> scaleFactor;
 
 }
 
@@ -539,8 +540,8 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 	acc(1) = acc_y;
 	acc(2) = acc_z;
 
-	acc *= arma::datum::G  * this -> density;
-	pot *= 0.5 * arma::datum::G * this -> density;
+	acc *= arma::datum::G  * this -> density* this -> scaleFactor ;
+	pot *= 0.5 * arma::datum::G * this -> density* this -> scaleFactor* this -> scaleFactor ;
 
 	potential = pot;
 
@@ -586,7 +587,6 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 		double r0m[3];
 
 		vtkMath::Subtract(r0,point,r0m);
-
 
 		double wf = this -> GetOmegaf( point, facet_index);
 
@@ -685,8 +685,8 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 		{grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz}
 	};
 
-	acc *= arma::datum::G  * this -> density;
-	pot *= 0.5 * arma::datum::G * this -> density;
+	acc *= arma::datum::G  * this -> density* this -> scaleFactor ;
+	pot *= 0.5 * arma::datum::G * this -> density* this -> scaleFactor* this -> scaleFactor ;
 	gravity_gradient_mat *= arma::datum::G  * this -> density;
 
 	potential = pot;

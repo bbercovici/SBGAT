@@ -1485,6 +1485,7 @@ void SBGATPolyhedronGravityModelUQ::ApplyDeviation(const arma::vec & delta_C){
 
 		polydata -> GetPoint(i,r);
 
+
 		r[0] += delta_C(3 * i);
 		r[1] += delta_C(3 * i + 1);
 		r[2] += delta_C(3 * i + 2);
@@ -1863,8 +1864,15 @@ arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAfPartialXf(const a
 
 }
 
+arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot() const{
+
+	return arma::chol(this -> P_CC,"lower") / this -> pgm_model ->  GetScaleFactor() ;
+
+}
+
 void SBGATPolyhedronGravityModelUQ::SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1){
-	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P;
+
+	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P * std::pow(this -> pgm_model ->  GetScaleFactor(),2);
 }
 
 void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string filename, double tol){
