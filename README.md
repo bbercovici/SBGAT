@@ -20,7 +20,6 @@ The SBGAT User's Wiki can be found [here](https://github.com/bbercovici/SBGAT/wi
 
     brew tap bbercovici/self
     brew update
-    brew install vtk
     brew install sbgat-core
     brew install sbgat-gui
 
