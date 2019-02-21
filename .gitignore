@@ -3,4 +3,4 @@ Doxyfile
 doxygen_script.sh
 doc/
 .add_license.sh
-Tests/output/*
+.LICENSE.hpp
