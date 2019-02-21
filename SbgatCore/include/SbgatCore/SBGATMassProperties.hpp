@@ -22,7 +22,11 @@
 \brief  Computes volume, area, shape index, center of mass,
 inertia tensor and principal axes of a polyhedral mesh of constant density
 \details Computes the volume, the surface area, and the
-normalized shape index, center of mass and inertia tensor of a topologically-closed, constant-density polyhedron
+normalized shape index, center of mass and inertia tensor of a topologically-closed, constant-density polyhedron.
+This class will always use results expressed in `meters` as their distance unit (e.g center-of-mass coordinates in meters, volume in m^3,...) . Unit consistency is enforced through the use of the SetScaleMeters()
+and SetScaleKiloMeters() method. 
+
+
 See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
 for further details.  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 \copyright MIT License, Benjamin Bercovici and Jay McMahon
@@ -148,7 +152,7 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-  arma::mat::fixed<3,3> GetInertiaTensor(){
+  arma::mat::fixed<3,3> GetNormalizedInertiaTensor(){
     this -> Update(); return this -> inertia_tensor;
   }
   
@@ -157,8 +161,8 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (rho) where rho is the density
   */
-  arma::mat::fixed<3,3> GetInertiaTensorUnitDensity(){
-    this -> Update(); return this -> Volume * this -> r_avg * this -> r_avg * this -> inertia_tensor;
+  arma::mat::fixed<3,3> GetUnitDensityInertiaTensor(){
+    this -> Update(); return unit_density_inertia_tensor;
   }
 
 
@@ -172,13 +176,31 @@ public:
     this -> Update(); return this -> principal_axes;
   }
 
+  /**
+  Computes and returns the principal dimensions (m) of the ellipsoid associated with the inertia tensor 
+  tensor, sorted from the longest (smallest inertia) to shortest (largest inertia)
+  @return principal dimensions associated with inertia tensor (m)
+  */
+  arma::vec::fixed<3> GetPrincipalDimensions(){
+    this -> Update(); return this -> principal_dimensions;
+  }
+
 
   /**
-  * Compute and return the dimensionless inertia moments assuming uniform density distribution
-  * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
+  * Compute and return the normalized inertia moments assuming uniform density distribution
+  * across the shape, sorted from the smallest inertia to the largest.
+  * The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-  arma::vec::fixed<3> GetInertiaMoments(){
-    this -> Update(); return arma::eig_sym(this -> inertia_tensor);
+  arma::vec::fixed<3> GetNormalizedInertiaMoments(){
+    this -> Update(); return normalized_principal_moments;
+  }
+
+  /**
+  * Compute and return the inertia moments assuming uniform unit density distribution
+  * across the shape, sorted from the smallest inertia to the largest.
+  */
+  arma::vec::fixed<3> GetUnitDensityInertiaMoments(){
+    this -> Update(); return unit_density_principal_moments;
   }
 
   /**
@@ -223,6 +245,14 @@ protected:
   arma::vec::fixed<3> center_of_mass;
   arma::mat::fixed<3,3> inertia_tensor;
   arma::mat::fixed<3,3> principal_axes;
+
+  arma::vec::fixed<3> normalized_principal_moments;
+  arma::vec::fixed<3> unit_density_principal_moments;
+  arma::mat::fixed<3,3> unit_density_inertia_tensor;
+  arma::vec::fixed<3> principal_dimensions;
+
+
+
 
   double  SurfaceArea;
   double  MinCellArea;

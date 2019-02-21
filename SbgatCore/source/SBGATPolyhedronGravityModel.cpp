@@ -248,7 +248,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 	this -> edge_dyads = new double * [edge_points_ids_facet_ids.size()];
 	this -> edges = new int * [edge_points_ids_facet_ids.size()];
 	this -> edge_facets_ids = new int * [edge_points_ids_facet_ids.size()];
-	this -> edge_flipping = new int [edge_points_ids_facet_ids.size()];
 
 
 	#pragma omp parallel for
@@ -287,11 +286,8 @@ int SBGATPolyhedronGravityModel::RequestData(
 		
 		if (vtkMath::Dot(p1_m_p0,edge_dir) < 0){
 			vtkMath::MultiplyScalar(edge_dir,-1.);
-			this -> edge_flipping[i] = -1;
 		} 
-		else{
-			this -> edge_flipping[i] = 1;
-		}
+		
 		
 
 		double edge_normal_A_to_B[3];
@@ -560,7 +556,6 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 
 }
 
-
 void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(const arma::vec::fixed<3> & point,double & potential, 
 	arma::vec::fixed<3> & acc,arma::mat::fixed<3,3> & gravity_gradient_mat) const{
 
@@ -769,9 +764,7 @@ void SBGATPolyhedronGravityModel::Clear(){
 		}
 		delete[] this -> edge_facets_ids;
 
-	// Edge switching variables
 
-		delete[] this -> edge_flipping;
 
 	}
 }
@@ -806,6 +799,21 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 	pgm_filter -> SetInputData(selected_shape);
 	pgm_filter -> SetDensity(density);
 
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_prop -> SetInputData(selected_shape);
+
+	if (is_in_meters){
+		pgm_filter -> SetScaleMeters();
+		mass_prop -> SetScaleMeters();
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+		mass_prop -> SetScaleKiloMeters();
+	}
+
+	pgm_filter -> Update();
+	mass_prop -> Update();
+
 	slopes.clear();
 	inertial_potentials.clear();
 	body_fixed_potentials.clear();
@@ -822,35 +830,23 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 
 	}
 
-	if (is_in_meters){
-		pgm_filter -> SetScaleMeters();
-	}
-	else{
-		pgm_filter -> SetScaleKiloMeters();
-	}
 
-	pgm_filter -> Update();
+	arma::vec::fixed<3> com = mass_prop -> GetCenterOfMass();
+    
+    // The queried facets are browsed and their surface PGM evaluated
+    #pragma omp parallel for
+	for ( int e = 0; e <  queried_elements.size(); ++e){
 
-    // The queried facets are browsed 
-	for (unsigned int el : queried_elements){
+		int el = queried_elements[e];
 
 		unsigned int cellId = queried_elements.at(el);
-
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds -> Allocate(3);
-		selected_shape -> GetCellPoints(cellId,ptIds);
-
-		int p0_index = ptIds -> GetId(0);
-		int p1_index = ptIds -> GetId(1);
-		int p2_index = ptIds -> GetId(2);
 
 		double p0[3];
 		double p1[3];
 		double p2[3];
 
-		selected_shape -> GetPoint(p0_index,p0);
-		selected_shape -> GetPoint(p1_index,p1);
-		selected_shape -> GetPoint(p2_index,p2);
+		pgm_filter -> GetVerticesInFacet(el,p0,p1, p2);
+
 
 		arma::vec::fixed<3> p0_arma = {p0[0],p0[1],p0[2]};
 		arma::vec::fixed<3> p1_arma = {p1[0],p1[1],p1[2]};
@@ -861,14 +857,15 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 		double potential,slope;
 		arma::vec::fixed<3> acc,acc_body_fixed;
 
-		pgm_filter -> GetPotentialAcceleration(facet_center,potential,acc);
-		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center));
+		pgm_filter -> GetPotentialAcceleration(facet_center * pgm_filter -> GetScaleFactor(),potential,acc);
+		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center * pgm_filter -> GetScaleFactor() - com));
 
 		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
 
 		slopes[cellId] = slope;
 		inertial_potentials[cellId] = potential;
-		body_fixed_potentials[cellId] = potential + 0.5 * arma::dot(RBK::tilde(omega) * facet_center,RBK::tilde(omega) * facet_center);
+		body_fixed_potentials[cellId] = potential + 0.5 * arma::dot(RBK::tilde(omega) * (facet_center * pgm_filter -> GetScaleFactor() - com),
+			RBK::tilde(omega) * (facet_center * pgm_filter -> GetScaleFactor() - com));
 		inertial_acc_magnitudes[cellId] = arma::norm(acc);
 		body_fixed_acc_magnitudes[cellId] = arma::norm(acc_body_fixed);
 
@@ -1394,6 +1391,18 @@ void SBGATPolyhedronGravityModel::GetIndicesOfAdjacentFacets(const int & e,int &
 
 	f0 = this -> edge_facets_ids[e][0];
 	f1 = this -> edge_facets_ids[e][1];
+
+}
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetFacetCenter(const int & f) const{
+	
+	double r0[3];
+	double r1[3];
+	double r2[3];
+	this -> GetVerticesInFacet(f,r0,r1,r2);
+
+	return 1./3 * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
+
 
 }
 

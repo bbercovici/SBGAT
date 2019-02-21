@@ -28,13 +28,11 @@ public:
 
   /**
   Sets the PGM model associated to this uncertainty quantification run
+  and instantiates some containers whose size is depending upon
+  the number of vertices in the pgm's input shape
   @param[in] pgm pointer to valid polyhedron gravity model
   */
-  void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm){
-    this -> pgm_model = pgm;
-    int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
-    this -> P_CC = arma::zeros<arma::mat>(3 * N_C,3 * N_C);
-  }
+  void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm);
 
   /**
   Get the PGM model associated to this uncertainty quantification run
@@ -84,11 +82,124 @@ public:
     arma::mat::fixed<3,3> & acc_cov) const;
 
   /**
-  Returns a square root of the covariance matrix using a cholesky decomposition
+  Returns a square root of the covariance matrix using a cholesky decomposition.
+  The covariance square root is expressed in the original shape's unit squared (that is, 
+  meters or kilometers)
   @return covariance square root
   */
   arma::mat GetCovarianceSquareRoot() const;
 
+  /**
+  Runs a finite-differencing based test of the implemented PGM partials
+  @param input path to obj file used to test the partials
+  @param tol relative tolerance
+  */
+  static void TestPartials(std::string input , double tol = 1e-2);
+
+  /**
+  Obtain the partial derivative of the potential at the prescribed location
+  due to a infinitesimal variation in the shape's control points
+  @param pos position where to evaluate the partial derivative
+  @return partial derivative of the potential with respect to the variation in the shape's control points
+  */
+
+  arma::rowvec GetPartialUPartialC(const arma::vec::fixed<3> & pos) const;
+
+  /**
+  Obtain the partial derivative of the acceleration at the prescribed location
+  due to a infinitesimal variation in the shape's control points
+  @param pos position where to evaluate the partial derivative
+  @return partial derivative of the acceleration with respect to the variation in the shape's control points
+  */
+  arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
+
+
+  /**
+  Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
+  When v0 != v1, this function must be called twice to set the two symmetric blocks
+  on both sides of the diagonal. The covariance is expressed in the original shape's unit squared (that is, 
+  meters squared or kilometers squared)
+  @param P covariance/correlation of Cv0 and Cv1
+  @param v0 index of first vertex
+  @param v1 index of second vertex
+  */
+  void SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1);
+
+  /**
+  Applies prescribed deviation to all the N_C control points and updates pgm
+  @param delta_C deviation (3 * N_C x 1)
+  */  
+  void ApplyDeviation(const arma::vec & delta_C);
+
+
+  /**
+  Get covariance in acceleration arising from the uncertain shape
+  @param point coordinates where to evaluate the covariance
+  @return covariance of acceleration
+  */
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(double const * point) const;
+
+   /**
+  Get covariance in acceleration arising from the uncertain shape
+  @param point coordinates where to evaluate the covariance
+  @return covariance of acceleration
+  */
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
+
+  vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
+
+protected:
+
+  arma::vec GetBe() const;
+
+
+  /**
+  Adds to the properly initialized vector the partial derivative of the sum of all Ue
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
+
+   /**
+  Add to the properly initialized vector the partial derivative of the sum of all Uf
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
+
+
+  /**
+  Adds to the properly initialized vector the partial derivative of the sum of all Acce
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumAccePartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
+
+   /**
+  Add to the properly initialized vector the partial derivative of the sum of all Accf
+  @param[in] pos position where to evaluate the partials
+  @param[out] partial partial derivative being evaluated
+  */
+  void AddPartialSumAccfPartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
+
+
+
+  /**
+  Applies deviation to the coordinates of the vertices on the prescribed edge
+  and updates the pgm
+  @param delta_Ae deviation
+  @param e edge index
+  */
+  void ApplyAeDeviation(arma::vec::fixed<6> delta_Ae,const int & e);
+
+
+  /**
+  Applies deviation to the coordinates of the vertices in the prescribed facet
+  and updates the pgm
+  @param delta_Tf deviation
+  @param f facet index
+  */
+  void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
 
 
   /**
@@ -116,23 +227,23 @@ public:
 
 
   /**
-  Returns the partial derivative of an individual edge contribution to the acceleration (Ae) 
+  Returns the partial derivative of an individual edge contribution to the acceleration (Acce) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
   @param pos position where to evaluate the partial
   @param e edge index
-  @return PartialAePartialXe (3x10)
+  @return PartialAccePartialXe (3x10)
   */
-  arma::mat::fixed<3,10> PartialAePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
+  arma::mat::fixed<3,10> PartialAccePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
 
   
   /**
-  Returns the partial derivative of an individual facet contribution to the acceleration (Af) 
+  Returns the partial derivative of an individual facet contribution to the acceleration (Accf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
   @param pos position where to evaluate the partial
   @param f facet index
-  @return PartialAfPartialXf (3x10)
+  @return PartialAccfPartialXf (3x10)
   */
-  arma::mat::fixed<3,10> PartialAfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const;
+  arma::mat::fixed<3,10> PartialAccfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const;
 
 
 
@@ -309,123 +420,6 @@ public:
   arma::vec ApplyAndGetBeDeviation(const arma::vec & delta);
 
 
-
-  /**
-  Runs a finite-differencing based test of the implemented PGM partials
-  @param input path to obj file used to test the partials
-  @param tol relative tolerance
-  */
-  static void TestPartials(std::string input , double tol = 1e-2);
-
-
-  /**
-  Applies deviation to the coordinates of the vertices on the prescribed edge
-  and updates the pgm
-  @param delta_Ae deviation
-  @param e edge index
-  */
-  void ApplyAeDeviation(arma::vec::fixed<6> delta_Ae,const int & e);
-
-
-  /**
-  Applies deviation to the coordinates of the vertices in the prescribed facet
-  and updates the pgm
-  @param delta_Tf deviation
-  @param f facet index
-  */
-  void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
-
-
-  /**
-  Obtain the partial derivative of the potential at the prescribed location
-  due to a infinitesimal variation in the shape's control points
-  @param pos position where to evaluate the partial derivative
-  @return partial derivative of the potential with respect to the variation in the shape's control points
-  */
-
-  arma::rowvec GetPartialUPartialC(const arma::vec::fixed<3> & pos) const;
-
-  /**
-  Obtain the partial derivative of the acceleration at the prescribed location
-  due to a infinitesimal variation in the shape's control points
-  @param pos position where to evaluate the partial derivative
-  @return partial derivative of the acceleration with respect to the variation in the shape's control points
-  */
-  arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
-
-
-  /**
-  Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
-  When v0 != v1, this function must be called twice to set the two symmetric blocks
-  on both sides of the diagonal. The covariance is expressed in the original shape's unit squared
-  @param P covariance/correlation of Cv0 and Cv1
-  @param v0 index of first vertex
-  @param v1 index of second vertex
-  */
-  void SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1);
-
-  /**
-  Applies prescribed deviation to all the N_C control points and updates pgm
-  @param delta_C deviation (3 * N_C x 1)
-  */  
-  void ApplyDeviation(const arma::vec & delta_C);
-
-
-  /**
-  Adds to the properly initialized vector the partial derivative of the sum of all Ue
-  @param[in] pos position where to evaluate the partials
-  @param[out] partial partial derivative being evaluated
-  */
-  void AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
-
-   /**
-  Add to the properly initialized vector the partial derivative of the sum of all Uf
-  @param[in] pos position where to evaluate the partials
-  @param[out] partial partial derivative being evaluated
-  */
-  void AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const;
-
-
-  /**
-  Adds to the properly initialized vector the partial derivative of the sum of all Ae
-  @param[in] pos position where to evaluate the partials
-  @param[out] partial partial derivative being evaluated
-  */
-  void AddPartialSumAePartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
-
-   /**
-  Add to the properly initialized vector the partial derivative of the sum of all Af
-  @param[in] pos position where to evaluate the partials
-  @param[out] partial partial derivative being evaluated
-  */
-  void AddPartialSumAfPartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const;
-
-  /**
-  Get covariance in acceleration arising from the uncertain shape
-  @param point coordinates where to evaluate the covariance
-  @return covariance of acceleration
-  */
-  arma::mat::fixed<3,3> GetCovarianceAcceleration(double const * point) const;
-
-   /**
-  Get covariance in acceleration arising from the uncertain shape
-  @param point coordinates where to evaluate the covariance
-  @return covariance of acceleration
-  */
-  arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
-
-
-
-
-
-  vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
-
-protected:
-
-  arma::vec GetBe() const;
-
-
-
   static void TestPartialUePartialXe(std::string input,double tol) ;
   static void TestPartialUfPartialXf(std::string input,double tol) ;
   static void TestPartialXfPartialTf(std::string input,double tol) ;
@@ -451,8 +445,8 @@ protected:
   static void TestPartialUePartialC(std::string input,double tol);
   static void TestAddPartialSumUePartialC(std::string input,double tol);
   static void TestAddPartialSumUfPartialC(std::string input,double tol);
-  static void TestAddPartialSumAfPartialC(std::string input,double tol);
-  static void TestAddPartialSumAePartialC(std::string input,double tol);
+  static void TestAddPartialSumAccfPartialC(std::string input,double tol);
+  static void TestAddPartialSumAccePartialC(std::string input,double tol);
   static void TestPartialBePartialC(std::string input,double tol);
 
 
@@ -464,6 +458,8 @@ protected:
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
 
   arma::mat P_CC;
+  arma::sp_mat P_CC_sparse;
+
 
 
 };

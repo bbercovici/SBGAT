@@ -58,8 +58,6 @@ public:
   */
   void ComputeInertiaStatistics(double l,double sigma);
 
-
-
   /**
   Computes the inertia statistics of the provided shape using a Monte-Carlo sampling of the control point deviations
   Refer to "Inertia of An Uncertain Small Body Shape" by Benjamin Bercovici and Jay McMahon, Icarus, 2019
@@ -71,7 +69,6 @@ public:
   If argument is left to default "" string, then nothing is saved
   */
   void ComputeInertiaStatisticsMC(int N_samples,double l,double sigma,std::string output_dir = "");
-
 
   /**
   Return variance in volume
@@ -85,7 +82,6 @@ public:
   @return covariance in center-of-mass (L^2)
   */
   const arma::mat::fixed<3,3> & GetCOMCovariance()  {return this -> center_of_mass_covariance;}
-
 
   /**
   Return covariance in parametrization of inertia parametrization covariance
@@ -113,7 +109,6 @@ public:
   @return covariance in MRP parametrization
   */
   const arma::mat::fixed<3,3> & GetPrincipalAxesMRPCovariance() {return this -> mrp_covariance; }
-
 
 
 protected:

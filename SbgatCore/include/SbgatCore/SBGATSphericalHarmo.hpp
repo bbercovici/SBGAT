@@ -26,7 +26,9 @@
  @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
 field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
 The computed coefficients are completely independent of the mass and density of the considered object
-as they are only a geometric construct, thanks to the constant-density assumption
+as they are only a geometric construct, thanks to the constant-density assumption. This class will always use results expressed in `meters` as their distance unit (e.g accelerations in m/s^2, potentials in m^2/s^2,...) . Unit consistency is enforced through the use of the SetScaleMeters()
+and SetScaleKiloMeters() method. 
+
 Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
 for more details, see 
 Werner, R. a. (1997). 
@@ -294,7 +296,7 @@ protected:
   double referenceRadius;
   double density;
   double totalMass;
-  double scaleFactor;
+  double scaleFactor = 1;
 
   bool normalized;
   unsigned int degree;

@@ -52,7 +52,8 @@ void test_lightcurve_obs();
 void test_frame_conversion();
 void test_PGM_UQ_partials();
 void test_PGM_UQ_cube();
-void test_PGM_UQ_itokawa();
+void test_PGM_UQ_itokawa_km();
+void test_PGM_UQ_itokawa_m();
 
 
 

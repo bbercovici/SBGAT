@@ -566,7 +566,9 @@ void Mainwindow::add_shape() {
             // Reading
         vtkNew<vtkOBJReader> reader;
         reader -> SetFileName(fileName.toStdString().c_str());
-        reader -> Update(); 
+
+        reader -> Update();
+
 
             // Scaling
         vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -575,6 +577,8 @@ void Mainwindow::add_shape() {
         vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         transformFilter -> SetInputConnection(reader -> GetOutputPort());
         transformFilter -> SetTransform(transform);
+        transformFilter -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
         transformFilter -> Update();
 
 
@@ -591,8 +595,7 @@ void Mainwindow::add_shape() {
 
 
 
-        vtkSmartPointer<vtkPolyDataNormals> normals =
-        vtkSmartPointer<vtkPolyDataNormals>::New();
+        vtkSmartPointer<vtkPolyDataNormals> normals =vtkSmartPointer<vtkPolyDataNormals>::New();
         normals -> SetInputConnection(surfaceFilter-> GetOutputPort());
         normals -> SplittingOff();
         normals -> ConsistencyOn();
@@ -637,7 +640,6 @@ void Mainwindow::add_shape() {
         model_data -> set_mapper(mapper);
         model_data -> set_scale_factor(scaling_factor);
         model_data -> set_tree(tree);
-
 
 
             // The ModelDataWrapper pointer is stored. 
@@ -897,10 +899,10 @@ void Mainwindow::save_geometric_measures(){
         
         std::string displayed_line = "- Saved geometric measures of " + name + " to " + fileName.toStdString();
         std::string closing_line(displayed_line.length() - 1, '#');
-        closing_line.append("\n");
 
         this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
         this -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
+        closing_line.append("\n");
         this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
     }
@@ -917,7 +919,7 @@ void Mainwindow::compute_geometric_measures(){
  ss.str(std::string());
  ss.precision(10);
 
- std::string opening_line = "### Computing shape geometric measures ###";
+ std::string opening_line = "### Computing geometric measures of " + name + " ###";
  this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
 
  std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -930,17 +932,17 @@ void Mainwindow::compute_geometric_measures(){
  std::chrono::duration<double> elapsed_seconds = end - start;
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface of " + name + " (m^2) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface area (m^2) :"));
  this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume of " + name + " (m^3) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume (m^3) :"));
  this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius of " + name + " (m) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius (m) :"));
  this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box of " + name + " (m) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box (m) :"));
 
  double * bbox =  mass_properties_filter -> GetBoundingBox();
 
@@ -950,29 +952,53 @@ void Mainwindow::compute_geometric_measures(){
  ss.str(std::string());
  ss.precision(10);
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass of " + name + " (m) :"));
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass (m) :"));
  mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
  this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
  ss.str(std::string());
  ss.precision(10);
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia tensor of " + name + " :"));
- mass_properties_filter -> GetInertiaTensor().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia tensor :"));
+ mass_properties_filter -> GetNormalizedInertiaTensor().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+ 
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia moments :"));
+ mass_properties_filter -> GetNormalizedInertiaMoments().t().raw_print(ss);
  this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
  ss.str(std::string());
  ss.precision(10);
 
- this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes of " + name + " :"));
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia tensor (m^5) :"));
+ mass_properties_filter -> GetUnitDensityInertiaTensor().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+
+ ss.str(std::string());
+ ss.precision(10);
+
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia moments (m^5) :"));
+ mass_properties_filter -> GetUnitDensityInertiaMoments().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal dimensions (m) :"));
+ mass_properties_filter -> GetPrincipalDimensions().raw_print(ss);
+ this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+ ss.str(std::string());
+ ss.precision(10);
+
+ this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes :"));
  mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Dimensionless inertia moments of " + name + " :"));
- mass_properties_filter -> GetInertiaMoments().t().raw_print(ss);
  this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
 

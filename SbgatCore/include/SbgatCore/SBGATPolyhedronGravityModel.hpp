@@ -23,7 +23,8 @@
 @brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
  @details Computes the potential, acceleration caused by a polyhedron
  of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres.
-The input must be a topologically-closed polyhedron.
+The input must be a topologically-closed polyhedron. This class will always use results expressed in `meters` as their distance unit (e.g accelerations in m/s^2, potentials in m^2/s^2,...) . Unit consistency is enforced through the use of the SetScaleMeters()
+and SetScaleKiloMeters() method. 
 See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
 for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 @copyright MIT License, Benjamin Bercovici and Jay McMahon
@@ -61,7 +62,7 @@ public:
   void PrintHeader(std::ostream& os, vtkIndent indent) override;
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
- 
+
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
@@ -90,6 +91,14 @@ public:
   */
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec::fixed<3> & acc) const;
+
+  /**
+  Returns coordinates of point at center of facet
+  @param f facet index
+  @return coordinates of f-th facet center
+  */
+  arma::vec::fixed<3> GetFacetCenter(const int & f) const;
+
 
   /**
   Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
@@ -493,15 +502,6 @@ the polydata used to construct the PGM
   arma::vec::fixed<3> GetNonNormalizedFacetNormal(const int & f) const;
 
 
-  /**
-  Returns -1 if the provided edge's parametrization had to be flipped upon constructing
-  the edge dyad, +1 if not
-  @param e edge index
-  @return edge flip (+1 or -1)
-  */
-  int GetEdgeFlipping(const int & e) const {return this -> edge_flipping[e];}
-
-
 protected:
   SBGATPolyhedronGravityModel();
   ~SBGATPolyhedronGravityModel() override;
@@ -525,7 +525,6 @@ protected:
   int ** edges;
   int ** facets;
   int ** edge_facets_ids;
-  int * edge_flipping;
 
   bool scaleFactorSet;
   bool densitySet;
