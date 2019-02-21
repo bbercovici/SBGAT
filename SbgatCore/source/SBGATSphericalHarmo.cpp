@@ -156,6 +156,10 @@ int SBGATSphericalHarmo::RequestData(vtkInformation* vtkNotUsed( request ),vtkIn
   double r1[3];
   double r2[3];
 
+  input->GetPoint(ptIds->GetId(0), r0);
+  input->GetPoint(ptIds->GetId(1), r1);
+  input->GetPoint(ptIds->GetId(2), r2);
+
   vtkMath::MultiplyScalar(r0,this -> scaleFactor);
   vtkMath::MultiplyScalar(r1,this -> scaleFactor);
   vtkMath::MultiplyScalar(r2,this -> scaleFactor);

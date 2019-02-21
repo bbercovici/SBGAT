@@ -62,7 +62,7 @@ to apply the update (if any).
 
 ### New
 - SBGAT 2.02.4 introduces `SBGATPolyhedronGravityModelUQ`, a class dedicated to uncertainty quantification in Polyhedron Gravity potentials and accelerations arising from a stochastic shape. This class enables the evaluation of the variance in the potential and covariance in the acceleration at any point in space (excluding shape edges)
-- Expanded the Tests suite.
+- Expanded and consolidated the Tests suite.
 
 #### Improvements
 - **Length unit consistency has been completely overhauled**. 
