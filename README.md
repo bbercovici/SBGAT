@@ -58,10 +58,26 @@ to apply the update (if any).
 
 ## Changelog
 
+
+### [SBGAT 2.02.4](https://github.com/bbercovici/SBGAT/releases/tag/2.02.4)
+
+### New
+- SBGAT 2.02.4 introduces `SBGATPolyhedronGravityModelUQ`, a class dedicated to uncertainty quantification in Polyhedron Gravity potentials and accelerations arising from a stochastic shape. This class enables the evaluation of the variance in the potential and covariance in the acceleration at any point in space (excluding shape edges)
+- Expanded the Tests suite.
+
+#### Improvements
+- **Length unit consistency has been completely overhauled**. 
+  * All of SBGAT's filters (`SBGATMassproperties`, `SBGATSphericalHarmo`, `SBGATPolyhedronGravityModel`,...) will return results using meters as length unit. For instance, calling `GetAcceleration` from the `SBGATPolyhedronGravityModel` class will always return an acceleration in `m/s^2`. 
+  * Similarly, any method from the aforementioned filters expects an input position to be expressed in meters.
+  * Classes documentation has been updated to reflect this change
+  * Overall consistency is enforced by manually specifying the unit in which a given shape model is specified through the use of `SetScaleMeters` or `SetScaleKiloMeters`. This way, a shape whose coordinates are expressed in kilometers can be connected to an instance of `SBGATMassproperties` or any other filter and used in a completely transparent manner as long as `SetScaleKiloMeters` is called on the filter before `Update()`
+  * `SBGATMassproperties`, `SBGATSphericalHarmo` and `SBGATPolyhedronGravityModel` are initialized by default for a shape whose length unit are in meters (i.e the `scaleFactor` member is set to `1` by default, and set to `1000` if `SetScaleKiloMeters()` is called)
+- Work is in progress to revamp the main page of the doxygen documentation
+
 ### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)
 
 #### Bug fixes
-- Fixed bug in `SBGATSphericalHarmo` that could have caused the evaluation of the spherical harmonics over a non-barycented shape to be incorrect. 
+- Fixed bug in `SBGATSphericalHarmo` that could have caused the evaluation of the spherical harmonics over a non-barycentered shape to be incorrect. 
 - Pushed fix to latest version of `SHARMLib` dependency to address the same issue
 - Modified `CMakeLists.txt` in Tests to fix issue caused by a conflicting header being sometimes included by one of VTK's dependencies
 

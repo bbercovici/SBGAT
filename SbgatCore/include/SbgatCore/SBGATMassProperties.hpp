@@ -22,7 +22,11 @@
 \brief  Computes volume, area, shape index, center of mass,
 inertia tensor and principal axes of a polyhedral mesh of constant density
 \details Computes the volume, the surface area, and the
-normalized shape index, center of mass and inertia tensor of a topologically-closed, constant-density polyhedron
+normalized shape index, center of mass and inertia tensor of a topologically-closed, constant-density polyhedron.
+This class will always use results expressed in `meters` as their distance unit (e.g center-of-mass coordinates in meters, volume in m^3,...) . Unit consistency is enforced through the use of the SetScaleMeters()
+and SetScaleKiloMeters() method. 
+
+
 See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
 for further details.  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 \copyright MIT License, Benjamin Bercovici and Jay McMahon
@@ -48,7 +52,7 @@ public:
   void PrintTrailer(std::ostream& os, vtkIndent indent) override;
 
   /**
-   * Compute and return the volume (m or km^3)
+   * Compute and return the volume (m^3)
    */
   double GetVolume() {this->Update(); return this->Volume;}
 
@@ -78,19 +82,19 @@ public:
   double GetKz() {this->Update(); return this->Kz;}
 
   /**
-   * Compute and return the area.
+   * Compute and return the area in m^2
    */
   double GetSurfaceArea() {this->Update(); return this->SurfaceArea;
   }
 
   /**
-   * Compute and return the min cell area.
+   * Compute and return the min cell area in m^2
    */
   double GetMinCellArea() {this->Update(); return this->MinCellArea;
   }
 
   /**
-   * Compute and return the max cell area.
+   * Compute and return the max cell area in m^2
    */
   double GetMaxCellArea() {this->Update(); return this->MaxCellArea;
   }
@@ -111,9 +115,19 @@ public:
   {this->Update(); return this->NormalizedShapeIndex;
   }
 
+  /**
+  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
+  */
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
 
   /**
-  * Compute and return the coordinates of the center of mass
+  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
+  */
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+
+
+  /**
+  * Compute and return the coordinates of the center of mass (m)
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
@@ -122,7 +136,7 @@ public:
   }
 
   /**
-  * Compute and return the coordinates of the center of mass
+  * Compute and return the coordinates of the center of mass (m)
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
@@ -138,7 +152,7 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-  arma::mat::fixed<3,3> GetInertiaTensor(){
+  arma::mat::fixed<3,3> GetNormalizedInertiaTensor(){
     this -> Update(); return this -> inertia_tensor;
   }
   
@@ -147,8 +161,8 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (rho) where rho is the density
   */
-  arma::mat::fixed<3,3> GetInertiaTensorUnitDensity(){
-    this -> Update(); return this -> Volume * this -> r_avg * this -> r_avg * this -> inertia_tensor;
+  arma::mat::fixed<3,3> GetUnitDensityInertiaTensor(){
+    this -> Update(); return unit_density_inertia_tensor;
   }
 
 
@@ -162,26 +176,42 @@ public:
     this -> Update(); return this -> principal_axes;
   }
 
+  /**
+  Computes and returns the principal dimensions (m) of the ellipsoid associated with the inertia tensor 
+  tensor, sorted from the longest (smallest inertia) to shortest (largest inertia)
+  @return principal dimensions associated with inertia tensor (m)
+  */
+  arma::vec::fixed<3> GetPrincipalDimensions(){
+    this -> Update(); return this -> principal_dimensions;
+  }
+
 
   /**
-  * Compute and return the dimensionless inertia moments assuming uniform density distribution
-  * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
+  * Compute and return the normalized inertia moments assuming uniform density distribution
+  * across the shape, sorted from the smallest inertia to the largest.
+  * The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-  arma::vec::fixed<3> GetInertiaMoments(){
-    this -> Update(); return arma::eig_sym(this -> inertia_tensor);
+  arma::vec::fixed<3> GetNormalizedInertiaMoments(){
+    this -> Update(); return normalized_principal_moments;
   }
 
   /**
-  Computes the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m or km)
+  * Compute and return the inertia moments assuming uniform unit density distribution
+  * across the shape, sorted from the smallest inertia to the largest.
   */
+  arma::vec::fixed<3> GetUnitDensityInertiaMoments(){
+    this -> Update(); return unit_density_principal_moments;
+  }
 
+  /**
+  Returns the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m)
+  */
   double GetAverageRadius(){
     this -> Update(); return this -> r_avg;
   }
 
-
   /**
-  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax)
+  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
   */
   double * GetBoundingBox(){
     this -> Update(); return this -> bounds;
@@ -192,18 +222,16 @@ public:
     Computes the mass properties of the provided shape and saves the results to a JSON file
     @param shape pointer to considered shape
     @param path savepath (ex: "mass_properties.json")
-    @param is_in_meters true if the shape coordinates are expressed in meters, false otherwise
     */
-  static void ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters);
+  static void ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path);
 
 
   /**
   Save the computed mass properties to a JSON file
   @param path savepath (ex: "mass_properties.json")
-    @param is_in_meters true if the shape coordinates are expressed in meters, false otherwise
 
   */
-  void SaveMassProperties(std::string path,bool is_in_meters) const ;
+  void SaveMassProperties(std::string path) const ;
 
 
 protected:
@@ -217,6 +245,14 @@ protected:
   arma::vec::fixed<3> center_of_mass;
   arma::mat::fixed<3,3> inertia_tensor;
   arma::mat::fixed<3,3> principal_axes;
+
+  arma::vec::fixed<3> normalized_principal_moments;
+  arma::vec::fixed<3> unit_density_principal_moments;
+  arma::mat::fixed<3,3> unit_density_inertia_tensor;
+  arma::vec::fixed<3> principal_dimensions;
+
+
+
 
   double  SurfaceArea;
   double  MinCellArea;
@@ -233,6 +269,10 @@ protected:
   double bounds[6];
   double r_avg;
   bool IsClosed;
+  double scaleFactor = 1;
+
+  bool scaleFactorSet;
+
 
 private:
   SBGATMassProperties(const SBGATMassProperties&) = delete;

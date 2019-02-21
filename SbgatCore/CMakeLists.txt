@@ -122,6 +122,7 @@ add_library(${LIB_NAME}
 	source/SBGATRefFrame.cpp
 	source/SBGATFrameGraph.cpp
 	source/SBGATPolyhedronGravityModel.cpp
+	source/SBGATPolyhedronGravityModelUQ.cpp
 	source/SBGATMassProperties.cpp
 	source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp
@@ -147,11 +148,16 @@ set(library_dependencies
 	)
 
 
+
+
 if (OpenMP_FOUND AND NOT NO_OMP)
 	target_link_libraries(${LIB_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
 else()
 	target_link_libraries(${LIB_NAME} ${library_dependencies})
 endif()
+
+
+
 
 
 

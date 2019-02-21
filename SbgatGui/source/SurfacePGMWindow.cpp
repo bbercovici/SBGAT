@@ -124,7 +124,8 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		return;
 	}
 
-	this -> parent -> log_console -> appendPlainText(QString::fromStdString("\n\n- Computing surface PGM ..."));
+	std::string opening_line = "### Computing surface PGM of " + selected_shape_name  + " ###";
+	this -> parent ->log_console -> appendPlainText(QString::fromStdString(opening_line));
 
 	omega *= 2 * arma::datum::pi / this -> primary_shape_properties_widget -> get_period();
 
@@ -141,6 +142,8 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		queried_elements.push_back(i);
 	}
 
+	auto start = std::chrono::system_clock::now();
+
 
 	SBGATPolyhedronGravityModel::ComputeSurfacePGM(selected_shape,
 		queried_elements,
@@ -152,6 +155,11 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		body_fixed_potentials,
 		inertial_acc_magnitudes,
 		body_fixed_acc_magnitudes);
+
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	
 
 
 	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
@@ -188,8 +196,22 @@ void SurfacePGMWindow::compute_surface_pgm(){
 
 	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
+	std::string displayed_line = "- Saved surface-evaluated PGM of " + selected_shape_name + " to " + this -> output_path;
 
-	this -> parent -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing surface PGM."));
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString("- Done computing surface PGM in " + std::to_string(elapsed_seconds.count()) +  " seconds."));
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
+
+	std::string closing_line(opening_line.length() - 1, '#');
+
+	closing_line.append("\n");
+
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+
+
+
+
+
+
 
 
 }
@@ -203,7 +225,7 @@ void SurfacePGMWindow::open_output_file_dialog(){
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 	
 	if ( shape_data.find(name)!= shape_data.end()){
-		default_name = name;
+		default_name = "./" + name + "_surface_pgm.json";
 	}
 
 	QString path = QFileDialog::getSaveFileName(this, tr("Save Surface PGM To File"),

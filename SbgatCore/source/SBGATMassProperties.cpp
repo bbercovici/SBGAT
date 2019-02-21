@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
+#include <vtkCleanPolyData.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
@@ -86,8 +87,17 @@ int SBGATMassProperties::RequestData(
   inputVector[0]->GetInformationObject(0);
 
   // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  vtkSmartPointer<vtkCleanPolyData> cleaner =
+  vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner -> SetInputData (input_unclean);
+  cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+  cleaner -> Update();
+
+  vtkPolyData * input = cleaner -> GetOutput();
+
+
 
   vtkIdType cellId, numCells, numPts, numIds;
   double p[3];
@@ -146,8 +156,9 @@ int SBGATMassProperties::RequestData(
 
 
   input -> GetBounds(this -> bounds);
-  arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
-  arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
+
+  arma::vec::fixed<3> bbox_min = {this -> scaleFactor * this -> bounds[0],this -> scaleFactor * this -> bounds[2],this -> scaleFactor * this -> bounds[4]};
+  arma::vec::fixed<3> bbox_max = {this -> scaleFactor * this -> bounds[1],this -> scaleFactor * this -> bounds[3],this -> scaleFactor * this -> bounds[5]};
 
   for ( idx = 0; idx < 3 ; idx++ ){
     munc[idx] = 0.0;
@@ -165,10 +176,10 @@ int SBGATMassProperties::RequestData(
     assert(numIds == 3);
 
     // store current vertex (x,y,z) coordinates ...
-    // Note that the coordinates are normalized!
+    // Note that the coordinates are scaled to meters if need be!
     for (idx=0; idx < numIds; idx++){
       input->GetPoint(ptIds->GetId(idx), p);
-      x[idx] = p[0] ; y[idx] = p[1] ; z[idx] = p[2] ;
+      x[idx] = this -> scaleFactor * p[0] ; y[idx] = this -> scaleFactor * p[1] ; z[idx] = this -> scaleFactor * p[2] ;
     }
 
     // get i j k vectors ...
@@ -393,6 +404,13 @@ int SBGATMassProperties::RequestData(
     this -> r_avg =  std::cbrt( 3./4. * this -> Volume / arma::datum::pi ) ;
     this -> inertia_tensor = I / (this -> Volume * this -> r_avg * this -> r_avg);
 
+
+
+
+
+
+
+
     // The principal axes are extracted
     arma::vec eig_val;
     arma::mat eig_vec;
@@ -441,6 +459,21 @@ int SBGATMassProperties::RequestData(
      this -> principal_axes = PB_4;
    }
 
+
+
+   this -> unit_density_inertia_tensor = this -> Volume * this -> r_avg * this -> r_avg * this -> inertia_tensor;
+   this -> normalized_principal_moments = arma::eig_sym(this -> inertia_tensor);
+   this -> unit_density_principal_moments = arma::eig_sym(this -> unit_density_inertia_tensor);
+
+
+   this -> principal_dimensions = std::sqrt(5. / 2. / this -> Volume) * arma::sqrt(arma::vec::fixed<3>({
+    unit_density_principal_moments(1) + unit_density_principal_moments(2) - unit_density_principal_moments(0),
+    unit_density_principal_moments(0) + unit_density_principal_moments(2) - unit_density_principal_moments(1),
+    unit_density_principal_moments(0) + unit_density_principal_moments(1) - unit_density_principal_moments(2)
+  }));
+
+
+
     // Closeness of topology given sum of oriented surface
    if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
     this -> IsClosed = true;
@@ -488,33 +521,29 @@ void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
 
 
 
-void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path,bool is_in_meters){
+void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path){
 
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(shape);
+  mass_properties -> SetScaleMeters();
+
   mass_properties -> Update();
 
-  mass_properties -> SaveMassProperties(path,is_in_meters);
+  mass_properties -> SaveMassProperties(path);
 
 }
 
-void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters) const {
+void SBGATMassProperties::SaveMassProperties(std::string path) const {
 
   nlohmann::json mass_properties_json;
   std::string length_unit,surface_unit,volume_unit;
   
-  if(is_in_meters){
+  length_unit = "m";
+  surface_unit = "m^2";
+  volume_unit = "m^3";
 
-    length_unit = "m";
-    surface_unit = "m^2";
-    volume_unit = "m^3";
-  }
-  else{
-    length_unit = "km";
-    surface_unit = "km^2";
-    volume_unit = "km^3";
-  }
 
+  
   nlohmann::json com_json = {
     {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},
     {"unit",length_unit}
@@ -531,7 +560,7 @@ void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters)
     {"unit",surface_unit}
   };
 
-  nlohmann::json inertia_tensor_json = {
+  nlohmann::json normalized_inertia_tensor_json = {
     {"value", {
       {this -> inertia_tensor(0,0),this -> inertia_tensor(0,1),this -> inertia_tensor(0,2)},
       {this -> inertia_tensor(1,0),this -> inertia_tensor(1,1),this -> inertia_tensor(1,2)},
@@ -539,6 +568,34 @@ void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters)
     },
     {"unit","none"}
   };
+
+  nlohmann::json  unit_density_inertia_tensor_json = {
+    {"value", {
+      {this -> unit_density_inertia_tensor(0,0),this -> unit_density_inertia_tensor(0,1),this -> unit_density_inertia_tensor(0,2)},
+      {this -> unit_density_inertia_tensor(1,0),this -> unit_density_inertia_tensor(1,1),this -> unit_density_inertia_tensor(1,2)},
+      {this -> unit_density_inertia_tensor(2,0),this -> unit_density_inertia_tensor(2,1),this -> unit_density_inertia_tensor(2,2)}}
+    },
+    {"unit","m^5"}
+  };
+
+
+  nlohmann::json principal_dimensions_json = {
+    {"value",{this -> principal_dimensions(0),this -> principal_dimensions(1),this -> principal_dimensions(2)}},
+    {"unit",length_unit}
+  };
+
+  nlohmann::json unit_density_principal_moments_json = {
+    {"value",{this -> unit_density_principal_moments(0),this -> unit_density_principal_moments(1),this -> unit_density_principal_moments(2)}},
+    {"unit","m^5"}
+  };
+
+
+
+  nlohmann::json normalized_principal_moments_json = {
+    {"value",{this -> normalized_principal_moments(0),this -> normalized_principal_moments(1),this -> normalized_principal_moments(2)}},
+    {"unit","none"}
+  };
+
 
   nlohmann::json projected_volume_components_json = {
     {"value",{this->VolumeX,this->VolumeY,this->VolumeZ}},
@@ -577,7 +634,12 @@ void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters)
   mass_properties_json["PROJECTED_VOLUME_COEFS_KX_KY_KZ"] = projection_coefs_json;
   mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
   mass_properties_json["IS_CLOSED"] = is_open_json;
-  mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = inertia_tensor_json;
+  mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = normalized_inertia_tensor_json;
+  mass_properties_json["NORMALIZED_PRINCIPAL_MOMENTS"] = normalized_principal_moments_json;
+  mass_properties_json["UNIT_DENSITY_INERTIA_TENSOR"] = unit_density_inertia_tensor_json;
+  mass_properties_json["UNIT_DENSITY_PRINCIPAL_MOMENTS"] = unit_density_principal_moments_json;
+  mass_properties_json["PRINCIPAL_DIMENSIONS"] = principal_dimensions_json;
+
   mass_properties_json["AVERAGE_RADIUS"] = average_radius_json;
 
 
@@ -585,6 +647,8 @@ void SBGATMassProperties::SaveMassProperties(std::string path,bool is_in_meters)
   o << std::setw(4) << mass_properties_json << std::endl;
 
 
-
 }
+
+
+
 

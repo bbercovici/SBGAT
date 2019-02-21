@@ -151,11 +151,11 @@ void SHARMWindow::open_output_file_dialog(){
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 	
 	if ( shape_data.find(name)!= shape_data.end()){
-		default_name = name;
+		default_name = "./" + name + "_sh.json";
 	}
 
 	QString path = QFileDialog::getSaveFileName(this, tr("Save Spherical Harmonics To File"),
-		 QString::fromStdString(default_name),
+		QString::fromStdString(default_name),
 		tr("JSON file (*.json)"));
 
 	this -> output_path = path.toStdString();
@@ -190,6 +190,14 @@ void SHARMWindow::accept(){
 	spherical_harmonics -> SetDegree(this -> degree_combo_box -> currentText().toInt());
 	spherical_harmonics -> Update();
 	spherical_harmonics -> SaveToJson(this -> output_path );
+
+	std::string displayed_line = "- Saved spherical harmonics coefficients of " + name + " to " + this -> output_path;
+	std::string closing_line(displayed_line.length() - 1, '#');
+	closing_line.append("\n");
+
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
+	this -> parent -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 	QDialog::accept();
 }

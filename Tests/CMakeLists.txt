@@ -91,6 +91,10 @@ include_directories(${RBK_INCLUDE_DIR})
 find_package(SbgatCore REQUIRED PATHS ${SbgatCore_LOC})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 
+# Find OpenMP
+if (NOT NO_OMP)
+	find_package(OpenMP)
+endif()
 
 # Find VTK Package
 find_package(VTK REQUIRED PATHS ${VTK_PATH})
@@ -117,7 +121,10 @@ set(library_dependencies
 	)
 
 
-
-target_link_libraries(${EXE_NAME} ${library_dependencies})
+if (OpenMP_FOUND AND NOT NO_OMP)
+	target_link_libraries(${EXE_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
+else()
+	target_link_libraries(${EXE_NAME} ${library_dependencies})
+endif()
 
 
