@@ -184,7 +184,7 @@ void TestsSBCore::test_sbgat_mass_properties(){
 
 /**
 This test computes the surface accelerations at the center of each facet over a polydata
-of Eros for benchmarking purposes
+of KW4 for benchmarking purposes
 */
 void TestsSBCore::test_sbgat_pgm_speed(){
 	std::cout << "- Running test_sbgat_pgm_speed ..." << std::endl;
