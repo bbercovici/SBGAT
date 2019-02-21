@@ -535,11 +535,9 @@ void TestsSBCore::test_spherical_harmonics_coefs_consistency() {
 	spherical_harmonics -> SaveToJson("../output/KW4Alpha_harmo.json");
 
 	
-
-
 	// The accelerations are evaluated at the query point
 	arma::vec::fixed<3> pos = {3e3,5e3,-2e3};
-	arma::vec::fixed<3> pgm_acc = pgm_filter -> GetAcceleration(pos.colptr(0));
+	arma::vec::fixed<3> pgm_acc = pgm_filter -> GetAcceleration(pos);
 	arma::vec::fixed<3> sharm_acc = spherical_harmonics -> GetAcceleration(pos);
 
 	// The spherical harmonics are read from the just-saved JSON file and re-evaluated
