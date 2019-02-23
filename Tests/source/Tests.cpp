@@ -1347,7 +1347,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 
-	std::cout << "- Running test_PGM_UQ_itokawa_km ..." << std::endl;
+	std::cout << "- Running test_PGM_UQ_covariance_consistency ..." << std::endl;
 
 
 
@@ -1386,9 +1386,6 @@ void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 	arma::mat P_CC;
 	P_CC = shape_uq.GetVerticesCovariance();
 
-	if (P_CC.n_rows == 1){
-		P_CC = shape_uq.GetVerticesCovariance(false);
-	}
 
 	assert(shape_uq.LoadVerticesCovarianceFromJson("../output/shape_covariance.json"));
 
@@ -1397,7 +1394,7 @@ void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 
 	assert(arma::abs(P_CC - P_CC_from_Json).max() / std::pow(10,2) < 1e-10);
 	
-	std::cout << "- Done running test_PGM_UQ_itokawa_km ..." << std::endl;
+	std::cout << "- Done running test_PGM_UQ_covariance_consistency ..." << std::endl;
 
 
 }
