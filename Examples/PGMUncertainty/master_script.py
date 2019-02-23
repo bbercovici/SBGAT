@@ -25,7 +25,6 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
     return all_cases_dictionnary_list
 
 
-
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (platform.system() == 'Linux'):
@@ -46,7 +45,7 @@ base_dictionnary = {
 "UNIT_IN_METERS" : True,
 "N_MONTE_CARLO" : 1000,
 "STEP_SIZE" : 10.,
-"PATH_SHAPE" : "../resources/shape_models/itokawa_8_scaled.obj"
+"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
 }
 
 # Dictionnary storing simulation inputs to be looped over
