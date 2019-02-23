@@ -1226,8 +1226,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	arma::mat P_CC = std::pow(1e-2,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
-
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
 
