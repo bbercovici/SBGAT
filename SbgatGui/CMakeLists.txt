@@ -35,7 +35,7 @@
 #
 ################################################################################
 
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.5.0)
 
 # Building procedure
 set(EXE_NAME "SbgatGui" CACHE STRING "Name of executable to be created.")

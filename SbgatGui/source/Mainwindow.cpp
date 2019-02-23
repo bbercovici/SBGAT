@@ -554,7 +554,7 @@ void Mainwindow::add_shape() {
 
         start = std::chrono::system_clock::now();
 
-            // The name of the shape model is extracted from the path
+        // The name of the shape model is extracted from the path
         int dot_index = fileName.lastIndexOf(".");
         int slash_index = fileName.lastIndexOf("/");
         std::string name = (fileName.toStdString()).substr(slash_index + 1 , dot_index - slash_index - 1);

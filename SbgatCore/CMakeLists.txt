@@ -35,7 +35,7 @@
 #
 ################################################################################
 
-cmake_minimum_required(VERSION 3.13.3)
+cmake_minimum_required(VERSION 3.5)
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)

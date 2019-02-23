@@ -2,6 +2,11 @@
 #include <RigidBodyKinematics.hpp>
 #include <vtkOBJReader.h>
 #include <vtkCleanPolyData.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkFloatArray.h>
+#include <vtkPointData.h>
+#include <json.hpp>
+
 #pragma omp declare reduction( + : arma::rowvec : omp_out += omp_in ) \
 initializer( omp_priv = arma::zeros<arma::rowvec>(omp_orig.n_cols))
 
@@ -2606,24 +2611,25 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename, 
 
 
 
-void SBGATPolyhedronGravityModelUQ::ComputeCovariances(const double & standard_dev,const double & correl_distance){
+void SBGATPolyhedronGravityModelUQ::ComputeCovariancesGlobal(const double & standard_dev,const double & correl_distance){
 
 	double epsilon = 1e-4;
 
-	vtkPolyData * input = vtkPolyData::SafeDownCast(this -> pgm_filter -> GetInput());
+	vtkPolyData * input = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput());
 	int N_C = input -> GetNumberOfPoints();
 	
 	vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
 
-	normalGenerator->SetInputData(input);
-	normalGenerator->ComputePointNormalsOn();
-	normalGenerator->ComputeCellNormalsOff();
-	normalGenerator->Update();
+	normalGenerator -> SetInputData(input);
+	normalGenerator -> ComputePointNormalsOn();
+	normalGenerator -> ComputeCellNormalsOff();
+	normalGenerator -> SplittingOff ();
+	normalGenerator -> Update();
 
 	vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
 
 	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetPointData()->GetArray("Normals"));
-	
+
 	assert(input_with_normals -> GetNumberOfPoints() == N_C);
 	assert(normals -> GetNumberOfTuples() == N_C);
 
@@ -2635,18 +2641,17 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariances(const double & standard_d
 		double Pi_[3];
 		input -> GetPoint(i,Pi_);
 		normals -> GetTuple(i,ni_);
-		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]}
+		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]};
 
 		arma::vec::fixed<3> u_2 = arma::randn<arma::vec>(3);
 		u_2 = arma::normalise(arma::cross(ni,u_2));
 
 		arma::vec u_1 = arma::cross(u_2,ni);
-		arma::mat::fixed<3,3> P = sigma_sq * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
+		arma::mat::fixed<3,3> P = std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
 		std::vector<int> Pi_cor_indices = {int(i)};
 
 		this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
-
 
 		for (unsigned int j = i + 1; j < N_C; ++j){
 
@@ -2654,18 +2659,17 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariances(const double & standard_d
 			double Pj_[3];
 			input -> GetPoint(j,Pj_);
 			normals -> GetTuple(j,nj_);
-			arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]}
+			arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
 
-			double distance = std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
+			double distance = this -> pgm_model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
 
 			if ( distance < 3 * correl_distance){
 				double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
 
-				arma::mat::fixed<3,3> P_correlated = sigma_sq * decay * ni * nj.t();
+				arma::mat::fixed<3,3> P_correlated = std::pow(standard_dev,2) * decay * ni * nj.t();
 
 				this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P;
 				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P.t();
-
 
 			}
 
@@ -2676,9 +2680,85 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariances(const double & standard_d
 }
 
 
-void SBGATPolyhedronGravityModelUQ::SaveCovariance(std::string path) const{
+void SBGATPolyhedronGravityModelUQ::SaveCovariances(std::string path) const{
 
 	this -> P_CC.save(path,arma::raw_ascii);
+
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::SaveNonZeroCovariances(std::string path) const {
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	nlohmann::json vertices_covariances_json;
+	
+
+	vertices_covariances_json["vertices"] = N_C;
+
+	nlohmann::json covariance_partitions;
+	
+
+	for (int i = 0; i < N_C; ++i){
+
+		const arma::mat::fixed<3,3> & P_CiCi = this -> P_CC.submat(3 * i, 3 * i,3 * i + 2, 3 * i + 2 );
+
+		if(arma::abs(P_CiCi).max() > 1e-10){
+			arma::vec::fixed<9> P_CiCi_vectorized = arma::vectorise( P_CiCi ) ;
+			std::vector<double> P_CiCi_vector = {
+				P_CiCi_vectorized(0),
+				P_CiCi_vectorized(1),
+				P_CiCi_vectorized(2),
+				P_CiCi_vectorized(3),
+				P_CiCi_vectorized(4),
+				P_CiCi_vectorized(5),
+				P_CiCi_vectorized(6),
+				P_CiCi_vectorized(7),
+				P_CiCi_vectorized(8)
+			};
+			nlohmann::json cov_CiCi = { 
+				{"i", i}, 
+				{"j", i}, 
+				{"value", P_CiCi_vector},
+			};
+			covariance_partitions.push_back(cov_CiCi);
+		}
+
+		for (int j = i + 1; j < N_C; ++j){
+
+			const arma::mat::fixed<3,3> & P_CiCj = this -> P_CC.submat(3 * i, 3 * j,3 * i + 2, 3 * j + 2 );
+
+			if(arma::abs(P_CiCj).max() > 1e-10){
+				arma::vec::fixed<9> P_CiCj_vectorized = arma::vectorise( P_CiCj ) ;
+				std::vector<double> P_CiCj_vector = {
+					P_CiCj_vectorized(0),
+					P_CiCj_vectorized(1),
+					P_CiCj_vectorized(2),
+					P_CiCj_vectorized(3),
+					P_CiCj_vectorized(4),
+					P_CiCj_vectorized(5),
+					P_CiCj_vectorized(6),
+					P_CiCj_vectorized(7),
+					P_CiCj_vectorized(8)
+				};
+				nlohmann::json cov_CiCj = { 
+					{"i", i}, 
+					{"j", j}, 
+					{"value", P_CiCj_vector},
+				};
+				covariance_partitions.push_back(cov_CiCj);
+			}
+			
+
+		}
+		
+
+	}
+
+	vertices_covariances_json["covariance_partitions"] = covariance_partitions;
+	std::ofstream o(path);
+	o << std::setw(4) << vertices_covariances_json << std::endl;
 
 
 }

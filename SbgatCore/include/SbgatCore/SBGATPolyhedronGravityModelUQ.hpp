@@ -113,18 +113,14 @@ public:
   */
   arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
 
-
-
   /**
-  Populates the covariance components by looping over each vertex Ci and:
+  Populates the covariance components over the entire shape by looping over each vertex Ci and:
   - Setting each vertex covariance to P_CiCi = standard_dev ^2 * n_i * n_i^T (n_i == surface normal)
   - Setting each correlaton matrix to P_CiCj = standard_dev ^2 * n_i * n_j^T * exp(- || Ci - Cj || ^2 / correl_distance^2) (n_i == surface normal)
   @param standard_dev standard deviation in normal component (m)
   @param correl_distance one-sigma correlation distance between points (m)
   */
-  void ComputeCovariances(const double & standard_dev,const double & correl_distance);
-
-
+  void ComputeCovariancesGlobal(const double & standard_dev,const double & correl_distance);
 
   /**
   Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
@@ -137,12 +133,18 @@ public:
   */
   void SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1);
 
-
   /**
-  Saves the shape covariance in ascii format to the prescribed path
+  Saves the vertices covariance in ascii format to the prescribed path
   @param path path where to save the covariance 
   */
-  void SaveCovariance(std::string path) const;
+  void SaveCovariances(std::string path) const;
+
+  /**
+  Saves the non-zeros partitions of the full shape covariance to 
+  a json file. Only saves the symmetric part of the covariance (i.e the upper diagonal terms)
+  @param path path where to save the non-zero covariance partitions
+  */
+  void SaveNonZeroCovariances(std::string path) const;
 
 
   /**
@@ -150,10 +152,6 @@ public:
   @param delta_C deviation (3 * N_C x 1)
   */  
   void ApplyDeviation(const arma::vec & delta_C);
-
-
-
-
 
 
   /**

@@ -28,6 +28,7 @@
 # @date   July, 2017
 # @brief  CMake listing enabling compilation and installation of the SbgatCore tests
 
+
 ################################################################################
 #
 #
@@ -37,12 +38,12 @@
 #
 ################################################################################
 
-cmake_minimum_required(VERSION 3.05.0)
+
+cmake_minimum_required(VERSION 3.5.0)
 
 # Building procedure
 get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
-
 
 project(${EXE_NAME})
 
@@ -56,22 +57,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 add_definitions(-Wall -O2 )
 include_directories(include)
 
-# Find Boost
-find_package(Boost COMPONENTS filesystem) 
-include_directories(${Boost_INCLUDE_DIRS}) 
-
-# Find armadillo package
-find_package(Armadillo REQUIRED)
-include_directories(${ARMADILLO_INCLUDE_DIRS})
-
-# Find RBK 
-find_package(RigidBodyKinematics REQUIRED)
-include_directories(${RBK_INCLUDE_DIR})
-
 # Find SBGAT 
 find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
+
 # Find OpenMP
 if (NOT NO_OMP)
 	find_package(OpenMP)
@@ -87,11 +77,7 @@ list(REMOVE_ITEM dirs "/Applications/Xcode.app/Contents/Developer/Platforms/MacO
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${dirs})
 
 # Add source files in root directory
-add_executable(${EXE_NAME}
-	include/Tests.hpp
-	source/main.cpp
-	source/Tests.cpp
-	)
+add_executable(${EXE_NAME} main.cpp )
 
 set(library_dependencies
 	${ARMADILLO_LIBRARIES}
