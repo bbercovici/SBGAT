@@ -1230,10 +1230,27 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
-	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC;
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
-	assert(arma::abs(P_CC - C_CC * C_CC.t()).max() < 1e-10);
+	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
+	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral.t()).max();
+
+	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
+	std:cout << "\tCholesky: " << error_cholesky << std::endl;
+	std:cout << "\tSpectral decomposition: " << error_spectral << std::endl;
+
+	if (error_cholesky < error_spectral){
+		std::cout << "Using cholesky square root";
+		C_CC = C_CC_cholesky;
+	}
+	else{
+		std::cout << "Using spectral decomposition square root";
+		C_CC = C_CC_spectral;
+	}
+
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
@@ -1357,7 +1374,6 @@ void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 	pgm_filter -> SetDensity(density); 
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
-	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -1367,7 +1383,12 @@ void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 	shape_uq.SaveNonZeroVerticesCovariance("../output/shape_covariance.json");
 	shape_uq.SaveVerticesCovariance("../output/shape_covariance.txt");
 
-	arma::mat P_CC = shape_uq.GetVerticesCovariance();
+	arma::mat P_CC;
+	P_CC = shape_uq.GetVerticesCovariance();
+
+	if (P_CC.n_rows == 1){
+		P_CC = shape_uq.GetVerticesCovariance(false);
+	}
 
 	assert(shape_uq.LoadVerticesCovarianceFromJson("../output/shape_covariance.json"));
 

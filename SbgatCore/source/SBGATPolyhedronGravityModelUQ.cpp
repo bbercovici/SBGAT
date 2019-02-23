@@ -1936,23 +1936,32 @@ arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAccfPartialXf(const
 
 }
 
-arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot() const{
+arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot(bool use_cholesky) const{
 
-	try{
+	if (use_cholesky){
 
-		return arma::chol(this -> P_CC,"lower") / this -> pgm_model ->  GetScaleFactor() ;
+		try{
+			return arma::chol(this -> P_CC,"lower") / this -> pgm_model ->  GetScaleFactor() ;
+		}
+		catch(std::runtime_error & e){
+			return arma::eye<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
+		}
+	}
+	else{
+		try{
+			arma::vec eigenvalues;
+			arma::mat eigenvector;
+
+			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
+
+			return eigenvector * arma::diagmat(arma::sqrt(eigenvalues)) /  this -> pgm_model ->  GetScaleFactor() * eigenvector.t();
+		}
+		catch(std::runtime_error & e){
+			return arma::eye<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
+		}
 
 	}
-	catch(std::runtime_error & e){
 
-		arma::vec eigenvalues;
-		arma::mat eigenvector;
-
-		arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
-
-		return eigenvector * arma::diagmat(arma::sqrt(eigenvalues)) /  this -> pgm_model ->  GetScaleFactor() * eigenvector.t();
-
-	}
 
 }
 
@@ -2644,7 +2653,10 @@ void SBGATPolyhedronGravityModelUQ::AddUncertaintyRegionToCovariance(int region_
 
 	assert(input_with_normals -> GetNumberOfPoints() == N_C);
 	assert(normals -> GetNumberOfTuples() == N_C);
-	
+
+	double center[3];
+	input -> GetPoint(region_center_index,center);
+
 	for (unsigned int i = 0; i < N_C; ++i){
 
 		double ni_[3];
@@ -2654,40 +2666,41 @@ void SBGATPolyhedronGravityModelUQ::AddUncertaintyRegionToCovariance(int region_
 		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]};
 		arma::vec::fixed<3> u_2 = arma::normalise(arma::cross(ni,arma::randn<arma::vec>(3)));
 		arma::vec u_1 = arma::cross(u_2,ni);
-		arma::mat::fixed<3,3> P = std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
+		
+		double distance_from_center = this -> pgm_model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(center,Pi_));
+		
+		// If the following is false, skip $i, it is outside of the uncertainty region
+		if(distance_from_center < 3 * correl_distance){
+			double decay_from_center = std::exp(- std::pow(distance / correl_distance,2)) ;
 
-		this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
+			arma::mat::fixed<3,3> P = decay_from_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
-		for (unsigned int j = i + 1; j < N_C; ++j){
+			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
 
-			double nj_[3];
-			double Pj_[3];
-			input -> GetPoint(j,Pj_);
-			normals -> GetTuple(j,nj_);
-			arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
+			for (unsigned int j = i + 1; j < N_C; ++j){
 
-			double distance = this -> pgm_model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
+				double nj_[3];
+				double Pj_[3];
+				input -> GetPoint(j,Pj_);
+				normals -> GetTuple(j,nj_);
+				arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
 
-			if ( distance < 3 * correl_distance){
-				double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
+				double distance = this -> pgm_model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
 
-				arma::mat::fixed<3,3> P_correlation = std::pow(standard_dev,2) * decay * ni * nj.t();
+				if ( distance < 3 * correl_distance){
+					double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
 
-				this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
-				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+					arma::mat::fixed<3,3> P_correlation = decay_from_center * std::pow(standard_dev,2) * decay * ni * nj.t();
+
+					this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
+					this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+
+				}
 
 			}
-
 		}
 
 	}
-
-
-
-
-
-
-
 
 }
 
