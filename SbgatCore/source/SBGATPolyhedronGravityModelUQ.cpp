@@ -2611,7 +2611,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename, 
 
 
 
-void SBGATPolyhedronGravityModelUQ::ComputeCovariancesGlobal(const double & standard_dev,const double & correl_distance){
+void SBGATPolyhedronGravityModelUQ::ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance){
 
 	double epsilon = 1e-4;
 
@@ -2642,14 +2642,9 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariancesGlobal(const double & stan
 		input -> GetPoint(i,Pi_);
 		normals -> GetTuple(i,ni_);
 		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]};
-
-		arma::vec::fixed<3> u_2 = arma::randn<arma::vec>(3);
-		u_2 = arma::normalise(arma::cross(ni,u_2));
-
+		arma::vec::fixed<3> u_2 = arma::normalise(arma::cross(ni,arma::randn<arma::vec>(3)));
 		arma::vec u_1 = arma::cross(u_2,ni);
 		arma::mat::fixed<3,3> P = std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
-
-		std::vector<int> Pi_cor_indices = {int(i)};
 
 		this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
 
@@ -2666,10 +2661,10 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariancesGlobal(const double & stan
 			if ( distance < 3 * correl_distance){
 				double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
 
-				arma::mat::fixed<3,3> P_correlated = std::pow(standard_dev,2) * decay * ni * nj.t();
+				arma::mat::fixed<3,3> P_correlation = std::pow(standard_dev,2) * decay * ni * nj.t();
 
-				this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P;
-				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P.t();
+				this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
+				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
 
 			}
 
@@ -2680,22 +2675,75 @@ void SBGATPolyhedronGravityModelUQ::ComputeCovariancesGlobal(const double & stan
 }
 
 
-void SBGATPolyhedronGravityModelUQ::SaveCovariances(std::string path) const{
-
+void SBGATPolyhedronGravityModelUQ::SaveVerticesCovariance(std::string path) const{
 	this -> P_CC.save(path,arma::raw_ascii);
+}
 
+arma::mat SBGATPolyhedronGravityModelUQ::GetVerticesCovariance() const{
+	return this -> P_CC;
+}
+
+int SBGATPolyhedronGravityModelUQ::LoadVerticesCovarianceFromJson(std::string path){
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	// The JSON container is created
+	nlohmann::json vertices_covariances_json;
+
+  // The file is loaded into the container
+	std::ifstream i(path);  
+	i >> vertices_covariances_json;
+
+	if (vertices_covariances_json["N_C"] != N_C){
+		return 0;
+	}
+	else{
+		this -> P_CC.fill(0);
+
+		nlohmann::json covariance_partitions_json = vertices_covariances_json.at("COVARIANCE_PARTITIONS");
+		for (auto covariance_partition : covariance_partitions_json){
+
+			int i = covariance_partition["i"];
+			int j = covariance_partition["j"];
+
+			std::vector<double> P_CiCj_vector = {
+				covariance_partition["value"][0],
+				covariance_partition["value"][1],
+				covariance_partition["value"][2],
+				covariance_partition["value"][3],
+				covariance_partition["value"][4],
+				covariance_partition["value"][5],
+				covariance_partition["value"][6],
+				covariance_partition["value"][7],
+				covariance_partition["value"][8]
+			};
+
+
+			this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = arma::mat::fixed<3,3>({
+				{P_CiCj_vector[0],P_CiCj_vector[3],P_CiCj_vector[6]},
+				{P_CiCj_vector[1],P_CiCj_vector[4],P_CiCj_vector[7]},
+				{P_CiCj_vector[2],P_CiCj_vector[5],P_CiCj_vector[8]}
+
+			});
+			if (i != j){
+				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2).t();
+			}
+
+		}
+	}
+
+	return 1;
 
 }
 
-
-void SBGATPolyhedronGravityModelUQ::SaveNonZeroCovariances(std::string path) const {
+void SBGATPolyhedronGravityModelUQ::SaveNonZeroVerticesCovariance(std::string path) const {
 
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
 
 	nlohmann::json vertices_covariances_json;
 	
 
-	vertices_covariances_json["vertices"] = N_C;
+	vertices_covariances_json["N_C"] = N_C;
 
 	nlohmann::json covariance_partitions;
 	
@@ -2756,7 +2804,7 @@ void SBGATPolyhedronGravityModelUQ::SaveNonZeroCovariances(std::string path) con
 
 	}
 
-	vertices_covariances_json["covariance_partitions"] = covariance_partitions;
+	vertices_covariances_json["COVARIANCE_PARTITIONS"] = covariance_partitions;
 	std::ofstream o(path);
 	o << std::setw(4) << vertices_covariances_json << std::endl;
 

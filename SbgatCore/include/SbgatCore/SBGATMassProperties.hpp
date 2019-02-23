@@ -217,6 +217,27 @@ public:
     this -> Update(); return this -> bounds;
   }
 
+   /**
+  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
+  */
+  void GetBoundingBox(double * bounds_){
+    this -> Update(); bounds_ = this -> bounds;
+  }
+
+    /**
+  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
+  */
+  void GetBoundingBox(double & xmin,double & xmax,double & ymin,double & ymax,double & zmin,double & zmax){
+    this -> Update(); 
+    xmin = bounds[0];
+    xmax = bounds[1];
+    ymin = bounds[2];
+    ymax = bounds[3];
+    zmin = bounds[4];
+    zmax = bounds[5];
+  }
+
+
 
     /**
     Computes the mass properties of the provided shape and saves the results to a JSON file

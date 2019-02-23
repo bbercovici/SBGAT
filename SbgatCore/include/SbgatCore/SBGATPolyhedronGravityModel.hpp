@@ -167,6 +167,16 @@ the polydata used to construct the PGM
   */
   bool Contains(double const * point, double tol = 1e-8) const;
 
+  /** 
+  Determines whether the provided point lies inside or outside the shape
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @param tolerance
+  @return true if the polydata contains the point, false otherwise
+  */
+  bool Contains(const arma::vec::fixed<3> & point,double tol = 1e-8) const;
+
+
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */

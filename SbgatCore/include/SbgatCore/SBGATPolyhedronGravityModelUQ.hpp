@@ -120,7 +120,7 @@ public:
   @param standard_dev standard deviation in normal component (m)
   @param correl_distance one-sigma correlation distance between points (m)
   */
-  void ComputeCovariancesGlobal(const double & standard_dev,const double & correl_distance);
+  void ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance);
 
   /**
   Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
@@ -137,14 +137,30 @@ public:
   Saves the vertices covariance in ascii format to the prescribed path
   @param path path where to save the covariance 
   */
-  void SaveCovariances(std::string path) const;
+  void SaveVerticesCovariance(std::string path) const;
+
+
+  /**
+  Returns a copy of the vertices covariance 
+  @return P_CC
+  */
+  arma::mat GetVerticesCovariance() const;
+
 
   /**
   Saves the non-zeros partitions of the full shape covariance to 
   a json file. Only saves the symmetric part of the covariance (i.e the upper diagonal terms)
   @param path path where to save the non-zero covariance partitions
   */
-  void SaveNonZeroCovariances(std::string path) const;
+  void SaveNonZeroVerticesCovariance(std::string path) const;
+
+  /**
+  Populate the vertices covariance P_CC with the partitions saved in the provided json file
+  @param path path where to save the non-zero covariance partitions
+  @return 1 if loading sucessful, 0 otherwise (leaves P_CC untouched)
+  */
+  int LoadVerticesCovarianceFromJson(std::string path);
+
 
 
   /**

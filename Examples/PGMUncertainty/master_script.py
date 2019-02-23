@@ -45,6 +45,8 @@ base_dictionnary = {
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
 "N_MONTE_CARLO" : 1000,
+"STEP_SIZE" : 10.,
+"PATH_SHAPE" : "/usr/local/Cellar/sbgat-core/2.02.4/resources/shape_models/itokawa_8_scaled.obj"
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -57,8 +59,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"PATH_SHAPE" : ["/usr/local/Cellar/sbgat-core/2.02.4/resources/shape_models/itokawa_8_scaled.obj",
-"/usr/local/Cellar/sbgat-core/2.02.4/resources/shape_models/sphere.obj"] 
+"PROJECTION_AXIS" : [0,1,2]
 }
 
 # There shouldn't be any reason to modify the following

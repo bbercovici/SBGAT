@@ -377,6 +377,9 @@ double SBGATPolyhedronGravityModel::GetPotential(double const * point) const{
 
 }
 
+bool SBGATPolyhedronGravityModel::Contains(const arma::vec::fixed<3> & point,double tol) const{
+	return this -> Contains(point.colptr(0),tol);
+}
 
 bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) const{
 
@@ -389,9 +392,7 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 	// Facet loop
 	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
-
 		laplacian += this -> GetOmegaf(point_scaled, facet_index);
-
 	}
 
 	if (std::abs(laplacian) / (4 * arma::datum::pi) < tol) {
