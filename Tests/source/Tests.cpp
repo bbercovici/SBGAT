@@ -1239,8 +1239,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral.t()).max();
 
 	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
-	std:cout << "\tCholesky: " << error_cholesky << std::endl;
-	std:cout << "\tSpectral decomposition: " << error_spectral << std::endl;
+	std::cout << "\tCholesky: " << error_cholesky << std::endl;
+	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
 
 	if (error_cholesky < error_spectral){
 		std::cout << "Using cholesky square root";
