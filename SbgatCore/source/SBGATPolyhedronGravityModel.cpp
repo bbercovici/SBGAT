@@ -60,11 +60,8 @@ SOFTWARE.
 #include <vtkMath.h>
 #include <array>
 
-#pragma omp declare reduction( + : arma::vec : omp_out += omp_in ) \
-initializer( omp_priv = arma::zeros<arma::vec>(omp_orig.n_rows))
-
-#pragma omp declare reduction( - : arma::vec : omp_out -= omp_in ) \
-initializer( omp_priv = arma::zeros<arma::vec>(omp_orig.n_rows))
+#pragma omp declare reduction( + : arma::vec::fixed<3> : omp_out += omp_in ) \
+initializer( omp_priv = arma::zeros<arma::vec>(3))
 
 vtkStandardNewMacro(SBGATPolyhedronGravityModel);
 
