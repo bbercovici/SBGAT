@@ -1951,10 +1951,11 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot(bool use_choles
 		try{
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
-			
-			std::cout << eigenvalues.min() << std::endl;
+
 
 			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
+			std::cout << eigenvalues.min() << std::endl;
+			
 
 			return eigenvector * arma::diagmat(arma::sqrt(eigenvalues)) /  this -> pgm_model ->  GetScaleFactor() * eigenvector.t();
 		}
