@@ -1231,18 +1231,11 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
 
-	for (int i = 0; i < N_C; ++i){
-		for (int j = 0; j <= i; ++j){
-			const arma::mat::fixed<3,3> & P = P_CC.submat(3 * i,3 * j, 3 * i + 2,3 * j + 2);
-			shape_uq.SetCovarianceComponent(P,i,j);
-			shape_uq.SetCovarianceComponent(P.t(),j,i);
-		}
-	}
-
+	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
 	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
+	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
 	assert(arma::abs(P_CC - C_CC * C_CC.t()).max() < 1e-10);
-
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
