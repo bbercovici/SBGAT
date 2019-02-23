@@ -122,6 +122,18 @@ public:
   */
   void ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance);
 
+
+  /**
+  Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $region_center_index.
+  The only 3x3 block-component of the global covariance affected by this method is the one
+  starting at (3 * region_center_index,3 * region_center_index). The other components are off-diagonal
+  @param standard_dev standard deviation in normal component (m)
+  @param correl_distance one-sigma correlation distance between points (m)
+  */
+  void AddUncertaintyRegionToCovariance(int region_center_index,const double & standard_dev,const double & correl_distance);
+
+
+
   /**
   Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
   When v0 != v1, this function must be called twice to set the two symmetric blocks
