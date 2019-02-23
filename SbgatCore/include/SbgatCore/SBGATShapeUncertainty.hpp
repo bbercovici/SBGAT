@@ -32,6 +32,7 @@ Note that this class will always shift the origin of the provided shape's coordi
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
+#include <memory>
 
 
 template <class PointType> class ShapeModelBezier;
