@@ -127,7 +127,7 @@ int main(){
 			else if (PROJECTION_AXIS == 1){
 
 				double z = zmin + i * STEP_SIZE;
-				double x = xmin + z * STEP_SIZE;
+				double x = xmin + j * STEP_SIZE;
 
 				point(0) = z;
 				point(1) = 0;
