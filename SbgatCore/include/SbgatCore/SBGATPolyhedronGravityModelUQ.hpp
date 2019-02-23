@@ -85,11 +85,12 @@ public:
   Returns a square root of the covariance matrix.
   The covariance square root is expressed in the original shape's unit squared (that is, 
   meters or kilometers). This method will attempt extracting the square root through 
-  a cholesky decomposition of the covariance. Users can also ask for a square root derived from a spectral
-  decomposition of the covariance (slower but more stable). In case either of the methods fail, the 
+  a cholesky decomposition of the covariance(P_CC = R * R.T) . Users can also ask for a square root derived from a spectral
+  decomposition of the covariance (slower but more stable), where R = U * sqrt(D') * U.T with U == orthogonal matrix of eigenvectors and
+  D' == diagonal matrix of clamped eigenvalues (there may be a few negative eigenvalues, these are clamped to 0). In case either of the methods fail, the 
   method return the identity matrix
   @param use_cholesky if true will make the method extract the square root of the covariance matrix through a lower Cholesky 
-  decomposition of the covariance. If false, will use a spectral decomposition instead
+  decomposition of the covariance. If false, will use a clamped spectral decomposition instead
   @return covariance square root
   */
   arma::mat GetCovarianceSquareRoot(bool use_cholesky = true) const;

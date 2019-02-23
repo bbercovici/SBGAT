@@ -1957,7 +1957,7 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot(bool use_choles
 
 			for (int e =0; e < eigenvalues.size(); ++e){
 				if(eigenvalues(e) < 0){
-					std::cout << eigenvalues(e) << std::endl;
+					eigenvalues(e) = 0;
 				}
 			}
 
