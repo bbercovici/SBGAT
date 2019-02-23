@@ -29,9 +29,9 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (platform.system() == 'Linux'):
-    base_location = "/orc_raid/bebe0705/PGMUncertainty"
+    base_location = "../"
 else:
-    base_location = "/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/"
+    base_location = "../"
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
@@ -46,7 +46,7 @@ base_dictionnary = {
 "UNIT_IN_METERS" : True,
 "N_MONTE_CARLO" : 1000,
 "STEP_SIZE" : 10.,
-"PATH_SHAPE" : "/usr/local/Cellar/sbgat-core/2.02.4/resources/shape_models/itokawa_8_scaled.obj"
+"PATH_SHAPE" : "../resources/shape_models/itokawa_8_scaled.obj"
 }
 
 # Dictionnary storing simulation inputs to be looped over
