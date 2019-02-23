@@ -56,6 +56,10 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
+### [SBGAT 2.03.1](https://github.com/bbercovici/SBGAT/releases/tag/2.03.1)
+
+### Improvement
+- Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.
 
 
 ### [SBGAT 2.02.4](https://github.com/bbercovici/SBGAT/releases/tag/2.02.4)
@@ -70,7 +74,7 @@ to apply the update (if any).
   * Similarly, any method from the aforementioned filters expects an input position to be expressed in meters.
   * Classes documentation has been updated to reflect this change
   * Overall consistency is enforced by manually specifying the unit in which a given shape model is specified through the use of `SetScaleMeters` or `SetScaleKiloMeters`. This way, a shape whose coordinates are expressed in kilometers can be connected to an instance of `SBGATMassproperties` or any other filter and used in a completely transparent manner as long as `SetScaleKiloMeters` is called on the filter before `Update()`
-  * `SBGATMassproperties`, `SBGATSphericalHarmo` and `SBGATPolyhedronGravityModel` are initialized by default for a shape whose length unit are in meters (i.e the `scaleFactor` member is set to `1` by default, and set to `1000` if `SetScaleKiloMeters()` is called)
+  * `SBGATMassproperties`, `SBGATSphericalHarmo` and `SBGATPolyhedronGravityModel` are initialized by default for a shape whose length units are in meters (i.e the `scaleFactor` member is set to `1` by default, and set to `1000` if `SetScaleKiloMeters()` is called)
 - Work is in progress to revamp the main page of the doxygen documentation
 
 ### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)

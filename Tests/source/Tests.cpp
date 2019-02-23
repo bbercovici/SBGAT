@@ -198,7 +198,8 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 
 	// Creating the PGM dyads
 	std::cout << "-- Creating dyads...\n";
-	double density = 1970;
+	double density = 2000;
+
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(density); // density in kg/m^3
@@ -212,7 +213,6 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	vtkSmartPointer<vtkCellCenters>::New();
 	cellCentersFilter -> SetInputConnection(reader -> GetOutputPort());
 	cellCentersFilter -> Update();
-
 
 	// Preallocating
 	arma::mat surface_accelerations(3,cellCentersFilter -> GetOutput() -> GetNumberOfPoints());
@@ -410,77 +410,77 @@ void TestsSBCore::test_sbgat_pgm_sphere() {
 
 	std::cout << "- Running test_sbgat_pgm_sphere ..." << std::endl;
 
-	{
-		vtkSmartPointer<vtkSphereSource> source = 
-		vtkSmartPointer<vtkSphereSource>::New();
+	
+	vtkSmartPointer<vtkSphereSource> source = 
+	vtkSmartPointer<vtkSphereSource>::New();
 
-		source -> SetCenter(0.0, 0.0, 0.0);
-		source -> SetRadius(6370);
-		source -> SetThetaResolution (300);
-		source -> SetPhiResolution (300);
+	source -> SetCenter(0.0, 0.0, 0.0);
+	source -> SetRadius(6370);
+	source -> SetThetaResolution (300);
+	source -> SetPhiResolution (300);
 
-		double density = 5.51e3;
+	double density = 5.51e3;
 
-		vtkSmartPointer<vtkTriangleFilter> triangleFilter =
-		vtkSmartPointer<vtkTriangleFilter>::New();
-		triangleFilter -> SetInputConnection(source->GetOutputPort());
-		triangleFilter -> Update();
+	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
+	vtkSmartPointer<vtkTriangleFilter>::New();
+	triangleFilter -> SetInputConnection(source->GetOutputPort());
+	triangleFilter -> Update();
 
-		vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
-		vtkSmartPointer<vtkCleanPolyData>::New();
-		cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
-		cleanPolyData->Update();
+	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleanPolyData->SetInputConnection(triangleFilter->GetOutputPort());
+	cleanPolyData->Update();
 
-		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-		pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
-		pgm_filter -> SetDensity(density);
-		pgm_filter -> SetScaleKiloMeters();
-		pgm_filter -> Update();
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	pgm_filter -> SetDensity(density);
+	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> Update();
 
-		vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
 
-		mass_properties -> SetInputConnection(cleanPolyData -> GetOutputPort());
-		mass_properties -> SetScaleKiloMeters();
-		mass_properties -> Update();
+	mass_properties -> SetInputConnection(cleanPolyData -> GetOutputPort());
+	mass_properties -> SetScaleKiloMeters();
+	mass_properties -> Update();
 
 		// Queried point for pgm validation
-		arma::vec p = {6371e3, 0, 0};
+	arma::vec p = {6371e3, 0, 0};
 
-		arma::vec acc_true = - arma::datum::G * density * mass_properties -> GetVolume() / arma::dot(p,p) * arma::normalise(p);
-		double pot_true = arma::datum::G * density * mass_properties -> GetVolume() / arma::norm(p);
+	arma::vec acc_true = - arma::datum::G * density * mass_properties -> GetVolume() / arma::dot(p,p) * arma::normalise(p);
+	double pot_true = arma::datum::G * density * mass_properties -> GetVolume() / arma::norm(p);
 
-		arma::vec pgm_acc = pgm_filter -> GetAcceleration(p);
-		double pgm_pot = pgm_filter -> GetPotential(p);
+	arma::vec pgm_acc = pgm_filter -> GetAcceleration(p);
+	double pgm_pot = pgm_filter -> GetPotential(p);
 
-		
-		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
-		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
 
-		pgm_acc = pgm_filter -> GetAcceleration(p);
-		pgm_pot = pgm_filter -> GetPotential(p);
+	assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
+	assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
 
-		double pgm_pot2;
-		arma::vec::fixed<3> pgm_acc2;
-		arma::mat::fixed<3,3> pgm_gravity_gradient_matrix;
-		pgm_filter -> GetPotentialAccelerationGravityGradient(p,pgm_pot2, pgm_acc2,pgm_gravity_gradient_matrix);
+	pgm_acc = pgm_filter -> GetAcceleration(p);
+	pgm_pot = pgm_filter -> GetPotential(p);
 
-		assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
-		assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
+	double pgm_pot2;
+	arma::vec::fixed<3> pgm_acc2;
+	arma::mat::fixed<3,3> pgm_gravity_gradient_matrix;
+	pgm_filter -> GetPotentialAccelerationGravityGradient(p,pgm_pot2, pgm_acc2,pgm_gravity_gradient_matrix);
 
-		assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-4);
-		assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-4);
+	assert(arma::norm(pgm_acc - acc_true)/arma::norm(acc_true) < 1e-4);
+	assert(std::abs(pgm_pot - pot_true)/std::abs(pot_true) < 1e-4);
 
-		arma::vec::fixed<3> p4_perturbed = (1 + 1e-3) * p;
+	assert(arma::norm(pgm_acc2 - acc_true)/arma::norm(acc_true) < 1e-4);
+	assert(std::abs(pgm_pot2 - pot_true)/std::abs(pot_true) < 1e-4);
 
-		arma::vec::fixed<3> pgm_acc2_perturbed = pgm_filter -> GetAcceleration(p4_perturbed);
+	arma::vec::fixed<3> p4_perturbed = (1 + 1e-3) * p;
 
-		auto d_acc_true = pgm_acc2_perturbed - pgm_acc2;
+	arma::vec::fixed<3> pgm_acc2_perturbed = pgm_filter -> GetAcceleration(p4_perturbed);
 
-		arma::vec::fixed<3> d_acc_linear = pgm_gravity_gradient_matrix * (p4_perturbed - p);
+	auto d_acc_true = pgm_acc2_perturbed - pgm_acc2;
 
-		assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e0);
+	arma::vec::fixed<3> d_acc_linear = pgm_gravity_gradient_matrix * (p4_perturbed - p);
 
-	}
+	assert(100 * arma::norm(d_acc_linear - d_acc_true)/arma::norm(d_acc_true) < 1e0);
+
+	
 
 	std::cout << "- Done running test_sbgat_pgm_sphere" << std::endl;
 
@@ -973,7 +973,7 @@ void TestsSBCore::test_PGM_UQ_cube(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGMModel() -> GetPotentialAcceleration(pos,pot,acc);
+		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 
 		U_mc(i) = pot;
@@ -1130,7 +1130,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGMModel() -> GetPotentialAcceleration(pos,pot,acc);
+		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
@@ -1288,7 +1288,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGMModel() -> GetPotentialAcceleration(pos,pot,acc);
+		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;

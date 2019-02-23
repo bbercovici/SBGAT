@@ -145,6 +145,10 @@ void PickInteractorStyle::OnLeftButtonDown(){
 
 			vtkTriangle::ComputeNormal (p0, p1, p2, n);
 
+			double cx = (p0[0] + p1[0] + p2[0])/3;
+			double cy = (p0[1] + p1[1] + p2[1])/3;
+			double cz = (p0[2] + p1[2] + p2[2])/3;
+
 			vtkSmartPointer<vtkLinearExtrusionFilter> extrude = 
 			vtkSmartPointer<vtkLinearExtrusionFilter>::New();
 			extrude -> SetInputData( polydata);
@@ -166,6 +170,7 @@ void PickInteractorStyle::OnLeftButtonDown(){
 			this -> Interactor -> GetRenderWindow() -> GetRenderers()->GetFirstRenderer()->AddActor(this -> selectedActor);
 
 			this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("Picked facet " + std::to_string(picker->GetCellId())));
+			this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tFacet center : " + std::to_string(cx) + " " + std::to_string(cy) + " " + std::to_string(cz) + " (m)"));
 
 			vtkSmartPointer<vtkFloatArray> slopes = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_slopes();
 			if (slopes != nullptr ){

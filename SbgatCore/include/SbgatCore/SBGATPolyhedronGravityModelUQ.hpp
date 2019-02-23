@@ -114,6 +114,18 @@ public:
   arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
 
 
+
+  /**
+  Populates the covariance components by looping over each vertex Ci and:
+  - Setting each vertex covariance to P_CiCi = standard_dev ^2 * n_i * n_i^T (n_i == surface normal)
+  - Setting each correlaton matrix to P_CiCj = standard_dev ^2 * n_i * n_j^T * exp(- || Ci - Cj || ^2 / correl_distance^2) (n_i == surface normal)
+  @param standard_dev standard deviation in normal component (m)
+  @param correl_distance one-sigma correlation distance between points (m)
+  */
+  void ComputeCovariances(const double & standard_dev,const double & correl_distance);
+
+
+
   /**
   Sets the block P_Cv0_Cv1 in the total shape covariance to the prescribed value P. 
   When v0 != v1, this function must be called twice to set the two symmetric blocks
@@ -125,11 +137,23 @@ public:
   */
   void SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1);
 
+
+  /**
+  Saves the shape covariance in ascii format to the prescribed path
+  @param path path where to save the covariance 
+  */
+  void SaveCovariance(std::string path) const;
+
+
   /**
   Applies prescribed deviation to all the N_C control points and updates pgm
   @param delta_C deviation (3 * N_C x 1)
   */  
   void ApplyDeviation(const arma::vec & delta_C);
+
+
+
+
 
 
   /**
@@ -146,7 +170,7 @@ public:
   */
   arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
 
-  vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGMModel() const {return this -> pgm_model;}
+  vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGM() const {return this -> pgm_model;}
 
 protected:
 
