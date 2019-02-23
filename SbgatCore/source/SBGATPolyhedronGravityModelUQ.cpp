@@ -2671,7 +2671,7 @@ void SBGATPolyhedronGravityModelUQ::AddUncertaintyRegionToCovariance(int region_
 		
 		// If the following is false, skip $i, it is outside of the uncertainty region
 		if(distance_from_center < 3 * correl_distance){
-			double decay_from_center = std::exp(- std::pow(distance / correl_distance,2)) ;
+			double decay_from_center = std::exp(- std::pow(distance_from_center / correl_distance,2)) ;
 
 			arma::mat::fixed<3,3> P = decay_from_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
