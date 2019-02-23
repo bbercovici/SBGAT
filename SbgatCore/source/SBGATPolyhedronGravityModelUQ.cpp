@@ -1951,6 +1951,8 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot(bool use_choles
 		try{
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
+			
+			std::cout << eigenvalues.min() << std::endl;
 
 			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
 

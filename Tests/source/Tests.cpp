@@ -63,19 +63,19 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
-	TestsSBCore::test_sbgat_transform_shape();
-	TestsSBCore::test_frame_conversion();
-	TestsSBCore::test_sbgat_mass_properties();
-	TestsSBCore::test_sbgat_pgm_cube();
-	TestsSBCore::test_sbgat_pgm_sphere();
-	TestsSBCore::test_sbgat_pgm_speed();
-	TestsSBCore::test_spherical_harmonics_coefs_consistency();
-	TestsSBCore::test_spherical_harmonics_partials_consistency();
-	TestsSBCore::test_sbgat_shape_uq();
-	TestsSBCore::test_PGM_UQ_partials();
-	TestsSBCore::test_PGM_UQ_covariance_consistency();
-	TestsSBCore::test_PGM_UQ_cube();
-	TestsSBCore::test_PGM_UQ_itokawa_m();
+	// TestsSBCore::test_sbgat_transform_shape();
+	// TestsSBCore::test_frame_conversion();
+	// TestsSBCore::test_sbgat_mass_properties();
+	// TestsSBCore::test_sbgat_pgm_cube();
+	// TestsSBCore::test_sbgat_pgm_sphere();
+	// TestsSBCore::test_sbgat_pgm_speed();
+	// TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	// TestsSBCore::test_spherical_harmonics_partials_consistency();
+	// TestsSBCore::test_sbgat_shape_uq();
+	// TestsSBCore::test_PGM_UQ_partials();
+	// TestsSBCore::test_PGM_UQ_covariance_consistency();
+	// TestsSBCore::test_PGM_UQ_cube();
+	// TestsSBCore::test_PGM_UQ_itokawa_m();
 	TestsSBCore::test_PGM_UQ_itokawa_km();
 
 
