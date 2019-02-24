@@ -388,3 +388,19 @@ arma::vec::fixed<3> SBGATFilter::GetFacetCenter(const int & f) const{
 }
 
 
+arma::sp_mat  SBGATFilter::PartialTfPartialC(const int & f) const{
+
+  arma::sp_mat table(9, 3 * this -> N_vertices);
+
+  
+  int v0_f,v1_f,v2_f;
+  this -> GetIndicesVerticesInFacet(f, v0_f,v1_f,v2_f);
+
+  table.submat(0,3 * v0_f, 2,3 * v0_f + 2) = arma::eye<arma::mat>(3,3);
+  table.submat(3,3 * v1_f, 5,3 * v1_f + 2) = arma::eye<arma::mat>(3,3);
+  table.submat(6,3 * v2_f, 8,3 * v2_f + 2) = arma::eye<arma::mat>(3,3);
+
+  return table;
+
+}
+

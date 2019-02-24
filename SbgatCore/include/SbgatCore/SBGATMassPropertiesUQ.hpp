@@ -69,13 +69,13 @@ public:
 
 
   /**
-  Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $region_center_index.
+  Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $regioN_verticesenter_index.
   The only 3x3 block-component of the global covariance affected by this method is the one
-  starting at (3 * region_center_index,3 * region_center_index). The other components are off-diagonal
+  starting at (3 * regioN_verticesenter_index,3 * regioN_verticesenter_index). The other components are off-diagonal
   @param standard_dev standard deviation in normal component (m)
   @param correl_distance one-sigma correlation distance between points (m)
   */
-  void AddUncertaintyRegionToCovariance(int region_center_index,const double & standard_dev,const double & correl_distance);
+  void AddUncertaintyRegionToCovariance(int regioN_verticesenter_index,const double & standard_dev,const double & correl_distance);
 
 
   /**
@@ -120,10 +120,26 @@ public:
 
 
   /**
-  Applies prescribed deviation to all the N_C control points and updates model
-  @param delta_C deviation (3 * N_C x 1)
+  Applies prescribed deviation to all the N_vertices control points and updates model
+  @param delta_C deviation (3 * N_vertices x 1)
   */  
   void ApplyDeviation(const arma::vec & delta_C);
+
+
+/**
+Returns the partial derivative of the shape's center of mass with respect to the shape's vertices coordinates
+@return partial derivative of the shape's center of mass with respect to the shape's vertices
+*/
+  arma::mat GetPartialCOMPartialC() const;
+
+/**
+Get partial derivatives of volume, center of mass and inertia parametrization relative to 
+the shape's vertices coordinates
+@param[out] dVdC partial derivative of volume relative to vertices coordinates
+@param[out] dCOMdC partial derivative of center-of-mass relative to vertices coordinates
+@param[out] dIdC partial derivative of inertia tensor parametrization relative to vertices coordinates
+*/
+  void GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arma::mat & dCOMdC, arma::mat & dIdC) const;
 
 
 protected:
@@ -142,8 +158,26 @@ protected:
   @param f facet index
   @return partial derivative of center of mass with respect to facet coordinates
   */
-  arma::mat::fixed<3,9> PartialDeltaCOMfPartialTf(const int & f) const;
+  arma::mat::fixed<3,9> PartialDeltaCMfPartialTf(const int & f) const;
 
+  /**
+  Returns the partial derivative of the tetrahedron's inertia tensor parametrization
+  relative to the facet coordinates
+  @param f facet index
+  @return partial derivative of the tetrahedron's inertia tensor parametrization
+  relative to the facet coordinates 
+  */
+  arma::mat::fixed<6,9> PartialDeltaIfPartialTf(const int & f) const;
+
+
+  /**
+  Returns the partial derivative of a tetrahedron's  inertia-times-volume tensor parametrization
+  with respect to the subtending facet's vertices coordinates
+  @param f facet index
+  @return partial derivative of the tetrahedron's inertia-times-volume tensor parametrization
+  with respect to the subtending facet's vertices coordinates
+  */
+  arma::mat::fixed<6,9> PartialDeltaIOverDeltaVPartialTf(const int & f) const;
 
   /**
   Applies deviation to the coordinates of the vertices in the prescribed facet
@@ -153,16 +187,11 @@ protected:
   */
   void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
 
-  /**
-  Returns the connectivity table associated with vector Tf
-  @param f facet index
-  @return connectivity table
-  */
-  arma::sp_mat PartialTfPartialC(const int & f) const;
-
   
   static void TestPartialDeltaVfPartialTf(std::string input,double tol);
-  static void TestPartialDeltaCOMfPartialTf(std::string input,double tol);
+  static void TestPartialCOMPartialC(std::string input,double tol);
+  static void TestPartialDeltaIOverDeltaVPartialTf(std::string input,double tol);
+  static void TestPartialDeltaIfPartialTf(std::string input,double tol);
 
 
   vtkSmartPointer<SBGATMassProperties> mass_prop;

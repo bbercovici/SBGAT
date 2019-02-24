@@ -119,7 +119,6 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES 
 # Add source files in root directory
 add_library(${LIB_NAME} 
 	SHARED
-	source/SBGATChildTest.cpp
 	source/SBGATRefFrame.cpp
 	source/SBGATFilter.cpp
 	source/SBGATFrameGraph.cpp

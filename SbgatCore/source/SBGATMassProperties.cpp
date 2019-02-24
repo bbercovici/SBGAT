@@ -570,4 +570,18 @@ arma::mat::fixed<3,3> SBGATMassProperties::GetDeltaIOverDeltaV(const int & f) co
 }
 
 
+arma::vec::fixed<6> SBGATMassProperties::GetDeltaIf(const int & f) const{
+
+  arma::mat::fixed<3,3> tensor = this -> GetDeltaIOverDeltaV(f) * this -> GetDeltaV(f);
+
+  return arma::vec::fixed<6>({
+    tensor(0,0),
+    tensor(1,1),
+    tensor(2,2),
+    tensor(0,1),
+    tensor(0,2),
+    tensor(1,2)});
+}
+
+
 

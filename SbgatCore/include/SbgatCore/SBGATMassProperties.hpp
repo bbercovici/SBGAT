@@ -131,7 +131,7 @@ public:
   * across the shape
   */
  void GetCenterOfMass(double * com){
-   
+
   com[0] = this -> center_of_mass(0);
   com[1] = this -> center_of_mass(1);
   com[2] = this -> center_of_mass(2);
@@ -239,6 +239,13 @@ arma::vec::fixed<3> GetDeltaCM(const int & f) const ;
   @return tetrahedron's inertia tensor divided by tetrahedron's signed volume
   */
 arma::mat::fixed<3,3> GetDeltaIOverDeltaV(const int & f) const ;
+
+/**
+Returns the parametrization of the the unit-density tetrahedron's inertia tensor
+@param f facet index
+@return parametrization of the tetrahedron's inertia tensor
+*/
+arma::vec::fixed<6> GetDeltaIf(const int & f) const;
 
 
 protected:

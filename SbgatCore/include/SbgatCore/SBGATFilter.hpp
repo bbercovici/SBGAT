@@ -83,7 +83,7 @@ public:
     return this -> density ;
   }
 
- 
+
   /**
   Returns coordinates of the three vertices forming a facet
   @param[in] f facet index
@@ -132,7 +132,7 @@ public:
   @param[out] v0 first vertex index
   @param[out] v1 second vertex index
   */
-  void GetIndicesVerticesOnEdge(const int & e, int & v0,int & v1){v0 = this -> edges[e][0];v1 = this -> edges[e][1];}
+  void GetIndicesVerticesOnEdge(const int & e, int & v0,int & v1) const {v0 = this -> edges[e][0];v1 = this -> edges[e][1];}
 
   /**
   Returns the indices of the vertices forming the prescribed facet
@@ -141,7 +141,7 @@ public:
   @param[out] v1 second vertex index
   @param[out] v2 third vertex index
   */
-  void GetIndicesVerticesInFacet(const int & f, int & v0,int & v1,int & v2){v0 = this -> facets[f][0];v1 = this -> facets[f][1];v2 = this -> facets[f][2];}
+  void GetIndicesVerticesInFacet(const int & f, int & v0,int & v1,int & v2) const {v0 = this -> facets[f][0];v1 = this -> facets[f][1];v2 = this -> facets[f][2];}
 
 
   /**
@@ -151,25 +151,17 @@ public:
   */
   arma::vec::fixed<3> GetNonNormalizedFacetNormal(const int & f) const;
 
-   /**
-  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
-  */
-  double * GetBoundingBox(){
-    this -> Update(); return this -> bounds;
-  }
 
-   /**
-  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
+  /**
+  * Returns the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
+  @param[in] xmin minimum x-bound of the shape (m)
+  @param[in] xmax maximum x-bound of the shape (m)
+  @param[in] ymin minimum y-bound of the shape (m)
+  @param[in] ymax maximum y-bound of the shape (m)
+  @param[in] zmin minimum z-bound of the shape (m)
+  @param[in] zmax maximum z-bound of the shape (m)
   */
-  void GetBoundingBox(double * bounds_){
-    this -> Update(); bounds_ = this -> bounds;
-  }
-
-    /**
-  * Compute and return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
-  */
-  void GetBoundingBox(double & xmin,double & xmax,double & ymin,double & ymax,double & zmin,double & zmax){
-    this -> Update(); 
+  void GetBoundingBox(double & xmin,double & xmax,double & ymin,double & ymax,double & zmin,double & zmax) const {
     xmin = bounds[0];
     xmax = bounds[1];
     ymin = bounds[2];
@@ -179,19 +171,38 @@ public:
   }
 
 
-protected:
-  SBGATFilter();
-  ~SBGATFilter() override;
 
-  
   /**
-  Returns the connectivity table associated with vector Tf
+  Returns number of facets in shape
+  @return number of facets
+  */
+  int GetN_facets() const{return this -> N_facets;}
+  /**
+  Returns number of edges in shape
+  @return number of edges
+  */
+  int GetN_edges() const{return this -> N_edges;}
+
+  /**
+  Returns number of vertices in shape
+  @return number of vertices
+  */
+  int GetN_vertices() const{return this -> N_vertices;}
+
+  /**
+  Returns the connectivity table associated with vector Tf, the parametrization 
+  of the vertices coordinates forming the f-th facet
   @param f facet index
   @return connectivity table
   */
   arma::sp_mat  PartialTfPartialC(const int & f) const;
 
- 
+
+
+protected:
+  SBGATFilter();
+  ~SBGATFilter() override;
+
 
   void Clear();
 
