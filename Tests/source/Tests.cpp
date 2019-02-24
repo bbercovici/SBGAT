@@ -35,6 +35,11 @@ SOFTWARE.
 #include <SBGATTransformShape.hpp>
 #include <SBGATObjWriter.hpp>
 #include <SBGATPolyhedronGravityModelUQ.hpp>
+#include <SBGATMassPropertiesUQ.hpp>
+#include <SBGATFilter.hpp>
+#include <SBGATChildTest.hpp>
+
+
 
 #include <vtkCell.h>
 #include <vtkDataObject.h>
@@ -63,30 +68,29 @@ SOFTWARE.
 
 
 void TestsSBCore::run() {	
-	// TestsSBCore::test_sbgat_transform_shape();
-	// TestsSBCore::test_frame_conversion();
-	// TestsSBCore::test_sbgat_mass_properties();
-	// TestsSBCore::test_sbgat_pgm_cube();
-	// TestsSBCore::test_sbgat_pgm_sphere();
-	// TestsSBCore::test_sbgat_pgm_speed();
-	// TestsSBCore::test_spherical_harmonics_coefs_consistency();
-	// TestsSBCore::test_spherical_harmonics_partials_consistency();
-	// TestsSBCore::test_sbgat_shape_uq();
-	// TestsSBCore::test_PGM_UQ_partials();
-	// TestsSBCore::test_PGM_UQ_covariance_consistency();
-	// TestsSBCore::test_PGM_UQ_cube();
-	// TestsSBCore::test_PGM_UQ_itokawa_m();
-	TestsSBCore::test_PGM_UQ_itokawa_km();
 
+	TestsSBCore::test_MassProperties_UQ_partials();
+	TestsSBCore::test_sbgat_transform_shape();
+	TestsSBCore::test_frame_conversion();
+	TestsSBCore::test_sbgat_mass_properties();
+	TestsSBCore::test_sbgat_pgm_cube();
+	TestsSBCore::test_sbgat_pgm_sphere();
+	TestsSBCore::test_sbgat_pgm_speed();
+	TestsSBCore::test_spherical_harmonics_coefs_consistency();
+	TestsSBCore::test_spherical_harmonics_partials_consistency();
+	TestsSBCore::test_sbgat_shape_uq();
+	TestsSBCore::test_PGM_UQ_partials();
+	TestsSBCore::test_PGM_UQ_covariance_consistency();
+	TestsSBCore::test_PGM_UQ_cube();
+	TestsSBCore::test_PGM_UQ_itokawa_m();
+	TestsSBCore::test_PGM_UQ_itokawa_km();
 
 	// TestsSBCore::test_lightcurve_obs();
 	// TestsSBCore::test_radar_obs();
 
-
 	std::cout << "All tests passed.\n";
 
 }
-
 
 
 
@@ -102,6 +106,7 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	vtkSmartPointer<vtkCubeSource>::New();
 	source -> SetCenter(0.0, 0.0, 0.0);
 
+
 	vtkSmartPointer<vtkTriangleFilter> triangleFilter =
 	vtkSmartPointer<vtkTriangleFilter>::New();
 	triangleFilter -> SetInputConnection(source->GetOutputPort());
@@ -116,6 +121,7 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	vtkSmartPointer<vtkCleanPolyData> cleanPolyData = 
 	vtkSmartPointer<vtkCleanPolyData>::New();
 	cleanPolyData->SetInputConnection(subdivisionFilter->GetOutputPort());
+
 	cleanPolyData->Update();
 
 	vtkSmartPointer<vtkTransform> transform_rot = vtkSmartPointer<vtkTransform>::New();
@@ -136,11 +142,13 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	transformFilter_trans->Update();
 
 	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_filter -> SetScaleMeters();
 	mass_filter -> SetInputConnection(transformFilter_trans -> GetOutputPort());
 	mass_filter -> Update();
 	auto com_sbgat = mass_filter -> GetCenterOfMass();
 
 	assert(mass_filter -> CheckClosed());
+	assert(std::abs(mass_filter -> GetVolume() - 1.) < 1e-8);
 
 	// the inertia moments are invariant by rotation/translation
 	arma::vec inertia_moments = {1./6,1./6,1./6}; 
@@ -153,29 +161,41 @@ void TestsSBCore::test_sbgat_mass_properties(){
 
 
 	double volume_itokawa_m,volume_itokawa_km;
+	double surface_itokawa_m,surface_itokawa_km;
+
 
 
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName("../../resources/shape_models/itokawa_8.obj");
+	reader -> SetFileName("../../resources/shape_models/itokawa_8_scaled.obj");
 	reader -> Update(); 
+
+
 	mass_filter -> SetInputConnection(reader -> GetOutputPort());
-	mass_filter -> SetScaleKiloMeters();
 	mass_filter -> Modified();
+	mass_filter -> SetScaleMeters();
+	mass_filter -> Update();
+	
+	volume_itokawa_m = mass_filter -> GetVolume();
+	surface_itokawa_m = mass_filter -> GetSurfaceArea();
+
+	reader -> SetFileName("../../resources/shape_models/itokawa_8.obj");
+	reader -> Modified(); 
+	reader -> Update(); 
+
+	mass_filter -> SetInputConnection(reader -> GetOutputPort());
+	mass_filter -> Modified();
+	mass_filter -> SetScaleKiloMeters();
 	mass_filter -> Update();
 
 	volume_itokawa_km = mass_filter -> GetVolume();
+	surface_itokawa_km = mass_filter -> GetSurfaceArea();
 
-	reader -> SetFileName("../../resources/shape_models/itokawa_8_scaled.obj");
-	reader -> Update(); 
-	mass_filter -> SetInputConnection(reader -> GetOutputPort());
-	mass_filter -> SetScaleMeters();
-	mass_filter -> Modified();
-	mass_filter -> Update();
-	volume_itokawa_m = mass_filter -> GetVolume();
 
 	assert(std::abs(volume_itokawa_m - volume_itokawa_km) / volume_itokawa_m < 1e-7);
+	assert(std::abs(surface_itokawa_km - surface_itokawa_m) / volume_itokawa_m < 1e-7);
+
 
 	std::cout << "- Done running test_sbgat_mass_properties" << std::endl;
 
@@ -845,8 +865,9 @@ void TestsSBCore::test_sbgat_transform_shape(){
 	vtkSmartPointer<SBGATMassProperties> mass_filter = vtkSmartPointer<SBGATMassProperties>::New();
 	mass_filter -> SetInputData(cube);
 	mass_filter -> Update();
-	auto com_sbgat = mass_filter -> GetCenterOfMass();
 
+	auto com_sbgat = mass_filter -> GetCenterOfMass();
+	
 	assert(arma::norm(x - com_sbgat)/arma::norm(x) * 100 < 1e-6);
 
 	SBGATTransformShape::ShiftShapeToBarycenter(cube);
@@ -858,6 +879,19 @@ void TestsSBCore::test_sbgat_transform_shape(){
 	std::cout << "- Done running test_sbgat_transform_shape ..." << std::endl;
 
 }
+
+void TestsSBCore::test_MassProperties_UQ_partials(){
+
+	std::cout << "- Running test_MassProperties_UQ_partials ..." << std::endl;
+	std::cout << "\t-- Testing ../../resources/shape_models/cube.obj ..." << std::endl;
+	std::string filename  = "../../resources/shape_models/cube.obj";
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2);
+	filename  = "../../resources/shape_models/skewed.obj";
+	std::cout << "\t-- Testing ../../resources/shape_models/skewed.obj ..." << std::endl;
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2);
+	std::cout << "- Done running test_MassProperties_UQ_partials ..." << std::endl;
+}
+
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
@@ -1230,6 +1264,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
+	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
 	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
 	arma::mat C_CC;

@@ -151,6 +151,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
 	
 	// Any data previously owned is erased
+
 	this -> Clear();
 
 	// The vertex coordinates are extracted

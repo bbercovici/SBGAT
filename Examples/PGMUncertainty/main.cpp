@@ -71,7 +71,7 @@ int main(){
 	// Save the covariance
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
-	// That's where the grid search should start. Loop over each point in the grid
+	// That's where the grid search should start.
 	// First, create the grid from the bounding box
 	std::vector<arma::vec::fixed<3> > grid;
 	double xmin,xmax,ymin,ymax,zmin,zmax;

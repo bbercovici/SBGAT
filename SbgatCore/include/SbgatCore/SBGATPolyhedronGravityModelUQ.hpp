@@ -91,7 +91,7 @@ public:
   method return the identity matrix
   @param use_cholesky if true will make the method extract the square root of the covariance matrix through a lower Cholesky 
   decomposition of the covariance. If false, will use a clamped spectral decomposition instead
-  @return covariance square root
+  @return covariance square root. Its unit are the same as those of the input shape (hence, m^2 or km^2)
   */
   arma::mat GetCovarianceSquareRoot(bool use_cholesky = true) const;
 
@@ -159,7 +159,8 @@ public:
 
 
   /**
-  Returns a copy of the vertices covariance 
+  Returns a copy of the vertices covariance. Its unit are the same as those of the input
+  shape (hence, m^2 or km^2)
   @return P_CC
   */
   arma::mat GetVerticesCovariance() const;

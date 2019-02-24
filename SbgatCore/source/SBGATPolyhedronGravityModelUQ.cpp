@@ -1952,7 +1952,6 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetCovarianceSquareRoot(bool use_choles
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
 
-
 			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
 
 			for (int e =0; e < eigenvalues.size(); ++e){
@@ -2782,7 +2781,7 @@ void SBGATPolyhedronGravityModelUQ::SaveVerticesCovariance(std::string path) con
 }
 
 arma::mat SBGATPolyhedronGravityModelUQ::GetVerticesCovariance() const{
-	return this -> P_CC;
+	return this -> P_CC / std::pow(this -> pgm_model -> GetScaleFactor(),2);
 }
 
 int SBGATPolyhedronGravityModelUQ::LoadVerticesCovarianceFromJson(std::string path){

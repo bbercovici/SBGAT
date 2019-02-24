@@ -14,6 +14,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+
 /**
 @file SBGATPolyhedronGravityModel.hpp
 @class  SBGATPolyhedronGravityModel
@@ -28,8 +29,6 @@ and SetScaleKiloMeters() method.
 See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
 for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 @copyright MIT License, Benjamin Bercovici and Jay McMahon
-
-
 */
 
 #ifndef SBGATPolyhedronGravityModel_hpp
@@ -39,13 +38,6 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
-
-
-
-
-
-
-
 
 
 class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{

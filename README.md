@@ -75,6 +75,7 @@ to apply the update (if any).
   * Classes documentation has been updated to reflect this change
   * Overall consistency is enforced by manually specifying the unit in which a given shape model is specified through the use of `SetScaleMeters` or `SetScaleKiloMeters`. This way, a shape whose coordinates are expressed in kilometers can be connected to an instance of `SBGATMassproperties` or any other filter and used in a completely transparent manner as long as `SetScaleKiloMeters` is called on the filter before `Update()`
   * `SBGATMassproperties`, `SBGATSphericalHarmo` and `SBGATPolyhedronGravityModel` are initialized by default for a shape whose length units are in meters (i.e the `scaleFactor` member is set to `1` by default, and set to `1000` if `SetScaleKiloMeters()` is called)
+- NO MORE "UPDATE()" FROM GETTERS
 - Work is in progress to revamp the main page of the doxygen documentation
 
 ### [SBGAT 2.02.3](https://github.com/bbercovici/SBGAT/releases/tag/2.02.3)
