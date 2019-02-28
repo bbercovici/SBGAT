@@ -171,9 +171,13 @@ int main(){
 	for (int e = 0; e < all_positions.size(); ++e){
 		all_positions[e].t().print("\t At: ");
 		std::cout << "\t\tMC variance in potential: " << mc_variances_pot[e] << std::endl;
+		std::cout << "\t\tAnalytical variance in potential: " << analytical_variances_pot[e] << std::endl;
+
 		std::cout << "\t\tError (%): " << (mc_variances_pot[e] - analytical_variances_pot[e])/analytical_variances_pot[e] * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
+		std::cout << "\t\tAnalytical covariance in acceleration: " << analytical_covariances_acc[e] << std::endl;
+		
 		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariances_acc[e])/arma::norm(analytical_covariances_acc[e],"fro") * 100 << std::endl;
 	}
 
