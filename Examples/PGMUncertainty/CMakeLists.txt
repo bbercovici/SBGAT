@@ -112,7 +112,6 @@ find_package(nlohmann_json REQUIRED PATHS ${NLOHMANN_JSON_PATH})
 # Add source files in root directory
 add_executable(${EXE_NAME}
 	source/main.cpp
-	source/Tests.cpp
 	)
 
 set(library_dependencies
