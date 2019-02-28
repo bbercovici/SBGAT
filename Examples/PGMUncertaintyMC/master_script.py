@@ -55,7 +55,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"N_MONTE_CARLO" : [10,100,1000]
+"N_MONTE_CARLO" : [10,100,1000,10000]
 }
 
 # There shouldn't be any reason to modify the following
