@@ -176,7 +176,7 @@ int main(){
 		std::cout << "\t\tError (%): " << (mc_variances_pot[e] - analytical_variances_pot[e])/analytical_variances_pot[e] * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
-		std::cout << "\t\tAnalytical covariance in acceleration: " << analytical_covariances_acc[e] << std::endl;
+		std::cout << "\t\tAnalytical covariance in acceleration: \n" << analytical_covariances_acc[e] << std::endl;
 		
 		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariances_acc[e])/arma::norm(analytical_covariances_acc[e],"fro") * 100 << std::endl;
 	}
