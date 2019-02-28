@@ -159,7 +159,8 @@ void SBGATMassPropertiesUQ::TestPartialDeltaIfPartialTf(std::string input,double
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetMassProperties(mass_prop);
 
-		int f = arma::randi(arma::distr_param(0,mass_prop -> GetN_facets() - 1));
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,mass_prop -> GetN_facets() - 1));
+		int f = f_vec(0);
 
 	// Nominal 
 		arma::vec::fixed<6> DeltaI = shape_uq.GetMassProperties() -> GetDeltaIf(f);
