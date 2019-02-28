@@ -91,6 +91,7 @@ include_directories(${RBK_INCLUDE_DIR})
 # Find SBGAT 
 find_package(SbgatCore REQUIRED PATHS ${SBGAT_PATH})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
+include_directories(${SBGATCORE_INCLUDE_HEADER})
 
 # Find OpenMP
 find_package(OpenMP)
