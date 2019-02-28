@@ -27,3 +27,5 @@ set(NLOHMANN_JSON_INCLUDE_HEADER /home/bebe0705/libs/local/include/nlohmann_json
 
 
 message("-- Found SbgatCore: " ${SBGATCORE_LIBRARY})
+message("-- Found NLOHMANN_JSON: " ${NLOHMANN_JSON_INCLUDE_HEADER})
+
