@@ -91,8 +91,8 @@ void SBGATMassPropertiesUQ::TestPartialDeltaVfPartialTf(std::string input,double
 		shape_uq.SetMassProperties(mass_prop);
 
 		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
-		int f = arma::randi(arma::distr_param(0,N_facets - 1));
-
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
 	// Nominal Volume
 		double volume = shape_uq.GetMassProperties() -> GetDeltaV(f);
 
@@ -342,8 +342,8 @@ void SBGATMassPropertiesUQ::TestPartialDeltaIOverDeltaVPartialTf(std::string inp
 		shape_uq.SetMassProperties(mass_prop);
 
 		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
-		int f = arma::randi(arma::distr_param(0,N_facets - 1));
-
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
 	// // Nominal 
 	// 	arma::mat::fixed<3,3> deltaITimesVol = shape_uq.GetMassProperties() -> GetDeltaIOverDeltaV(f);
 
