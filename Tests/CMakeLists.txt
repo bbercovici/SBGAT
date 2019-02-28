@@ -39,6 +39,8 @@
 
 set (RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
+set (VTK_PATH "/usr/local/VTK-8.1.0/lib/cmake/vtk-8.1")
+
 
 
 
@@ -84,7 +86,7 @@ if (NOT NO_OMP)
 endif()
 
 # Find VTK Package
-find_package(VTK REQUIRED)
+find_package(VTK REQUIRED PATHS ${VTK_PATH})
 include(${VTK_USE_FILE})
 
 # Removing spurious include sometimes brought in by one of VTK's dependencies
