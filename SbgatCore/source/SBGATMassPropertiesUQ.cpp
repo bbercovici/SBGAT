@@ -421,7 +421,7 @@ void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arm
 arma::mat::fixed<6,9> SBGATMassPropertiesUQ::PartialDeltaIfPartialTf(const int & f) const{
 
 	arma::mat::fixed<6,9> partial;
-	throw(std::runtime_error("PartialDeltaIPartialTf is not yet implemented"));
+	std::cout << "PartialDeltaIPartialTf is not yet implemented" << std::endl;
 	return partial;
 }
 
