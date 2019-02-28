@@ -534,7 +534,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,
 		shape_uq.SetPGM(pgm_filter);
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
-		int f = arma::randi(arma::distr_param(0,N_facets - 1));
+		int f = arma::randi<arma::vec>(arma::distr_param(0,N_facets - 1))(0);
 
 		arma::vec pos = {2,3,4};
 
