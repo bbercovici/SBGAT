@@ -145,6 +145,7 @@ set(library_dependencies
 	${Boost_LIBRARIES}
 	${VTK_LIBRARIES}
 	${RBK_LIBRARY}
+	${OC_LIBRARY}
 	${YORPLIB_LIBRARY}
 	${SHARMLIB_LIBRARY}
 	)
