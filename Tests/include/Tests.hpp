@@ -38,10 +38,30 @@ namespace TestsSBCore {
 void run();
 void test_sbgat_mass_properties();
 void test_sbgat_pgm_speed();
-void test_sbgat_pgm();
+void test_sbgat_pgm_cube();
+void test_sbgat_pgm_sphere();
+void test_sbgat_transform_shape();
 
 void test_spherical_harmonics_coefs_consistency();
-// void test_spherical_harmonics_invariance();
+void test_spherical_harmonics_partials_consistency();
+void test_sbgat_shape_uq();
+
+void test_radar_obs();
+void test_lightcurve_obs();
+void test_frame_conversion();
+
+void test_PGM_UQ_partials();
+void test_PGM_UQ_cube();
+void test_PGM_UQ_itokawa_km();
+void test_PGM_UQ_itokawa_m();
+void test_PGM_UQ_covariance_consistency();
+
+void test_MassProperties_UQ_partials();
+
+
+
+
+
 
 }
 

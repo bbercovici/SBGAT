@@ -28,21 +28,6 @@
 # @date   July, 2017
 # @brief  CMake listing enabling compilation and installation of the SbgatCore tests
 
-
-################################################################################
-#
-# 								User-defined paths
-#						Should be checked for consistency
-#						Before running 'cmake ..' in build dir
-#
-################################################################################
-
-set (VTK_PATH /usr/local/VTK-8.1.0/lib/cmake/vtk-8.1)
-set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
-set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
-set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
-
-
 ################################################################################
 #
 #
@@ -52,12 +37,13 @@ set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
 #
 ################################################################################
 
+cmake_minimum_required(VERSION 3.05.0)
 
-set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
-set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
+# Building procedure
+get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
 
 
-set(EXE_NAME "TestsSbgat")
 project(${EXE_NAME})
 
 # Specify the version used
@@ -65,10 +51,6 @@ if (${CMAKE_MAJOR_VERSION} LESS 3)
 	message(FATAL_ERROR " You are running an outdated version of CMake")
 endif()
 
-cmake_minimum_required(VERSION 3.1.0)
-
-
-cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
 add_definitions(-Wall -O2 )
@@ -83,31 +65,30 @@ find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATH})
+find_package(RigidBodyKinematics REQUIRED)
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
-find_package(SbgatCore REQUIRED PATHS ${SBGAT_PATH})
+find_package(SbgatCore REQUIRED)
 include_directories(${SBGATCORE_INCLUDE_HEADER})
-
+include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 # Find OpenMP
-find_package(OpenMP)
-if (OpenMP_FOUND)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+if (NOT NO_OMP)
+	find_package(OpenMP)
 endif()
 
 # Find VTK Package
-find_package(VTK REQUIRED PATHS ${VTK_PATH})
+find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
-
-# Find nlohmann_json
-find_package(nlohmann_json REQUIRED PATHS ${NLOHMANN_JSON_PATH})
-
+# Removing spurious include sometimes brought in by one of VTK's dependencies
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+list(REMOVE_ITEM dirs "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include")
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${dirs})
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
+	include/Tests.hpp
 	source/main.cpp
 	source/Tests.cpp
 	)
@@ -120,5 +101,11 @@ set(library_dependencies
 	${VTK_LIBRARIES}
 	)
 
-target_link_libraries(${EXE_NAME} ${library_dependencies})
+
+if (OpenMP_FOUND AND NOT NO_OMP)
+	target_link_libraries(${EXE_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
+else()
+	target_link_libraries(${EXE_NAME} ${library_dependencies})
+endif()
+
 
