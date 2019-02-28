@@ -43,8 +43,6 @@ set (VTK_PATH "/usr/local/VTK-8.1.0/lib/cmake/vtk-8.1")
 
 
 
-
-
 cmake_minimum_required(VERSION 3.05.0)
 
 # Building procedure
@@ -110,10 +108,7 @@ set(library_dependencies
 	)
 
 
-if (OpenMP_FOUND AND NOT NO_OMP)
-	target_link_libraries(${EXE_NAME} ${library_dependencies} OpenMP::OpenMP_CXX)
-else()
-	target_link_libraries(${EXE_NAME} ${library_dependencies})
-endif()
+
+target_link_libraries(${EXE_NAME} ${library_dependencies})
 
 
