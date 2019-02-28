@@ -4,7 +4,7 @@
   Program:   Small Body Geophysical Analysis
   Module:    SBGATObsLightcurve.hpp
 
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.

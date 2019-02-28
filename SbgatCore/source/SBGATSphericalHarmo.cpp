@@ -23,10 +23,7 @@ SOFTWARE.
 
 /*=========================================================================
 
-  Program:   Visualization Toolkit
-  Module:    SBGATSphericalHarmo.cxx
-
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -48,7 +45,10 @@ SOFTWARE.
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
 #include <vtkInformation.h>
+#include <vtkCleanPolyData.h>
 #include <vtkInformationVector.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 #include <RigidBodyKinematics.hpp>
 vtkStandardNewMacro(SBGATSphericalHarmo);
 
@@ -78,29 +78,31 @@ SBGATSphericalHarmo::~SBGATSphericalHarmo(){
 // used in the spherical harmonics expansion of exterior gravity 
 // about a constant-density polyhedron
 
-int SBGATSphericalHarmo::RequestData(
-  vtkInformation* vtkNotUsed( request ),
-  vtkInformationVector** inputVector,
-  vtkInformationVector* vtkNotUsed( outputVector )){
+int SBGATSphericalHarmo::RequestData(vtkInformation* vtkNotUsed( request ),vtkInformationVector** inputVector,vtkInformationVector* vtkNotUsed( outputVector )){
 
   if (this -> setFromJSON){
     return 1;
   }
 
-
-  vtkInformation *inInfo =
-  inputVector[0]->GetInformationObject(0);
+  vtkInformation * inInfo =
+  inputVector[0] -> GetInformationObject(0);
 
   // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
+  vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 
+  vtkSmartPointer<vtkCleanPolyData> cleaner =
+  vtkSmartPointer<vtkCleanPolyData>::New();
+  cleaner -> SetInputData (input_unclean);
+  cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+  cleaner -> Update();
+
+
+  vtkPolyData * input = cleaner -> GetOutput();
   vtkIdType cellId, numCells, numPts, numIds;
 
   numCells = input->GetNumberOfCells();
   numPts = input->GetNumberOfPoints();
-  if (numCells < 1 || numPts < 1)
-  {
+  if (numCells < 1 || numPts < 1){
     vtkErrorMacro( << "No data to measure...!");
     return 1;
   }
@@ -124,68 +126,59 @@ int SBGATSphericalHarmo::RequestData(
   
   vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
   mass_properties -> SetInputData(input);
-  mass_properties -> Update();
+  if (this -> scaleFactor ==1){
+    mass_properties -> SetScaleMeters();
+  }
+  else{
+   mass_properties -> SetScaleKiloMeters();
+ }
+ mass_properties -> Update();
 
   // Check that the shape is topologically closed
-  assert(mass_properties -> CheckClosed());
+ assert(mass_properties -> CheckClosed());
 
-  this -> totalMass = mass_properties -> GetVolume() * this -> density * std::pow(this -> scaleFactor,3);
+ this -> totalMass = mass_properties -> GetVolume() * this -> density;
 
   // Looping over all facets
-  for (cellId=0; cellId < numCells; cellId++){
+ for (cellId=0; cellId < numCells; cellId++){
 
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE){
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not " << input->GetCellType(cellId));
-      continue;
-    }
-
-    input->GetCellPoints(cellId,ptIds);
-    numIds = ptIds->GetNumberOfIds();
-    assert(numIds == 3);
-
-    // store current vertex (x,y,z) coordinates ...
-    double r0[3];
-    double r1[3];
-    double r2[3];
-
-    input->GetPoint(ptIds->GetId(0), r0);
-    input->GetPoint(ptIds->GetId(1), r1);
-    input->GetPoint(ptIds->GetId(2), r2);
-
-    double r1r0[3];
-    double r2r0[3];
-
-    vtkMath::Subtract(r1,r0,r1r0);
-    vtkMath::Subtract(r2,r0,r2r0);
-
-    double dv = vtkMath::Determinant3x3(r0,r1r0,r2r0) / 6;
-
-    arma::mat Cnm2f( this -> degree + 1, this -> degree + 1);
-    arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
-
-    // Call to SHARMLib here
-    SHARMLib::ComputePolyhedralCS(
-      Cnm2f,
-      Snm2f,
-      this -> degree,
-      this -> referenceRadius,
-      &r0[0],
-      &r1[0],
-      &r2[0],
-      this -> normalized
-      );
-
-
-
-    this -> Cnm += Cnm2f * dv ;
-    this -> Snm += Snm2f * dv ;
-    
+  if ( input->GetCellType(cellId) != VTK_TRIANGLE){
+    vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not " << input->GetCellType(cellId));
+    continue;
   }
 
-  this -> Cnm /= mass_properties -> GetVolume();
-  this -> Snm /= mass_properties -> GetVolume();
+  input->GetCellPoints(cellId,ptIds);
+  numIds = ptIds->GetNumberOfIds();
+  assert(numIds == 3);
 
-  return 1;
+
+  double r0[3];
+  double r1[3];
+  double r2[3];
+
+  input->GetPoint(ptIds->GetId(0), r0);
+  input->GetPoint(ptIds->GetId(1), r1);
+  input->GetPoint(ptIds->GetId(2), r2);
+
+  vtkMath::MultiplyScalar(r0,this -> scaleFactor);
+  vtkMath::MultiplyScalar(r1,this -> scaleFactor);
+  vtkMath::MultiplyScalar(r2,this -> scaleFactor);
+
+  arma::mat Cnm2f(this -> degree + 1, this -> degree + 1);
+  arma::mat Snm2f(this -> degree + 1, this -> degree + 1);
+
+    // Call to SHARMLib here
+  SHARMLib::ComputePolyhedralCS(Cnm2f,Snm2f,this -> degree,this -> referenceRadius,&r0[0],&r1[0],&r2[0],this -> normalized);
+
+  this -> Cnm += Cnm2f ;
+  this -> Snm += Snm2f ;
+
+}
+
+this -> Cnm /= mass_properties -> GetVolume();
+this -> Snm /= mass_properties -> GetVolume();
+
+return 1;
 }
 
 
@@ -214,7 +207,7 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
     double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
+    double K0 = 0.5 * mu / std::pow(this -> referenceRadius,2);
     double x_ddot = 0;
     double y_ddot = 0;
     double z_ddot = 0;
@@ -260,8 +253,6 @@ arma::vec::fixed<3> SBGATSphericalHarmo::GetAcceleration(const arma::vec::fixed<
 
     arma::vec::fixed<3> acceleration = {x_ddot,y_ddot,z_ddot};
 
-    acceleration *= 1./this -> scaleFactor;
-
     return acceleration;
 
   }
@@ -297,7 +288,7 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
 
     double mu = this -> totalMass * arma::datum::G;
 
-    double K0 = 0.25 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,3);
+    double K0 = 0.25 * mu / std::pow(this -> referenceRadius,3);
 
     double ddU_dxdx = 0;
     double ddU_dydy = 0;
@@ -393,10 +384,8 @@ void SBGATSphericalHarmo::GetGravityGradientMatrix(const arma::vec::fixed<3> & p
   }
 
   catch(std::runtime_error & error){
-
     std::cout << "an std::runtime_error occured inside SBGATSphericalHarmo::GetGravityGradientMatrix. returning zero matrix\n";
     dAccdPos = arma::zeros<arma::mat>(3,3);
-
   }
 
 } 
@@ -411,7 +400,7 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
   int n_max = 50;
   double mu = this -> totalMass * arma::datum::G;
 
-  double K0 = 0.5 * mu / std::pow(this -> referenceRadius * this -> scaleFactor,2);
+  double K0 = 0.5 * mu / std::pow(this -> referenceRadius,2);
   
   arma::mat b_bar_real = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
   arma::mat b_bar_imag = arma::zeros<arma::mat>(n_max + 3,n_max + 3);
@@ -473,10 +462,6 @@ void SBGATSphericalHarmo::GetPartialHarmonics(const arma::vec::fixed<3> & pos,
   }
 
 
-  partial_C *= 1./this -> scaleFactor;
-  partial_S *= 1./this -> scaleFactor;
-
-
 
 }
 
@@ -520,14 +505,8 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
   spherical_harmo_json["referenceRadius"]["value"] = this -> referenceRadius;
   spherical_harmo_json["density"]["unit"] = "kg/m^3";
 
-  if (this -> scaleFactor == 1){
-    spherical_harmo_json["referenceRadius"]["unit"] = "m";
+  spherical_harmo_json["referenceRadius"]["unit"] = "m";
 
-  }
-  else{
-    spherical_harmo_json["referenceRadius"]["unit"] = "km";
-
-  }
 
   spherical_harmo_json["normalized"] = this -> normalized;
   spherical_harmo_json["degree"] = this -> degree;
@@ -557,6 +536,7 @@ void SBGATSphericalHarmo::SaveToJson(std::string path) const{
 
 
 }
+
 void SBGATSphericalHarmo::LoadFromJson(std::string path){
 
   // The JSON container is created
@@ -576,12 +556,6 @@ void SBGATSphericalHarmo::LoadFromJson(std::string path){
   this -> referenceRadius = spherical_harmo_json.at("referenceRadius").at("value");
   this -> totalMass = spherical_harmo_json.at("totalMass").at("value");
 
-  if (spherical_harmo_json.at("referenceRadius").at("unit") == "m" ){
-    this -> scaleFactor = 1;
-  }
-  else{
-    this -> scaleFactor = 1000;
-  }
 
   this -> normalized = spherical_harmo_json.at("normalized");
   this -> degree = spherical_harmo_json.at("degree");

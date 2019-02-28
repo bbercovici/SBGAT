@@ -4,7 +4,7 @@
   Program:   Small Body Geophysical Analysis
   Module:    SBGATSphericalHarmo.hpp
 
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -26,7 +26,9 @@
  @details  Computes/evaluates the outer spherical harmonics expansion of the exterior gravity
 field around a constant density polyhedron. Normalized or non-normalized coefficients can be computed.
 The computed coefficients are completely independent of the mass and density of the considered object
-as they are only a geometric construct, thanks to the constant-density assumption
+as they are only a geometric construct, thanks to the constant-density assumption. This class will always use results expressed in `meters` as their distance unit (e.g accelerations in m/s^2, potentials in m^2/s^2,...) . Unit consistency is enforced through the use of the SetScaleMeters()
+and SetScaleKiloMeters() method. 
+
 Adapted from the works of Yu Takahashi and Siamak Hesar by Benjamin Bercovici, University of Colorado Boulder
 for more details, see 
 Werner, R. a. (1997). 
@@ -164,9 +166,8 @@ public:
 
   /**
   Returns the acceleration due to gravity at the specified point
-  @param pos position at which the acceleration must be evaluated, expressed in the same frame/same unit L as 
-  the shape used to build the spherical harmonics expansion. 
-  @return acceleration (L / s ^ 2)
+  @param pos position at which the acceleration must be evaluated (meters)
+  @return acceleration (m / s ^ 2)
   */
   arma::vec::fixed<3> GetAcceleration(const arma::vec::fixed<3> & pos);
 
@@ -295,7 +296,7 @@ protected:
   double referenceRadius;
   double density;
   double totalMass;
-  double scaleFactor;
+  double scaleFactor = 1;
 
   bool normalized;
   unsigned int degree;
