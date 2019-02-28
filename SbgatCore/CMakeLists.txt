@@ -43,6 +43,8 @@ set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 set (YORPLIB_PATH "/home/bebe0705/libs/local/lib/cmake/YORPLib")
 set (SHARMLIB_PATH "/home/bebe0705/libs/local/lib/cmake/SHARMLib")
 set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
+set (OC_PATH "/home/bebe0705/libs/local/lib/cmake/OrbitConversions")
+
 
 
 
@@ -105,7 +107,7 @@ include_directories(${YORPLIB_INCLUDE_HEADER})
 
 
 # Find OrbitConversions 
-find_package(OrbitConversions REQUIRED)
+find_package(OrbitConversions REQUIRED PATHS ${OC_PATH})
 include_directories(${OC_INCLUDE_DIR})
 
 # Find SHARMLib
