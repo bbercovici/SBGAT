@@ -1389,7 +1389,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename, 
 		shape_uq.SetPGM(pgm_filter);
 
 		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
-		arma::vec e_vec = arma::randi<arma::vec>(1,arma::distr_param(0,N_edges - 1));
+		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 int e = e_vec(0);
 
 
@@ -2415,7 +2415,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename,
 		shape_uq.SetPGM(pgm_filter);
 
 		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
-		arma::vec e_vec = arma::randi<arma::vec>(1,arma::distr_param(0,N_edges - 1));
+		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 int e = e_vec(0);
 
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
@@ -2477,7 +2477,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename, 
 		shape_uq.SetPGM(pgm_filter);
 		
 		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
-		arma::vec e_vec = arma::randi<arma::vec>(1,arma::distr_param(0,N_edges - 1));
+		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 int e = e_vec(0);
 
 		double Ue = shape_uq.GetPGM() -> GetUe(shape_uq.GetPGM() -> GetXe(pos,e));
@@ -2539,7 +2539,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename, 
 		shape_uq.SetPGM(pgm_filter);
 		
 		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
-		arma::vec e_vec = arma::randi<arma::vec>(1,arma::distr_param(0,N_edges - 1));
+		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 int e = e_vec(0);
 
 		arma::vec Be = shape_uq.GetBe().subvec(24 * e, 24 * e + 23);
