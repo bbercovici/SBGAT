@@ -1,3 +1,26 @@
+/** MIT License
+
+Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 /*=========================================================================
 
   Program:   Small Body Geophysical Analysis
@@ -15,20 +38,15 @@
 
 =========================================================================*/
 /**
-@file SBGATPolyhedronGravityModel.hpp
-@class  SBGATPolyhedronGravityModel
-@author Benjamin Bercovici
-@date October 2018
-
-@brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
- @details Computes the potential, acceleration caused by a polyhedron
+ * @class  SBGATPolyhedronGravityModel
+ * @author Benjamin Bercovici
+ * @brief  Evaluation of potential, acceleration caused by a constant-density polyhedron
+ *
+ * @details Computes the potential, acceleration caused by a polyhedron
  of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres.
-The input must be a topologically-closed polyhedron.
-See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
-for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-@copyright MIT License, Benjamin Bercovici and Jay McMahon
-
-
+ * The input must be a topologically-closed polyhedron.
+ * See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
+ * for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 */
 
 #ifndef SBGATPolyhedronGravityModel_hpp
@@ -38,14 +56,6 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
-
-
-
-
-
-
-
-
 
 class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{
 public:
@@ -67,60 +77,36 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (L ^ 2/ s ^2)
+  @return PGM potential evaluated at the queried point
   */
-  double GetPotential(double const * point);
+  double GetPotential(double * point);
 
   /**
   Evaluates the Polyhedron Gravity Model potential at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/same unit L as
+  @param point coordinates of queried point, expressed in the same frame as
   the polydata
-  @return PGM potential evaluated at the queried point (L ^ 2 / s ^2)
+  @return PGM potential evaluated at the queried point
   */
-  double GetPotential(const arma::vec & point);
-
-  /**
-  Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
-  a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
-  the polydata used to construct the PGM
-  @param PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param PGM acceleration evaluated at the queried point (L / s ^2)
-  */
-  void GetPotentialAcceleration(double const * point,double & potential, 
-    arma::vec & acc);
-
-
-  /**
-  Evaluates the Polyhedron Gravity Model potential and acceleration at the specified point assuming 
-  a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit L as
-  the polydata used to construct the PGM
-  @param PGM potential evaluated at the queried point (L ^ 2 / s ^2)
-  @param PGM acceleration evaluated at the queried point (L / s ^2)
-  */
-  void GetPotentialAcceleration(const arma::vec & point,double & potential, 
-    arma::vec & acc);
-
+  double GetPotential( arma::vec point);
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point coordinates of queried point, expressed in the same frame/unit as
-  the polydata used to construct the PGM
-  @return PGM acceleration evaluated at the queried point (L / s ^2)
+  @param point coordinates of queried point, expressed in the same frame as
+  the polydata
+  @return PGM acceleration evaluated at the queried point
   */
-  arma::vec GetAcceleration(const arma::vec & point);
+  arma::vec GetAcceleration(arma::vec point);
 
-  /**
+   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
   a constant density
-  @param point pointer to coordinates of queried point, expressed in the same frame/same unit L as
-  the input polydata
-  @return PGM acceleration evaluated at the queried point (L / s ^2)
+  @param point pointer to coordinates of queried point, expressed in the same frame as
+  the polydata
+  @return PGM acceleration evaluated at the queried point
   */
-  arma::vec GetAcceleration(double const * point);
+  arma::vec GetAcceleration(double * point);
 
   /** 
   Determines whether the provided point lies inside or outside the shape
@@ -129,7 +115,8 @@ public:
   @param tolerance
   @return true if the polydata contains the point, false otherwise
   */
-  bool Contains(double const * point, double tol = 1e-8);
+  bool Contains(double * point, double tol = 1e-8);
+
 
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
@@ -143,35 +130,12 @@ public:
 
   /**
   Sets polyhedron density
-  @param density bulk density of polyhedron (kg/m^3)
+  @param density bulk density of polyhedron
   */
   void SetDensity(const double density){
     this -> density = density;
     this -> densitySet = true;
   }
-
-  /**
-  Evaluates the Polyhedron Gravity Model at the surface of the specified surface elements in the provided shape
-  @param[in] selected_shape shape for which the surface polyhedron gravity model must be computed
-  @param[in] queried_elements shape indices of elements where the polyhedron gravity model should be evaluated
-  @param[in] is_in_meters true if the shape coordinates were expressed in meters, false if they were expressed in kilometers
-  @param[in] density shape bulk density in kg/m^3
-  @param[in] omega fixed angular velocity of shape expressed in rad/s
-  @param[out] slopes vector storing the gravitational slopes (degrees) evaluated at the center of each queried element 
-  @param[out] potentials vector storing the inertial gravitational potentials (m^2/s^2) evaluated at the center of each queried element 
-  @param[out] acc_magnitudes vector storing the inertial gravitational acceleration magnitudes  (m/s^2) evaluated at the center of each queried element 
-  @param[out] acc_body_fixed_magnitudes vector storing the body-fixed gravitational acceleration magnitudes (m/s^2) evaluated at the center of each queried element 
-  */
-  static void ComputeSurfacePGM(
-  vtkSmartPointer<vtkPolyData> selected_shape,
-  const std::vector<unsigned int> & queried_elements,
-  bool is_in_meters,
-  double density,
-  const arma::vec::fixed<3> & omega,
-  std::vector<double> & slopes,
-  std::vector<double> & potentials,
-  std::vector<double> & acc_magnitudes,
-  std::vector<double> & acc_body_fixed_magnitudes);
 
 
 

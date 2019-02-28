@@ -1,18 +1,25 @@
+/** MIT License
 
-/**
-@file SBGATRefFrame.hpp
-@class  SBGATRefFrame
-@author Benjamin Bercovici
-@author Jay McMahon
-@date October 2018
+Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
 
-@brief  Defines the SBGATRefFrame class
-@details Defines the SBGATRefFrame class, a right-handed set of basis vector positioned
-at some origin in space. The position of the origin and the orientation of the basis vectors
-are specified with respect to the parent frame of the present frame.
-@copyright MIT License, Benjamin Bercovici and Jay McMahon
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 
 
 #ifndef HEADER_REFFRAME
@@ -80,30 +87,30 @@ public:
 	Returns the mrp of $this with respect to its parent
 	@return mrp of $this with respect to its parent
 	*/
-	const arma::vec::fixed<3> & get_mrp_from_parent() const;
+	arma::vec * get_mrp_from_parent();
 
 
 	/**
 	Returns the dcm of $this with respect to its parent
 	@return dcm of $this with respect to its parent
 	*/
-	const arma::mat::fixed<3,3> & get_dcm_from_parent() const;
+	arma::mat * get_dcm_from_parent();
 
 	/**
 	Returns the origin of $this with respect to its parent
 	expressed in the parent reference frame
 	@return origin of $this with respect to its parent
 	*/
-	const arma::vec::fixed<3> & get_origin_from_parent() const;
+	arma::vec * get_origin_from_parent();
 
 
 protected:
 
 	std::string name;
 
-	arma::vec::fixed<3> mrp_from_parent;
-	arma::vec::fixed<3> origin_from_parent;
-	arma::mat::fixed<3,3> dcm_from_parent;
+	std::shared_ptr<arma::vec> mrp_from_parent;
+	std::shared_ptr<arma::vec> origin_from_parent;
+	std::shared_ptr<arma::mat> dcm_from_parent;
 
 
 

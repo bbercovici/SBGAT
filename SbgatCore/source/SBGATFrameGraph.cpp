@@ -30,70 +30,68 @@ SBGATFrameGraph::SBGATFrameGraph() {
 
 
 
-arma::vec::fixed<3> SBGATFrameGraph::convert(
-	const arma::vec::fixed<3> & input, 
-	std::string from, 
-	std::string to,
-	bool conserve_norm) {
+arma::vec SBGATFrameGraph::convert(arma::vec & input, std::string from, std::string to,
+                              bool conserve_norm) {
 
-	std::deque<std::shared_ptr<SBGATRefFrame > > path = this -> adjacency_list.dfs(ref_names_to_ref_ptrs[from], ref_names_to_ref_ptrs[to]);
+	std::deque<std::shared_ptr<SBGATRefFrame > > path = this -> adjacency_list.dfs(
+	            ref_names_to_ref_ptrs[from], ref_names_to_ref_ptrs[to]);
 
-	arma::vec::fixed<3> coords = input;
+	arma::vec coords = input;
 	if (from == to) {
 		return coords;
 	}
 
 	for (auto it_current_frame = path.begin();
-		it_current_frame != --path.end();
-		++it_current_frame) {
+	        it_current_frame != --path.end();
+	        ++it_current_frame) {
 
 		auto it_next_frame = std::next(it_current_frame);
 
-	std::pair<std::string, std::string> transform = this -> adjacency_list.getedge(*it_current_frame, *it_next_frame);
+		std::pair<std::string, std::string> transform = this -> adjacency_list.getedge(*it_current_frame, *it_next_frame);
 
 		// current frame is parent frame
-	if (transform.second == (*it_next_frame) -> get_name()) {
-		this -> convert_to_child_of_provided_parent_frame(coords, (*it_next_frame).get(),
-			conserve_norm);
-	}
+		if (transform.second == (*it_next_frame) -> get_name()) {
+			this -> convert_to_child_of_provided_parent_frame(coords, (*it_next_frame).get(),
+			        conserve_norm);
+		}
 
 		// current frame is child frame
-	else if (transform.first == (*it_next_frame) -> get_name()) {
+		else if (transform.first == (*it_next_frame) -> get_name()) {
 
-		this -> convert_to_parent_of_provided_child_frame(coords, (*it_current_frame).get(),
-			conserve_norm);
+			this -> convert_to_parent_of_provided_child_frame(coords, (*it_current_frame).get(),
+			        conserve_norm);
+		}
+		else {
+			throw (std::runtime_error("Illegal frame conversion"));
+		}
+
+
 	}
-	else {
-		throw (std::runtime_error("Illegal frame conversion"));
-	}
 
-
+	return coords;
 }
 
-return coords;
-}
 
-
-void SBGATFrameGraph::convert_to_parent_of_provided_child_frame(arma::vec::fixed<3> & coords,
-	SBGATRefFrame * ref_frame, bool conserve_norm) const {
+void SBGATFrameGraph::convert_to_parent_of_provided_child_frame(arma::vec & coords,
+        SBGATRefFrame * ref_frame, bool conserve_norm) const {
 
 	if (conserve_norm == false) {
-		coords = ref_frame -> get_origin_from_parent() +  (ref_frame -> get_dcm_from_parent()).t() * coords;
+		coords = *ref_frame -> get_origin_from_parent() +  (*ref_frame -> get_dcm_from_parent()).t() * coords;
 	}
 	else {
-		coords = (ref_frame -> get_dcm_from_parent()).t() * coords;
+		coords = (*ref_frame -> get_dcm_from_parent()).t() * coords;
 
 	}
 }
 
-void SBGATFrameGraph::convert_to_child_of_provided_parent_frame(arma::vec::fixed<3> & coords,
-	SBGATRefFrame * ref_frame, bool conserve_norm) const {
+void SBGATFrameGraph::convert_to_child_of_provided_parent_frame(arma::vec & coords,
+        SBGATRefFrame * ref_frame, bool conserve_norm) const {
 
 	if (conserve_norm == false) {
-		coords = (ref_frame -> get_dcm_from_parent()) * ( coords - (ref_frame -> get_origin_from_parent()) );
+		coords = (*ref_frame -> get_dcm_from_parent()) * ( coords - (*ref_frame -> get_origin_from_parent()) );
 	}
 	else {
-		coords = (ref_frame -> get_dcm_from_parent()) * ( coords );
+		coords = (*ref_frame -> get_dcm_from_parent()) * ( coords );
 	}
 }
 
@@ -118,8 +116,8 @@ void SBGATFrameGraph::add_frame(std::string frame_name) {
 
 
 void SBGATFrameGraph::set_transform_mrp(std::string parent_name,
-	std::string child_name,
-	arma::vec::fixed<3> & mrp) {
+                                   std::string child_name,
+                                   arma::vec & mrp) {
 
 
 	std::set<std::pair<std::string, std::string > > transforms = this -> adjacency_list.get_edges();
@@ -142,8 +140,8 @@ void SBGATFrameGraph::set_transform_mrp(std::string parent_name,
 
 
 void SBGATFrameGraph::set_transform_origin(std::string parent_name,
-	std::string child_name,
-	arma::vec::fixed<3> & origin) {
+                                      std::string child_name,
+                                      arma::vec & origin) {
 
 	// Consistency check: if $child_name == "N", something is wrong
 	if (child_name == "N") {

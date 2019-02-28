@@ -103,7 +103,7 @@ int SBGATMassProperties::RequestData(
   }
 
   vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds -> Allocate(VTK_CELL_SIZE);
+  ptIds->Allocate(VTK_CELL_SIZE);
 
   // Traverse all cells, obtaining node coordinates.
   //
@@ -159,9 +159,12 @@ int SBGATMassProperties::RequestData(
     kxyz[idx] = 0.0;
   }
 
-  for (cellId=0; cellId < numCells; cellId++){
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE){
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "<< input->GetCellType(cellId));
+  for (cellId=0; cellId < numCells; cellId++)
+  {
+    if ( input->GetCellType(cellId) != VTK_TRIANGLE)
+    {
+      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "
+        << input->GetCellType(cellId));
       continue;
     }
     input->GetCellPoints(cellId,ptIds);
@@ -170,7 +173,8 @@ int SBGATMassProperties::RequestData(
 
     // store current vertex (x,y,z) coordinates ...
     // Note that the coordinates are normalized!
-    for (idx=0; idx < numIds; idx++){
+    for (idx=0; idx < numIds; idx++)
+    {
       input->GetPoint(ptIds->GetId(idx), p);
       x[idx] = p[0] / l; y[idx] = p[1] / l; z[idx] = p[2] / l;
     }
@@ -358,6 +362,8 @@ int SBGATMassProperties::RequestData(
       + y[1] * z[2]
       + z[1] * y[2]);
 
+
+
     // Sum of oriented surface
     vtkMath::MultiplyScalar(u,area);
     vtkMath::Add(u,sum_surface,sum_surface);
@@ -449,7 +455,7 @@ int SBGATMassProperties::RequestData(
 
 
     // Closeness of topology given sum of oriented surface
-    if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
+    if (vtkMath::Norm(sum_surface) / average_surface < 1e-8){
       this -> IsClosed = true;
     }
     else{

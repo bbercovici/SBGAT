@@ -16,18 +16,12 @@
  *
  *=========================================================================*/
 
-/**
- \file SBGATObjWriter.hpp
- \class  SBGATObjWriter
- \author Benjamin Bercovici 
- \brief  Write a Wavefront OBJ (ASCII) file
- \details The goal is to make it follow the standard
- "writer" syntax that is present for the rest of the VTK writers (vtkPLYWriter, etc).
- It only saves the geometry (vertices, lines, polylines, strips) with normals and tcoords (if any).
- It does not write triangle strips properly.
- \copyright David Doria 2011
-*/
-
+/** SBGATObjWriter - Write a Wavefront OBJ (ASCII) file. The core of this class
+  * was taken from vtkOBJExporter. The goal is to make it follow the standard
+  * "writer" syntax that is present for the rest of the VTK writers (vtkPLYWriter, etc).
+  * It only saves the geometry (vertices, lines, polylines, strips) with normals and tcoords (if any).
+  * It does not write triangle strips properly.
+  */
 
 #ifndef __SBGATObjWriter_h
 #define __SBGATObjWriter_h

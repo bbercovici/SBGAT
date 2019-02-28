@@ -30,18 +30,22 @@ SBGATRefFrame::SBGATRefFrame(std::string name) {
 
 	this -> name = name;
 
-	
-	this -> mrp_from_parent.fill(0);
-	this -> origin_from_parent.fill(0);
-	this -> dcm_from_parent = arma::eye<arma::mat>(3,3);
+	arma::vec mrp = {0, 0, 0};
+	arma::vec origin = {0, 0, 0};
+	arma::mat dcm = arma::eye<arma::mat>(3, 3);
+
+
+	this -> mrp_from_parent = std::make_shared<arma::vec> (mrp);
+	this -> origin_from_parent = std::make_shared<arma::vec> (origin);
+	this -> dcm_from_parent = std::make_shared<arma::mat>(dcm);
 }
 
 
 SBGATRefFrame& SBGATRefFrame::operator=(const SBGATRefFrame & other) {
 	this -> name = other.name;
-	this -> mrp_from_parent = other.mrp_from_parent;
-	this -> origin_from_parent = other.origin_from_parent;
-	this -> dcm_from_parent = other . dcm_from_parent;
+	*this -> mrp_from_parent = *(other.mrp_from_parent);
+	*this -> origin_from_parent = *(other.origin_from_parent);
+	*this -> dcm_from_parent = *(other . dcm_from_parent);
 
 
 	return *this;
@@ -50,36 +54,45 @@ SBGATRefFrame& SBGATRefFrame::operator=(const SBGATRefFrame & other) {
 SBGATRefFrame::SBGATRefFrame( const SBGATRefFrame &ref_frame) {
 	this -> name = ref_frame.get_name();
 
+	arma::vec mrp = {0, 0, 0};
+	arma::vec origin = {0, 0, 0};
+	arma::mat dcm_from_parent = arma::eye<arma::mat>(3, 3);
 
-	this -> mrp_from_parent = ref_frame . mrp_from_parent;
-	this -> origin_from_parent = ref_frame . origin_from_parent;
-	this -> dcm_from_parent = ref_frame . dcm_from_parent;
+
+	this -> mrp_from_parent = std::make_shared<arma::vec> (mrp);
+	this -> origin_from_parent = std::make_shared<arma::vec> (origin);
+	this -> dcm_from_parent = std::make_shared<arma::mat>(dcm_from_parent);
+
+
+	*this -> mrp_from_parent = *(ref_frame . mrp_from_parent);
+	*this -> origin_from_parent = *(ref_frame . origin_from_parent);
+	*this -> dcm_from_parent = *(ref_frame . dcm_from_parent);
 }
 
 
-const arma::vec::fixed<3> & SBGATRefFrame::get_mrp_from_parent() const{
-	return this -> mrp_from_parent;
+arma::vec * SBGATRefFrame::get_mrp_from_parent() {
+	return this -> mrp_from_parent.get();
 }
 
 
-const arma::mat::fixed<3,3> & SBGATRefFrame::get_dcm_from_parent() const {
-	return this -> dcm_from_parent;
+arma::mat * SBGATRefFrame::get_dcm_from_parent() {
+	return this -> dcm_from_parent.get();
 }
 
 
 
-const arma::vec::fixed<3> & SBGATRefFrame::get_origin_from_parent() const {
-	return this -> origin_from_parent;
+arma::vec * SBGATRefFrame::get_origin_from_parent() {
+	return this -> origin_from_parent.get();
 }
 
 
 void SBGATRefFrame::set_mrp_from_parent(arma::vec & mrp) {
-	this -> mrp_from_parent = mrp;
-	this -> dcm_from_parent = RBK::mrp_to_dcm(mrp);
+	*this -> mrp_from_parent = mrp;
+	*this -> dcm_from_parent = RBK::mrp_to_dcm(mrp);
 }
 
 void SBGATRefFrame::set_origin_from_parent(arma::vec & origin) {
-	this -> origin_from_parent = origin;
+	*this -> origin_from_parent = origin;
 }
 
 
