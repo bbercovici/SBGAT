@@ -26,7 +26,6 @@
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
 # @date   July, 2017
-# @brief  CMake listing enabling compilation and installation of the SbgatCore tests
 
 
 ################################################################################
@@ -67,15 +66,15 @@ if (NOT NO_OMP)
 	find_package(OpenMP)
 endif()
 
-# Find VTK Package
-find_package(VTK REQUIRED)
-include(${VTK_USE_FILE})
-
 
 # Find armadillo package
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
+
+# Find VTK Package
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
 
 # Removing spurious include sometimes brought in by one of VTK's dependencies
 get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
@@ -87,9 +86,7 @@ add_executable(${EXE_NAME} main.cpp )
 
 set(library_dependencies
 	${ARMADILLO_LIBRARIES}
-	${Boost_LIBRARIES}
 	${SBGATCORE_LIBRARY}
-	${RBK_LIBRARY}
 	${VTK_LIBRARIES}
 	)
 

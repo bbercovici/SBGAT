@@ -173,6 +173,13 @@ public:
   */
   void SaveNonZeroVerticesCovariance(std::string path) const;
 
+
+/**
+Sets the vertices covariance to the provided one
+@parma P_CC (3 N_vertices * 3 N_vertices) covariance matrix (m^2 or km^2)
+*/
+  void SetCovariance(const arma::mat & P_CC);
+
   /**
   Populate the vertices covariance P_CC with the partitions saved in the provided json file
   @param path path where to save the non-zero covariance partitions
@@ -204,6 +211,64 @@ public:
   arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> GetPGM() const {return this -> pgm_model;}
+
+
+
+  /**
+  Runs a Monte Carlo on the shape and samples accelerations & potentials at the provided positions
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] P_CC covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
+  @param[out] all_potentials holds N_samples vectors, each storing the potential evaluated at the specified points
+  @param[in] saved_shapes presized vector of size P (between 0 and N_samples) to save (or not) P shape outcomes
+  */
+
+  static void RunMCUQ(std::string path_to_shape,
+    const double & density,
+    const bool & shape_in_meters,
+    const arma::mat & P_CC,
+    const unsigned int & N_samples,
+    const std::vector<arma::vec::fixed<3> > & all_positions,
+    std::vector<arma::vec> & deviations,
+    std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
+    std::vector < std::vector<double> > & all_potentials ,
+    std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
+
+
+  /**
+  Runs a Monte Carlo on the shape and samples accelerations & potentials at the provided position
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] P_CC covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] position the position where acceleration & potential must be sampled
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] accelerations holds N_samples accelerations evaluated at the specified point
+  @param[out] potentials holds N_samples potential evaluated at the specified point
+  @param[in] saved_shapes presized vector of size P (between 0 and N_samples) to save (or not) P shape outcomes
+  */
+
+  static void RunMCUQ(std::string path_to_shape,
+    const double & density,
+    const bool & shape_in_meters,
+    const arma::mat & P_CC,
+    const unsigned int & N_samples,
+    const arma::vec::fixed<3> & position,
+    std::vector<arma::vec> & deviations,
+    std::vector<arma::vec::fixed<3> > & accelerations,
+    std::vector<double> & potentials,
+    std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
+
 
 protected:
 
@@ -268,7 +333,7 @@ protected:
   */
   arma::rowvec::fixed<10> PartialUePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
 
-  
+
   /**
   Returns the partial derivative of an individual facet contribution to the potential (Uf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
@@ -292,7 +357,7 @@ protected:
   */
   arma::mat::fixed<3,10> PartialAccePartialXe(const arma::vec::fixed<3> & pos,const int & e) const;
 
-  
+
   /**
   Returns the partial derivative of an individual facet contribution to the acceleration (Accf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
@@ -407,7 +472,7 @@ protected:
   @return PartialRadiusEePartialAe (3x6)
   */
   arma::mat::fixed<3,6> PartialRadiusEePartialAe() const;
-  
+
 
   /**
   Returns the partial derivative of field-point to facet-point vector
@@ -415,7 +480,7 @@ protected:
   @return PartialRadiusFfPartialTf (3x9)
   */
   arma::mat::fixed<3,9> PartialRadiusFfPartialTf() const;
-  
+
 
   /**
   Returns the partial derivative of the parametrization of the Xe dyadic vector
@@ -425,7 +490,7 @@ protected:
   @return PartialXePartialBe (10x24)
   */
   arma::mat::fixed<10,24> PartialXePartialBe(const arma::vec::fixed<3> & pos,const int & e) const;
-  
+
   /**
   Returns the partial derivative of the edge length le
   with respect to the coordinates of the edges points
@@ -433,7 +498,7 @@ protected:
   @return PartialEdgeLengthPartialAe (10x24)
   */
   arma::rowvec::fixed<6> PartialEdgeLengthPartialAe(const int & e) const;
-  
+
   /**
   Returns the partial derivative of the (q,r) component of the Ee dyad with respect to the 
   with respect to the coordinates of the edges points and adjacent facets points
@@ -505,11 +570,6 @@ protected:
   static void TestAddPartialSumAccfPartialC(std::string input,double tol);
   static void TestAddPartialSumAccePartialC(std::string input,double tol);
   static void TestPartialBePartialC(std::string input,double tol);
-
-
-
-
-
 
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;

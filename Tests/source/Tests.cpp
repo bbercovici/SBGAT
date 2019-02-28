@@ -1345,6 +1345,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		}
 		++progress;
 	}
+
+	
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";

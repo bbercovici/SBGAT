@@ -23,7 +23,6 @@ int main(){
 
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
 
-	int N_monte_carlo = input_data["N_MONTE_CARLO"];
 	int PROJECTION_AXIS = input_data["PROJECTION_AXIS"];
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
@@ -32,7 +31,6 @@ int main(){
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
 	std::cout << "- Density (kg/m^3) : " << DENSITY << std::endl;
-	std::cout << "- Monte Carlo Draws : " << N_monte_carlo << std::endl;
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -174,6 +172,7 @@ int main(){
 
 	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 
+	
 
 	return 0;
 }

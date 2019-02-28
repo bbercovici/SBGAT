@@ -62,6 +62,8 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::GetCovarianceAcceleration(c
 void SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
 	arma::mat::fixed<3,3> & acc_cov) const{
 
+	throw(std::runtime_error("SBGATPolyhedronGravityModelUQ::GetVariancePotentialAccelerationCovariance is not implemented yet"));
+
 
 }
 
@@ -2784,6 +2786,10 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetVerticesCovariance() const{
 	return this -> P_CC / std::pow(this -> pgm_model -> GetScaleFactor(),2);
 }
 
+void SBGATPolyhedronGravityModelUQ::SetCovariance(const arma::mat & P_CC){
+	this -> P_CC = P_CC * std::pow(this -> pgm_model -> GetScaleFactor(),2);
+}
+
 int SBGATPolyhedronGravityModelUQ::LoadVerticesCovarianceFromJson(std::string path){
 
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
@@ -2916,4 +2922,124 @@ void SBGATPolyhedronGravityModelUQ::SaveNonZeroVerticesCovariance(std::string pa
 
 }
 
+
+void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
+	const double & density,
+	const bool & shape_in_meters,
+	const arma::mat & P_CC,
+	const unsigned int & N_samples,
+	const arma::vec::fixed<3> & position,
+	std::vector<arma::vec> & deviations,
+	std::vector<arma::vec::fixed<3> > & accelerations,
+	std::vector<double> & potentials,
+	std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes){
+
+	std::vector< std::vector < arma::vec::fixed<3> > > all_accelerations(N_samples);
+	std::vector< std::vector< double> > all_potentials(N_samples);
+	std::vector< arma::vec::fixed<3> > all_positions = {position};
+	
+	accelerations = std::vector<arma::vec::fixed<3> >(N_samples);
+	potentials = std::vector<double>(N_samples);
+	deviations = std::vector<arma::vec>(N_samples);
+
+
+	SBGATPolyhedronGravityModelUQ::RunMCUQ(path_to_shape,
+		density,
+		shape_in_meters,
+		P_CC,
+		N_samples,
+		all_positions,
+		deviations,
+		all_accelerations,
+		all_potentials,
+		saved_shapes);
+
+	for (int i = 0; i < N_samples; ++i){
+		accelerations[i] = all_accelerations[i][0];
+		potentials[i] = all_potentials[i][0];
+	}
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
+	const double & density,
+	const bool & shape_in_meters,
+	const arma::mat & P_CC,
+	const unsigned int & N_samples,
+	const std::vector<arma::vec::fixed<3> > & all_positions,
+	std::vector<arma::vec> & deviations,
+	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
+	std::vector<std::vector<double > > & all_potentials,
+	std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes){
+
+	if (all_accelerations.size() == 0)
+		all_accelerations = std::vector< std::vector < arma::vec::fixed<3> > >(N_samples);
+	if (all_potentials.size() == 0)
+		all_potentials = std::vector< std::vector < double > > (N_samples);
+	if (deviations.size() == 0)
+		deviations = std::vector<arma::vec>(N_samples);
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
+	reader_mc -> SetFileName(path_to_shape.c_str());
+	reader_mc -> Update(); 
+
+		// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+	cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+	cleaner_mc -> Update();
+
+
+	#pragma omp parallel for
+	for (int i = 0; i < N_samples ; ++i){
+
+		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
+		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
+
+		// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter_mc -> SetInputData(shape_copy);
+		pgm_filter_mc -> SetDensity(density); 
+		if (shape_in_meters){
+			pgm_filter_mc -> SetScaleMeters();
+		}
+		else{
+			pgm_filter_mc -> SetScaleKiloMeters();
+
+		}
+		pgm_filter_mc -> Update();
+		SBGATPolyhedronGravityModelUQ shape_uq_mc;
+		
+		shape_uq_mc.SetPGM(pgm_filter_mc);
+		shape_uq_mc.SetCovariance(P_CC);
+
+		arma::mat C_CC = shape_uq_mc.GetCovarianceSquareRoot(false);
+
+		deviations[i] = C_CC * arma::randn<arma::vec>(3 * vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()) -> GetNumberOfPoints());
+		shape_uq_mc.ApplyDeviation(deviations[i]);
+
+		for (auto pos : all_positions){
+
+			arma::vec::fixed<3> acc;
+			double pot;
+
+			shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
+			all_accelerations[i].push_back(acc);
+			all_potentials[i].push_back(pot);
+
+		}
+
+
+		if (i < saved_shapes.size()){
+			vtkSmartPointer<vtkPolyData> shape = vtkSmartPointer<vtkPolyData>::New();
+			shape -> DeepCopy(pgm_filter_mc -> GetInput());
+			saved_shapes[i] = shape;
+		}
+	}
+
+
+}
 
