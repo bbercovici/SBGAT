@@ -103,6 +103,11 @@ include(${VTK_USE_FILE})
 find_package(YORPLib REQUIRED PATHS ${YORPLIB_PATH})
 include_directories(${YORPLIB_INCLUDE_HEADER})
 
+
+# Find OrbitConversions 
+find_package(OrbitConversions REQUIRED)
+include_directories(${OC_INCLUDE_DIR})
+
 # Find SHARMLib
 find_package(SHARMLib REQUIRED PATHS ${SHARMLIB_PATH})
 include_directories(${SHARMLIB_INCLUDE_HEADER})
