@@ -38,6 +38,7 @@
 ################################################################################
 
 set (RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 
 
 
@@ -74,7 +75,7 @@ find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATH})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
-find_package(SbgatCore REQUIRED)
+find_package(SbgatCore REQUIRED PATHS ${SBGAT_PATH})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 # Find OpenMP
