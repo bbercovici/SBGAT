@@ -118,12 +118,21 @@ include_directories(${RBK_INCLUDE_DIR})
 add_library(${LIB_NAME} 
 	SHARED
 	source/SBGATRefFrame.cpp
+	source/SBGATFilter.cpp
 	source/SBGATFrameGraph.cpp
 	source/SBGATPolyhedronGravityModel.cpp
+	source/SBGATPolyhedronGravityModelUQ.cpp
 	source/SBGATMassProperties.cpp
+	source/SBGATMassPropertiesUQ.cpp
+	source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
+	source/SBGATObs.cpp
+	source/SBGATObsRadar.cpp
+	source/SBGATObsLightcurve.cpp
+	source/SBGATTrajectory.cpp
+	source/SBGATTransformShape.cpp
 	)
 
 # Linking
