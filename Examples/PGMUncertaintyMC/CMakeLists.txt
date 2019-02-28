@@ -42,7 +42,6 @@ set(RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
 set (SBGAT_PATH "/home/bebe0705/libs/local/lib/cmake/SbgatCore")
 set (NLOHMANN_JSON_PATH "/home/bebe0705/libs/local/lib/cmake/nlohmann_json")
 
-
 ################################################################################
 #
 #

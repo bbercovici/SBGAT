@@ -23,7 +23,7 @@
 set(SBGATCORE_INCLUDE_HEADER /home/bebe0705/libs/local/include/SbgatCore/)
 set(SBGATCORE_LIBRARY /home/bebe0705/libs/local/lib/libSbgatCore.so)
 
-set(NLOHMANN_JSON_INCLUDE_HEADER /home/bebe0705/libs/local/include/nlohmann_json/)
+set(NLOHMANN_JSON_INCLUDE_HEADER /home/bebe0705/libs/local/include/nlohmann)
 
 
 message("-- Found SbgatCore: " ${SBGATCORE_LIBRARY})
