@@ -75,7 +75,6 @@ cmake_minimum_required(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/source/cmake)
 
 add_definitions(-Wall -O2 )
-include_directories(include)
 
 # Find Boost
 find_package(Boost COMPONENTS filesystem) 
@@ -111,7 +110,7 @@ find_package(nlohmann_json REQUIRED PATHS ${NLOHMANN_JSON_PATH})
 
 # Add source files in root directory
 add_executable(${EXE_NAME}
-	source/main.cpp
+	main.cpp
 	)
 
 set(library_dependencies
