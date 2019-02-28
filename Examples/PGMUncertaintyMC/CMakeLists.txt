@@ -93,7 +93,7 @@ find_package(SbgatCore REQUIRED PATHS ${SBGAT_PATH})
 include_directories(${SBGATCORE_INCLUDE_HEADER})
 include_directories(${NLOHMANN_JSON_INCLUDE_HEADER})
 
-message(${NLOHMANN_JSON_INCLUDE_HEADER})
+message("${NLOHMANN_JSON_INCLUDE_HEADER}")
 
 # Find OpenMP
 find_package(OpenMP)
