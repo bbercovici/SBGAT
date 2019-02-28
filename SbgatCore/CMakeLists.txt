@@ -131,7 +131,7 @@ add_library(${LIB_NAME}
 	source/SBGATPolyhedronGravityModelUQ.cpp
 	source/SBGATMassProperties.cpp
 	source/SBGATMassPropertiesUQ.cpp
-	source/SBGATShapeUncertainty.cpp
+	# source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
