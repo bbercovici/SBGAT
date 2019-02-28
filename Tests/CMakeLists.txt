@@ -37,6 +37,11 @@
 #
 ################################################################################
 
+set (RBK_PATH "/home/bebe0705/libs/local/lib/cmake/RigidBodyKinematics")
+
+
+
+
 cmake_minimum_required(VERSION 3.05.0)
 
 # Building procedure
@@ -65,7 +70,7 @@ find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 
 # Find RBK 
-find_package(RigidBodyKinematics REQUIRED)
+find_package(RigidBodyKinematics REQUIRED PATHS ${RBK_PATH})
 include_directories(${RBK_INCLUDE_DIR})
 
 # Find SBGAT 
