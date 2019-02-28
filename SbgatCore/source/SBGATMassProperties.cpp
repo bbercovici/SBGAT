@@ -23,10 +23,7 @@ SOFTWARE.
 
 /*=========================================================================
 
-  Program:   Visualization Toolkit
-  Module:    SBGATMassProperties.cxx
-
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -38,6 +35,8 @@ SOFTWARE.
 
 =========================================================================*/
 #include "SBGATMassProperties.hpp"
+#include "SBGATFilter.hpp"
+
 
 #include <vtkObjectFactory.h>
 #include <vtkCell.h>
@@ -45,9 +44,11 @@ SOFTWARE.
 #include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkSmartPointer.h>
+#include <vtkCleanPolyData.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <RigidBodyKinematics.hpp>
+#include <json.hpp>
 vtkStandardNewMacro(SBGATMassProperties);
 
 //----------------------------------------------------------------------------
@@ -72,6 +73,7 @@ SBGATMassProperties::SBGATMassProperties(){
 //----------------------------------------------------------------------------
 // Destroy any allocated memory.
 SBGATMassProperties::~SBGATMassProperties(){
+  SBGATFilter::Clear();
 }
 
 //----------------------------------------------------------------------------
@@ -84,30 +86,15 @@ int SBGATMassProperties::RequestData(
   vtkInformation* vtkNotUsed( request ),
   vtkInformationVector** inputVector,
   vtkInformationVector* vtkNotUsed( outputVector )){
-  vtkInformation *inInfo =
-  inputVector[0]->GetInformationObject(0);
+  vtkInformation * r = nullptr;
+  vtkInformationVector * o = nullptr;
 
-  // call ExecuteData
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-  vtkIdType cellId, numCells, numPts, numIds;
-  double p[3];
-
-  numCells = input->GetNumberOfCells();
-  numPts = input->GetNumberOfPoints();
-  if (numCells < 1 || numPts < 1)
-  {
-    vtkErrorMacro( << "No data to measure...!");
-    return 1;
-  }
-
-  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-  ptIds->Allocate(VTK_CELL_SIZE);
-
+  SBGATFilter::RequestData( r ,inputVector,o);
+  
   // Traverse all cells, obtaining node coordinates.
   //
   double    vol[3],kxyz[3];
+  double tempVolume;
   double    xp[3]; // to compute volumeproj
   double    munc[3],wxyz,wxy,wxz,wyz;
   double    area,surfacearea;
@@ -115,69 +102,41 @@ int SBGATMassProperties::RequestData(
   double    volumeproj;
   double    mincellarea, maxcellarea;
   double    a,b,c,s;
-  double    x[3],y[3],z[3];
   double    i[3],j[3],k[3],u[3],absu[3],length;
   double    ii[3],jj[3],kk[3];
   double    xavg,yavg,zavg;
-  double cx,cy,cz;
-  double dv;
-  double P_xx;
-  double P_yy;
-  double P_zz;
-  double P_xy;
-  double P_xz;
-  double P_yz;
-  double l; //normalizing length
   double average_surface;
-
-  vtkIdType idx;
+  arma::vec::fixed<3> tempCOM = {0,0,0};
+  arma::mat::fixed<3,3> I_temp = arma::zeros<arma::mat>(3,3);
 
   // Initialize variables ...
-  //
   surfacearea = 0.0;
   volumeproj = 0.0;
+  tempVolume = 0;
   mincellarea = VTK_DOUBLE_MAX; maxcellarea = 0.0;
   wxyz = 0; wxy = 0.0; wxz = 0.0; wyz = 0.0;
-  cx = 0; cy = 0; cz = 0;
-  P_xx = 0;   P_yy = 0;   P_zz = 0;
-  P_xy = 0;   P_yz = 0;   P_xz = 0;
-
+  
   sum_surface[0] = 0;
   sum_surface[1] = 0;
   sum_surface[2] = 0;
   average_surface = 0;
 
 
-  input -> GetBounds(this -> bounds);
-  arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
-  arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
-  l = arma::norm(bbox_max - bbox_min);
-
-  for ( idx = 0; idx < 3 ; idx++ ){
+  for ( int idx = 0; idx < 3 ; idx++ ){
     munc[idx] = 0.0;
     vol[idx]  = 0.0;
     kxyz[idx] = 0.0;
   }
 
-  for (cellId=0; cellId < numCells; cellId++)
-  {
-    if ( input->GetCellType(cellId) != VTK_TRIANGLE)
-    {
-      vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "
-        << input->GetCellType(cellId));
-      continue;
-    }
-    input->GetCellPoints(cellId,ptIds);
-    numIds = ptIds->GetNumberOfIds();
-    assert(numIds == 3);
+  for (int f = 0; f < this -> N_facets; f++){
 
-    // store current vertex (x,y,z) coordinates ...
-    // Note that the coordinates are normalized!
-    for (idx=0; idx < numIds; idx++)
-    {
-      input->GetPoint(ptIds->GetId(idx), p);
-      x[idx] = p[0] / l; y[idx] = p[1] / l; z[idx] = p[2] / l;
-    }
+    double    x[3],y[3],z[3];
+    
+    // Note that the coordinates are scaled to meters if need be!
+
+    x[0] = this -> scaleFactor * this -> vertices[facets[f][0]][0] ; y[0] = this -> scaleFactor * this -> vertices[facets[f][0]][1] ; z[0] = this -> scaleFactor * this -> vertices[facets[f][0]][2] ;
+    x[1] = this -> scaleFactor * this -> vertices[facets[f][1]][0] ; y[1] = this -> scaleFactor * this -> vertices[facets[f][1]][1] ; z[1] = this -> scaleFactor * this -> vertices[facets[f][1]][2] ;
+    x[2] = this -> scaleFactor * this -> vertices[facets[f][2]][0] ; y[2] = this -> scaleFactor * this -> vertices[facets[f][2]][1] ; z[2] = this -> scaleFactor * this -> vertices[facets[f][2]][2] ;
 
     // get i j k vectors ...
     //
@@ -258,9 +217,7 @@ int SBGATMassProperties::RequestData(
     area = sqrt( fabs(s*(s-a)*(s-b)*(s-c)));
     surfacearea += area;
 
-    average_surface += area / numCells;
-
-
+    average_surface += area / this -> N_facets;
 
     if( area < mincellarea )
     {
@@ -289,212 +246,342 @@ int SBGATMassProperties::RequestData(
 
     // Center of mass
     // See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
-    dv = 1. / 6. * (x[1] * ( (  y[1] - y[0] ) * (  z[2] - z[0]   ) - (  z[1] - z[0]   ) * (  y[2] - y[0])) + 
-      y[1] * ( (  z[1] - z[0] ) * (  x[2] - x[0]   ) -  (  x[1] - x[0]   ) * (  z[2] - z[0]   ) ) + 
-      z[1] * ( (  x[1] - x[0] ) * (  y[2] - y[0]   ) -  (  y[1] - y[0]   ) * (  x[2] - x[0]   )));
-
-    cx += dv * (x[0] + x[1] + x[2])/4;
-    cy += dv * (y[0] + y[1] + y[2])/4;
-    cz += dv * (z[0] + z[1] + z[2])/4;
-
-
-    // Inertia tensor
-    // See "Inertia of Any Polyhedron" by Anthony R. Dobrovolskis, Icarus 124, 698–704 (1996) Article No. 0243
-
-    P_xx += dv / 20 * (2 * x[0] * x[0]
-      + 2 * x[1] * x[1]
-      + 2 * x[2] * x[2]
-      + x[0] * x[1]
-      + x[0] * x[1]
-      + x[0] * x[2]
-      + x[0] * x[2]
-      + x[1] * x[2]
-      + x[1] * x[2]);
-
-
-    P_yy += dv / 20 * (2 * y[0] * y[0]
-      + 2 * y[1] * y[1]
-      + 2 * y[2] * y[2]
-      + y[0] * y[1]
-      + y[0] * y[1]
-      + y[0] * y[2]
-      + y[0] * y[2]
-      + y[1] * y[2]
-      + y[1] * y[2]);
-
-    P_zz += dv / 20 * (2 * z[0] * z[0]
-      + 2 * z[1] * z[1]
-      + 2 * z[2] * z[2]
-      + z[0] * z[1]
-      + z[0] * z[1]
-      + z[0] * z[2]
-      + z[0] * z[2]
-      + z[1] * z[2]
-      + z[1] * z[2]);
-
-    P_xy += dv / 20 * (2 * x[0] * y[0]
-      + 2 * x[1] * y[1]
-      + 2 * x[2] * y[2]
-      + x[0] * y[1]
-      + y[0] * x[1]
-      + x[0] * y[2]
-      + y[0] * x[2]
-      + x[1] * y[2]
-      + y[1] * x[2]);
-
-    P_xz += dv / 20 * (2 * x[0] * z[0]
-      + 2 * x[1] * z[1]
-      + 2 * x[2] * z[2]
-      + x[0] * z[1]
-      + z[0] * x[1]
-      + x[0] * z[2]
-      + z[0] * x[2]
-      + x[1] * z[2]
-      + z[1] * x[2]);
-
-    P_yz += dv / 20 * (2 * y[0] * z[0]
-      + 2 * y[1] * z[1]
-      + 2 * y[2] * z[2]
-      + y[0] * z[1]
-      + z[0] * y[1]
-      + y[0] * z[2]
-      + z[0] * y[2]
-      + y[1] * z[2]
-      + z[1] * y[2]);
-
-
+    double dv = this -> GetDeltaV(f) ;
+    tempCOM += this -> GetDeltaCM(f) * dv;
+    I_temp +=  this -> GetDeltaIOverDeltaV(f) * dv;
+    tempVolume += dv;
 
     // Sum of oriented surface
     vtkMath::MultiplyScalar(u,area);
     vtkMath::Add(u,sum_surface,sum_surface);
 
+
   }
 
   // Surface Area ...
-  //
-  this->SurfaceArea = surfacearea* std::pow(l,2);
-  this->MinCellArea = mincellarea* std::pow(l,2);
-  this->MaxCellArea = maxcellarea* std::pow(l,2);
+  this->SurfaceArea = surfacearea;
+  this->MinCellArea = mincellarea;
+  this->MaxCellArea = maxcellarea;
 
   // Weighting factors in Discrete Divergence theorem for volume calculation.
   //
-  kxyz[0] = (munc[0] + (wxyz/3.0) + ((wxy+wxz)/2.0)) /numCells;
-  kxyz[1] = (munc[1] + (wxyz/3.0) + ((wxy+wyz)/2.0)) /numCells;
-  kxyz[2] = (munc[2] + (wxyz/3.0) + ((wxz+wyz)/2.0)) /numCells;
-  this->VolumeX = vol[0] * std::pow(l,3) ;
-  this->VolumeY = vol[1] * std::pow(l,3) ;
-  this->VolumeZ = vol[2] * std::pow(l,3) ;
+  kxyz[0] = (munc[0] + (wxyz/3.0) + ((wxy+wxz)/2.0)) /this -> N_facets;
+  kxyz[1] = (munc[1] + (wxyz/3.0) + ((wxy+wyz)/2.0)) /this -> N_facets;
+  kxyz[2] = (munc[2] + (wxyz/3.0) + ((wxz+wyz)/2.0)) /this -> N_facets;
+
+  this->VolumeX = vol[0] ;
+  this->VolumeY = vol[1] ;
+  this->VolumeZ = vol[2] ;
+  this -> Volume = tempVolume;
+
   this->Kx = kxyz[0];
   this->Ky = kxyz[1];
   this->Kz = kxyz[2];
-  this->Volume =  (kxyz[0] * vol[0] + kxyz[1] * vol[1] + kxyz[2]  * vol[2])* std::pow(l,3);
-  this->Volume =  fabs(this->Volume);
-  this->VolumeProjected = volumeproj * std::pow(l,3);
-  this->NormalizedShapeIndex =
-  (sqrt(surfacearea)/std::cbrt(this->Volume))/2.199085233;
-
+  this->VolumeProjected = volumeproj ;
+  this->NormalizedShapeIndex =(sqrt(surfacearea)/std::cbrt(this->Volume))/2.199085233;
 
   // Center of mass
-  arma::vec::fixed<3> com_ = {cx,cy,cz};
+  this -> center_of_mass = tempCOM / this -> Volume ;
 
-  this -> center_of_mass = l * com_ / this->Volume * std::pow(l,3);
 
-  // Inertia tensor that was non-dimensionalized by l, not cbrt(V)
-  arma::mat I = {
-    {P_yy + P_zz, -P_xy, -P_xz},
-    { -P_xy, P_xx + P_zz, -P_yz},
-    { -P_xz, -P_yz, P_xx + P_yy}};
-
-    double L = std::cbrt(this -> Volume) ;
-    this -> inertia_tensor = std::pow(l / L,5) *  I - RBK::tilde(this -> center_of_mass / L) * RBK::tilde(this -> center_of_mass / L).t();
+  this -> r_avg =  std::cbrt( 3./4. * this -> Volume / arma::datum::pi ) ;
+  this -> inertia_tensor = I_temp / (this -> Volume * this -> r_avg * this -> r_avg);
 
     // The principal axes are extracted
-    arma::vec eig_val;
-    arma::mat eig_vec;
-    arma::eig_sym(eig_val,eig_vec,this -> inertia_tensor);
+  arma::vec eig_val;
+  arma::mat eig_vec;
+
+  arma::eig_sym(eig_val,eig_vec,this -> inertia_tensor);
+
+  if (arma::det(eig_vec) < 0){
+    eig_vec.col(2) *= -1;
+  }
+
+  arma::mat::fixed<3,3> PB_1 = eig_vec.t();
+  arma::mat::fixed<3,3> PB_2,PB_3,PB_4;
+
+  PB_2.row(0) = -PB_1.row(0);
+  PB_2.row(1) = -PB_1.row(1);
+  PB_2.row(2) = PB_1.row(2);
+
+  PB_3.row(0) = PB_1.row(0);
+  PB_3.row(1) = -PB_1.row(1);
+  PB_3.row(2) = -PB_1.row(2);
+
+  PB_4.row(0) = -PB_1.row(0);
+  PB_4.row(1) = PB_1.row(1);
+  PB_4.row(2) = -PB_1.row(2);
+
+  arma::vec::fixed<4> mrp_norms;
+
+  mrp_norms(0) = arma::norm(RBK::dcm_to_mrp(PB_1));
+  mrp_norms(1) = arma::norm(RBK::dcm_to_mrp(PB_2));
+  mrp_norms(2) = arma::norm(RBK::dcm_to_mrp(PB_3));
+  mrp_norms(3) = arma::norm(RBK::dcm_to_mrp(PB_4));
+
+  // The stable principal axes are extracted by finding the dcm that yields the 
+  // smallest-norm MRP
+
+  if (mrp_norms.index_min() == 0){
+   this -> principal_axes = PB_1;
+ }
+ else if (mrp_norms.index_min() == 1){
+   this -> principal_axes = PB_2;
+ }
+ else if (mrp_norms.index_min() == 2){
+   this -> principal_axes = PB_3;
+ }
+ else{
+   this -> principal_axes = PB_4;
+ }
 
 
-    // At this stage, eig_vec is (+/- v0,+/- v1 , +/- v2) where |v0| = |v1| = |v2| = 1
-    // with their corresponding values sorted in ascending order
-    // But it is not guaranteed that det(eig_vec) = +1
-    // The 8 total configurations of the principal axes matrix M that exist are
-    // M1: (v0,v1,v2) == eig_vec
-    // M2: (v0,v1,-v2)
-    // M3: (v0,-v1,v2)
-    // M4: (v0,-v1,-v2)
-    // M5: (-v0,v1,v2)
-    // M6: (-v0,v1,-v2)
-    // M7: (-v0,-v1,v2)
-    // M8: (-v0,-v1,-v2)
 
-    // Note that M1,M4,M6,M7 and M2,M3,M5,M8 have the same determinant respectively
+ this -> unit_density_inertia_tensor = this -> Volume * this -> r_avg * this -> r_avg * this -> inertia_tensor;
+ this -> normalized_principal_moments = arma::eig_sym(this -> inertia_tensor);
+ this -> unit_density_principal_moments = arma::eig_sym(this -> unit_density_inertia_tensor);
 
-    if (arma::det(eig_vec) < 0){
-      eig_vec = - eig_vec;
-    }
 
-    if(eig_vec(0,0) > 0 && eig_vec(1,1) < 0){
+ this -> principal_dimensions = std::sqrt(5. / 2. / this -> Volume) * arma::sqrt(arma::vec::fixed<3>({
+  unit_density_principal_moments(1) + unit_density_principal_moments(2) - unit_density_principal_moments(0),
+  unit_density_principal_moments(0) + unit_density_principal_moments(2) - unit_density_principal_moments(1),
+  unit_density_principal_moments(0) + unit_density_principal_moments(1) - unit_density_principal_moments(2)
+}));
 
-      eig_vec.col(1) = - eig_vec.col(1);
-      eig_vec.col(2) = - eig_vec.col(2);
-    }
-
-    else if(eig_vec(0,0) < 0 && eig_vec(2,2) < 0){
-
-      eig_vec.col(0) = - eig_vec.col(0);
-      eig_vec.col(2) = - eig_vec.col(2);
-    }
-
-    else if(eig_vec(0,0) < 0 && eig_vec(1,1) < 0){
-
-      eig_vec.col(0) = - eig_vec.col(0);
-      eig_vec.col(1) = - eig_vec.col(1);
-    }
-
-    this -> principal_axes = eig_vec;
 
 
     // Closeness of topology given sum of oriented surface
-    if (vtkMath::Norm(sum_surface) / average_surface < 1e-8){
-      this -> IsClosed = true;
-    }
-    else{
-      this -> IsClosed = false;
-    }
+ if (vtkMath::Norm(sum_surface) / average_surface < 1e-6){
+  this -> IsClosed = true;
+}
+else{
+  this -> IsClosed = false;
+}
 
-    return 1;
-  }
+return 1;
+}
 
 
 
-  void SBGATMassProperties::PrintHeader(ostream& os, vtkIndent indent) {
+void SBGATMassProperties::PrintHeader(ostream& os, vtkIndent indent) {
 
-  }
-  void SBGATMassProperties::PrintTrailer(ostream& os, vtkIndent indent) {
+}
+void SBGATMassProperties::PrintTrailer(ostream& os, vtkIndent indent) {
 
-  }
+}
 
 
 //----------------------------------------------------------------------------
-  void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
+void SBGATMassProperties::PrintSelf(std::ostream& os, vtkIndent indent){
 
-    vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
-    if (!input){
-      return;
-    }
-    os << "\tVolumeX: " << this->GetVolumeX () << "\n";
-    os << "\tVolumeY: " << this->GetVolumeY () << "\n";
-    os << "\tVolumeZ: " << this->GetVolumeZ () << "\n";
-    os << "\tKx: " << this->GetKx () << "\n";
-    os << "\tKy: " << this->GetKy () << "\n";
-    os << "\tKz: " << this->GetKz () << "\n";
-    os << "\tVolume:  " << this->GetVolume  () << "\n";
+  vtkPolyData *input = vtkPolyData::SafeDownCast(this->GetInput(0));
+  if (!input){
+    return;
+  }
+  os << "\tVolumeX: " << this->GetVolumeX () << "\n";
+  os << "\tVolumeY: " << this->GetVolumeY () << "\n";
+  os << "\tVolumeZ: " << this->GetVolumeZ () << "\n";
+  os << "\tKx: " << this->GetKx () << "\n";
+  os << "\tKy: " << this->GetKy () << "\n";
+  os << "\tKz: " << this->GetKz () << "\n";
+  os << "\tVolume:  " << this->GetVolume  () << "\n";
   //os << indent << "Volume Projected:  " << this->GetVolumeProjected  () << "\n";
   //os << indent << "Volume Error:  " <<
   //  fabs(this->GetVolume() - this->GetVolumeProjected())   << "\n";
-    os << "\tSurface Area: " << this->GetSurfaceArea () << "\n";
-    os << "\tMin Cell Area: " << this->GetMinCellArea () << "\n";
-    os << "\tMax Cell Area: " << this->GetMaxCellArea () << "\n";
-    os << "\tNormalized Shape Index: "
-    << this->GetNormalizedShapeIndex () << "\n";
-  }
+  os << "\tSurface Area: " << this->GetSurfaceArea () << "\n";
+  os << "\tMin Cell Area: " << this->GetMinCellArea () << "\n";
+  os << "\tMax Cell Area: " << this->GetMaxCellArea () << "\n";
+  os << "\tNormalized Shape Index: "
+  << this->GetNormalizedShapeIndex () << "\n";
+}
+
+
+
+void SBGATMassProperties::ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std::string path){
+
+  vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
+  mass_properties -> SetInputData(shape);
+  mass_properties -> SetScaleMeters();
+
+  mass_properties -> Update();
+
+  mass_properties -> SaveMassProperties(path);
+
+}
+
+void SBGATMassProperties::SaveMassProperties(std::string path) const {
+
+  nlohmann::json mass_properties_json;
+  std::string length_unit,surface_unit,volume_unit;
+
+  length_unit = "m";
+  surface_unit = "m^2";
+  volume_unit = "m^3";
+
+
+
+  nlohmann::json com_json = {
+    {"value",{this -> center_of_mass(0), this -> center_of_mass(1), this -> center_of_mass(2)}},
+    {"unit",length_unit}
+  };
+
+  nlohmann::json volume_json = {
+    {"value", this -> Volume},
+    {"unit",volume_unit}
+  };
+
+
+  nlohmann::json surface_area_json = {
+    {"value", this -> SurfaceArea},
+    {"unit",surface_unit}
+  };
+
+  nlohmann::json normalized_inertia_tensor_json = {
+    {"value", {
+      {this -> inertia_tensor(0,0),this -> inertia_tensor(0,1),this -> inertia_tensor(0,2)},
+      {this -> inertia_tensor(1,0),this -> inertia_tensor(1,1),this -> inertia_tensor(1,2)},
+      {this -> inertia_tensor(2,0),this -> inertia_tensor(2,1),this -> inertia_tensor(2,2)}}
+    },
+    {"unit","none"}
+  };
+
+  nlohmann::json  unit_density_inertia_tensor_json = {
+    {"value", {
+      {this -> unit_density_inertia_tensor(0,0),this -> unit_density_inertia_tensor(0,1),this -> unit_density_inertia_tensor(0,2)},
+      {this -> unit_density_inertia_tensor(1,0),this -> unit_density_inertia_tensor(1,1),this -> unit_density_inertia_tensor(1,2)},
+      {this -> unit_density_inertia_tensor(2,0),this -> unit_density_inertia_tensor(2,1),this -> unit_density_inertia_tensor(2,2)}}
+    },
+    {"unit","m^5"}
+  };
+
+
+  nlohmann::json principal_dimensions_json = {
+    {"value",{this -> principal_dimensions(0),this -> principal_dimensions(1),this -> principal_dimensions(2)}},
+    {"unit",length_unit}
+  };
+
+  nlohmann::json unit_density_principal_moments_json = {
+    {"value",{this -> unit_density_principal_moments(0),this -> unit_density_principal_moments(1),this -> unit_density_principal_moments(2)}},
+    {"unit","m^5"}
+  };
+
+
+
+  nlohmann::json normalized_principal_moments_json = {
+    {"value",{this -> normalized_principal_moments(0),this -> normalized_principal_moments(1),this -> normalized_principal_moments(2)}},
+    {"unit","none"}
+  };
+
+
+  nlohmann::json projected_volume_components_json = {
+    {"value",{this->VolumeX,this->VolumeY,this->VolumeZ}},
+    {"unit",volume_unit}
+  };
+
+  nlohmann::json projection_coefs_json = {
+    {"value",{this->Kx,this->Ky,this->Kz}},
+    {"unit","none"}
+  };
+
+  nlohmann::json volume_projected_json = {
+    {"value",this->VolumeProjected},
+    {"unit",volume_unit}
+  };
+
+  nlohmann::json normalized_shape_index_json = {
+    {"value",this->NormalizedShapeIndex},
+    {"unit","none"}
+  };
+
+  nlohmann::json is_open_json = {
+    {"value",this -> IsClosed ? "True" : "False"}
+  };
+
+  nlohmann::json average_radius_json = {
+    {"value",this -> r_avg},
+    {"unit",length_unit}
+  };
+
+  mass_properties_json["VOLUME"] = volume_json;
+  mass_properties_json["SURFACE_AREA"] = surface_area_json;
+  mass_properties_json["COM"] = com_json;
+  mass_properties_json["VOLUME_PROJECTED"] = volume_projected_json;
+  mass_properties_json["PROJECTED_VOLUME_VX_VY_VZ"] = projected_volume_components_json;
+  mass_properties_json["PROJECTED_VOLUME_COEFS_KX_KY_KZ"] = projection_coefs_json;
+  mass_properties_json["NORMALIZED_SHAPE_INDEX_JSON"] = normalized_shape_index_json;
+  mass_properties_json["IS_CLOSED"] = is_open_json;
+  mass_properties_json["NORMALIZED_INERTIA_TENSOR"] = normalized_inertia_tensor_json;
+  mass_properties_json["NORMALIZED_PRINCIPAL_MOMENTS"] = normalized_principal_moments_json;
+  mass_properties_json["UNIT_DENSITY_INERTIA_TENSOR"] = unit_density_inertia_tensor_json;
+  mass_properties_json["UNIT_DENSITY_PRINCIPAL_MOMENTS"] = unit_density_principal_moments_json;
+  mass_properties_json["PRINCIPAL_DIMENSIONS"] = principal_dimensions_json;
+
+  mass_properties_json["AVERAGE_RADIUS"] = average_radius_json;
+
+
+  std::ofstream o(path);
+  o << std::setw(4) << mass_properties_json << std::endl;
+
+
+}
+
+double SBGATMassProperties::GetDeltaV(const int & f) const {
+
+  return 1./6 * vtkMath::Determinant3x3(
+    this -> vertices[this -> facets[f][0]],
+    this -> vertices[this -> facets[f][1]],
+    this -> vertices[this -> facets[f][2]]) * std::pow(this -> scaleFactor,3);
+
+}
+
+arma::vec::fixed<3> SBGATMassProperties::GetDeltaCM(const int & f) const {
+
+  return (this -> scaleFactor/4 * arma::vec::fixed<3> ({
+    this -> vertices[this -> facets[f][0]][0] + this -> vertices[this -> facets[f][1]][0] + this -> vertices[this -> facets[f][2]][0],
+    this -> vertices[this -> facets[f][0]][1] + this -> vertices[this -> facets[f][1]][1] + this -> vertices[this -> facets[f][2]][1],
+    this -> vertices[this -> facets[f][0]][2] + this -> vertices[this -> facets[f][1]][2] + this -> vertices[this -> facets[f][2]][2]})
+  );
+
+}
+
+
+arma::mat::fixed<3,3> SBGATMassProperties::GetDeltaIOverDeltaV(const int & f) const {
+
+  double r0[3];
+  double r1[3];
+  double r2[3];
+
+  this -> GetVerticesInFacet(f,r0,r1,r2);
+  arma::vec::fixed<3> C0 = {r0[0],r0[1],r0[2]};
+  arma::vec::fixed<3> C1 = {r1[0],r1[1],r1[2]};
+  arma::vec::fixed<3> C2 = {r2[0],r2[1],r2[2]};
+
+
+  arma::mat::fixed<3,3> I = 6./5 * (
+    1./2 * RBK::tilde(C0) * RBK::tilde(C0)
+    + 1./6 * (RBK::tilde(C0) * RBK::tilde(C1 - C0) + RBK::tilde(C1 - C0) * RBK::tilde(C0))
+    + 1./6 * (RBK::tilde(C0) * RBK::tilde(C2 - C0) + RBK::tilde(C2 - C0) * RBK::tilde(C0))
+    + 1./24 * (RBK::tilde(C1 - C0) * RBK::tilde(C2 - C0) + RBK::tilde(C2 - C0) * RBK::tilde(C1 - C0))
+    + 1./12 * RBK::tilde(C1 - C0) * RBK::tilde(C1 - C0)
+    + 1./12 * RBK::tilde(C2 - C0) * RBK::tilde(C2 - C0)
+    );
+  return - I * std::pow(this -> scaleFactor,2);
+
+}
+
+
+arma::vec::fixed<6> SBGATMassProperties::GetDeltaIf(const int & f) const{
+
+  arma::mat::fixed<3,3> tensor = this -> GetDeltaIOverDeltaV(f) * this -> GetDeltaV(f);
+
+  return arma::vec::fixed<6>({
+    tensor(0,0),
+    tensor(1,1),
+    tensor(2,2),
+    tensor(0,1),
+    tensor(0,2),
+    tensor(1,2)});
+}
+
+
+

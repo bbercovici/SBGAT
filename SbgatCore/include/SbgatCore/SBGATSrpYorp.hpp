@@ -1,32 +1,7 @@
-/** MIT License
-
-Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
 
 /*=========================================================================
 
-  Program:   Small Body Geophysical Analysis
-  Module:    SBGATSrpYorp.hpp
-
-  Derived class from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
+  Class derived from VTK's vtkPolyDataAlgorithm by Benjamin Bercovici  
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -38,13 +13,18 @@ SOFTWARE.
 
 =========================================================================*/
 /**
- * @class  SBGATSrpYorp
- * @author Benjamin Bercovici
- * @brief  Computation of Fourier decomposition of force/torques caused by SRP over a shape model
- *
- * @details Wrapper around YORPLib to allow VTK's Polydata to be utilized as shape containers.
+  @class  SBGATSrpYorp
+  @author Benjamin Bercovici
+  @author Jay McMahon
+@date October 2018
+
+  @brief  Computation of Fourier decomposition of force/torques caused by SRP over a shape model
+ 
+  @details Wrapper around YORPLib to allow VTK's Polydata to be utilized as shape containers.
  see Scheeres, D. J. (2007). `The dynamical evolution of uniformly rotating asteroids subject to YORP`. Icarus, 188(2), 430–450. https://doi.org/10.1016/j.icarus.2006.12.015
  for more details
+@copyright MIT License, Benjamin Bercovici and Jay McMahon
+
 */
 
 #ifndef SBGATSrpYorp_HEADER
