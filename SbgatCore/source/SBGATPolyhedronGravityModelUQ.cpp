@@ -608,7 +608,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 		shape_uq.SetPGM(pgm_filter);
 
 		int N_edges = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() + vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints()  -2;
-		arma::vec e_vec = arma::randi(1,arma::distr_param(0,N_edges - 1));
+		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 		int e = e_vec(0);
 
 		arma::vec::fixed<6> Ee_param = shape_uq.GetPGM() -> GetEeParam(e);
