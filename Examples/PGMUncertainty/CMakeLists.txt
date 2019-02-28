@@ -57,7 +57,10 @@ set(CMAKE_C_COMPILER "/usr/local/bin/gcc" CACHE STRING "C Compiler" FORCE)
 set(CMAKE_CXX_COMPILER "/usr/local/bin/g++" CACHE STRING "C++ Compiler" FORCE)
 
 
-set(EXE_NAME "TestsSbgat")
+# Building procedure
+get_filename_component(dirName ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+set(EXE_NAME ${dirName} CACHE STRING "Name of executable to be created.")
+
 project(${EXE_NAME})
 
 # Specify the version used
