@@ -1457,7 +1457,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(std::string f
 		shape_uq.SetPGM(pgm_filter);
 
 		int e = 1;
-		arma::vec::fixed<6> delta_Ae = 1e-3 * arma::randn<arma::vec>(6);
+		arma::vec::fixed<6> delta_Ae = 1e-3 * arma::randn<arma::vec>(6) / pgm_filter -> GetScaleFactor() ;
 
 		double r0[3],r1[3];
 
@@ -1489,7 +1489,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(std::string f
 		double dle = le_p - le;
 
 	// Linear difference
-		double dle_lin = arma::dot(shape_uq.PartialEdgeLengthPartialAe(e), delta_Ae);
+		double dle_lin = arma::dot(shape_uq.PartialEdgeLengthPartialAe(e), pgm_filter -> GetScaleFactor() * delta_Ae);
 
 
 		if(std::abs(dle - dle_lin)/std::abs(dle_lin) < tol){
