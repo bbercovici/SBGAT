@@ -882,27 +882,40 @@ void TestsSBCore::test_sbgat_transform_shape(){
 
 void TestsSBCore::test_MassProperties_UQ_partials(){
 
-	std::cout << "- Running test_MassProperties_UQ_partials ..." << std::endl;
-	std::cout << "\t-- Testing ../../resources/shape_models/cube.obj ..." << std::endl;
 	std::string filename  = "../../resources/shape_models/cube.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2);
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
+
 	filename  = "../../resources/shape_models/skewed.obj";
-	std::cout << "\t-- Testing ../../resources/shape_models/skewed.obj ..." << std::endl;
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2);
-	std::cout << "- Done running test_MassProperties_UQ_partials ..." << std::endl;
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
+
+	filename  = "../../resources/shape_models/itokawa_8_scaled.obj";
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
+
+	filename  = "../../resources/shape_models/itokawa_8.obj";
+	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
+
 }
 
 
 void TestsSBCore::test_PGM_UQ_partials(){
-	std::cout << "- Running test_PGM_UQ_partials ..." << std::endl;
-	std::cout << "\t-- Testing ../../resources/shape_models/cube.obj ..." << std::endl;
+	
 	std::string filename  = "../../resources/shape_models/cube.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2);
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
+
 	filename  = "../../resources/shape_models/skewed.obj";
-	std::cout << "\t-- Testing ../../resources/shape_models/skewed.obj ..." << std::endl;
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2);
-	std::cout << "- Done running test_PGM_UQ_partials ..." << std::endl;
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
+
+	filename  = "../../resources/shape_models/itokawa_8_scaled.obj";
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
+
+	filename  = "../../resources/shape_models/itokawa_8.obj";
+	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,false);
+
+
 }
+
+
+
 
 void TestsSBCore::test_PGM_UQ_cube(){
 
