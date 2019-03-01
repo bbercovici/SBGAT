@@ -497,7 +497,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,
 	std::cout << "\t In TestPartialUfPartialTf ... ";
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	int N = 1000;
+	int N = 100;
 	#pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
@@ -575,7 +575,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	int N = 1000;
+	int N = 100;
 
 	
 	// Reading
@@ -607,8 +607,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 	pos.t().print("\n\t Sampling at: ");
-
-
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -686,7 +684,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(std::string filename,
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	int N = 1000;
+	int N = 100;
 
 	
 
@@ -1152,7 +1150,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(
 
 	std::cout << "\t In TestPartialNormalizedVPartialNonNormalizedV ... ";
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	#pragma omp parallel for reduction(+:successes)
@@ -1259,7 +1257,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(std::string filename,
 
 	std::cout << "\t In TestPartialFfPartialnf ... ";
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
@@ -1308,7 +1306,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(std::str
 
 	std::cout << "\t In TestPartialFfPartialNonNormalizedNf ... ";
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
@@ -1515,7 +1513,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename,d
 	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	int N = 1000;
+	int N = 100;
 	#pragma omp parallel for reduction(+:successes)
 	for(int i = 0; i < N; ++i){
 
@@ -1830,7 +1828,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filena
 
 	std::cout << "\t In TestPartialAtan2PartialZf ... ";
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	#pragma omp parallel for reduction(+:successes)
@@ -1865,7 +1863,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filena
 void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(std::string filename,double tol,bool shape_in_meters){
 
 	std::cout << "\t In TestPartialZfPartialUnitRf ...";
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	#pragma omp parallel for reduction(+:successes)
@@ -2106,7 +2104,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	std::cout << "\t In TestAddPartialSumUePartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2209,7 +2207,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 	std::cout << "\t In TestAddPartialSumAccePartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2311,7 +2309,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 	std::cout << "\t In TestAddPartialSumAccfPartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2416,7 +2414,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string file
 	std::cout << "\t In TestAddPartialSumUfPartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2520,7 +2518,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename,do
 	std::cout << "\t In TestPartialUPartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2611,7 +2609,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,do
 	std::cout << "\t In TestPartialAPartialC ...";
 
 	// MC
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2734,7 +2732,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename,
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	int N = 1000;
+	int N = 100;
 
 #pragma omp parallel for reduction(+:successes)
 	for(int i = 0; i < N; ++i){
@@ -2798,7 +2796,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 
 	// MC
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -2895,7 +2893,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 
 	// MC
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
@@ -3020,7 +3018,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 
 	// MC
 
-	int N = 1000;
+	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	
