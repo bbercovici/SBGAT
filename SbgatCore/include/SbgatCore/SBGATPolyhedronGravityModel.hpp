@@ -194,6 +194,12 @@ the polydata used to construct the PGM
     this -> densitySet = true;
   }
 
+  /**
+  Returns length of considered edge in meters
+  @param e edge index
+  @return edge length(m )
+*/  
+  double GetEdgeLength(const int & e) const;
 
   /**
   Get polyhedron density

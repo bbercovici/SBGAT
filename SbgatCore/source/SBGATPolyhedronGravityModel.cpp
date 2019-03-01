@@ -397,6 +397,11 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 }
 
 
+double SBGATPolyhedronGravityModel::GetEdgeLength(const int & e) const{
+
+  return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
+}
+
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec::fixed<3> & point) const{
 	return this-> GetAcceleration(  point.colptr(0));
