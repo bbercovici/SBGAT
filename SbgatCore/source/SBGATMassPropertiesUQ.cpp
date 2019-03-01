@@ -918,7 +918,7 @@ arma::mat SBGATMassPropertiesUQ::GetPartialIPartialC() const{
 
 	arma::mat partial = arma::zeros<arma::mat>(6,3 * this -> mass_prop -> GetN_vertices());
 
-	#pragma omp parallel for
+	#pragma omp parallel for reduction(+:partial)
 	for (int f = 0; f < this -> mass_prop -> GetN_facets(); ++f){
 
 		partial += this -> PartialDeltaIfPartialTf(f) * this -> mass_prop ->  PartialTfPartialC(f);
