@@ -57,9 +57,10 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	
 	SBGATMassPropertiesUQ::TestGetPartialVolumePartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialComPartialC(input,tol,shape_in_meters);
-	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
 
 	SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(input,tol,shape_in_meters);
+	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
+
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
@@ -875,7 +876,7 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 
 		arma::vec::fixed<9> Tf = arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
 
-		double dIqf_lin = arma::dot(shape_uq.PartialEqDeltaIfErPartialTf(f,indices_vec(0),indices_vec(1),Tf) , mass_prop -> GetScaleFactor()* delta_Tf);
+		double dIqf_lin = arma::dot(shape_uq.PartialEqDeltaIfErPartialTf(f,indices_vec(0),indices_vec(1), mass_prop -> GetScaleFactor() * Tf) , mass_prop -> GetScaleFactor()* delta_Tf);
 
 	// Apply Tf deviation
 		shape_uq. ApplyTfDeviation(delta_Tf,f);

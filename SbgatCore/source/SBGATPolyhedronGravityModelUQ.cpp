@@ -2164,7 +2164,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 			SumAcce += shape_uq.GetPGM() -> GetAe(shape_uq.GetPGM() -> GetXe(pos,e));
 		}
 
-		arma::mat partial = arma::zeros<arma::mat>(3,24);
+		arma::mat partial = arma::zeros<arma::mat>(3,vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3);
 		shape_uq.AddPartialSumAccePartialC(pos,partial);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 
@@ -2236,7 +2236,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 			SumAccf += shape_uq.GetPGM() -> GetAf(shape_uq.GetPGM() -> GetXf(pos,f));
 		}
 
-		arma::mat partial = arma::zeros<arma::mat>(3,24);
+		arma::mat partial = arma::zeros<arma::mat>(3,vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3);
 		shape_uq.AddPartialSumAccfPartialC(pos,partial);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 
