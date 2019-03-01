@@ -30,10 +30,7 @@ void SBGATPolyhedronGravityModelUQ::SetPGM(vtkSmartPointer<SBGATPolyhedronGravit
 
 double SBGATPolyhedronGravityModelUQ::GetVariancePotential(double const * point) const{
 
-	double point_scaled[3] = {point[0],point[1],point[2]};
-	vtkMath::MultiplyScalar(point_scaled,1./this -> pgm_model -> GetScaleFactor());
-
-	arma::rowvec partial = this -> pgm_model -> GetScaleFactor() * this -> GetPartialUPartialC(point_scaled);
+	arma::rowvec partial = this -> GetPartialUPartialC(point);
 
 	return arma::dot(partial, this -> P_CC * partial.t()); 
 
@@ -48,11 +45,7 @@ double SBGATPolyhedronGravityModelUQ::GetVariancePotential(const arma::vec::fixe
 
 arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::GetCovarianceAcceleration(double const * point) const{
 
-
-	double point_scaled[3] = {point[0],point[1],point[2]};
-	vtkMath::MultiplyScalar(point_scaled,1./this -> pgm_model -> GetScaleFactor());
-
-	arma::mat partial = this -> GetPartialAPartialC(point_scaled);
+	arma::mat partial = this -> GetPartialAPartialC(point);
 	return partial *  this -> P_CC * partial.t();
 
 }
