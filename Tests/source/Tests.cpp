@@ -898,7 +898,7 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	
-	// std::string filename  = "../../resources/shape_models/cube.obj";
+	std::string filename  = "../../resources/shape_models/cube.obj";
 	// SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
 
 	// filename  = "../../resources/shape_models/skewed.obj";
