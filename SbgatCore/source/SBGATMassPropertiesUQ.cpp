@@ -106,8 +106,6 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 
 
 	shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
-
-	std::cout << arma::norm(dIdC_standalone - dIdC)/arma::norm(dIdC) << std::endl;
 	
 	assert(arma::norm(dVdC_standalone - dVdC)/arma::norm(dVdC) < 1e-10);
 	assert(arma::norm(dComdC_standalone - dComdC)/arma::norm(dComdC) < 1e-10);
@@ -564,7 +562,7 @@ void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arm
 	dCOMdC = arma::zeros<arma::mat>(3,3 * this -> mass_prop -> GetN_vertices());
 	dIdC = arma::zeros<arma::mat>(6,3 * this -> mass_prop -> GetN_vertices());
 
-	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC) reduction(+:dIdC)
+	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
 	for (int f = 0; f < this -> mass_prop -> GetN_facets(); ++f){
 
 		arma::sp_mat connect_table = this -> mass_prop -> PartialTfPartialC(f);
@@ -574,9 +572,6 @@ void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arm
 		dIdC += this -> PartialDeltaIfPartialTf(f) * connect_table;
 
 	}
-
-	dVdC *= std::pow(this -> mass_prop -> GetScaleFactor(),2);
-	dIdC *= std::pow(this -> mass_prop -> GetScaleFactor(),4);
 
 }
 
