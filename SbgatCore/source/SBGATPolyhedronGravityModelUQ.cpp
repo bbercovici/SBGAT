@@ -2099,7 +2099,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 		double dSumUe = SumUe_p - SumUe;
 		double dSumUe_lin = arma::dot(partial,pgm_filter -> GetScaleFactor() * deviation);
 
-		std::cout << dSumUe << " " << dSumUe_lin << std::endl;
+		std::cout << dSumUe << " " << dSumUe_lin << " : " << std::abs(dSumUe - dSumUe_lin)/std::abs(dSumUe_lin) << std::endl;
 
 		if(std::abs(dSumUe - dSumUe_lin)/std::abs(dSumUe_lin) < tol){
 			++successes;
