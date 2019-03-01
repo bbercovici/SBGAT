@@ -491,7 +491,8 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
-	#pragma omp parallel for reduction(+:successes)
+	double max_error = -1;
+	#pragma omp parallel for reduction(+:successes) reduction(max:max_error)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -566,11 +567,15 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	// Non-linear 
 		arma::vec::fixed<6> ddeltaI = deltaI_p - deltaI;
 
-		if(arma::norm(arma::vectorise(ddeltaI - ddeltaI_lin)) / arma::norm(arma::vectorise(ddeltaI_lin)) < tol){
+		max_error = std::max(max_error,arma::abs(arma::vectorise(ddeltaI - ddeltaI_lin)).max() / arma::norm(arma::vectorise(ddeltaI_lin)));
+
+		if(arma::abs(arma::vectorise(ddeltaI - ddeltaI_lin)).max() / arma::norm(arma::vectorise(ddeltaI_lin)) < tol){
 			
+
+
 			if (std::abs(dV - dV_lin)/std::abs(dV_lin) < tol){
 
-				if(arma::norm(arma::vectorise(dcom - dcom_lin)) / arma::norm(dcom_lin) < tol){
+				if(arma::abs(dcom - dcom_lin).max() / arma::norm(dcom_lin) < tol){
 					++successes;
 
 				}
@@ -579,7 +584,7 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 
 	}
 
-	std::cout << "\t Passed TestGetPartialAllInertiaPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
+	std::cout << "\t Passed TestGetPartialAllInertiaPartialC with " << double(successes)/N * 100 << " \% of successes with max error = " << max_error <<  " \n";
 
 
 }
