@@ -882,17 +882,17 @@ void TestsSBCore::test_sbgat_transform_shape(){
 void TestsSBCore::test_MassProperties_UQ_partials(){
 
 
-	std::string filename  = "../../resources/shape_models/cube.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
+	// std::string filename  = "../../resources/shape_models/cube.obj";
+	// SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
 
-	filename  = "../../resources/shape_models/cube.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
+	// filename  = "../../resources/shape_models/cube.obj";
+	// SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
 
-	filename  = "../../resources/shape_models/skewed.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
+	// filename  = "../../resources/shape_models/skewed.obj";
+	// SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
 
-	filename  = "../../resources/shape_models/itokawa_8.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
+	// filename  = "../../resources/shape_models/itokawa_8.obj";
+	// SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
 
 
 }
@@ -901,13 +901,13 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 void TestsSBCore::test_PGM_UQ_partials(){
 	
 	std::string filename  = "../../resources/shape_models/cube.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
+	// SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
 
-	filename  = "../../resources/shape_models/cube.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,false);
+	// filename  = "../../resources/shape_models/cube.obj";
+	// SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,false);
 
-	filename  = "../../resources/shape_models/skewed.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
+	// filename  = "../../resources/shape_models/skewed.obj";
+	// SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
 
 	filename  = "../../resources/shape_models/itokawa_8.obj";
 	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,false);
