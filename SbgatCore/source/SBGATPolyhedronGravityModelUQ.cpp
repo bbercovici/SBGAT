@@ -938,7 +938,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filen
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
 
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
-		int f = f_vec(0);		arma::vec pos = {2,3,4};
+		int f = f_vec(0);		
+		arma::vec pos = {2,3,4};
 
 	// Nominal omega_f
 		double omega_f = pgm_filter -> GetOmegaf(pos,f);
@@ -1127,7 +1128,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(std::string filename,
 		arma::vec::fixed<3> N = shape_uq.GetPGM() -> GetNonNormalizedFacetNormal(f);
 
 	// Linear difference
-		arma::vec::fixed<3> dN_lin = shape_uq . PartialNfPartialTf(f) * delta_Tf;
+		arma::vec::fixed<3> dN_lin = shape_uq . PartialNfPartialTf(f) * pgm_filter -> GetScaleFactor() * delta_Tf;
 
 	// Apply Tf deviation
 		shape_uq. ApplyTfDeviation(delta_Tf,f);
