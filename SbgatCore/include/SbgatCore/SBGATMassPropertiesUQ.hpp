@@ -169,7 +169,7 @@ vertices coordinates
 @param f facet index
 @param q first index
 @param r second index
-@param Tf 9x1 vector holding coordinates of vertices in facet
+@param Tf 9x1 vector holding coordinates of vertices in facet EXPRESSED IN METERS
 @return partial derivative of the (q,r) component of the contribution of the f-facet 
 to the shape's inertia tensor
 */
