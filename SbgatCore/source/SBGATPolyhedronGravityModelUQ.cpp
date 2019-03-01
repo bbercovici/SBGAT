@@ -1103,11 +1103,12 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename,
 
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);
+	
 	// Nominal dyad
 		arma::vec::fixed<6> Ff = pgm_filter -> GetFfParam(f);
 
 	// Deviation
-		arma::vec::fixed<9> delta_Tf = 1e-2 * arma::randn<arma::vec>(9)/ pgm_filter -> GetScaleFactor();
+		arma::vec::fixed<9> delta_Tf = 1e-3 * arma::randn<arma::vec>(9)/ pgm_filter -> GetScaleFactor();
 
 	// Linear difference
 		arma::vec::fixed<6> dFf_lin = shape_uq.PartialFfPartialTf(f) * pgm_filter -> GetScaleFactor() * delta_Tf;
