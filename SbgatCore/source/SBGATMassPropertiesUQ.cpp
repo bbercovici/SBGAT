@@ -472,7 +472,7 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
-	#pragma omp parallel for reduction(+:successes) reduction(max:max_error)
+	#pragma omp parallel for reduction(+:successes) 
 	for (int i = 0; i < N ; ++i){
 
 		// Reading
