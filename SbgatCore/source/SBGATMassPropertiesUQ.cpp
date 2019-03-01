@@ -114,7 +114,7 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 	arma::uvec error_index = arma::index_max(error,1);
 
-	std::cout << dIdC_standalone.col(error_index(0));
+	std::cout << dIdC_standalone.col(error_index(0)) << std::endl;
 	std::cout << dIdC.col(error_index(0));
 
 	
