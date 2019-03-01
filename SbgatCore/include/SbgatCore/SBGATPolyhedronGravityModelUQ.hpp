@@ -242,6 +242,16 @@ Sets the vertices covariance to the provided one
     std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
 
 
+
+  /**
+  Returns the partial derivative of the gravitation slope at the center of face tf relative to 
+  the shape vertices coordinates
+  @param f facet index
+  @return partial derivative of the slope at the center of facet f relative to the shape vertices coordinates
+  */
+
+  arma::rowvec GetPartialSlopePartialC(const int & f) const;
+
   /**
   Runs a Monte Carlo on the shape and samples accelerations & potentials at the provided position
   @param[in] path_to_shape path to reference shape
@@ -268,7 +278,6 @@ Sets the vertices covariance to the provided one
     std::vector<arma::vec::fixed<3> > & accelerations,
     std::vector<double> & potentials,
     std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
-
 
 protected:
 
@@ -524,6 +533,16 @@ protected:
   @return connectivity table
   */
   arma::sp_mat  PartialBePartialC(const int & e) const;
+
+
+
+  /**
+  Returns the partial derivative of the slope s == arcos(-u) relative to u
+  @param u input parameter
+  @param partial derivative of slope with respect to u
+  */
+  static double PartialSlopePartialU(const double & u);
+
 
 
   /**
