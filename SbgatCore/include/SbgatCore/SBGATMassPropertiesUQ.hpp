@@ -188,7 +188,7 @@ to the shape's inertia tensor
   vertices coordinates
   @param e_q first 3x1 vector canonical unit vector
   @param e_r first 3x1 vector canonical unit vector
-  @param Tf 9x1 vector holding coordinates of vertices in facet
+  @param Tf 9x1 vector holding coordinates of vertices in facet EXPRESSED IN METERS
   @return the partial derivative of e_q.T * DeltaIOverDeltaVfEr * e_r with respect to the f-facet 
   vertices coordinates
   */

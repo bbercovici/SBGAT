@@ -714,7 +714,8 @@ arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialEqDeltaIfErPartialTf(const 
 	e_q(q) = 1;
 	e_r(r) = 1;
 
-	arma::rowvec::fixed<9> partial = (arma::dot(e_q,this -> mass_prop -> GetDeltaIOverDeltaV(f) * e_r) * this -> PartialDeltaVfPartialTf(f) 
+	arma::rowvec::fixed<9> partial = (arma::dot(e_q,
+		this -> mass_prop -> GetDeltaIOverDeltaV(f) * e_r) * this -> PartialDeltaVfPartialTf(f) 
 		+ this -> mass_prop -> GetDeltaV(f) * this -> PartialEqDeltaIOverDeltaVfErPartialTf(e_q,e_r,Tf));
 
 	return partial;
@@ -756,7 +757,7 @@ arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialEqDeltaIOverDeltaVfErPartia
 
 
 
-	return -1./20 * partial * this -> mass_prop -> GetScaleFactor();
+	return -1./20 * partial;
 
 
 }
@@ -874,7 +875,7 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 
 		arma::vec::fixed<9> Tf = arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
 
-		double dIqf_lin = arma::dot(shape_uq.PartialEqDeltaIfErPartialTf(f,indices_vec(0),indices_vec(1),mass_prop -> GetScaleFactor()*Tf) , mass_prop -> GetScaleFactor()* delta_Tf);
+		double dIqf_lin = arma::dot(shape_uq.PartialEqDeltaIfErPartialTf(f,indices_vec(0),indices_vec(1),Tf) , mass_prop -> GetScaleFactor()* delta_Tf);
 
 	// Apply Tf deviation
 		shape_uq. ApplyTfDeviation(delta_Tf,f);
