@@ -1858,11 +1858,8 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialUPartialC(const arma::vec:
 
 
 void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
-	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
-
-	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
-
-	int N_e = N_C + N_f - 2;
+	
+	int N_e = this -> pgm_model -> GetN_edges();
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int e = 0; e < N_e; ++e){
@@ -1872,7 +1869,7 @@ void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fix
 }
 
 void SBGATPolyhedronGravityModelUQ::AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
-	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+	int N_f = this -> pgm_model -> GetN_facets();
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int f = 0; f < N_f; ++f){
