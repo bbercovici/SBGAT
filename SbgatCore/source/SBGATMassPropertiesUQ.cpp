@@ -884,7 +884,16 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 		arma::vec::fixed<9> delta_Tf = 1e-3 * arma::randn<arma::vec>(9) / mass_prop -> GetScaleFactor();
 
 	// Linear dUf
-		double dV_lin = arma::dot(shape_uq.PartialDeltaVfPartialTf(f) , mass_prop -> GetScaleFactor()* delta_Tf);
+
+		double r0[3];
+		double r1[3];
+		double r2[3];
+
+		mass_prop -> GetVerticesInFacet(f,r0,r1,r2);
+
+		arma::vec::fixed<9> Tf = arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
+
+		double dIqf_lin = arma::dot(shape_uq.PartialEqDeltaIfErPartialTf(f,indices_vec(0),indices_vec(1),mass_prop -> GetScaleFactor()*Tf) , mass_prop -> GetScaleFactor()* delta_Tf);
 
 	// Apply Tf deviation
 		shape_uq. ApplyTfDeviation(delta_Tf,f);
