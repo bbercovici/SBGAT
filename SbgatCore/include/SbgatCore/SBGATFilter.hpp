@@ -171,6 +171,13 @@ public:
   }
 
 
+/**
+  Returns length of considered edge in meters
+  @param e edge index
+  @return edge length(m )
+*/  
+  double GetEdgeLength(const int & e) const;
+
 
   /**
   Returns number of facets in shape

@@ -373,13 +373,11 @@ arma::rowvec::fixed<6> SBGATPolyhedronGravityModelUQ::PartialEdgeLengthPartialAe
 	arma::vec::fixed<3> r0_arma = {r0[0],r0[1],r0[2]};
 	arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
 
-	double le = arma::norm(r1_arma - r0_arma);
-
 	arma::mat::fixed<3,6> mat;
 	mat.cols(0,2) = arma::eye<arma::mat>(3,3);
 	mat.cols(3,5) = - arma::eye<arma::mat>(3,3);
 
-	return (r0_arma - r1_arma).t()/le * mat;
+	return arma::normalise(r0_arma - r1_arma).t() * mat;
 
 
 }
@@ -1459,30 +1457,16 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(std::string f
 		int e = 1;
 		arma::vec::fixed<6> delta_Ae = 1e-3 * arma::randn<arma::vec>(6) / pgm_filter -> GetScaleFactor() ;
 
-		double r0[3],r1[3];
-
-		shape_uq.GetPGM() -> GetVerticesOnEdge(e,r0,r1);
-
-		double le = std::sqrt(vtkMath::Distance2BetweenPoints(r0,r1));
-
-		arma::vec::fixed<3> r0_arma= {r0[0],r0[1],r0[2]};
-		arma::vec::fixed<3> r1_arma= {r1[0],r1[1],r1[2]};
-
+		
+	// Nominal length
+		double le = pgm_filter -> GetEdgeLength(e);
 
 	// Apply Ae deviation
 		shape_uq.ApplyAeDeviation(delta_Ae,e);
 
-		shape_uq.GetPGM() -> GetVerticesOnEdge(e,r0,r1);
-
-		arma::vec::fixed<3> r0_arma_p = {r0[0],r0[1],r0[2]};
-		arma::vec::fixed<3> r1_arma_p = {r1[0],r1[1],r1[2]};
-
-		assert(arma::norm(r0_arma_p - r0_arma - delta_Ae.subvec(0,2))/arma::norm(delta_Ae.subvec(0,2))<1e-10);
-		assert(arma::norm(r1_arma_p - r1_arma - delta_Ae.subvec(3,5))/arma::norm(delta_Ae.subvec(3,5))<1e-10);
-
-
+	
 	// Perturbed length
-		double le_p = std::sqrt(vtkMath::Distance2BetweenPoints(r0,r1));
+		double le_p = pgm_filter -> GetEdgeLength(e);
 
 
 	// Non-linear difference
