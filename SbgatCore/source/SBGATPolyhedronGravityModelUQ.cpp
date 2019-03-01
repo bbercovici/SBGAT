@@ -606,7 +606,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -894,7 +893,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(std::string filename,
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 
@@ -1000,7 +998,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filen
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 
@@ -2136,7 +2133,6 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2239,7 +2235,6 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2341,7 +2336,6 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2446,7 +2440,6 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string file
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2551,7 +2544,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename,do
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
@@ -2641,7 +2633,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,do
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2728,7 +2719,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename,
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
@@ -2828,7 +2818,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2925,7 +2914,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -3050,7 +3038,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-	pos.t().print("\n\t Sampling at: ");
 
 	#pragma omp parallel for reduction(+:successes)
 	
