@@ -479,7 +479,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(input,tol,shape_in_meters);
-	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(input,tol,shape_in_meters);
@@ -1864,7 +1864,7 @@ void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fix
 
 	int N_e = N_C + N_f - 2;
 
-	// #pragma omp parallel for reduction(+:partial)
+	#pragma omp parallel for reduction(+:partial)
 	for (int e = 0; e < N_e; ++e){
 		partial += this -> PartialUePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
 	}
