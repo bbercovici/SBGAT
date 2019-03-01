@@ -114,15 +114,8 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 	arma::uvec error_index = arma::index_max(error,1);
 
-	std::cout << error_index.t() << std::endl;
-
-	std::cout << dIdC_standalone(0,error_index(0)) << " | " << dIdC(0,error_index(0)) << std::endl;
-	std::cout << dIdC_standalone(1,error_index(1)) << " | " << dIdC(1,error_index(1)) << std::endl;
-	std::cout << dIdC_standalone(2,error_index(2)) << " | " << dIdC(2,error_index(2)) << std::endl;
-	std::cout << dIdC_standalone(3,error_index(3)) << " | " << dIdC(3,error_index(3)) << std::endl;
-	std::cout << dIdC_standalone(4,error_index(4)) << " | " << dIdC(4,error_index(4)) << std::endl;
-
-	std::cout << dIdC_standalone(5,error_index(5)) << " | " << dIdC(5,error_index(5)) << std::endl;
+	std::cout << dIdC_standalone.col(error_index(0));
+	std::cout << dIdC.col(error_index(0));
 
 	
 	std::cout << arma::abs(dIdC_standalone - dIdC).max() << std::endl;
@@ -682,7 +675,6 @@ arma::mat SBGATMassPropertiesUQ::GetPartialComPartialC() const{
 
 void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arma::mat & dCOMdC,
 	arma::mat & dIdC) const{
-
 
 	dVdC = arma::zeros<arma::rowvec>(3 * this -> mass_prop -> GetN_vertices());
 	dCOMdC = arma::zeros<arma::mat>(3,3 * this -> mass_prop -> GetN_vertices());
