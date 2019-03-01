@@ -1858,8 +1858,11 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialUPartialC(const arma::vec:
 
 
 void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
-	
-	int N_e = this -> pgm_model -> GetN_edges();
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	int N_e = N_C + N_f - 2;
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int e = 0; e < N_e; ++e){
@@ -1869,7 +1872,7 @@ void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fix
 }
 
 void SBGATPolyhedronGravityModelUQ::AddPartialSumUfPartialC(const arma::vec::fixed<3> & pos,arma::rowvec & partial) const{
-	int N_f = this -> pgm_model -> GetN_facets();
+	int N_f = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfCells();
 
 	#pragma omp parallel for reduction(+:partial)
 	for (int f = 0; f < N_f; ++f){
@@ -2083,7 +2086,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 
 		arma::rowvec partial = arma::zeros<arma::rowvec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3);
 		shape_uq.AddPartialSumUePartialC(pos,partial);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-6 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
 
@@ -2103,7 +2106,6 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	}
 
 	std::cout << "\t Passed TestAddPartialSumUePartialC with " << double(successes) / N * 100 << " \% of successes.\n";
-
 
 }
 
