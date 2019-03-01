@@ -774,7 +774,7 @@ arma::mat::fixed<6,9> SBGATMassPropertiesUQ::PartialDeltaIfPartialTf(const int &
 
 	this -> mass_prop -> GetVerticesInFacet(f,r0,r1,r2);
 
-	arma::vec::fixed<9> Tf = {r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]};
+	arma::vec::fixed<9> Tf = this -> mass_prop -> GetScaleFactor() * arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
 
 	partial.row(0) = this -> PartialEqDeltaIfErPartialTf(f,0,0,Tf);
 	partial.row(1) = this -> PartialEqDeltaIfErPartialTf(f,1,1,Tf);
@@ -911,7 +911,7 @@ arma::mat SBGATMassPropertiesUQ::GetPartialIPartialC() const{
 
 	}
 
-	return partial * std::pow(this -> mass_prop -> GetScaleFactor(),4);
+	return partial ;
 
 }
 
