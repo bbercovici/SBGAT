@@ -113,6 +113,8 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 	arma::uvec error_index = arma::index_max(error,1);
 
+	std::cout << error_index.t() << std::endl;
+
 	std::cout << dIdC_standalone(0,error_index(0)) << " | " << dIdC(0,error_index(0)) << std::endl;
 	std::cout << dIdC_standalone(1,error_index(1)) << " | " << dIdC(1,error_index(1)) << std::endl;
 	std::cout << dIdC_standalone(2,error_index(2)) << " | " << dIdC(2,error_index(2)) << std::endl;
@@ -681,8 +683,7 @@ void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arm
 	dCOMdC = arma::zeros<arma::mat>(3,3 * this -> mass_prop -> GetN_vertices());
 	dIdC = arma::zeros<arma::mat>(6,3 * this -> mass_prop -> GetN_vertices());
 
-	// #pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
-	std::cout << this -> mass_prop -> GetN_facets() << std::endl;
+	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
 	for (int f = 0; f < this -> mass_prop -> GetN_facets(); ++f){
 
 		arma::sp_mat connect_table = this -> mass_prop -> PartialTfPartialC(f);
