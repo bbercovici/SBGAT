@@ -2047,7 +2047,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 
 	}
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 			// Reading
@@ -2098,6 +2098,8 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 
 		double dSumUe = SumUe_p - SumUe;
 		double dSumUe_lin = arma::dot(partial,pgm_filter -> GetScaleFactor() * deviation);
+
+		std::cout << dSumUe << " " << dSumUe_lin << std::endl;
 
 		if(std::abs(dSumUe - dSumUe_lin)/std::abs(dSumUe_lin) < tol){
 			++successes;
@@ -2578,7 +2580,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 
 	}
 
-	// #pragma omp parallel for reduction(+:successes)
+	#pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -2612,8 +2614,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
 		int e = e_vec(0);
 
-
-
 		double Ue = shape_uq.GetPGM() -> GetUe(shape_uq.GetPGM() -> GetXe(pos,e));
 		auto dUedC = shape_uq . PartialUePartialXe(pos,e) * shape_uq . PartialXePartialBe(pos,e) * shape_uq . PartialBePartialC(e);
 
@@ -2624,10 +2624,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 		double Ue_p = shape_uq.GetPGM() -> GetUe(shape_uq.GetPGM() -> GetXe(pos,e));
 		double dUe = Ue_p - Ue;
 		double dUe_lin = arma::dot(dUedC,pgm_filter -> GetScaleFactor() * deviation);
-
-
-		std::cout << dUe  << " " << dUe_lin << std::endl;
-
 
 		if(std::abs(dUe - dUe_lin)/std::abs(dUe_lin) < tol){
 			++successes;
