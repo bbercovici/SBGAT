@@ -59,6 +59,7 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialComPartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
 
+	SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
@@ -804,6 +805,109 @@ arma::mat::fixed<6,9> SBGATMassPropertiesUQ::PartialDeltaIfPartialTf(const int &
 }
 
 
+void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,double tol,bool shape_in_meters){
+
+	std::cout << "\t In TestPartialEqDeltaIfErPartialTf ... ";
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	int N = 1000;
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName(input.c_str());
+	reader -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cleaner -> Update();
+
+
+	// Creating the PGM dyads
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
+	mass_prop -> SetDensity(1970); 
+	if (shape_in_meters) 
+		mass_prop -> SetScaleMeters();
+	else
+		mass_prop -> SetScaleKiloMeters();
+
+	mass_prop -> Update();
+
+	SBGATMassPropertiesUQ shape_uq;
+	shape_uq.SetMassProperties(mass_prop);
+
+
+
+	#pragma omp parallel for reduction(+:successes)
+	
+	for (int i = 0; i < N ; ++i){
+
+		vtkSmartPointer<vtkPolyData> input_shape = vtkSmartPointer<vtkPolyData>::New();
+
+		input_shape -> DeepCopy(cleaner -> GetOutput());
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_prop -> SetInputData(input_shape);
+		mass_prop -> SetDensity(1970); 
+		if (shape_in_meters) 
+			mass_prop -> SetScaleMeters();
+		else
+			mass_prop -> SetScaleKiloMeters();
+
+		mass_prop -> Update();
+
+		SBGATMassPropertiesUQ shape_uq;
+		shape_uq.SetMassProperties(mass_prop);
+
+		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
+		
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+		arma::ivec indices_vec = arma::randi<arma::ivec>(2,arma::distr_param(0,2));
+		
+		arma::vec::fixed<3> e_q = arma::zeros<arma::vec>(3);
+		arma::vec::fixed<3> e_r = arma::zeros<arma::vec>(3);
+
+		e_q(indices_vec(0)) = 1;
+		e_r(indices_vec(1)) = 1;
+
+
+	// Nominal 
+		double Iqf = arma::dot(e_q,mass_prop -> GetDeltaIOverDeltaV(f) * mass_prop -> GetDeltaV(f) * e_r);
+
+	// Deviation
+		arma::vec::fixed<9> delta_Tf = 1e-3 * arma::randn<arma::vec>(9) / mass_prop -> GetScaleFactor();
+
+	// Linear dUf
+		double dV_lin = arma::dot(shape_uq.PartialDeltaVfPartialTf(f) , mass_prop -> GetScaleFactor()* delta_Tf);
+
+	// Apply Tf deviation
+		shape_uq. ApplyTfDeviation(delta_Tf,f);
+
+	// Perturbed 
+		double Iqf_p = arma::dot(e_q,mass_prop -> GetDeltaIOverDeltaV(f) * mass_prop -> GetDeltaV(f) * e_r);
+		
+		
+	// Non-linear dUf
+		double dIqf = Iqf_p - Iqf;
+
+
+		if(std::abs(dIqf - dIqf_lin) / std::abs(dIqf_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestPartialEqDeltaIfErPartialTf with " << double(successes)/N * 100 << " \% of successes. \n";
+
+
+}
 
 arma::mat SBGATMassPropertiesUQ::GetPartialIPartialC() const{
 
