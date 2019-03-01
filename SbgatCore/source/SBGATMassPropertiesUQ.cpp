@@ -113,13 +113,13 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 	arma::uvec error_index = arma::index_max(error,1);
 
-	std::cout << dIdC_standalone.col(error_index(0)) << " | " << dIdC.col(error_index(0)) << std::endl;
-	std::cout << dIdC_standalone.col(error_index(1)) << " | " << dIdC.col(error_index(1)) << std::endl;
-	std::cout << dIdC_standalone.col(error_index(2)) << " | " << dIdC.col(error_index(2)) << std::endl;
-	std::cout << dIdC_standalone.col(error_index(3)) << " | " << dIdC.col(error_index(3)) << std::endl;
-	std::cout << dIdC_standalone.col(error_index(4)) << " | " << dIdC.col(error_index(4)) << std::endl;
+	std::cout << dIdC_standalone(0,error_index(0)) << " | " << dIdC(0,error_index(0)) << std::endl;
+	std::cout << dIdC_standalone(1,error_index(1)) << " | " << dIdC(1,error_index(1)) << std::endl;
+	std::cout << dIdC_standalone(2,error_index(2)) << " | " << dIdC(2,error_index(2)) << std::endl;
+	std::cout << dIdC_standalone(3,error_index(3)) << " | " << dIdC(3,error_index(3)) << std::endl;
+	std::cout << dIdC_standalone(4,error_index(4)) << " | " << dIdC(4,error_index(4)) << std::endl;
 
-	std::cout << dIdC_standalone.col(error_index(5)) << " | " << dIdC.col(error_index(5)) << std::endl;
+	std::cout << dIdC_standalone(5,error_index(5)) << " | " << dIdC(5,error_index(5)) << std::endl;
 
 	
 	
