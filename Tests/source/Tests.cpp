@@ -27,7 +27,6 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATMassProperties.hpp>
 #include <SBGATSphericalHarmo.hpp>
-
 #include <SBGATObsRadar.hpp>
 #include <SBGATObsLightcurve.hpp>
 #include <SBGATFrameGraph.hpp>
@@ -37,7 +36,6 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModelUQ.hpp>
 #include <SBGATMassPropertiesUQ.hpp>
 #include <SBGATFilter.hpp>
-
 
 
 #include <vtkCell.h>
@@ -158,18 +156,13 @@ void TestsSBCore::test_sbgat_mass_properties(){
 	assert(arma::norm(inertia_moments - inertia_moments_sbgat)/arma::norm(inertia_moments_sbgat) < 1e-8);
 	assert(arma::norm(translation_vector - com_sbgat)/arma::norm(com_sbgat) < 1e-8);
 
-
 	double volume_itokawa_m,volume_itokawa_km;
 	double surface_itokawa_m,surface_itokawa_km;
-
-
-
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 	reader -> SetFileName("../../resources/shape_models/itokawa_8_scaled.obj");
 	reader -> Update(); 
-
 
 	mass_filter -> SetInputConnection(reader -> GetOutputPort());
 	mass_filter -> Modified();
