@@ -2734,7 +2734,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 		shape_uq.SetPGM(pgm_filter);
 		
 		int N_f = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells() ;
-		int f = arma::randi(arma::distr_param(0,N_f - 1));
+		arma::ivec f_vec = arma::randi(1,arma::distr_param(0,N_f - 1));
+		int f = f_vec(0);
 
 		double Uf = shape_uq.GetPGM() -> GetUf(shape_uq.GetPGM() -> GetXf(pos,f));
 		auto dUfdC = shape_uq . PartialUfPartialXf(pos,f) * shape_uq . PartialXfPartialTf(pos,f) * shape_uq . PartialTfPartialC(f);
