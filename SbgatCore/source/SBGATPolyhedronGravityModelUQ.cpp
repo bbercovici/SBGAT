@@ -2578,7 +2578,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 
 	}
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -2624,6 +2624,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 		double Ue_p = shape_uq.GetPGM() -> GetUe(shape_uq.GetPGM() -> GetXe(pos,e));
 		double dUe = Ue_p - Ue;
 		double dUe_lin = arma::dot(dUedC,pgm_filter -> GetScaleFactor() * deviation);
+
+
+		std::cotu << dUe  << " " << dUe_lin << std::endl;
+
 
 		if(std::abs(dUe - dUe_lin)/std::abs(dUe_lin) < tol){
 			++successes;
