@@ -377,6 +377,12 @@ void SBGATFilter::GetVerticesOnEdge(const int & e,double * r0,double * r1) const
 }
 
 
+double SBGATFilter::GetEdgeLength(const int & e) const{
+
+  return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
+}
+
+
 void SBGATFilter::GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) const{
 
   f0 = this -> edge_facets_ids[e][0];
