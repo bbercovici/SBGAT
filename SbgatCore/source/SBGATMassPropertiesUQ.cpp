@@ -125,7 +125,6 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 	std::cout << dIdC_standalone(5,error_index(5)) << " | " << dIdC(5,error_index(5)) << std::endl;
 
 	
-	
 	std::cout << arma::abs(dIdC_standalone - dIdC).max() << std::endl;
 
 	assert(arma::abs(dVdC_standalone - dVdC).max() < 1e-10);

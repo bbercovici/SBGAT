@@ -243,7 +243,6 @@ to the shape's inertia tensor
   static void TestPartialDeltaIfPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaVPartialC(std::string input,double tol,bool shape_in_meters);
-
   static void TestGetPartialVolumePartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialComPartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialIPartialC(std::string input,double tol,bool shape_in_meters);
