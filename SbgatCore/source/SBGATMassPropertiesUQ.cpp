@@ -60,14 +60,14 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
 
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
-
+	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
 
 }
 
 
 
-void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters){
-	std::cout << "\t In TestGetPartialAllInertiaPartialC ... ";
+void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters){
+	std::cout << "\t In TestGetPartialAllInertiaPartialCVSStandalone ... \n";
 
 
 	// Reading
@@ -104,15 +104,19 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	arma::mat dComdC;
 	arma::mat dIdC;
 
-
 	shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
+
+	dIdC_standalone.cols(0,5).print("dIdC_standalone: \n");
+	dIdC_standalone.cols(0,5).print("dIdC: \n");
 	
-	assert(arma::norm(dVdC_standalone - dVdC)/arma::norm(dVdC) < 1e-10);
-	assert(arma::norm(dComdC_standalone - dComdC)/arma::norm(dComdC) < 1e-10);
-	assert(arma::norm(dIdC_standalone - dIdC)/arma::norm(dIdC) < 1e-10);
+	std::cout << arma::abs(dIdC_standalone - dIdC).max() << std::endl;
+
+	assert(arma::abs(dVdC_standalone - dVdC).max() < 1e-10);
+	assert(arma::abs(dComdC_standalone - dComdC).max() < 1e-10);
+	assert(arma::abs(dIdC_standalone - dIdC).max() < 1e-10);
 
 
-	std::cout << "\t Done running TestGetPartialAllInertiaPartialC ... \n";
+	std::cout << "\t Done running TestGetPartialAllInertiaPartialCVSStandalone ... \n";
 
 }
 
@@ -459,6 +463,107 @@ void SBGATMassPropertiesUQ::TestGetPartialIPartialC(std::string input,double tol
 	}
 
 	std::cout << "\t Passed TestGetPartialIPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
+
+
+}
+
+
+void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters) {
+
+
+	std::cout << "\t In TestGetPartialAllInertiaPartialC ... ";
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	int N = 1000;
+	#pragma omp parallel for reduction(+:successes)
+	
+	for (int i = 0; i < N ; ++i){
+
+		// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(input.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
+		mass_prop -> SetDensity(1970);
+		if (shape_in_meters) 
+			mass_prop -> SetScaleMeters();
+		else
+			mass_prop -> SetScaleKiloMeters();
+
+		mass_prop -> Update();
+
+		SBGATMassPropertiesUQ shape_uq;
+		shape_uq.SetMassProperties(mass_prop);
+
+	// Nominal 
+		double V = shape_uq.GetMassProperties() -> GetVolume();
+		arma::vec::fixed<3> com = shape_uq.GetMassProperties() -> GetCenterOfMass();
+
+		arma::mat deltaI_mat = shape_uq.GetMassProperties() -> GetUnitDensityInertiaTensor() ;
+		arma::vec::fixed<6> deltaI = {deltaI_mat(0,0),deltaI_mat(1,1),deltaI_mat(2,2),deltaI_mat(0,1),deltaI_mat(0,2),deltaI_mat(1,2)};
+
+	// Deviation
+		arma::vec delta_C = 1e-3 * arma::randn<arma::vec>(3 * mass_prop -> GetN_vertices()  ) / mass_prop -> GetScaleFactor();
+
+	// Linear 
+
+		arma::rowvec dVdC;
+
+		arma::mat dIdC,dComdC;
+
+		shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
+
+
+		double dV_lin = arma::dot(dVdC,mass_prop -> GetScaleFactor() * delta_C);
+		arma::vec::fixed<3> dcom_lin = dComdC * mass_prop -> GetScaleFactor() * delta_C;
+		arma::vec::fixed<6> ddeltaI_lin = mass_prop -> GetScaleFactor() * dIdC * delta_C;
+
+	// Apply deviation
+		shape_uq. ApplyDeviation(delta_C);
+
+		double V_p = shape_uq.GetMassProperties() -> GetVolume();
+		arma::vec::fixed<3> com_p = shape_uq.GetMassProperties() -> GetCenterOfMass();
+
+
+		double dV =V_p - V;
+
+
+		arma::vec::fixed<3> dcom = com_p - com;
+
+
+		arma::mat deltaI_mat_p = shape_uq.GetMassProperties() -> GetUnitDensityInertiaTensor() ;
+		arma::vec::fixed<6> deltaI_p = {deltaI_mat_p(0,0),deltaI_mat_p(1,1),deltaI_mat_p(2,2),deltaI_mat_p(0,1),deltaI_mat_p(0,2),deltaI_mat_p(1,2)};
+
+
+
+	// Non-linear 
+		arma::vec::fixed<6> ddeltaI = deltaI_p - deltaI;
+
+		if(arma::norm(arma::vectorise(ddeltaI - ddeltaI_lin)) / arma::norm(arma::vectorise(ddeltaI_lin)) < tol){
+			
+			if (std::abs(dV - dV_lin)/std::abs(dV_lin) < tol){
+
+				if(arma::norm(arma::vectorise(dcom - dcom_lin)) / arma::norm(dcom_lin) < tol){
+					++successes;
+
+				}
+			}
+		}
+
+	}
+
+	std::cout << "\t Passed TestGetPartialAllInertiaPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
 
 
 }
