@@ -60,7 +60,7 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
 
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
-	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
+	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
 }
 
