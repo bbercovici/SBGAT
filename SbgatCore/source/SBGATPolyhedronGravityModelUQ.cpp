@@ -1,10 +1,13 @@
 #include <SBGATPolyhedronGravityModelUQ.hpp>
+#include <SBGATMassProperties.hpp>
 #include <RigidBodyKinematics.hpp>
 #include <vtkOBJReader.h>
 #include <vtkCleanPolyData.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
+
+
 #include <json.hpp>
 
 #pragma omp declare reduction( + : arma::rowvec : omp_out += omp_in ) \
@@ -574,14 +577,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
 
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 
 
@@ -841,14 +866,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(std::string filename,
 	
 
 
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -924,14 +971,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filen
 
 
 
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 
 	int successes = 0;
@@ -1438,10 +1507,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename,d
 
 
 	std::cout << "\t In TestPartialEPartialBe ... ";
-	
-	
 
 
+	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
@@ -2038,14 +2106,36 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	// #pragma omp parallel for reduction(+:successes)
 	
@@ -2120,14 +2210,36 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -2199,14 +2311,36 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -2281,14 +2415,36 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string file
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -2362,14 +2518,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename,do
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
 
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
@@ -2430,14 +2608,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,do
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
@@ -2494,14 +2694,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename,
 	std::cout << "\t In TestPartialXePartialBe ... ";
 
 
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
@@ -2571,14 +2793,41 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
+
+
+
+
+
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -2645,14 +2894,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -2747,14 +3018,36 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 	int N = 1000;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	arma::vec::fixed<3> pos;
-	if (shape_in_meters){
-		pos = {1,3,4};
+	
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
 	}
 	else{
-		pos = {1e3,3e3,4e3};
-
+		mass_prop -> SetScaleKiloMeters();
 	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+
 	#pragma omp parallel for reduction(+:successes)
 	
 	
