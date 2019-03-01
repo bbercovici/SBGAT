@@ -37,8 +37,6 @@ SOFTWARE.
 #include <SBGATPolyhedronGravityModelUQ.hpp>
 #include <SBGATMassPropertiesUQ.hpp>
 #include <SBGATFilter.hpp>
-#include <SBGATChildTest.hpp>
-
 
 
 #include <vtkCell.h>
