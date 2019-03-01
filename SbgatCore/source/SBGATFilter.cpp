@@ -104,9 +104,18 @@ int SBGATFilter::RequestData(
 
   vtkMath::MultiplyScalar(this -> bounds, this -> scaleFactor);
 
+
+
   arma::vec::fixed<3> bbox_min = {this -> bounds[0],this -> bounds[2],this -> bounds[4]};
   arma::vec::fixed<3> bbox_max = {this -> bounds[1],this -> bounds[3],this -> bounds[5]};
- 
+  
+
+  bbox_min.t().print();
+  bbox_max.t().print();
+
+
+
+
   vtkIdType cellId, numCells, numPts, numIds;
 
   numCells = input -> GetNumberOfCells();
