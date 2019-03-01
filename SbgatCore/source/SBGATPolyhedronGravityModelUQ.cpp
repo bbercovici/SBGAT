@@ -741,7 +741,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(std::string filename,
 		double Ue = shape_uq.GetPGM() -> GetUe(Xe);
 
   	// Perturbation to Xe 
-		arma::vec::fixed<10> dXe = 1e-2 * arma::randn<arma::vec>(10);
+		arma::vec::fixed<10> dXe = 1e-3 * arma::randn<arma::vec>(10);
 
   	// Xe after
 		arma::vec::fixed<10> Xe_p = Xe + dXe;
@@ -1823,7 +1823,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filena
 		double at2 = 2 * std::atan(arma::dot(Zf,e2) / (arma::norm(Zf) + arma::dot(Zf,e1)));
 
 
-		arma::vec::fixed<2> dZf = 1e-2 * arma::randn<arma::vec>(2);
+		arma::vec::fixed<2> dZf = 1e-3 * arma::randn<arma::vec>(2);
 
 		double at2_p = 2 * std::atan(arma::dot(Zf + dZf,e2) / (arma::norm(Zf + dZf) + arma::dot(Zf + dZf,e1)));
 
