@@ -2626,7 +2626,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 		double dUe_lin = arma::dot(dUedC,pgm_filter -> GetScaleFactor() * deviation);
 
 
-		std::cotu << dUe  << " " << dUe_lin << std::endl;
+		std::cout << dUe  << " " << dUe_lin << std::endl;
 
 
 		if(std::abs(dUe - dUe_lin)/std::abs(dUe_lin) < tol){
