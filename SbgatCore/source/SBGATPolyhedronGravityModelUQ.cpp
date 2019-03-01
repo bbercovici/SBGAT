@@ -1864,7 +1864,7 @@ void SBGATPolyhedronGravityModelUQ::AddPartialSumUePartialC(const arma::vec::fix
 
 	int N_e = N_C + N_f - 2;
 
-	#pragma omp parallel for reduction(+:partial)
+	// #pragma omp parallel for reduction(+:partial)
 	for (int e = 0; e < N_e; ++e){
 		partial += this -> PartialUePartialXe(pos,e) * this -> PartialXePartialBe(pos,e) * this -> PartialBePartialC(e);
 	}
