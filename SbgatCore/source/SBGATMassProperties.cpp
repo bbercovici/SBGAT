@@ -556,15 +556,14 @@ arma::mat::fixed<3,3> SBGATMassProperties::GetDeltaIOverDeltaV(const int & f) co
   arma::vec::fixed<3> C1 = {r1[0],r1[1],r1[2]};
   arma::vec::fixed<3> C2 = {r2[0],r2[1],r2[2]};
 
+  arma::mat::fixed<3,3> I = 1./20 * (
+    RBK::tilde(C0) * RBK::tilde(C0) 
+    + RBK::tilde(C1) * RBK::tilde(C1)
+    + RBK::tilde(C2) * RBK::tilde(C2) 
+    + (RBK::tilde(C0 + C1 + C2) * RBK::tilde(C0 + C1 + C2)));
 
-  arma::mat::fixed<3,3> I = 6./5 * (
-    1./2 * RBK::tilde(C0) * RBK::tilde(C0)
-    + 1./6 * (RBK::tilde(C0) * RBK::tilde(C1 - C0) + RBK::tilde(C1 - C0) * RBK::tilde(C0))
-    + 1./6 * (RBK::tilde(C0) * RBK::tilde(C2 - C0) + RBK::tilde(C2 - C0) * RBK::tilde(C0))
-    + 1./24 * (RBK::tilde(C1 - C0) * RBK::tilde(C2 - C0) + RBK::tilde(C2 - C0) * RBK::tilde(C1 - C0))
-    + 1./12 * RBK::tilde(C1 - C0) * RBK::tilde(C1 - C0)
-    + 1./12 * RBK::tilde(C2 - C0) * RBK::tilde(C2 - C0)
-    );
+
+
   return - I * std::pow(this -> scaleFactor,2);
 
 }

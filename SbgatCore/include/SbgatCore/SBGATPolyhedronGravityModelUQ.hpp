@@ -100,7 +100,7 @@ public:
   @param input path to obj file used to test the partials
   @param tol relative tolerance
   */
-  static void TestPartials(std::string input , double tol = 1e-2);
+  static void TestPartials(std::string input , double tol, bool shape_in_meters);
 
   /**
   Obtain the partial derivative of the potential at the prescribed location
@@ -542,34 +542,34 @@ protected:
   arma::vec ApplyAndGetBeDeviation(const arma::vec & delta);
 
 
-  static void TestPartialUePartialXe(std::string input,double tol) ;
-  static void TestPartialUfPartialXf(std::string input,double tol) ;
-  static void TestPartialXfPartialTf(std::string input,double tol) ;
-  static void TestPartialOmegafPartialTf(std::string input,double tol) ;
-  static void TestPartialZfPartialUnitRf(std::string input,double tol);
-  static void TestPartialFfPartialTf(std::string input,double tol) ;
-  static void TestPartialNormalizedVPartialNonNormalizedV(std::string input,double tol) ;
-  static void TestPartialAtan2PartialZf(std::string input,double tol);
-  static void TestPartialNfPartialTf(std::string input,double tol) ;
-  static void TestPartialFfPartialnf(std::string input,double tol) ;
-  static void TestPartialFfPartialNonNormalizedNf(std::string input,double tol);
-  static void TestPartialLePartialAe(std::string input,double tol) ;
-  static void TestPartialEePartialAe(std::string input,double tol) ;
-  static void TestPartialEePartialTf(std::string input,double tol) ;
-  static void TestPartialXePartialBe(std::string input,double tol) ;
-  static void TestPartialEdgeLengthPartialAe(std::string input,double tol) ;
-  static void TestPartialEPartialBe(std::string input,double tol) ;
-  static void TestPartialUfPartialTf(std::string input,double tol);
-  static void TestPartialUePartialBe(std::string input,double tol);
-  static void TestPartialUPartialC(std::string input,double tol);
-  static void TestPartialAPartialC(std::string input,double tol);
-  static void TestPartialUfPartialC(std::string input,double tol);
-  static void TestPartialUePartialC(std::string input,double tol);
-  static void TestAddPartialSumUePartialC(std::string input,double tol);
-  static void TestAddPartialSumUfPartialC(std::string input,double tol);
-  static void TestAddPartialSumAccfPartialC(std::string input,double tol);
-  static void TestAddPartialSumAccePartialC(std::string input,double tol);
-  static void TestPartialBePartialC(std::string input,double tol);
+  static void TestPartialUePartialXe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialUfPartialXf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialXfPartialTf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialOmegafPartialTf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialZfPartialUnitRf(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialFfPartialTf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialNormalizedVPartialNonNormalizedV(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialAtan2PartialZf(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialNfPartialTf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialFfPartialnf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialFfPartialNonNormalizedNf(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialLePartialAe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialEePartialAe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialEePartialTf(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialXePartialBe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialEdgeLengthPartialAe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialEPartialBe(std::string input , double tol, bool shape_in_meters) ;
+  static void TestPartialUfPartialTf(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialUePartialBe(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialUPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialAPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialUfPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialUePartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestAddPartialSumUePartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestAddPartialSumUfPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestAddPartialSumAccfPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestAddPartialSumAccePartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestPartialBePartialC(std::string input , double tol, bool shape_in_meters);
 
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;

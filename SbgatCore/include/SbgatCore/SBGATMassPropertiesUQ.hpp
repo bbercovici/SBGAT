@@ -55,8 +55,9 @@ public:
   Runs a finite-differencing based test of the implemented PGM partials
   @param input path to obj file used to test the partials
   @param tol relative tolerance
+  @param shape_in_meters true if tested shape has its coordinates expressed in meters
   */
-  static void TestPartials(std::string input , double tol = 1e-2);
+  static void TestPartials(std::string input , double tol ,bool shape_in_meters);
 
   /**
   Populates the covariance components over the entire shape by looping over each vertex Ci and:
@@ -130,7 +131,23 @@ public:
 Returns the partial derivative of the shape's center of mass with respect to the shape's vertices coordinates
 @return partial derivative of the shape's center of mass with respect to the shape's vertices
 */
-  arma::mat GetPartialCOMPartialC() const;
+  arma::mat GetPartialComPartialC() const;
+
+
+  /**
+  Returns the partial derivative of the 6 unique components of the inertia tensor {I(0,0),I(1,1),I(2,2),I(0,1),I(0,2),I(1,2)}
+  with respect to the shape coordinates
+  @return partial derivative
+  */
+  arma::mat GetPartialIPartialC() const;
+
+
+  /**
+  Returns the partial derivative of the volume
+  with respect to the shape coordinates
+  @return partial derivative
+  */
+  arma::rowvec GetPartialVolumePartialC() const;
 
 /**
 Get partial derivatives of volume, center of mass and inertia parametrization relative to 
@@ -144,6 +161,40 @@ the shape's vertices coordinates
 
 protected:
 
+
+/**
+Returns the partial derivative of the (q,r) component of the contribution of the f-facet 
+to the shape's inertia tensor, relative to the f-facet 
+vertices coordinates
+@param f facet index
+@param q first index
+@param r second index
+@param Tf 9x1 vector holding coordinates of vertices in facet
+@return partial derivative of the (q,r) component of the contribution of the f-facet 
+to the shape's inertia tensor
+*/
+  arma::rowvec::fixed<9> PartialEqDeltaIfErPartialTf(const int & f, const int & q, const int & r,const arma::vec::fixed<9> & Tf) const;
+
+  /**
+  Returns the partial derivative of the shape's center-of-mass
+  with respect to the f-th facet coordinates
+  @param f facet index
+  @return partial derivative of shape's center-of-mass with respect to facet coordinates
+  */
+  arma::mat::fixed<3,9> PartialDeltaComPartialTf(const int & f) const;
+
+  /**
+  Returns the partial derivative of e_q.T * DeltaIOverDeltaVfEr * e_r with respect to the f-facet 
+  vertices coordinates
+  @param e_q first 3x1 vector canonical unit vector
+  @param e_r first 3x1 vector canonical unit vector
+  @param Tf 9x1 vector holding coordinates of vertices in facet
+  @return the partial derivative of e_q.T * DeltaIOverDeltaVfEr * e_r with respect to the f-facet 
+  vertices coordinates
+  */
+   arma::rowvec::fixed<9> PartialEqDeltaIOverDeltaVfErPartialTf(const arma::vec::fixed<3> & e_q,const arma::vec::fixed<3> & e_r,
+    const arma::vec::fixed<9> & Tf) const;
+
   /**
   Returns the partial derivative of the volume of the tetrahedron subtended by facet f
   with respect to the facet coordinates
@@ -155,10 +206,9 @@ protected:
   /**
   Returns the partial derivative of the center of mass of the considered tetrahedron
   with respect to the facet coordinates
-  @param f facet index
   @return partial derivative of center of mass with respect to facet coordinates
   */
-  arma::mat::fixed<3,9> PartialDeltaCMfPartialTf(const int & f) const;
+  static arma::mat::fixed<3,9> PartialDeltaCMfPartialTf();
 
   /**
   Returns the partial derivative of the tetrahedron's inertia tensor parametrization
@@ -188,10 +238,15 @@ protected:
   void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
 
   
-  static void TestPartialDeltaVfPartialTf(std::string input,double tol);
-  static void TestPartialCOMPartialC(std::string input,double tol);
-  static void TestPartialDeltaIOverDeltaVPartialTf(std::string input,double tol);
-  static void TestPartialDeltaIfPartialTf(std::string input,double tol);
+  static void TestPartialDeltaVfPartialTf(std::string input,double tol,bool shape_in_meters);
+  static void TestPartialDeltaIOverDeltaVPartialTf(std::string input,double tol,bool shape_in_meters);
+  static void TestPartialDeltaIfPartialTf(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters);
+  static void TestPartialDeltaVPartialC(std::string input,double tol,bool shape_in_meters);
+
+  static void TestGetPartialVolumePartialC(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialComPartialC(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialIPartialC(std::string input,double tol,bool shape_in_meters);
 
 
   vtkSmartPointer<SBGATMassProperties> mass_prop;
