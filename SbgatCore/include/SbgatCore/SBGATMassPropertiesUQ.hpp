@@ -192,7 +192,7 @@ to the shape's inertia tensor
   @return the partial derivative of e_q.T * DeltaIOverDeltaVfEr * e_r with respect to the f-facet 
   vertices coordinates
   */
-   arma::rowvec::fixed<9> PartialEqDeltaIOverDeltaVfErPartialTf(const arma::vec::fixed<3> & e_q,const arma::vec::fixed<3> & e_r,
+  arma::rowvec::fixed<9> PartialEqDeltaIOverDeltaVfErPartialTf(const arma::vec::fixed<3> & e_q,const arma::vec::fixed<3> & e_r,
     const arma::vec::fixed<9> & Tf) const;
 
   /**
@@ -241,12 +241,13 @@ to the shape's inertia tensor
   static void TestPartialDeltaVfPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaIOverDeltaVPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaIfPartialTf(std::string input,double tol,bool shape_in_meters);
-  static void TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaVPartialC(std::string input,double tol,bool shape_in_meters);
 
   static void TestGetPartialVolumePartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialComPartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialIPartialC(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters) ;
 
 
   vtkSmartPointer<SBGATMassProperties> mass_prop;
