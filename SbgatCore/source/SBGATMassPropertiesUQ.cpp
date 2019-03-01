@@ -681,7 +681,8 @@ void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arm
 	dCOMdC = arma::zeros<arma::mat>(3,3 * this -> mass_prop -> GetN_vertices());
 	dIdC = arma::zeros<arma::mat>(6,3 * this -> mass_prop -> GetN_vertices());
 
-	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
+	// #pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
+	std::cout << this -> mass_prop -> GetN_facets() << std::endl;
 	for (int f = 0; f < this -> mass_prop -> GetN_facets(); ++f){
 
 		arma::sp_mat connect_table = this -> mass_prop -> PartialTfPartialC(f);
