@@ -605,7 +605,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 
@@ -894,7 +894,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(std::string filename,
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 
@@ -999,7 +999,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filen
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 
@@ -2134,7 +2134,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	// #pragma omp parallel for reduction(+:successes)
@@ -2238,7 +2238,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2339,7 +2339,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2443,7 +2443,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string file
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2636,7 +2636,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,do
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -2722,7 +2722,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(std::string filename,
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
@@ -2821,7 +2821,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 
@@ -2922,7 +2922,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
 	#pragma omp parallel for reduction(+:successes)
@@ -3046,7 +3046,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 	double xmin, xmax, ymin, ymax, zmin, zmax;
 	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
 
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({x_max,y_max,z_max});
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 	#pragma omp parallel for reduction(+:successes)
 	
