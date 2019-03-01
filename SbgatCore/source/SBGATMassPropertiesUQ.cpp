@@ -107,22 +107,9 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 	shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
 
-	dIdC_standalone.cols(0,5).print("dIdC_standalone: \n");
-	dIdC_standalone.cols(0,5).print("dIdC: \n");
-
-	arma::mat error = dIdC_standalone - dIdC;
-
-	arma::uvec error_index = arma::index_max(error,1);
-
-	dIdC_standalone.col(error_index(0)).print("\n");
-	dIdC.col(error_index(0)).print("\n");
-
-	
-	std::cout << arma::abs(dIdC_standalone - dIdC).max() << std::endl;
-
-	assert(arma::abs(dVdC_standalone - dVdC).max() < 1e-10);
-	assert(arma::abs(dComdC_standalone - dComdC).max() < 1e-10);
-	assert(arma::abs(dIdC_standalone - dIdC).max() < 1e-10);
+	assert(arma::norm(dVdC_standalone - dVdC) / arma::norm(dVdC) < 1e-10);
+	assert(arma::norm(dComdC_standalone - dComdC) / arma::norm(dComdC) < 1e-10);
+	assert(arma::norm(dIdC_standalone - dIdC) / arma::norm(dIdC) < 1e-10);
 
 
 	std::cout << "\t Done running TestGetPartialAllInertiaPartialCVSStandalone ... \n";
@@ -484,9 +471,8 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 1000;
-	double max_error = -1;
+
 	#pragma omp parallel for reduction(+:successes) reduction(max:max_error)
-	
 	for (int i = 0; i < N ; ++i){
 
 		// Reading
@@ -560,8 +546,6 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 	// Non-linear 
 		arma::vec::fixed<6> ddeltaI = deltaI_p - deltaI;
 
-		max_error = std::max(max_error,arma::abs(arma::vectorise(ddeltaI - ddeltaI_lin)).max() / arma::norm(arma::vectorise(ddeltaI_lin)));
-
 		if(arma::abs(arma::vectorise(ddeltaI - ddeltaI_lin)).max() / arma::norm(arma::vectorise(ddeltaI_lin)) < tol){
 			
 
@@ -577,7 +561,7 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 
 	}
 
-	std::cout << "\t Passed TestGetPartialAllInertiaPartialC with " << double(successes)/N * 100 << " \% of successes with max error = " << max_error <<  " \n";
+	std::cout << "\t Passed TestGetPartialAllInertiaPartialC with " << double(successes)/N * 100 << " \% of successes \n";
 
 
 }
