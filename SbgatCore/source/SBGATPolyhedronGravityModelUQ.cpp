@@ -2722,6 +2722,8 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialC(std::string filename
 	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
+
+	arma::vec::fixed<3> pos = {100,200,300};
 	
 	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
@@ -2753,7 +2755,6 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialC(std::string filename
 		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);
-		arma::vec::fixed<3> pos = pgm_filter -> GetFacetCenter(f);
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetPGM(pgm_filter);
