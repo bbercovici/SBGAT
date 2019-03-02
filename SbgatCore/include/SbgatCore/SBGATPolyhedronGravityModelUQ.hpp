@@ -664,6 +664,7 @@ to the shape coordinates
   static void TestAddPartialSumAccfPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestAddPartialSumAccePartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialBePartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestGetPartialSlopePartialwPartialC(std::string input , double tol, bool shape_in_meters);
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
   SBGATMassPropertiesUQ mass_prop_uq;

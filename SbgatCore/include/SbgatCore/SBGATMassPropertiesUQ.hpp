@@ -178,6 +178,16 @@ protected:
   arma::mat GetPartialUnitDensityMomentsPartialI() const;
 
 
+
+
+  /**
+  Returns the partial derivative of the MRP orienting the body-frame (B) to principal-frame (P) dcm (PB)
+  with respect to the inertia tensor parametrization
+  @return partial derivative
+  */
+  arma::mat::fixed<3,6> GetPartialSigmaPartialI() const;
+
+
 /**
 Returns the partial derivative of the (q,r) component of the contribution of the f-facet 
 to the shape's inertia tensor, relative to the f-facet 
