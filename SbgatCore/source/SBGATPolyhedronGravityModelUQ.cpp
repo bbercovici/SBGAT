@@ -3699,7 +3699,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
-		double dw = dw_vector(0);
+		double dw = 0 * dw_vector(0);
 
 		shape_uq.ApplyDeviation(deviation);
 
