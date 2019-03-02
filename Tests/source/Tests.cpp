@@ -875,12 +875,8 @@ void TestsSBCore::test_sbgat_transform_shape(){
 void TestsSBCore::test_MassProperties_UQ_partials(){
 
 
-
-	std::string filename  = "../../resources/shape_models/skewed.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
-
-	filename  = "../../resources/shape_models/itokawa_8.obj";
-	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,false);
+	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
+	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
 }
@@ -888,15 +884,10 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	
-	std::string filename  = "../../resources/shape_models/skewed.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
 
+	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
+	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
-	filename  = "../../resources/shape_models/itokawa_8_scaled.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
-
-	filename  = "../../resources/shape_models/itokawa_8.obj";
-	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,false);
 
 
 }
