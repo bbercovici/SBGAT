@@ -3807,6 +3807,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 	
 		std::cout << dbody_fixed_acc.t();
+		std::cout << (other_partial * deviation * pgm_filter -> GetScaleFactor()).t();
 		std::cout << dbody_fixed_acc_lin.t() << std::endl;
 
 
