@@ -3984,7 +3984,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters){
 
-	std::cout << "\t In PartialSlopeArgumentPartialOmegaC ...";
+	std::cout << "\t In TestPartialSlopeArgumentPartialOmegaC ...";
 
 	// MC
 	int N = 100;
@@ -4029,7 +4029,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		int f = f_vec(0);
 
 		arma::vec::fixed<3> body_fixed_acc = pgm_filter -> GetBodyFixedAccelerationf(f,Omega);
-		double slope_argument = arma::dot(- arma::normalise(body_fixed_acc),
+		double slope_argument = arma::dot(arma::normalise(body_fixed_acc),
 			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
 
 		arma::rowvec dSlope_argumentdOmegaC = shape_uq.PartialSlopeArgumentPartialOmegaC(f,Omega,body_fixed_acc);
@@ -4037,9 +4037,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 		shape_uq.ApplyDeviation(deviation);
 
-		arma::vec::fixed<3> Omega_p = Omega + 0 * arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
+		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
 
-		double slope_argument_p = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),
+		double slope_argument_p = arma::dot(arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),
 			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
 
 		arma::vec all_deviations(3 + 3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
@@ -4056,7 +4056,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 	}
 
-	std::cout << "\t Passed PartialSlopeArgumentPartialOmegaC with " << double(successes) / N * 100 << " \% of successes.\n";
+	std::cout << "\t Passed TestPartialSlopeArgumentPartialOmegaC with " << double(successes) / N * 100 << " \% of successes.\n";
 
 }
 
