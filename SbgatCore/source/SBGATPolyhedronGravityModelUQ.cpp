@@ -3974,7 +3974,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 		arma::mat::fixed<3,3> PB_p = pgm_filter -> GetMassProperties() -> GetPrincipalAxes();
 		arma::vec::fixed<3> Omega_p = (w + dw) * PB_p.t() * rotation_axis_principal_frame;
 
-
 		arma::vec all_deviations(1 + 3 * N_C);
 
 		all_deviations(0) = dw;
