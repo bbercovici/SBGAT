@@ -1456,8 +1456,6 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 	grav_mat_acc_zy = 0;
 	grav_mat_acc_zz = 0;
 
-	gravity_gradient_mat = arma::zeros<arma::mat>(3,3);
-
 	// Facet loop
 	#pragma omp parallel for reduction(-:grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
