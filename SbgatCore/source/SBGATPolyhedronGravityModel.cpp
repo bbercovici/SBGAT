@@ -1435,4 +1435,127 @@ double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fix
 	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
 }
 
+arma::vec::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma::vec::fixed<3> & point) const {
+
+
+
+	double point_scaled[3] = {point[0],point[1],point[2]};
+	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
+
+	double grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz;
+	double grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz;
+	double grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz;
+
+	grav_mat_acc_xx = 0;
+	grav_mat_acc_xy = 0;
+	grav_mat_acc_xz = 0;
+	grav_mat_acc_yx = 0;
+	grav_mat_acc_yy = 0;
+	grav_mat_acc_yz = 0;
+	grav_mat_acc_zx = 0;
+	grav_mat_acc_zy = 0;
+	grav_mat_acc_zz = 0;
+
+	gravity_gradient_mat = arma::zeros<arma::mat>(3,3);
+
+	// Facet loop
+	#pragma omp parallel for reduction(-:grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
+
+		double * r0 = this -> vertices[this -> facets[facet_index][0]];
+		
+		double r0m[3];
+
+		vtkMath::Subtract(r0,point_scaled,r0m);
+
+		double wf = this -> GetOmegaf( point, facet_index);
+
+		double * F = this -> facet_dyads[facet_index];
+
+		double a[3] = {
+			F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2],
+			F[3] * r0m[0] + F[4] * r0m[1] +  F[5] * r0m[2],
+			F[6] * r0m[0] + F[7] * r0m[1] +  F[8] * r0m[2]
+		};
+
+		arma::mat::fixed<3,3> F_arma = {
+			{F[0],F[1],F[2]},
+			{F[3],F[4],F[5]},
+			{F[6],F[7],F[8]}
+		};
+
+		grav_mat_acc_xx -= F_arma(0,0) * wf;
+		grav_mat_acc_yx -= F_arma(1,0) * wf;
+		grav_mat_acc_zx -= F_arma(2,0) * wf;
+
+		grav_mat_acc_xy -= F_arma(0,1) * wf;
+		grav_mat_acc_yy -= F_arma(1,1) * wf;
+		grav_mat_acc_zy -= F_arma(2,1) * wf;
+
+		grav_mat_acc_xz -= F_arma(0,2) * wf;
+		grav_mat_acc_yz -= F_arma(1,2) * wf;
+		grav_mat_acc_zz -= F_arma(2,2) * wf;
+
+
+	}
+
+	// Edge loop
+	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z), reduction(+:pot,grav_mat_acc_xz,grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
+
+		double * r0 = this -> vertices[this -> edges[edge_index][0]];
+
+
+		double r0m[3];
+
+		vtkMath::Subtract(r0,point_scaled,r0m);
+
+		double Le = this -> GetLe( point, edge_index);
+
+		double * E = this -> edge_dyads[edge_index];
+
+		double a[3] = {
+			E[0] * r0m[0] + E[1] * r0m[1] +  E[2] * r0m[2],
+			E[3] * r0m[0] + E[4] * r0m[1] +  E[5] * r0m[2],
+			E[6] * r0m[0] + E[7] * r0m[1] +  E[8] * r0m[2]
+		};
+
+		arma::mat::fixed<3,3> E_arma = {
+			{E[0],E[1],E[2]},
+			{E[3],E[4],E[5]},
+			{E[6],E[7],E[8]}
+		};
+
+
+		grav_mat_acc_xx += E_arma(0,0) * Le;
+		grav_mat_acc_xy += E_arma(0,1) * Le;
+		grav_mat_acc_xz += E_arma(0,2) * Le;
+
+		grav_mat_acc_yx += E_arma(1,0) * Le;
+		grav_mat_acc_yy += E_arma(1,1) * Le;
+		grav_mat_acc_yz += E_arma(1,2) * Le;
+
+		grav_mat_acc_zx += E_arma(2,0) * Le;
+		grav_mat_acc_zy += E_arma(2,1) * Le;
+		grav_mat_acc_zz += E_arma(2,2) * Le;
+
+		
+
+	}
+
+	
+	gravity_gradient_mat = {
+		{grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz},
+		{grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz},
+		{grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz}
+	};
+
+	
+	gravity_gradient_mat *= arma::datum::G  * this -> density;
+
+	return gravity_gradient_mat;
+
+}
+
+
 

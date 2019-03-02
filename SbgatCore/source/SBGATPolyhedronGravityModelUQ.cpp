@@ -1189,7 +1189,10 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialC(c
 	mat.cols(3,5) = arma::eye<arma::mat>(3,3);
 	mat.cols(6,8) = arma::eye<arma::mat>(3,3);
 
-	return (this -> GetPartialAPartialC(this -> pgm_model -> GetMassProperties() -> GetFacetCenter(f))
+	arma::vec::fixed<3> facet_center = this -> pgm_model -> GetMassProperties() -> GetFacetCenter(f);
+
+	return (this -> GetPartialAPartialC(facet_center)
+		+ this -> pgm_model -> GetGravityGradient(facet_center) * 1./3 * mat * this -> PartialTfPartialC(f)
 		+ RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> mass_prop_uq.GetPartialComPartialC() - 
 			1./3 * mat * this -> PartialTfPartialC(f)));
 
