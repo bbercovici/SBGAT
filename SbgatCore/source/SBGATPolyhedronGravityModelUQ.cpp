@@ -3965,8 +3965,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
 		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints();
-		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
-		int f = f_vec(0);
 
 		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
@@ -4053,16 +4051,12 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 		arma::rowvec dSlope_argumentdOmegaC = shape_uq.PartialSlopeArgumentPartialOmegaC(f,Omega,body_fixed_acc);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
-		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
-		double dw = dw_vector(0);
 
 		shape_uq.ApplyDeviation(deviation);
 
-		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega_p)/ 100;
+		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
 
 		double slope_argument_p = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
-
-
 
 		arma::vec all_deviations(3 + 3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
 
