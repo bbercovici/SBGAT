@@ -656,7 +656,7 @@ to the shape coordinates
   static void TestPartialUfPartialTf(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUePartialBe(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUPartialC(std::string input , double tol, bool shape_in_meters);
-  static void TestPartialAPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestGetPartialAPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUfPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUePartialC(std::string input , double tol, bool shape_in_meters);
   static void TestAddPartialSumUePartialC(std::string input , double tol, bool shape_in_meters);

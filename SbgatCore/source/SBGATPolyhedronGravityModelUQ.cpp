@@ -487,7 +487,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(input,tol,shape_in_meters);
@@ -2711,9 +2711,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename,do
 }
 
 
-void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,double tol,bool shape_in_meters){
+void SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialC(std::string filename,double tol,bool shape_in_meters){
 
-	std::cout << "\t In TestPartialAPartialC ...";
+	std::cout << "\t In TestGetPartialAPartialC ...";
 
 	// MC
 	int N = 100;
@@ -2771,7 +2771,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(std::string filename,do
 
 	}
 
-	std::cout << "\t Passed TestPartialAPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+	std::cout << "\t Passed TestGetPartialAPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
 
 
 }
@@ -3758,22 +3758,18 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
-		assert(arma::norm(body_fixed_acc - shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f))) < 1e-10);
 
 		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialC(f,Omega);
 		
-
-
-		arma::mat other_partial = shape_uq.GetPartialAPartialC(pgm_filter -> GetFacetCenter(f));
-
-
-		assert(arma::abs(other_partial - partial).max() < 1e-16);
-
-
+		
+		assert(arma::norm(body_fixed_acc - shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f))) < 1e-10);
 
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
+
+		assert(arma::norm(body_fixed_acc - shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f))) < 1e-10);
+
 
 		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
