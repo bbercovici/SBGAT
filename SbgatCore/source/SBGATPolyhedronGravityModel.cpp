@@ -1487,10 +1487,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 			{E[6],E[7],E[8]}
 		};
 
-
 		gravity_gradient += this -> GetLe( point, edge_index) * E_arma;
-
-		
 
 	}
 
