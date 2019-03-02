@@ -3766,7 +3766,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 
 		std::cout << body_fixed_acc.t();
-		std::cout << shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f)).t()<< std:endl;
+		std::cout << shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f)).t()<< std::endl;
 
 		assert(arma::norm(body_fixed_acc - shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f)) / arma::norm(body_fixed_acc)) < 1e-10);
 
