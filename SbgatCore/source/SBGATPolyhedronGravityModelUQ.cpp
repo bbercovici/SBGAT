@@ -3672,13 +3672,15 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		arma::vec::fixed<3> Omega = w * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
+
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);
 
 		double slope = shape_uq.GetPGM() -> GetSlope(f,Omega);
 
 		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
-		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = 0 * dw_vector(0);
 
@@ -4027,16 +4029,18 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		int f = f_vec(0);
 
 		arma::vec::fixed<3> body_fixed_acc = pgm_filter -> GetBodyFixedAccelerationf(f,Omega);
-		double slope_argument = arma::dot(- arma::normalise(body_fixed_acc),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
+		double slope_argument = arma::dot(- arma::normalise(body_fixed_acc),
+			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
 
 		arma::rowvec dSlope_argumentdOmegaC = shape_uq.PartialSlopeArgumentPartialOmegaC(f,Omega,body_fixed_acc);
 		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
 
-		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
+		arma::vec::fixed<3> Omega_p = Omega + 0 * arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
 
-		double slope_argument_p = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
+		double slope_argument_p = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),
+			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
 
 		arma::vec all_deviations(3 + 3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
 
