@@ -3774,7 +3774,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
 		arma::vec::fixed<3> Omega = w * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 
-		assert(arma::norm(Omega) == 0);
 
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
@@ -3783,6 +3782,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		int f = f_vec(0);
 
 		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
+
+		assert(arma::norm(body_fixed_acc - shape_uq.GetPGM() -> GetAcceleration(shape_uq.GetPGM() -> GetFacetCenter(f))) < 1e-10);
 
 		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialC(f,Omega);
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
