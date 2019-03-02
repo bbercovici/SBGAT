@@ -460,34 +460,37 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 
 	std::cout << "\tRunning SBGATPolyhedronGravityModelUQ::TestPartials on " << input << std::endl;
 	
-	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(input,tol,shape_in_meters);	
-	SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(input,tol,shape_in_meters);	
+	// SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(input,tol,shape_in_meters);
 
-	SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialXePartialBe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(input,tol,shape_in_meters);
 
-	SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(input,tol,shape_in_meters);
+	// SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(input,tol,shape_in_meters);
+
+	SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(input,tol,shape_in_meters);
+
 }
 
 void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,double tol,bool shape_in_meters){
@@ -1228,10 +1231,6 @@ arma::sp_mat SBGATPolyhedronGravityModelUQ::PartialOmegaCPartialwC(const arma::v
 	return partial;
 
 }
-
-
-
-
 
 arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega, const arma::vec::fixed<3> & body_fixed_acc) const{
 
@@ -3611,6 +3610,116 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 			saved_shapes[i] = shape;
 		}
 	}
+
+
+}
+
+
+
+
+void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::string filename,double tol,bool shape_in_meters){
+
+	std::cout << "\t In TestGetPartialSlopePartialwPartialC ...";
+
+	// MC
+	int N = 100;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
+	}
+	else{
+		mass_prop -> SetScaleKiloMeters();
+	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
+
+	#pragma omp parallel for reduction(+:successes)
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		if(shape_in_meters){
+			pgm_filter -> SetScaleMeters();
+		}
+		else{
+			pgm_filter -> SetScaleKiloMeters();
+		}
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> Omega = 1e-1 * arma::normalise(arma::randn<arma::vec>(3)) / pgm_filter -> GetScaleFactor();
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+		double slope = shape_uq.GetPGM() -> GetSlope(f,Omega);
+
+		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
+		double dw = dw_vector(0);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec all_deviations(1 + 3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
+
+		all_deviations(0) = dw;
+		all_deviations.subvec(1,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
+
+
+		arma::vec::fixed<3> Omega_p = arma::normalise(Omega) * (arma::norm(Omega) + dw);
+
+		double slope_p = shape_uq.GetPGM() -> GetSlope(f,Omega_p);
+
+		double dslope = slope_p - slope;
+		double dslope_lin = arma::dot(dSlopedwC, all_deviations);
+
+		if(std::abs(dslope - dslope_lin)/std::abs(dslope_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestGetPartialSlopePartialwPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
 
 
 }

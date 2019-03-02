@@ -469,7 +469,6 @@ void SBGATMassPropertiesUQ::TestGetPartialIPartialC(std::string input,double tol
 
 void SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(std::string input,double tol,bool shape_in_meters) {
 
-
 	std::cout << "\t In TestGetPartialSigmaPartialC ... ";
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
@@ -483,7 +482,7 @@ void SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(std::string input,double
 		reader -> SetFileName(input.c_str());
 		reader -> Update(); 
 
-	// Cleaning
+		// Cleaning
 		vtkSmartPointer<vtkCleanPolyData> cleaner =
 		vtkSmartPointer<vtkCleanPolyData>::New();
 		cleaner -> SetInputConnection (reader -> GetOutputPort());
@@ -1017,9 +1016,8 @@ void SBGATMassPropertiesUQ::ApplyDeviation(const arma::vec & delta_C){
 }
 
 
-arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
+arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 
-	arma::mat eigvec;
 	arma::mat::fixed<3,3> BP = this -> mass_prop -> GetPrincipalAxes().t();
 
 	arma::vec::fixed<3> moments = this -> mass_prop -> GetUnitDensityInertiaMoments();
@@ -1090,6 +1088,13 @@ arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
 
 	return arma::inv(H.t() * H) * H.t() * V;
 
+
+}
+
+
+arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
+
+	return this -> GetPartialSigmaPartialI() * this -> GetPartialIPartialC();
 
 }
 
