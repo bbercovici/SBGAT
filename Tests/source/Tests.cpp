@@ -874,7 +874,9 @@ void TestsSBCore::test_sbgat_transform_shape(){
 
 void TestsSBCore::test_MassProperties_UQ_partials(){
 
-	filename  = "../../resources/shape_models/skewed.obj";
+
+
+	std::string filename  = "../../resources/shape_models/skewed.obj";
 	SBGATMassPropertiesUQ::TestPartials(filename,5e-2,true);
 
 	filename  = "../../resources/shape_models/itokawa_8.obj";
@@ -886,7 +888,7 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 
 void TestsSBCore::test_PGM_UQ_partials(){
 	
-	filename  = "../../resources/shape_models/skewed.obj";
+	std::string filename  = "../../resources/shape_models/skewed.obj";
 	SBGATPolyhedronGravityModelUQ::TestPartials(filename,5e-2,true);
 
 	filename  = "../../resources/shape_models/itokawa_8.obj";
