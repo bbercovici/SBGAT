@@ -1456,10 +1456,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 
 		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double wf = this -> GetOmegaf( point, facet_index);
-
 		double * F = this -> facet_dyads[facet_index];
-
 		
 		arma::mat::fixed<3,3> F_arma = {
 			{F[0],F[1],F[2]},
@@ -1467,7 +1464,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 			{F[6],F[7],F[8]}
 		};
 
-		gravity_gradient += (-w_f * F_arma);
+		gravity_gradient += (- this -> GetOmegaf( point, facet_index) * F_arma);
 
 
 	}
@@ -1482,8 +1479,6 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 
 		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double Le = this -> GetLe( point, edge_index);
-
 		double * E = this -> edge_dyads[edge_index];
 
 		arma::mat::fixed<3,3> E_arma = {
@@ -1493,7 +1488,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 		};
 
 
-		gravity_gradient += Le * E_arma;
+		gravity_gradient += this -> GetLe( point, edge_index) * E_arma;
 
 		
 
