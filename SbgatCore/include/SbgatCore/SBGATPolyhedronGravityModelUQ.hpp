@@ -307,6 +307,17 @@ protected:
   arma::mat PartialwSigmaPartialwC() const;
 
 
+/**
+Returns the partial derivative of the body-fixed acceleration at the center of facet f relative
+to the shape coordinates
+@param f facet index
+@param Omega angular velocity vector expressed in the body frame
+@return partial derivative
+*/
+  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
   /**
   Returns the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
   the angular velocity and vertices coordinates
@@ -318,7 +329,7 @@ protected:
 
 
 
-  
+
   arma::mat::fixed<3,3> PartialBodyFixedAccelerationfPartialOmega(const int & f,const arma::vec::fixed<3> & Omega) const;
 
 
@@ -558,6 +569,17 @@ protected:
   */
   arma::rowvec::fixed<24> PartialEqrPartialBe(const int & e,const int & q,const int & r) const;
 
+
+  /**
+  Returns the partial derivative of the f-th facet slope argument (u as in slope = arcos(-u))
+  with respect to the angular velocity and the shape coordinates
+  @param f facet index
+  @param Omega angular velocity vector
+  @return partial derivative
+  */
+  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
   /**
   Returns the partial derivative of the Ee dyad parametrization with respect 
   to the coordinates of the edges points and adjacent facets points
@@ -577,11 +599,11 @@ protected:
 
 
   /**
-  Returns the partial derivative of the slope s == arcos(-u) relative to u
+  Returns the partial derivative of the slope s == arcos(-u) relative to the slope argument u
   @param u input parameter
   @param partial derivative of slope with respect to u
   */
-  static double PartialSlopePartialU(const double & u);
+  static double PartialSlopePartialSlopeArgument(const double & u);
 
 
 

@@ -118,6 +118,16 @@ the polydata used to construct the PGM
 
 
 /**
+Get the body-fixed acceleration at the center of the specified facet
+@param f facet index 
+@param Omega angular velocity vector expressed in the body-frame
+@return body-fixed acceleration (m/s^2)
+*/
+  arma::vec::fixed<3> GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
+/**
 Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradient matrix at the specified point assuming 
 a constant density
 @param point coordinates of queried point, expressed in the same frame as
@@ -179,6 +189,14 @@ the polydata used to construct the PGM
   */
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
 
+
+  /**
+  Computes the slope as the center of the designated facet
+  @param f facet index
+  @param Omega angular velocity vector (rad/s)
+  @return slope (deg)
+  */
+  double GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
 
 
   /**
@@ -491,6 +509,9 @@ the polydata used to construct the PGM
   @return contribution to the potential of this specific facet at the prescribed fieldpoint
   */
   static arma::vec::fixed<3> GetAf(const arma::vec::fixed<10> & Xf);
+
+
+
 
 
   /**

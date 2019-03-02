@@ -1422,4 +1422,18 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetFacetCenter(const int & f) c
 }
 
 
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const{
+
+	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> mass_properties -> GetCenterOfMass()));
+
+
+
+}
+
+
+double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const{
+
+	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f)))) * 180./arma::datum::pi;
+}
+
 
