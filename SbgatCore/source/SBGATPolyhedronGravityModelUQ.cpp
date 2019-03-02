@@ -4070,7 +4070,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		all_deviations.subvec(3,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
 		
 		double dslope_argument = slope_argument_p - slope_argument;
-		double dslope_argument_lin = arma::dot(dSlope_argumentdwC, all_deviations);
+		double dslope_argument_lin = arma::dot(dSlope_argumentdOmegaC, all_deviations);
 
 		if(std::abs(dslope_argument - dslope_argument_lin)/std::abs(dslope_argument_lin) < tol){
 			++successes;
