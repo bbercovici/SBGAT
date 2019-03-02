@@ -1427,7 +1427,6 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const
 	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> mass_properties -> GetCenterOfMass()));
 
 
-
 }
 
 
