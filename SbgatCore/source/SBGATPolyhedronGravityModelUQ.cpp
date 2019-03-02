@@ -3740,35 +3740,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 	arma::arma_rng::set_seed(0);
 
 
-	// Reading
-	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
-	r -> SetFileName(filename.c_str());
-	r -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cl =
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cl -> SetInputConnection (r -> GetOutputPort());
-	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-	cl -> Update();	
-
-
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	
-	mass_prop -> SetInputConnection(cl -> GetOutputPort());
-	if(shape_in_meters){
-		mass_prop -> SetScaleMeters();
-	}
-	else{
-		mass_prop -> SetScaleKiloMeters();
-	}
-
-	mass_prop -> Update();
-	double xmin, xmax, ymin, ymax, zmin, zmax;
-	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
-
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
@@ -3951,36 +3922,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
-	r -> SetFileName(input.c_str());
-	r -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cl =
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cl -> SetInputConnection (r -> GetOutputPort());
-	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-	cl -> Update();	
-
-
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	
-	mass_prop -> SetInputConnection(cl -> GetOutputPort());
-	if(shape_in_meters){
-		mass_prop -> SetScaleMeters();
-	}
-	else{
-		mass_prop -> SetScaleKiloMeters();
-	}
-
-	mass_prop -> Update();
-	double xmin, xmax, ymin, ymax, zmin, zmax;
-	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
-
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){

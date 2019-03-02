@@ -397,7 +397,7 @@ arma::vec::fixed<3> SBGATFilter::GetFacetCenter(const int & f) const{
   double r2[3];
   this -> GetVerticesInFacet(f,r0,r1,r2);
 
-  return 1./3 * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
+  return 1./3 * this -> scaleFactor * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
 
 
 }
