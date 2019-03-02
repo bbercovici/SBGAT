@@ -52,12 +52,12 @@ public:
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
-  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;this -> is_in_meters = true;}
 
   /**
   Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
   */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
 
   /**
   Returns the shape's scale factor
@@ -205,6 +205,17 @@ public:
   arma::sp_mat  PartialTfPartialC(const int & f) const;
 
 
+  /**
+  Returns true if the input shape has its coordinates expressed in meters, false otherwise
+  */
+  bool GetIsInMeters() const{ return this -> is_in_meters;}
+
+
+  /**
+  Returns true if the input shape has its coordinates expressed in kilometers, false otherwise
+  */
+  bool GetIsInKiloMeters() const{ return !this -> is_in_meters;}
+
 
 protected:
   SBGATFilter();
@@ -229,6 +240,7 @@ protected:
 
   bool scaleFactorSet;
   bool densitySet;
+  bool is_in_meters = true;
 
   int N_facets;
   int N_edges;

@@ -153,8 +153,6 @@ int SBGATShapeUncertainty::RequestData(vtkInformation* vtkNotUsed( request ),vtk
   this -> shape_model_bezier = std::make_shared<ShapeModelBezier<ControlPoint>>(ShapeModelBezier<ControlPoint>(ShapeModelBezier<ControlPoint>(shape_model_tri,"",nullptr)));
 
 
-
-
   for (int e = 0; e < this -> shape_model_bezier -> get_NElements(); ++e){
 
     this -> shape_model_bezier -> get_element(e).set_owning_shape(this -> shape_model_bezier.get());

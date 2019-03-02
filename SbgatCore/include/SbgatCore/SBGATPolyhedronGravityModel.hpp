@@ -118,6 +118,16 @@ the polydata used to construct the PGM
 
 
 /**
+Get the body-fixed acceleration at the center of the specified facet
+@param f facet index 
+@param Omega angular velocity vector expressed in the body-frame
+@return body-fixed acceleration (m/s^2)
+*/
+  arma::vec::fixed<3> GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
+/**
 Evaluates the Polyhedron Gravity Model potential, acceleration and gravity gradient matrix at the specified point assuming 
 a constant density
 @param point coordinates of queried point, expressed in the same frame as
@@ -172,12 +182,22 @@ the polydata used to construct the PGM
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
-  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;this -> is_in_meters = true;}
 
   /**
   Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
   */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
+
+
+  /**
+  Computes the slope as the center of the designated facet
+  @param f facet index
+  @param Omega angular velocity vector (rad/s)
+  @return slope (rad)
+  */
+  double GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
+
 
   /**
   Returns the shape's scale factor
@@ -216,6 +236,13 @@ the polydata used to construct the PGM
   double GetMass() const{
     return this -> density * this -> mass_properties -> GetVolume() * std::pow(this -> scaleFactor,3);
   }
+
+
+  /**
+  Gets pointer to associated mass properties
+  @return mass properties
+  */
+  vtkSmartPointer<SBGATMassProperties> GetMassProperties() const{return this -> mass_properties;}
 
   /**
   Returns the performance factor of the f-th facet at the specified position
@@ -484,6 +511,9 @@ the polydata used to construct the PGM
   static arma::vec::fixed<3> GetAf(const arma::vec::fixed<10> & Xf);
 
 
+
+
+
   /**
   Returns the indices of the vertices forming the prescribed edge
   @param[in] e edge index
@@ -536,6 +566,7 @@ protected:
 
   bool scaleFactorSet;
   bool densitySet;
+  bool is_in_meters = true;
 
   int N_facets;
   int N_edges;

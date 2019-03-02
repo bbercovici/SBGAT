@@ -64,6 +64,8 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
+	SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(input,tol,shape_in_meters);
+
 }
 
 
@@ -465,6 +467,74 @@ void SBGATMassPropertiesUQ::TestGetPartialIPartialC(std::string input,double tol
 }
 
 
+void SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(std::string input,double tol,bool shape_in_meters) {
+
+
+	std::cout << "\t In TestGetPartialSigmaPartialC ... ";
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	int N = 1000;
+	#pragma omp parallel for reduction(+:successes)
+	
+	for (int i = 0; i < N ; ++i){
+
+		// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(input.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
+		mass_prop -> SetDensity(1970);
+		if (shape_in_meters) 
+			mass_prop -> SetScaleMeters();
+		else
+			mass_prop -> SetScaleKiloMeters();
+
+		mass_prop -> Update();
+
+		SBGATMassPropertiesUQ shape_uq;
+		shape_uq.SetMassProperties(mass_prop);
+
+	// Nominal 
+		arma::vec::fixed<3> sigma = RBK::dcm_to_mrp(shape_uq.GetMassProperties() -> GetPrincipalAxes()) ;
+
+	// Deviation
+		arma::vec delta_C = 1e-3 * arma::randn<arma::vec>(3 * mass_prop -> GetN_vertices()  ) / mass_prop -> GetScaleFactor();
+
+	// Linear 
+		arma::vec::fixed<3> dsigma_lin = mass_prop -> GetScaleFactor() * shape_uq.GetPartialSigmaPartialC() * delta_C;
+
+	// Apply deviation
+		shape_uq. ApplyDeviation(delta_C);
+
+	// Perturbed 
+		arma::vec::fixed<3> sigma_p = RBK::dcm_to_mrp(shape_uq.GetMassProperties() -> GetPrincipalAxes()) ;
+		
+	// Non-linear 
+		arma::vec::fixed<3> dsigma = RBK::dcm_to_mrp(RBK::mrp_to_dcm(sigma_p) * RBK::mrp_to_dcm(sigma).t());
+
+		if(arma::norm(RBK::dcm_to_mrp(RBK::mrp_to_dcm(dsigma) * RBK::mrp_to_dcm(dsigma_lin).t())) / arma::norm(dsigma_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestGetPartialSigmaPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
+
+
+}
+
+
 void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters) {
 
 
@@ -717,7 +787,7 @@ arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialEqDeltaIfErPartialTf(const 
 
 	arma::rowvec::fixed<9> partial = (arma::dot(e_q,
 		this -> mass_prop -> GetDeltaIOverDeltaV(f) * e_r) * this -> PartialDeltaVfPartialTf(f) 
-		+ this -> mass_prop -> GetDeltaV(f) * this -> PartialEqDeltaIOverDeltaVfErPartialTf(e_q,e_r,Tf));
+	+ this -> mass_prop -> GetDeltaV(f) * this -> PartialEqDeltaIOverDeltaVfErPartialTf(e_q,e_r,Tf));
 
 	return partial;
 
@@ -947,6 +1017,127 @@ void SBGATMassPropertiesUQ::ApplyDeviation(const arma::vec & delta_C){
 }
 
 
+arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
+
+	arma::mat eigvec;
+	arma::mat::fixed<3,3> BP = this -> mass_prop -> GetPrincipalAxes().t();
+
+	arma::vec::fixed<3> moments = this -> mass_prop -> GetUnitDensityInertiaMoments();
+
+	arma::mat::fixed<3,6> W1,W2,W3;
+	W1 = W2 = W3 = arma::zeros<arma::mat>(3,6);
+
+	W1(0,0) = 1;
+	W1(1,3) = 1;
+	W1(2,4) = 1;
+
+	W2(0,3) = 1;
+	W2(1,1) = 1;
+	W2(2,5) = 1;
+
+	W3(0,4) = 1;
+	W3(1,5) = 1;
+	W3(2,2) = 1;
+
+	arma::mat::fixed<3,6> dMdI = this -> GetPartialUnitDensityMomentsPartialI();
+
+	arma::mat::fixed<9,3> H = arma::zeros<arma::mat>(9,3);
+	arma::mat::fixed<9,6> V = arma::zeros<arma::mat>(9,6);
+	
+	arma::mat::fixed<3,3> D = arma::diagmat(moments);
+
+	int index = 0;
+	for (int q = 0; q < 3; ++q){
+		
+		arma::vec::fixed<3> e_q = arma::zeros<arma::vec>(3);
+		e_q(q) = 1;
+
+		arma::vec::fixed<3> f_q = BP * e_q;
+		
+		for (int r = 0; r < 3; ++r){
+			
+			arma::vec::fixed<3> e_r= arma::zeros<arma::vec>(3);
+			e_r(r) = 1;
+
+			arma::vec::fixed<3> f_r = BP * e_r;
+
+			double delta_rq;
+			
+			if (r==q){
+				delta_rq = 1;
+			}
+			else{
+				delta_rq = 0;
+			}
+
+			arma::mat::fixed<3,6> Fq = arma::zeros<arma::mat>(3,6);
+			
+			Fq.row(0) = f_q.t() * W1;
+			Fq.row(1) = f_q.t() * W2;
+			Fq.row(2) = f_q.t() * W3;
+
+
+
+			arma::rowvec::fixed<6> J_rq = f_r.t() * Fq;
+
+			H.row(index) = e_r.t() * ( D * RBK::tilde(e_q) - RBK::tilde(D * e_q));
+			V.row(index) = (J_rq - delta_rq * e_r.t() * dMdI)/4;
+			++index;
+
+		}
+	}
+
+
+	return arma::inv(H.t() * H) * H.t() * V;
+
+
+}
+
+
+
+arma::mat  SBGATMassPropertiesUQ::GetPartialUnitDensityMomentsPartialI() const{
+
+	arma::mat::fixed<3,3> eigvec = this -> mass_prop -> GetPrincipalAxes().t();
+
+
+	arma::mat::fixed<3,6> W1,W2,W3;
+	W1 = W2 = W3 = arma::zeros<arma::mat>(3,6);
+
+	W1(0,0) = 1;
+	W1(1,3) = 1;
+	W1(2,4) = 1;
+
+	W2(0,3) = 1;
+	W2(1,1) = 1;
+	W2(2,5) = 1;
+
+	W3(0,4) = 1;
+	W3(1,5) = 1;
+	W3(2,2) = 1;
+
+	arma::mat::fixed<3,6> U1,U2,U3;
+
+	U1.row(0) = eigvec.col(0).t() * W1;
+	U1.row(1) = eigvec.col(0).t() * W2;
+	U1.row(2) = eigvec.col(0).t() * W3;
+
+	U2.row(0) = eigvec.col(1).t() * W1;
+	U2.row(1) = eigvec.col(1).t() * W2;
+	U2.row(2) = eigvec.col(1).t() * W3;
+
+	U3.row(0) = eigvec.col(2).t() * W1;
+	U3.row(1) = eigvec.col(2).t() * W2;
+	U3.row(2) = eigvec.col(2).t() * W3;
+
+	arma::mat::fixed<3,6> dMdI = arma::zeros<arma::mat>(3,6);
+	dMdI.row(0) = eigvec.col(0).t() * U1;
+	dMdI.row(1) = eigvec.col(1).t() * U2;
+	dMdI.row(2) = eigvec.col(2).t() * U3;
+	return dMdI;
+
+
+
+}
 
 
 

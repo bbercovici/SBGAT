@@ -138,10 +138,10 @@ int SBGATPolyhedronGravityModel::RequestData(
     // Generate normals
 	vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
 
-	normalGenerator->SetInputData(input);
-	normalGenerator->ComputePointNormalsOff();
-	normalGenerator->ComputeCellNormalsOn();
-	normalGenerator->Update();
+	normalGenerator -> SetInputData(input);
+	normalGenerator -> ComputePointNormalsOff();
+	normalGenerator -> ComputeCellNormalsOn();
+	normalGenerator -> Update();
 
 	vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
 	
@@ -322,12 +322,18 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	}
 
-
 	this -> N_edges = edge_count;
 	this -> N_facets = numCells;
 
 	this -> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
 	this -> mass_properties -> SetInputData(input);
+	if (this -> is_in_meters){
+		this -> mass_properties -> SetScaleMeters();
+	}
+	else{
+		this -> mass_properties -> SetScaleKiloMeters();
+	}
+
 	this -> mass_properties -> Update();
 
 	// Check that the Euler characteristic == 2
@@ -399,7 +405,7 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 
 double SBGATPolyhedronGravityModel::GetEdgeLength(const int & e) const{
 
-  return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
+	return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
 }
 
 
@@ -776,6 +782,12 @@ void SBGATPolyhedronGravityModel::PrintSelf(std::ostream& os, vtkIndent indent){
 
 
 
+
+
+
+
+
+
 void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 	vtkSmartPointer<vtkPolyData> selected_shape,
 	const std::vector<unsigned int> & queried_elements,
@@ -825,7 +837,7 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 
 
 	arma::vec::fixed<3> com = mass_prop -> GetCenterOfMass();
-    
+
     // The queried facets are browsed and their surface PGM evaluated
     #pragma omp parallel for
 	for ( int e = 0; e <  queried_elements.size(); ++e){
@@ -1409,5 +1421,19 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetFacetCenter(const int & f) c
 
 }
 
+
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const{
+
+	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> mass_properties -> GetCenterOfMass()));
+
+
+
+}
+
+
+double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const{
+
+	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
+}
 
 

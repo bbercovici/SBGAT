@@ -20,7 +20,7 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
 #include "SBGATPolyhedronGravityModel.hpp"
-
+#include "SBGATMassPropertiesUQ.hpp"
 
 class SBGATPolyhedronGravityModelUQ {
 public:
@@ -33,6 +33,7 @@ public:
   @param[in] pgm pointer to valid polyhedron gravity model
   */
   void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm);
+
 
   /**
   Get the PGM model associated to this uncertainty quantification run
@@ -69,6 +70,9 @@ public:
   */
   void GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
+
+
+
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
@@ -244,6 +248,16 @@ Sets the vertices covariance to the provided one
 
 
   /**
+  Returns the partial derivative of the slope at the center of facet f relative to 
+  the angular velocity magnitude and shape vertices coordinates
+  @param f facet index
+  @param Omega angular velocity vector expressed in the body frame (rad/s)
+  @return partials
+  */
+  arma::rowvec GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+  /**
   Returns the partial derivative of the gravitation slope at the center of face tf relative to 
   the shape vertices coordinates
   @param f facet index
@@ -282,6 +296,53 @@ Sets the vertices covariance to the provided one
 protected:
 
   arma::vec GetBe() const;
+
+
+
+  /**
+  Get partial derivative of the angular velocity vector relative to 1) the angular velocity magnitude 2) the shape vertices
+  coordinates
+  @param Omega angular velocity expressed in current body-frame (rad/s)
+  @return partial derivative of Omega relative to its magnitude shape vertices coordinates
+  */
+  arma::mat PartialOmegaPartialwC(const arma::vec::fixed<3> & Omega) const;
+
+
+  /**
+  Returns the partial derivative of the body-fixed angular velocity and the vertices coordinates relative
+  to the angular velocity magnitude and shape vertices coordinates
+  @param Omega angular velocity expressed in current body-frame (rad/s)
+  @return partial
+  */
+  arma::sp_mat PartialOmegaCPartialwC(const arma::vec::fixed<3> & Omega) const;
+
+
+/**
+Returns the partial derivative of the body-fixed acceleration at the center of facet f relative
+to the shape coordinates
+@param f facet index
+@param Omega angular velocity vector expressed in the body frame
+@return partial derivative
+*/
+  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
+  /**
+  Returns the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
+  the angular velocity and vertices coordinates
+  @param f facet index
+  @param Omega angular velocity
+  @return partial derivative
+  */
+  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
+
+  arma::mat::fixed<3,3> PartialBodyFixedAccelerationfPartialOmega(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
 
 
   /**
@@ -518,6 +579,19 @@ protected:
   */
   arma::rowvec::fixed<24> PartialEqrPartialBe(const int & e,const int & q,const int & r) const;
 
+
+  /**
+  Returns the partial derivative of the f-th facet slope argument (u as in slope = arcos(-u))
+  with respect to the angular velocity and the shape coordinates
+  @param f facet index
+  @param Omega angular velocity vector
+  @param body_fixed_acc body-fixed acceleration at the center of facet f
+  @return partial derivative
+  */
+  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega,
+    const arma::vec::fixed<3> & body_fixed_acc) const;
+
+
   /**
   Returns the partial derivative of the Ee dyad parametrization with respect 
   to the coordinates of the edges points and adjacent facets points
@@ -537,11 +611,12 @@ protected:
 
 
   /**
-  Returns the partial derivative of the slope s == arcos(-u) relative to u
+  Returns the partial derivative of the slope s == arcos(-u) relative to the slope argument u
   @param u input parameter
   @param partial derivative of slope with respect to u
   */
-  static double PartialSlopePartialU(const double & u);
+  static double PartialSlopePartialSlopeArgument(const double & u);
+
 
 
 
@@ -590,8 +665,9 @@ protected:
   static void TestAddPartialSumAccePartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialBePartialC(std::string input , double tol, bool shape_in_meters);
 
-
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
+  SBGATMassPropertiesUQ mass_prop_uq;
+
 
   arma::mat P_CC;
   arma::sp_mat P_CC_sparse;
