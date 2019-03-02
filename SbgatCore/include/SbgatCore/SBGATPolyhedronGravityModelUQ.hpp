@@ -20,7 +20,7 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 #include <armadillo>
 #include "SBGATMassProperties.hpp"
 #include "SBGATPolyhedronGravityModel.hpp"
-
+#include "SBGATMassPropertiesUQ.hpp"
 
 class SBGATPolyhedronGravityModelUQ {
 public:
@@ -33,6 +33,7 @@ public:
   @param[in] pgm pointer to valid polyhedron gravity model
   */
   void SetPGM(vtkSmartPointer<SBGATPolyhedronGravityModel> pgm);
+
 
   /**
   Get the PGM model associated to this uncertainty quantification run
@@ -69,6 +70,9 @@ public:
   */
   void GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
     arma::mat::fixed<3,3> & acc_cov) const;
+
+
+
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
@@ -282,6 +286,42 @@ Sets the vertices covariance to the provided one
 protected:
 
   arma::vec GetBe() const;
+
+
+
+  /**
+  Get partial derivative of the angular velocity vector relative to 1) the angular velocity magnitude 2) the mrp orienting 
+  the PB dcm
+  @param Omega angular velocity expressed in current body-frame (rad/s)
+  @return partial derivative of Omega relative to its magnitude and mrp orienting the PB dcm
+  */
+  arma::mat PartialOmegaPartialwSigma(const arma::vec::fixed<3> & Omega) const;
+
+
+
+  /**
+  Get partial derivative of the angular velocity magnitude and the mrp orienting 
+  the PB dcm relative to 1) the angular velocity magnitude 2) the shape coordinates
+  @return partial derivative
+  */
+  arma::mat PartialwSigmaPartialwC() const;
+
+
+  /**
+  Returns the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
+  the angular velocity and vertices coordinates
+  @param f facet index
+  @param Omega angular velocity
+  @return partial derivative
+  */
+  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+
+  
+  arma::mat::fixed<3,3> PartialBodyFixedAccelerationfPartialOmega(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
 
 
   /**
@@ -590,8 +630,9 @@ protected:
   static void TestAddPartialSumAccePartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialBePartialC(std::string input , double tol, bool shape_in_meters);
 
-
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
+  SBGATMassPropertiesUQ mass_prop_uq;
+
 
   arma::mat P_CC;
   arma::sp_mat P_CC_sparse;

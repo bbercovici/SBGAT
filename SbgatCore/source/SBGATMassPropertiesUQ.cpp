@@ -717,7 +717,7 @@ arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialEqDeltaIfErPartialTf(const 
 
 	arma::rowvec::fixed<9> partial = (arma::dot(e_q,
 		this -> mass_prop -> GetDeltaIOverDeltaV(f) * e_r) * this -> PartialDeltaVfPartialTf(f) 
-		+ this -> mass_prop -> GetDeltaV(f) * this -> PartialEqDeltaIOverDeltaVfErPartialTf(e_q,e_r,Tf));
+	+ this -> mass_prop -> GetDeltaV(f) * this -> PartialEqDeltaIOverDeltaVfErPartialTf(e_q,e_r,Tf));
 
 	return partial;
 
@@ -947,6 +947,127 @@ void SBGATMassPropertiesUQ::ApplyDeviation(const arma::vec & delta_C){
 }
 
 
+arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
+
+	arma::mat eigvec;
+	arma::mat::fixed<3,3> BP = this -> mass_prop -> GetPrincipalAxes().t();
+
+	arma::vec::fixed<3> moments = this -> mass_prop -> GetUnitDensityInertiaMoments();
+
+	arma::mat::fixed<3,6> W1,W2,W3;
+	W1 = W2 = W3 = arma::zeros<arma::mat>(3,6);
+
+	W1(0,0) = 1;
+	W1(1,3) = 1;
+	W1(2,4) = 1;
+
+	W2(0,3) = 1;
+	W2(1,1) = 1;
+	W2(2,5) = 1;
+
+	W3(0,4) = 1;
+	W3(1,5) = 1;
+	W3(2,2) = 1;
+
+	arma::mat::fixed<3,6> dMdI = this -> GetPartialUnitDensityMomentsPartialI();
+
+	arma::mat::fixed<9,3> H = arma::zeros<arma::mat>(9,3);
+	arma::mat::fixed<9,6> V = arma::zeros<arma::mat>(9,6);
+	
+	arma::mat::fixed<3,3> D = arma::diagmat(moments);
+
+	int index = 0;
+	for (int q = 0; q < 3; ++q){
+		
+		arma::vec::fixed<3> e_q = arma::zeros<arma::vec>(3);
+		e_q(q) = 1;
+
+		arma::vec::fixed<3> f_q = BP * e_q;
+		
+		for (int r = 0; r < 3; ++r){
+			
+			arma::vec::fixed<3> e_r= arma::zeros<arma::vec>(3);
+			e_r(r) = 1;
+
+			arma::vec::fixed<3> f_r = BP * e_r;
+
+			double delta_rq;
+			
+			if (r==q){
+				delta_rq = 1;
+			}
+			else{
+				delta_rq = 0;
+			}
+
+			arma::mat::fixed<3,6> Fq = arma::zeros<arma::mat>(3,6);
+			
+			Fq.row(0) = f_q.t() * W1;
+			Fq.row(1) = f_q.t() * W2;
+			Fq.row(2) = f_q.t() * W3;
+
+
+
+			arma::rowvec::fixed<6> J_rq = f_r.t() * Fq;
+
+			H.row(index) = e_r.t() * ( D * RBK::tilde(e_q) - RBK::tilde(D * e_q));
+			V.row(index) = (J_rq - delta_rq * e_r.t() * dMdI)/4;
+			++index;
+
+		}
+	}
+
+
+	return arma::inv(H.t() * H) * H.t() * V;
+
+
+}
+
+
+
+arma::mat  SBGATMassPropertiesUQ::GetPartialUnitDensityMomentsPartialI() const{
+
+	arma::mat::fixed<3,3> eigvec = this -> mass_prop -> GetPrincipalAxes().t();
+
+
+	arma::mat::fixed<3,6> W1,W2,W3;
+	W1 = W2 = W3 = arma::zeros<arma::mat>(3,6);
+
+	W1(0,0) = 1;
+	W1(1,3) = 1;
+	W1(2,4) = 1;
+
+	W2(0,3) = 1;
+	W2(1,1) = 1;
+	W2(2,5) = 1;
+
+	W3(0,4) = 1;
+	W3(1,5) = 1;
+	W3(2,2) = 1;
+
+	arma::mat::fixed<3,6> U1,U2,U3;
+
+	U1.row(0) = eigvec.col(0).t() * W1;
+	U1.row(1) = eigvec.col(0).t() * W2;
+	U1.row(2) = eigvec.col(0).t() * W3;
+
+	U2.row(0) = eigvec.col(1).t() * W1;
+	U2.row(1) = eigvec.col(1).t() * W2;
+	U2.row(2) = eigvec.col(1).t() * W3;
+
+	U3.row(0) = eigvec.col(2).t() * W1;
+	U3.row(1) = eigvec.col(2).t() * W2;
+	U3.row(2) = eigvec.col(2).t() * W3;
+
+	arma::mat::fixed<3,6> dMdI = arma::zeros<arma::mat>(3,6);
+	dMdI.row(0) = eigvec.col(0).t() * U1;
+	dMdI.row(1) = eigvec.col(1).t() * U2;
+	dMdI.row(2) = eigvec.col(2).t() * U3;
+	return dMdI;
+
+
+
+}
 
 
 

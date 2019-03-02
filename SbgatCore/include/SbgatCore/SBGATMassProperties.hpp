@@ -54,7 +54,7 @@ public:
   /**
    * Compute and return the volume (m^3)
    */
-  double GetVolume() { return this->Volume;}
+  double GetVolume() const { return this->Volume;}
 
   /**
    * Compute and return the projected volume.
@@ -64,7 +64,7 @@ public:
    * * Either the polydata is not closed
    * * Or the polydata contains triangle that are flipped
    */
-  double GetVolumeProjected() { return this->VolumeProjected;}
+  double GetVolumeProjected() const { return this->VolumeProjected;}
 
   /**
    * Compute and return the volume projected on to each axis aligned plane.
@@ -77,26 +77,26 @@ public:
    * Compute and return the weighting factors for the maximum unit
    * normal component (MUNC).
    */
-  double GetKx() { return this->Kx;}
-  double GetKy() { return this->Ky;}
-  double GetKz() { return this->Kz;}
+  double GetKx() const { return this->Kx;}
+  double GetKy() const { return this->Ky;}
+  double GetKz() const { return this->Kz;}
 
   /**
    * Compute and return the area in m^2
    */
-  double GetSurfaceArea() { return this->SurfaceArea;
+  double GetSurfaceArea()  const{ return this->SurfaceArea;
   }
 
   /**
    * Compute and return the min cell area in m^2
    */
-  double GetMinCellArea() { return this->MinCellArea;
+  double GetMinCellArea()  const{ return this->MinCellArea;
   }
 
   /**
    * Compute and return the max cell area in m^2
    */
-  double GetMaxCellArea() { return this->MaxCellArea;
+  double GetMaxCellArea()  const{ return this->MaxCellArea;
   }
 
 
@@ -104,14 +104,14 @@ public:
   Checks whether the polydata is topologically closed or open
   If closed, the sum of the oriented surface area should be equal to zero
   */
-  bool CheckClosed(){ return this -> IsClosed;}
+  bool CheckClosed() const{ return this -> IsClosed;}
 
   /**
    * Compute and return the normalized shape index. This characterizes the
    * deviation of the shape of an object from a sphere. A sphere's NSI
    * is one. This number is always >= 1.0.
    */
-  double GetNormalizedShapeIndex()
+  double GetNormalizedShapeIndex() const
   { return this->NormalizedShapeIndex;
   }
 
@@ -121,7 +121,7 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
-  const arma::vec::fixed<3> & GetCenterOfMass(){
+  const arma::vec::fixed<3> & GetCenterOfMass() const {
    return this -> center_of_mass;
  }
 
@@ -130,7 +130,7 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape
   */
- void GetCenterOfMass(double * com){
+ void GetCenterOfMass(double * com) const{
 
   com[0] = this -> center_of_mass(0);
   com[1] = this -> center_of_mass(1);
@@ -142,7 +142,7 @@ public:
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-arma::mat::fixed<3,3> GetNormalizedInertiaTensor(){
+arma::mat::fixed<3,3> GetNormalizedInertiaTensor() const {
  return this -> inertia_tensor;
 }
 
@@ -151,7 +151,7 @@ arma::mat::fixed<3,3> GetNormalizedInertiaTensor(){
   * evaluated in the frame of origin assuming a constant density distribution
   * across the shape. The normalization applied to the inertia tensor is I_norm = I / (rho) where rho is the density
   */
-arma::mat::fixed<3,3> GetUnitDensityInertiaTensor(){
+arma::mat::fixed<3,3> GetUnitDensityInertiaTensor() const{
  return unit_density_inertia_tensor;
 }
 
@@ -162,7 +162,7 @@ arma::mat::fixed<3,3> GetUnitDensityInertiaTensor(){
   coordinates of the body are currently expressed, this method returns [PB]
   @return [PB] direction cosine matrix
   */
-arma::mat::fixed<3,3> GetPrincipalAxes(){
+arma::mat::fixed<3,3> GetPrincipalAxes() const{
  return this -> principal_axes;
 }
 
@@ -171,7 +171,7 @@ arma::mat::fixed<3,3> GetPrincipalAxes(){
   tensor, sorted from the longest (smallest inertia) to shortest (largest inertia)
   @return principal dimensions associated with inertia tensor (m)
   */
-arma::vec::fixed<3> GetPrincipalDimensions(){
+arma::vec::fixed<3> GetPrincipalDimensions() const {
  return this -> principal_dimensions;
 }
 
@@ -181,7 +181,7 @@ arma::vec::fixed<3> GetPrincipalDimensions(){
   * across the shape, sorted from the smallest inertia to the largest.
   * The normalization applied to the inertia tensor is I_norm = I / (mass * r_avg ^ 2) where r_avg = cbrt(3/4*Volume/pi)
   */
-arma::vec::fixed<3> GetNormalizedInertiaMoments(){
+arma::vec::fixed<3> GetNormalizedInertiaMoments() const {
  return normalized_principal_moments;
 }
 
@@ -189,14 +189,14 @@ arma::vec::fixed<3> GetNormalizedInertiaMoments(){
   * Compute and return the inertia moments assuming uniform unit density distribution
   * across the shape, sorted from the smallest inertia to the largest.
   */
-arma::vec::fixed<3> GetUnitDensityInertiaMoments(){
+arma::vec::fixed<3> GetUnitDensityInertiaMoments() const {
  return unit_density_principal_moments;
 }
 
   /**
   Returns the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m)
   */
-double GetAverageRadius(){
+double GetAverageRadius() const {
  return this -> r_avg;
 }
 

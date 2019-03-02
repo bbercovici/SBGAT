@@ -172,12 +172,14 @@ the polydata used to construct the PGM
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
-  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;}
+  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;this -> is_in_meters = true;}
 
   /**
   Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
   */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;}
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
+
+
 
   /**
   Returns the shape's scale factor
@@ -216,6 +218,13 @@ the polydata used to construct the PGM
   double GetMass() const{
     return this -> density * this -> mass_properties -> GetVolume() * std::pow(this -> scaleFactor,3);
   }
+
+
+  /**
+  Gets pointer to associated mass properties
+  @return mass properties
+  */
+  vtkSmartPointer<SBGATMassProperties> GetMassProperties() const{return this -> mass_properties;}
 
   /**
   Returns the performance factor of the f-th facet at the specified position
@@ -536,6 +545,7 @@ protected:
 
   bool scaleFactorSet;
   bool densitySet;
+  bool is_in_meters = true;
 
   int N_facets;
   int N_edges;

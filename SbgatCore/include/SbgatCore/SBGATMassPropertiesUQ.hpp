@@ -143,11 +143,21 @@ Returns the partial derivative of the shape's center of mass with respect to the
 
 
   /**
+  Returns the partial derivative of the MRP orienting the body-frame (B) to principal-frame (P) dcm (PB)
+  with respect to the shape vertices coordinates
+  @return partial derivative
+  */
+  arma::mat GetPartialSigmaPartialC() const;
+
+
+  /**
   Returns the partial derivative of the volume
   with respect to the shape coordinates
   @return partial derivative
   */
   arma::rowvec GetPartialVolumePartialC() const;
+
+
 
 /**
 Get partial derivatives of volume, center of mass and inertia parametrization relative to 
@@ -160,6 +170,12 @@ the shape's vertices coordinates
 
 
 protected:
+
+/**
+  Returns the partial derivative of the unit density moments relative to a change in the inertia tensor parametrization
+  @return  partial derivative of the unit density moments relative to a change in the inertia tensor parametrization
+  */
+  arma::mat GetPartialUnitDensityMomentsPartialI() const;
 
 
 /**
@@ -194,6 +210,10 @@ to the shape's inertia tensor
   */
   arma::rowvec::fixed<9> PartialEqDeltaIOverDeltaVfErPartialTf(const arma::vec::fixed<3> & e_q,const arma::vec::fixed<3> & e_r,
     const arma::vec::fixed<9> & Tf) const;
+
+
+
+
 
   /**
   Returns the partial derivative of the volume of the tetrahedron subtended by facet f
