@@ -4037,7 +4037,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 		shape_uq.ApplyDeviation(deviation);
 
-		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega)/ 100;
+		arma::vec::fixed<3> Omega_p = 1.001 * Omega;
 
 		double slope_argument_p = arma::dot(arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),
 			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
