@@ -491,7 +491,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 	SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(input,tol,shape_in_meters);
-	SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(input,tol,shape_in_meters);
 
 }
