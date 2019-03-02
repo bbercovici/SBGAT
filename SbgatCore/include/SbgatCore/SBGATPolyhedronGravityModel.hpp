@@ -141,6 +141,17 @@ the polydata used to construct the PGM
 
 
 
+/**
+Evaluates the Polyhedron Gravity Model gravity gradient matrix at the specified point assuming 
+a constant density
+@param point coordinates of queried point, expressed in the same frame as
+the polydata used to construct the PGM
+@param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
+*/
+  arma::vec::fixed<3,3> GetGravityGradient(const arma::vec::fixed<3> & point) const ;
+
+
+
 
   /**
   Evaluates the Polyhedron Gravity Model acceleration at the specified point assuming 
