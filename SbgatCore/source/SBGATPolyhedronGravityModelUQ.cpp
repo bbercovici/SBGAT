@@ -3697,7 +3697,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		double slope = shape_uq.GetPGM() -> GetSlope(f,Omega);
 
 		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-13 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
 
@@ -3963,14 +3963,12 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);
 
-
 		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
 
-		
 		shape_uq.ApplyDeviation(deviation);
 
 		arma::mat::fixed<3,3> PB_p = pgm_filter -> GetMassProperties() -> GetPrincipalAxes();
@@ -3981,8 +3979,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 		all_deviations(0) = dw;
 		all_deviations.subvec(1,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
-
-		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega_p);
 
 		arma::vec::fixed<3> dOmega = Omega_p - Omega;
 		arma::vec::fixed<3> dOmega_lin = partial * all_deviations * pgm_filter -> GetScaleFactor();
