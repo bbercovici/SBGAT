@@ -148,7 +148,7 @@ a constant density
 the polydata used to construct the PGM
 @param[out] gravity_gradient_mat PGM gravity gradient matrix evaluated at the queried point (1 / s ^2)
 */
-  arma::vec::fixed<3,3> GetGravityGradient(const arma::vec::fixed<3> & point) const ;
+  arma::mat::fixed<3,3> GetGravityGradient(const arma::vec::fixed<3> & point) const ;
 
 
 

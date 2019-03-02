@@ -1435,7 +1435,7 @@ double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fix
 	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
 }
 
-arma::vec::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma::vec::fixed<3> & point) const {
+arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma::vec::fixed<3> & point) const {
 
 
 
