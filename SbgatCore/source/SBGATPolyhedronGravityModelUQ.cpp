@@ -3741,7 +3741,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 	arma::arma_rng::set_seed(0);
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -3792,7 +3792,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		arma::mat other_partial = shape_uq.GetPartialAPartialC(pgm_filter -> GetFacetCenter(f));
 
 
-		assert(arma::abs(other_partial - partial).max() < 1e-10);
+		assert(arma::abs(other_partial - partial).max() < 1e-16);
 
 
 
@@ -3806,6 +3806,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		arma::vec::fixed<3> dbody_fixed_acc_lin = partial * deviation * pgm_filter -> GetScaleFactor();
 
 	
+		std::cout << dbody_fixed_acc.t();
+		std::cout << dbody_fixed_acc_line.t() << std::endl;
 
 
 
