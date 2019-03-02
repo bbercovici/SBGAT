@@ -194,7 +194,7 @@ the polydata used to construct the PGM
   Computes the slope as the center of the designated facet
   @param f facet index
   @param Omega angular velocity vector (rad/s)
-  @return slope (deg)
+  @return slope (rad)
   */
   double GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
 

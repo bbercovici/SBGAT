@@ -64,6 +64,8 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
+	SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(input,tol,shape_in_meters);
+
 }
 
 
@@ -460,6 +462,74 @@ void SBGATMassPropertiesUQ::TestGetPartialIPartialC(std::string input,double tol
 	}
 
 	std::cout << "\t Passed TestGetPartialIPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
+
+
+}
+
+
+void SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(std::string input,double tol,bool shape_in_meters) {
+
+
+	std::cout << "\t In TestGetPartialSigmaPartialC ... ";
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+	int N = 1000;
+	#pragma omp parallel for reduction(+:successes)
+	
+	for (int i = 0; i < N ; ++i){
+
+		// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(input.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner =
+		vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
+		mass_prop -> SetDensity(1970);
+		if (shape_in_meters) 
+			mass_prop -> SetScaleMeters();
+		else
+			mass_prop -> SetScaleKiloMeters();
+
+		mass_prop -> Update();
+
+		SBGATMassPropertiesUQ shape_uq;
+		shape_uq.SetMassProperties(mass_prop);
+
+	// Nominal 
+		arma::vec::fixed<3> sigma = RBK::dcm_to_mrp(shape_uq.GetMassProperties() -> GetPrincipalAxes()) ;
+
+	// Deviation
+		arma::vec delta_C = 1e-3 * arma::randn<arma::vec>(3 * mass_prop -> GetN_vertices()  ) / mass_prop -> GetScaleFactor();
+
+	// Linear 
+		arma::vec::fixed<3> dsigma_lin = mass_prop -> GetScaleFactor() * shape_uq.GetPartialSigmaPartialC() * delta_C;
+
+	// Apply deviation
+		shape_uq. ApplyDeviation(delta_C);
+
+	// Perturbed 
+		arma::vec::fixed<3> sigma_p = RBK::dcm_to_mrp(shape_uq.GetMassProperties() -> GetPrincipalAxes()) ;
+		
+	// Non-linear 
+		arma::vec::fixed<3> dsigma = RBK::dcm_to_mrp(RBK::mrp_to_dcm(sigma_p) * RBK::mrp_to_dcm(sigma).t());
+
+		if(arma::norm(RBK::dcm_to_mrp(RBK::mrp_to_dcm(dsigma) * RBK::mrp_to_dcm(dsigma_lin).t())) / arma::norm(dsigma_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestGetPartialSigmaPartialC with " << double(successes)/N * 100 << " \% of successes. \n";
 
 
 }

@@ -268,6 +268,10 @@ to the shape's inertia tensor
   static void TestGetPartialIPartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialAllInertiaPartialC(std::string input,double tol,bool shape_in_meters) ;
   static void TestPartialEqDeltaIfErPartialTf(std::string input,double tol,bool shape_in_meters);
+  static void TestGetPartialSigmaPartialC(std::string input,double tol,bool shape_in_meters);
+
+
+
 
   vtkSmartPointer<SBGATMassProperties> mass_prop;
 

@@ -248,6 +248,16 @@ Sets the vertices covariance to the provided one
 
 
   /**
+  Returns the partial derivative of the slope at the center of facet f relative to 
+  the angular velocity magnitude and shape vertices coordinates
+  @param f facet index
+  @param Omega angular velocity vector expressed in the body frame (rad/s)
+  @return partials
+  */
+  arma::rowvec GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+
+
+  /**
   Returns the partial derivative of the gravitation slope at the center of face tf relative to 
   the shape vertices coordinates
   @param f facet index
@@ -290,21 +300,21 @@ protected:
 
 
   /**
-  Get partial derivative of the angular velocity vector relative to 1) the angular velocity magnitude 2) the mrp orienting 
-  the PB dcm
+  Get partial derivative of the angular velocity vector relative to 1) the angular velocity magnitude 2) the shape vertices
+  coordinates
   @param Omega angular velocity expressed in current body-frame (rad/s)
-  @return partial derivative of Omega relative to its magnitude and mrp orienting the PB dcm
+  @return partial derivative of Omega relative to its magnitude shape vertices coordinates
   */
-  arma::mat PartialOmegaPartialwSigma(const arma::vec::fixed<3> & Omega) const;
-
+  arma::mat PartialOmegaPartialwC(const arma::vec::fixed<3> & Omega) const;
 
 
   /**
-  Get partial derivative of the angular velocity magnitude and the mrp orienting 
-  the PB dcm relative to 1) the angular velocity magnitude 2) the shape coordinates
-  @return partial derivative
+  Returns the partial derivative of the body-fixed angular velocity and the vertices coordinates relative
+  to the angular velocity magnitude and shape vertices coordinates
+  @param Omega angular velocity expressed in current body-frame (rad/s)
+  @return partial
   */
-  arma::mat PartialwSigmaPartialwC() const;
+  arma::sp_mat PartialOmegaCPartialwC(const arma::vec::fixed<3> & Omega) const;
 
 
 /**
@@ -575,9 +585,11 @@ to the shape coordinates
   with respect to the angular velocity and the shape coordinates
   @param f facet index
   @param Omega angular velocity vector
+  @param body_fixed_acc body-fixed acceleration at the center of facet f
   @return partial derivative
   */
-  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega,
+    const arma::vec::fixed<3> & body_fixed_acc) const;
 
 
   /**
@@ -604,6 +616,7 @@ to the shape coordinates
   @param partial derivative of slope with respect to u
   */
   static double PartialSlopePartialSlopeArgument(const double & u);
+
 
 
 

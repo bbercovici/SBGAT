@@ -1433,7 +1433,7 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const
 
 double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const{
 
-	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f)))) * 180./arma::datum::pi;
+	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
 }
 
 

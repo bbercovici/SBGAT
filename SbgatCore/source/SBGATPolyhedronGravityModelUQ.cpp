@@ -1145,7 +1145,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename,
 
 
 
-arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwSigma(const arma::vec::fixed<3> & Omega) const{
+arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwC(const arma::vec::fixed<3> & Omega) const{
 
 	arma::mat partial = arma::zeros<arma::mat>(3, 4);
 
@@ -1153,27 +1153,11 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwSigma(const arma::v
 	arma::vec::fixed<3> rotation_axis_principal_frame = PB * arma::normalise(Omega);
 
 	partial.col(0) = arma::normalise(Omega);
-	partial.cols(1,3) = - 4 * arma::norm(Omega) * PB.t() * RBK::tilde(rotation_axis_principal_frame);
+	partial.cols(1,3) = - 4 * arma::norm(Omega) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> mass_prop_uq.GetPartialSigmaPartialC();
 
 	return partial;
 
 }
-
-arma::mat SBGATPolyhedronGravityModelUQ::PartialwSigmaPartialwC() const{
-
-	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
-
-
-	arma::mat partial = arma::zeros<arma::mat>(4, 3 * N_C + 1 );
-
-	partial(0,0) = 1;
-
-	partial.submat(1,1,3,3 * N_C) = this -> mass_prop_uq.GetPartialSigmaPartialC();
-
-	return partial;
-
-}
-
 
 
 arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const{
@@ -1205,30 +1189,55 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialC(c
 
 }
 
-double SBGATPolyhedronGravityModelUQ::PartialSlopePartialSlopeArgument(const double & u) const{
+double SBGATPolyhedronGravityModelUQ::PartialSlopePartialSlopeArgument(const double & u){
 
 	return 1./std::sqrt(1 - u * u);
 }
 
 
-arma::rowvec GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const{
+arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const{
+
+	arma::vec::fixed<3> body_fixed_acc = this -> pgm_model -> GetBodyFixedAccelerationf(f,Omega);
+
+	double slope = std::acos(- arma::dot(arma::normalise(body_fixed_acc),arma::normalise(this -> pgm_model -> GetNonNormalizedFacetNormal(f))));
+
+	double u = - std::cos(slope);
 
 
-
-
-
-	return this -> PartialSlopePartialSlopeArgument(u) * this -> PartialSlopeArgumentPartialOmegaC(f,Omega) * PartialOme
+	return (this -> PartialSlopePartialSlopeArgument(u) 
+		* this -> PartialSlopeArgumentPartialOmegaC(f,Omega,body_fixed_acc) 
+		* this -> PartialOmegaCPartialwC(Omega));
 
 
 }
 
 
-arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const{
+arma::sp_mat SBGATPolyhedronGravityModelUQ::PartialOmegaCPartialwC(const arma::vec::fixed<3> & Omega) const{
+
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
+
+	arma::sp_mat partial(3 + 3 * N_C, 1 + 3 * N_C);
+
+
+	partial.rows(0,2) = this -> PartialOmegaPartialwC(Omega);
+
+
+	partial.submat(3,1,3 + 3 * N_C - 1, 3 * N_C) = arma::eye<arma::mat>(3 * N_C,3 * N_C);
+
+
+	return partial;
+
+}
+
+
+
+
+
+arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega, const arma::vec::fixed<3> & body_fixed_acc) const{
 
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
 
 	arma::vec::fixed<6> unit_vectors;
-	arma::vec::fixed<3> body_fixed_acc = this -> pgm_model -> GetBodyFixedAccelerationf(f,Omega);
 	arma::vec::fixed<3> Nf = this -> pgm_model -> GetNonNormalizedFacetNormal(f);
 	unit_vectors.subvec(0,2) = arma::normalise(Nf);
 	unit_vectors.subvec(3,5) = arma::normalise(body_fixed_acc);
