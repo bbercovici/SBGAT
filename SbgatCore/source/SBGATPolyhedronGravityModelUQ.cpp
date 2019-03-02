@@ -4048,9 +4048,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);
 
-		double slope_argument = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
+		arma::vec::fixed<3> body_fixed_acc = pgm_filter -> GetBodyFixedAccelerationf(f,Omega);
+		double slope_argument = arma::dot(- arma::normalise(body_fixed_acc),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
 
-		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
+		arma::rowvec dSlope_argumentdOmegaC = shape_uq.PartialSlopeArgumentPartialOmegaC(f,Omega,body_fixed_acc);
 		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
