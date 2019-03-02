@@ -3674,7 +3674,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		double slope = shape_uq.GetPGM() -> GetSlope(f,Omega);
 
 		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = 0 * dw_vector(0);
 
@@ -3773,9 +3773,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 		std::cout << dbody_fixed_acc.t();
 		std::cout << dbody_fixed_acc_lin.t() << std::endl;
-
-
-
 
 
 		if(arma::norm(dbody_fixed_acc - dbody_fixed_acc_lin)/arma::norm(dbody_fixed_acc_lin) < tol){
