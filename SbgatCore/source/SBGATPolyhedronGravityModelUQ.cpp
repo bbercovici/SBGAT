@@ -3780,7 +3780,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
-		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
+		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialC(f,Omega);
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
@@ -3788,7 +3788,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
 		arma::vec::fixed<3> dbody_fixed_acc = body_fixed_acc_p - body_fixed_acc;
-		arma::vec::fixed<3> dbody_fixed_acc_lin = partial.cols(3, 3  + 3 * N_C - 1) * deviation * pgm_filter -> GetScaleFactor();
+		arma::vec::fixed<3> dbody_fixed_acc_lin = partial * deviation * pgm_filter -> GetScaleFactor();
 
 		std::cout << dbody_fixed_acc.t();
 		std::cout << dbody_fixed_acc_lin.t() << std::endl;
