@@ -3964,7 +3964,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 		int f = f_vec(0);
 
 		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
-		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-12 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
