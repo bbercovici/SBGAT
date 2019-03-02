@@ -4002,7 +4002,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 
 
-void SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters){
+void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters){
 
 	std::cout << "\t In PartialSlopeArgumentPartialOmegaC ...";
 
