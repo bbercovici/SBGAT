@@ -71,7 +71,7 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 
 
 void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters){
-	std::cout << "\t In TestGetPartialAllInertiaPartialCVSStandalone ... \n";
+	std::cout << "\t In TestGetPartialAllInertiaPartialCVSStandalone ... ";
 
 
 	// Reading

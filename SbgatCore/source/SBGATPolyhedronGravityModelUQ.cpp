@@ -488,7 +488,9 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 	// SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(input,tol,shape_in_meters);
 	// SBGATPolyhedronGravityModelUQ::TestPartialAPartialC(input,tol,shape_in_meters);
-
+	SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(input,tol,shape_in_meters);
 
 }
@@ -1149,14 +1151,15 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename,
 
 
 arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwC(const arma::vec::fixed<3> & Omega) const{
+	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
 
-	arma::mat partial = arma::zeros<arma::mat>(3, 4);
-
+	arma::mat partial = arma::zeros<arma::mat>(3, 1 + 3 * N_C);
+ 
 	arma::mat::fixed<3,3> PB = this -> pgm_model -> GetMassProperties() -> GetPrincipalAxes();
 	arma::vec::fixed<3> rotation_axis_principal_frame = PB * arma::normalise(Omega);
 
 	partial.col(0) = arma::normalise(Omega);
-	partial.cols(1,3) = - 4 * arma::norm(Omega) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> mass_prop_uq.GetPartialSigmaPartialC();
+	partial.cols(1,3 * N_C) = - 4 * arma::norm(Omega) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> mass_prop_uq.GetPartialSigmaPartialC();
 
 	return partial;
 
@@ -1168,11 +1171,10 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialOme
 	int N_C = vtkPolyData::SafeDownCast(this -> pgm_model -> GetInput()) -> GetNumberOfPoints();
 
 
-	arma::mat partial = arma::zeros<arma::mat>(3,3 + 3 * N_C );
-
+	arma::mat partial = arma::zeros<arma::mat>(3, 3 + 3 * N_C );
 
 	partial.cols(0,2) = this -> PartialBodyFixedAccelerationfPartialOmega(f,Omega);
-	partial.cols(3,3 * N_C - 1 ) = this -> PartialBodyFixedAccelerationfPartialC(f,Omega);
+	partial.cols(3,3 * N_C + 3 - 1 ) = this -> PartialBodyFixedAccelerationfPartialC(f,Omega);
 
 	return partial;
 
@@ -1241,15 +1243,13 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(co
 	unit_vectors.subvec(0,2) = arma::normalise(Nf);
 	unit_vectors.subvec(3,5) = arma::normalise(body_fixed_acc);
 
-
 	arma::mat partial_mat = arma::zeros<arma::mat>(6, 3 * N_C + 3);
 
 	partial_mat.rows(0,2) = this -> PartialNormalizedVPartialNonNormalizedV(body_fixed_acc) * this -> PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
 	partial_mat.submat(3,3,5,3 * N_C + 2) = this -> PartialNormalizedVPartialNonNormalizedV(Nf) * this -> PartialNfPartialTf(f) * this -> PartialTfPartialC(f);
 
+
 	return (unit_vectors.t() * partial_mat);
-
-
 
 }
 
@@ -3685,7 +3685,11 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetPGM(pgm_filter);
 
-		arma::vec::fixed<3> Omega = 1e-1 * arma::normalise(arma::randn<arma::vec>(3)) / pgm_filter -> GetScaleFactor();
+
+		double w = 1e-1  / pgm_filter -> GetScaleFactor();
+		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
+
+		arma::vec::fixed<3> Omega = w * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
@@ -3694,7 +3698,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		double slope = shape_uq.GetPGM() -> GetSlope(f,Omega);
 
 		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
-		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
 
@@ -3706,7 +3710,8 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 		all_deviations.subvec(1,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
 
 
-		arma::vec::fixed<3> Omega_p = arma::normalise(Omega) * (arma::norm(Omega) + dw);
+		arma::vec::fixed<3> Omega_p = (w + dw) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
+		
 
 		double slope_p = shape_uq.GetPGM() -> GetSlope(f,Omega_p);
 
@@ -3723,4 +3728,339 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 
 
 }
+
+
+
+void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(std::string filename , double tol, bool shape_in_meters){
+
+	std::cout << "\t In TestPartialBodyFixedAccelerationfPartialC ...";
+
+	// MC
+	int N = 100;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
+	}
+	else{
+		mass_prop -> SetScaleKiloMeters();
+	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
+
+	#pragma omp parallel for reduction(+:successes)
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		if(shape_in_meters){
+			pgm_filter -> SetScaleMeters();
+		}
+		else{
+			pgm_filter -> SetScaleKiloMeters();
+		}
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> Omega = 1e-1 * arma::normalise(arma::randn<arma::vec>(3)) / pgm_filter -> GetScaleFactor();
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints();
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
+
+		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
+
+		arma::vec::fixed<3> dbody_fixed_acc = body_fixed_acc_p - body_fixed_acc;
+		arma::vec::fixed<3> dbody_fixed_acc_lin = partial.cols(3, 3  + 3 * N_C - 1) * deviation * pgm_filter -> GetScaleFactor();
+
+		if(arma::norm(dbody_fixed_acc - dbody_fixed_acc_lin)/arma::norm(dbody_fixed_acc_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestPartialBodyFixedAccelerationfPartialC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+
+
+}
+
+
+
+void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(std::string filename , double tol, bool shape_in_meters){
+
+	std::cout << "\t In TestPartialBodyFixedAccelerationfPartialwC ...";
+
+	// MC
+	int N = 100;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(filename.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
+	}
+	else{
+		mass_prop -> SetScaleKiloMeters();
+	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
+
+	#pragma omp parallel for reduction(+:successes)
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(filename.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		if(shape_in_meters){
+			pgm_filter -> SetScaleMeters();
+		}
+		else{
+			pgm_filter -> SetScaleKiloMeters();
+		}
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> Omega = 1e-1 * arma::normalise(arma::randn<arma::vec>(3)) / pgm_filter -> GetScaleFactor();
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints();
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
+
+		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+
+		arma::vec::fixed<3> Omega_p = Omega + arma::normalise(arma::randn<arma::vec>(3)) * arma::norm(Omega) / 100;
+
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec all_deviations(3 + 3 * N_C);
+
+		all_deviations.subvec(0,2) = Omega_p - Omega;
+		all_deviations.subvec(3,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
+
+		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega_p);
+
+		arma::vec::fixed<3> dbody_fixed_acc = body_fixed_acc_p - body_fixed_acc;
+		arma::vec::fixed<3> dbody_fixed_acc_lin = partial * all_deviations * pgm_filter -> GetScaleFactor();
+
+		if(arma::norm(dbody_fixed_acc - dbody_fixed_acc_lin)/arma::norm(dbody_fixed_acc_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestPartialBodyFixedAccelerationfPartialwC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input , double tol, bool shape_in_meters){
+
+
+
+	std::cout << "\t In TestPartialOmegaPartialwC ...";
+
+	// MC
+	int N = 100;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
+	r -> SetFileName(input.c_str());
+	r -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cl =
+	vtkSmartPointer<vtkCleanPolyData>::New();
+	cl -> SetInputConnection (r -> GetOutputPort());
+	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+	cl -> Update();	
+
+
+	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
+	
+	mass_prop -> SetInputConnection(cl -> GetOutputPort());
+	if(shape_in_meters){
+		mass_prop -> SetScaleMeters();
+	}
+	else{
+		mass_prop -> SetScaleKiloMeters();
+	}
+
+	mass_prop -> Update();
+	double xmin, xmax, ymin, ymax, zmin, zmax;
+	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
+
+	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
+
+	#pragma omp parallel for reduction(+:successes)
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(input.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		if(shape_in_meters){
+			pgm_filter -> SetScaleMeters();
+		}
+		else{
+			pgm_filter -> SetScaleKiloMeters();
+		}
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
+		double w = 1e-1 /  pgm_filter -> GetScaleFactor();
+
+		arma::mat::fixed<3,3> PB = pgm_filter -> GetMassProperties() -> GetPrincipalAxes();
+		arma::vec::fixed<3> Omega = w * PB.t() * rotation_axis_principal_frame;
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints();
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+
+		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+
+		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
+		double dw = dw_vector(0);
+
+		
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::mat::fixed<3,3> PB_p = pgm_filter -> GetMassProperties() -> GetPrincipalAxes();
+		arma::vec::fixed<3> Omega_p = (w + dw) * PB_p.t() * rotation_axis_principal_frame;
+
+
+		arma::vec all_deviations(1 + 3 * N_C);
+
+		all_deviations(0) = dw;
+		all_deviations.subvec(1,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
+
+		arma::vec::fixed<3> body_fixed_acc_p = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega_p);
+
+		arma::vec::fixed<3> dOmega = Omega_p - Omega;
+		arma::vec::fixed<3> dOmega_lin = partial * all_deviations * pgm_filter -> GetScaleFactor();
+
+
+		if(arma::norm(dOmega - dOmega_lin)/arma::norm(dOmega_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed TestPartialOmegaPartialwC with " << double(successes) / N * 100 << " \% of successes.\n";
+
+
+
+
+
+
+}
+
+
+
+
+
 
