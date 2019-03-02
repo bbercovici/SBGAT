@@ -668,7 +668,7 @@ to the shape coordinates
   static void TestPartialBodyFixedAccelerationfPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialBodyFixedAccelerationfPartialwC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialOmegaPartialwC(std::string input , double tol, bool shape_in_meters);
-
+  static void TestPartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters);
 
   vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_model;
   SBGATMassPropertiesUQ mass_prop_uq;

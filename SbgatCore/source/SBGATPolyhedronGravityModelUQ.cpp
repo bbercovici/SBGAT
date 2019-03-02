@@ -491,6 +491,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bo
 	SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(input,tol,shape_in_meters);
+	SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(input,tol,shape_in_meters);
 	SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(input,tol,shape_in_meters);
 
 }
@@ -3995,10 +3996,88 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 	std::cout << "\t Passed TestPartialOmegaPartialwC with " << double(successes) / N * 100 << " \% of successes.\n";
 
+}
 
 
 
 
+
+void SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters){
+
+	std::cout << "\t In PartialSlopeArgumentPartialOmegaC ...";
+
+	// MC
+	int N = 100;
+	int successes = 0;
+	arma::arma_rng::set_seed(0);
+
+	#pragma omp parallel for reduction(+:successes)
+	for (int i = 0; i < N ; ++i){
+
+			// Reading
+		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+		reader -> SetFileName(input.c_str());
+		reader -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner -> SetInputConnection (reader -> GetOutputPort());
+		cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+		cleaner -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+		pgm_filter -> SetDensity(1970); 
+		if(shape_in_meters){
+			pgm_filter -> SetScaleMeters();
+		}
+		else{
+			pgm_filter -> SetScaleKiloMeters();
+		}
+		pgm_filter -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq;
+		shape_uq.SetPGM(pgm_filter);
+
+		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
+		double w = 2 * arma::datum::pi / (12 * 3600);
+		arma::vec::fixed<3> Omega = w * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
+
+		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
+		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
+		int f = f_vec(0);
+
+		double slope_argument = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
+
+		arma::rowvec dSlopedwC = shape_uq.GetPartialSlopePartialwPartialC(f,Omega);
+		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(vtkPolyData::SafeDownCast(pgm_filter -> GetInput())-> GetNumberOfPoints() * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
+		double dw = dw_vector(0);
+
+		shape_uq.ApplyDeviation(deviation);
+
+		arma::vec::fixed<3> Omega_p = Omega + arma::randn<arma::vec>(3) * arma::norm(Omega_p)/ 100;
+
+		double slope_argument_p = arma::dot(- arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
+
+
+
+		arma::vec all_deviations(3 + 3 * vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints());
+
+		all_deviations.subvec(0,2) = Omega_p - Omega;
+		all_deviations.subvec(3,all_deviations.n_rows - 1) = pgm_filter -> GetScaleFactor() * deviation;
+		
+		double dslope_argument = slope_argument_p - slope_argument;
+		double dslope_argument_lin = arma::dot(dSlope_argumentdwC, all_deviations);
+
+		if(std::abs(dslope_argument - dslope_argument_lin)/std::abs(dslope_argument_lin) < tol){
+			++successes;
+		}
+
+	}
+
+	std::cout << "\t Passed PartialSlopeArgumentPartialOmegaC with " << double(successes) / N * 100 << " \% of successes.\n";
 
 }
 
