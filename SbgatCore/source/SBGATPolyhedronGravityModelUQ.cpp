@@ -503,7 +503,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 100;
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -613,7 +613,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for(int i = 0; i < N; ++i){
 
@@ -693,7 +693,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(std::string filename,
 	
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < N; ++i){
 
@@ -782,7 +782,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialXf(std::string filename,
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i =0; i < 100; ++i){
 		
@@ -901,7 +901,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialXfPartialTf(std::string filename,
 
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < 100 ; ++i){
 
 		
@@ -1008,7 +1008,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegafPartialTf(std::string filen
 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < 100; ++i){
 		
@@ -1083,7 +1083,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename,
 	std::cout << "\t In TestPartialFfPartialTf ... ";
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < 100; ++i){
 		
@@ -1282,7 +1282,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(
 	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < N ;++i){
   	// non-normalized vector
@@ -1320,7 +1320,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(std::string filename,
 	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < 100; ++i){
 	// Reading
 		vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -1390,7 +1390,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialnf(std::string filename,
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N; ++i){
 
 		arma::vec::fixed<3> nf = {1,2,-3};
@@ -1439,7 +1439,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialNonNormalizedNf(std::str
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i =0; i < N; ++i){
 		arma::vec::fixed<3> Nf = {1,2,3};
 		arma::vec::fixed<3> nf = arma::normalise(Nf);
@@ -1493,7 +1493,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialLePartialAe(std::string filename,
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	arma::vec pos = {1,2,3};
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < 100; ++i){
 	// Reading
@@ -1558,7 +1558,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEdgeLengthPartialAe(std::string f
 	
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < 100; ++i){
 	// Reading
@@ -1629,7 +1629,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename,d
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 	int N = 100;
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for(int i = 0; i < N; ++i){
 
 		// Reading
@@ -1946,7 +1946,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filena
 	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i =0; i < N; ++i){
 		arma::vec::fixed<2> e1 = {1,0};
@@ -1981,7 +1981,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialZfPartialUnitRf(std::string filen
 	int N = 100;
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 
 	for (int i = 0; i < N ; ++i){
 		arma::vec::fixed<9> Rf = {0,1,2,3,4,5,6,7,8};
@@ -2253,7 +2253,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUePartialC(std::string file
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 			// Reading
@@ -2355,7 +2355,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccePartialC(std::string fi
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 			// Reading
@@ -2456,7 +2456,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumAccfPartialC(std::string fi
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 			// Reading
@@ -2560,7 +2560,7 @@ void SBGATPolyhedronGravityModelUQ::TestAddPartialSumUfPartialC(std::string file
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 			// Reading
@@ -2663,7 +2663,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUPartialC(std::string filename,do
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -2725,7 +2725,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialC(std::string filename
 
 	arma::vec::fixed<3> pos = {100,200,300};
 	
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -2915,7 +2915,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialC(std::string filename,d
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -3011,7 +3011,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
 
@@ -3134,7 +3134,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	
 	
 	for (int i = 0; i < N ; ++i){
@@ -3607,36 +3607,6 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> r = vtkSmartPointer<vtkOBJReader>::New();
-	r -> SetFileName(filename.c_str());
-	r -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cl =
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cl -> SetInputConnection (r -> GetOutputPort());
-	cl -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-	cl -> Update();	
-
-
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	
-	mass_prop -> SetInputConnection(cl -> GetOutputPort());
-	if(shape_in_meters){
-		mass_prop -> SetScaleMeters();
-	}
-	else{
-		mass_prop -> SetScaleKiloMeters();
-	}
-
-	mass_prop -> Update();
-	double xmin, xmax, ymin, ymax, zmin, zmax;
-	mass_prop -> GetBoundingBox( xmin, xmax, ymin, ymax, zmin, zmax);
-
-	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
-
 	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
@@ -3721,7 +3691,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 	arma::arma_rng::set_seed(0);
 
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -3828,7 +3798,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(s
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -3908,7 +3878,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
@@ -3989,7 +3959,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
