@@ -3809,7 +3809,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
 		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
 
@@ -3910,7 +3910,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(s
 		arma::vec::fixed<3> body_fixed_acc = shape_uq.GetPGM() -> GetBodyFixedAccelerationf(f,Omega);
 
 		arma::mat partial = shape_uq.PartialBodyFixedAccelerationfPartialOmegaC(f,Omega);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		arma::vec::fixed<3> Omega_p = Omega + arma::normalise(arma::randn<arma::vec>(3)) * arma::norm(Omega) / 100;
 
@@ -4021,7 +4021,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 
 		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
-		arma::vec deviation = 1e-3 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
 		double dw = dw_vector(0);
