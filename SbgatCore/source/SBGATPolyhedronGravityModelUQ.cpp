@@ -3637,7 +3637,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
-	#pragma omp parallel for reduction(+:successes)
+	// #pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
 			// Reading
