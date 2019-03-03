@@ -1670,7 +1670,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialEPartialBe(std::string filename,d
 
 arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialBePartialC(const int & e) const{
 
-	arma::sp_mat table(24, 3 * vtkPolyData::SafeDownCast(this -> model -> GetInput()) -> GetNumberOfPoints());
+	arma::sp_mat table(24, 3 * this -> model -> GetN_vertices());
 
 	// Ae
 	int v0_e,v1_e;
@@ -1699,6 +1699,34 @@ arma::sp_mat  SBGATPolyhedronGravityModelUQ::PartialBePartialC(const int & e) co
 	table.submat(21,3 * v2_f1_e, 23,3 * v2_f1_e + 2) = arma::eye<arma::mat>(3,3);
 
 	return table;
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::ApplyDeviation(const arma::vec & delta_C){
+
+	vtkPolyData * polydata = vtkPolyData::SafeDownCast(this -> model -> GetInput());
+	int N_C = polydata -> GetNumberOfPoints();
+	assert(3 * N_C == delta_C.n_rows);
+
+	double r[3];
+
+	for (int i = 0; i < N_C; ++i){
+
+		polydata -> GetPoint(i,r);
+
+		r[0] += delta_C(3 * i);
+		r[1] += delta_C(3 * i + 1);
+		r[2] += delta_C(3 * i + 2);
+
+		polydata -> GetPoints() -> SetPoint(i,r);
+	}
+
+	polydata -> GetPoints() -> Modified();
+	polydata -> Modified();
+
+	this -> model -> Modified();
+	SBGATPolyhedronGravityModel::SafeDownCast(this -> model) -> Update();
 
 }
 
@@ -1842,7 +1870,7 @@ arma::vec SBGATPolyhedronGravityModelUQ::ApplyAndGetBeDeviation(const arma::vec 
 	polydata -> Modified();
 	this -> model -> Modified();
 
-	this -> model -> Update();
+	SBGATPolyhedronGravityModel::SafeDownCast(this -> model) -> Update();
 
 	int N_edges = polydata -> GetNumberOfPoints() + polydata -> GetNumberOfCells() - 2;
 
@@ -2885,7 +2913,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 
 	arma::vec::fixed<3> pos = 1.5 * arma::vec({xmax,ymax,zmax});
 
-
 	#pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
@@ -2921,13 +2948,14 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBePartialC(std::string filename,d
 		int e = e_vec(0);
 
 
-
 		arma::vec Be = shape_uq.GetBe().subvec(24 * e, 24 * e + 23);
+
 		arma::sp_mat dBedC = shape_uq . PartialBePartialC(e);
 
 		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(3 * pgm_filter -> GetN_vertices()) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
+
 
 		arma::vec Be_p = shape_uq.GetBe().subvec(24 * e, 24 * e + 23);
 		arma::vec dBe = Be_p - Be;
