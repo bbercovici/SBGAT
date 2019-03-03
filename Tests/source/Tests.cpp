@@ -900,7 +900,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	std::cout << "- Running test_PGM_UQ_itokawa_m ..." << std::endl;
 
-	int N = 10000;
+	int N = 100000;
 	arma::arma_rng::set_seed(N) ;
 
 	arma::vec pos = {200,300,400};
@@ -1056,6 +1056,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
 
+		std::cout << "\t\tMC mean in slope: " << arma::mean(slopes_mc.subvec(0,step - 1)) << std::endl;
+
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
 
@@ -1088,7 +1090,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	std::cout << "- Running test_PGM_UQ_itokawa_km ..." << std::endl;
 
-	int N = 10000;
+	int N = 100000;
 	arma::arma_rng::set_seed(N) ;
 
 
@@ -1242,6 +1244,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
 
+		std::cout << "\t\tMC mean in slope: " << arma::mean(slopes_mc.subvec(0,step - 1)) << std::endl;
+
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
 
@@ -1301,18 +1305,20 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	pgm_filter -> SetDensity(density); 
 	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
+	int f = 0;
+
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
 
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
+	std::cout << "Nominal slope : " << shape_uq_mc.GetPGM() -> GetSlope(f,Omega);
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
-
-	int f = 0;
-	double period = 12 * 3600;
-	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 	arma::vec U_mc(N);
 	arma::vec slopes_mc(N);
@@ -1427,6 +1433,10 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	for (auto step : steps){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
+
+
+
+		std::cout << "\t\tMC mean in slope: " << arma::mean(slopes_mc.subvec(0,step - 1)) << std::endl;
 
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
