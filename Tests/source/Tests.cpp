@@ -931,7 +931,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
 
-	double period = 12 * 3600;
+	double period = 0 * 12 * 3600;
 	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 	int f = 0;
 
