@@ -1105,18 +1105,28 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
+	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
+	
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC;
+	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
-	for (int i = 0; i < N_C; ++i){
-		for (int j = 0; j <= i; ++j){
-			const arma::mat::fixed<3,3> & P = P_CC.submat(3 * i,3 * j, 3 * i + 2,3 * j + 2);
-			shape_uq.SetCovarianceComponent(P,i,j);
-			shape_uq.SetCovarianceComponent(P.t(),j,i);
-		}
+	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
+	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral).max();
+
+	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
+	std::cout << "\tCholesky: " << error_cholesky << std::endl;
+	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
+
+	if (error_cholesky < error_spectral){
+		std::cout << "Using cholesky square root\n";
+		C_CC = C_CC_cholesky;
 	}
-
-	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
-
-	assert(arma::abs(P_CC - C_CC * C_CC.t()).max() < 1e-10);
+	else{
+		std::cout << "Using spectral decomposition square root\n";
+		C_CC = C_CC_spectral;
+	}
 
 
 	auto start = std::chrono::system_clock::now();	
@@ -1128,6 +1138,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
 	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
 	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
 	// MC
@@ -1254,25 +1265,35 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
 	pgm_filter -> SetDensity(density); 
-	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
 
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
-
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
+
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
 
+
+	int f = 0;
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
 	arma::vec U_mc(N);
+	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+
+	arma::mat P_CC = std::pow(10e0,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
+	double period_standard_deviation = 1./3600;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
 
+	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
 	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
@@ -1299,12 +1320,14 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
 	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
 	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
 	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
 	// MC
@@ -1330,7 +1353,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 		pgm_filter_mc -> SetInputConnection(cleaner_mc -> GetOutputPort());
 		pgm_filter_mc -> SetDensity(density); 
-		pgm_filter_mc -> SetScaleKiloMeters();
+		pgm_filter_mc -> SetScaleMeters();
 		pgm_filter_mc -> Update();
 
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
@@ -1339,12 +1362,20 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
+
 		arma::vec::fixed<3> acc;
 		double pot;
 		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
+
+		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
+
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
+		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1355,8 +1386,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		}
 		++progress;
 	}
-
-	
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
@@ -1367,6 +1396,9 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	for (auto step : steps){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
+
+		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
