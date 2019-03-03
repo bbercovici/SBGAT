@@ -1197,8 +1197,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
 
-		std::cout << "\t\tMC variance in slope: " << arma::var(slope_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(slope_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
+		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
