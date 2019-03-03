@@ -1044,7 +1044,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 
 
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
@@ -1245,7 +1245,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
 
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
@@ -1444,7 +1444,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
 
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
