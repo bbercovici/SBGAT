@@ -403,19 +403,40 @@ arma::vec::fixed<3> SBGATFilter::GetFacetCenter(const int & f) const{
 }
 
 
-arma::sp_mat  SBGATFilter::PartialTfPartialC(const int & f) const{
+arma::vec::fixed<3> SBGATFilter::GetRe(const arma::vec::fixed<3> & pos,const int & e) const{
+  
+  return this -> GetRe(pos.colptr(0),e);
+}
 
-  arma::sp_mat table(9, 3 * this -> N_vertices);
+arma::vec::fixed<3> SBGATFilter::GetRe(const double * pos,const int & e) const{
 
   
-  int v0_f,v1_f,v2_f;
-  this -> GetIndicesVerticesInFacet(f, v0_f,v1_f,v2_f);
+  double re[3];
+  double pos_scaled[3] = {pos[0],pos[1],pos[2]};
+  vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
 
-  table.submat(0,3 * v0_f, 2,3 * v0_f + 2) = arma::eye<arma::mat>(3,3);
-  table.submat(3,3 * v1_f, 5,3 * v1_f + 2) = arma::eye<arma::mat>(3,3);
-  table.submat(6,3 * v2_f, 8,3 * v2_f + 2) = arma::eye<arma::mat>(3,3);
 
-  return table;
+  vtkMath::Subtract(this -> vertices[this -> edges[e][0]],pos_scaled,re);
 
+  return this -> GetScaleFactor() * arma::vec({re[0],re[1],re[2]});
+}
+
+
+
+arma::vec::fixed<3> SBGATFilter::GetRf(const arma::vec::fixed<3> & pos,const int & f) const{
+  
+  return this -> GetRf(pos.colptr(0),f);
+}
+
+arma::vec::fixed<3> SBGATFilter::GetRf(const double * pos,const int & f) const{
+
+  
+  double rf[3];
+  double pos_scaled[3] = {pos[0],pos[1],pos[2]};
+  vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
+
+  vtkMath::Subtract(this -> vertices[this -> facets[f][0]],pos_scaled,rf);
+
+  return arma::vec({rf[0],rf[1],rf[2]}) * this -> GetScaleFactor();
 }
 
