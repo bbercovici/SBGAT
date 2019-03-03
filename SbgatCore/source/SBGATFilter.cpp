@@ -286,8 +286,6 @@ void SBGATFilter::PrintSelf(std::ostream& os, vtkIndent indent){
 
 void SBGATFilter::Clear(){
 
-
-
   if (this -> N_facets > 0){
 
   //Vertices

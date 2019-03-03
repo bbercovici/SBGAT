@@ -424,7 +424,6 @@ arma::mat::fixed<6,24> SBGATPolyhedronGravityModelUQ::PartialEPartialBe(const in
 
 void SBGATPolyhedronGravityModelUQ::TestPartials(std::string input,double tol,bool shape_in_meters){
 
-
 	std::cout << "\tRunning SBGATPolyhedronGravityModelUQ::TestPartials on " << input << std::endl;
 	
 	SBGATPolyhedronGravityModelUQ::TestPartialNfPartialTf(input,tol,shape_in_meters);

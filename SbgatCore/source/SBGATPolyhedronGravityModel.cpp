@@ -97,14 +97,14 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkInformation * r = nullptr;
 	vtkInformationVector * o = nullptr;
 
-	SBGATMassProperties::RequestData( r ,inputVector,o);
+	this -> Clear();
 
+	SBGATMassProperties::RequestData( r ,inputVector,o);
 
 	if (!(this -> densitySet && this -> scaleFactorSet)){
 		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
-	
 	// The facet dyads are created
 	this -> facet_dyads = new double * [this -> N_facets];
 
@@ -441,7 +441,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 		acc += wf * arma::vec({a[0],a[1],a[2]});
 
-		pot = - wf * vtkMath::Dot(r0m,a);
+		pot += - wf * vtkMath::Dot(r0m,a);
 
 		gravity_gradient_mat += (- F_arma * wf);
 
@@ -477,7 +477,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 		pot += Le * vtkMath::Dot(r0m,a);
 
-		acc += arma::vec({a[0],a[2],a[2]}) * (- Le);
+		acc += arma::vec({a[0],a[1],a[2]}) * (- Le);
 
 		gravity_gradient_mat += Le * E_arma;
 
@@ -504,13 +504,6 @@ void SBGATPolyhedronGravityModel::PrintTrailer(ostream& os, vtkIndent indent) {
 
 void SBGATPolyhedronGravityModel::Clear(){
 	if (this -> N_facets > 0){
-		int N_vertices = this -> N_edges - this -> N_facets + 2;
-
-	//Vertices
-		for(int i = 0; i < N_vertices; ++i) {
-			delete[] this -> vertices[i];   
-		}
-		delete[] this -> vertices;
 
 	//Facet dyads
 		for(int i = 0; i < this -> N_facets; ++i) {
@@ -518,41 +511,16 @@ void SBGATPolyhedronGravityModel::Clear(){
 		}
 		delete[] this -> facet_dyads;
 
-	//Facets
-		for(int i = 0; i < this -> N_facets; ++i) {
-			delete[] this -> facets[i];   
-		}
-		delete[] this -> facets;
-
-	//Facet normals
-		for(int i = 0; i < this -> N_facets; ++i) {
-			delete[] this -> facet_normals[i];   
-		}
-		delete[] this -> facet_normals;
-
-
+	
 	//Edge dyads
 		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edge_dyads[i];   
 		}
 		delete[] this -> edge_dyads;
 
-	//Edges 
-		for(int i = 0; i < this -> N_edges; ++i) {
-			delete[] this -> edges[i];   
-		}
-		delete[] this -> edges;
-
-	// Edge facets ids
-
-		for (int i = 0; i < this -> N_edges; ++i){
-			delete[] this -> edge_facets_ids[i];
-		}
-		delete[] this -> edge_facets_ids;
-
-
-
 	}
+
+	SBGATFilter::Clear();
 }
 
 
