@@ -115,7 +115,6 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::st
 
 }
 
-
 void SBGATMassPropertiesUQ::TestPartialDeltaVfPartialTf(std::string input,double tol,bool shape_in_meters){
 
 	std::cout << "\t In TestPartialDeltaVfPartialTf ... ";

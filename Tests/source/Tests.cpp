@@ -67,10 +67,10 @@ SOFTWARE.
 
 void TestsSBCore::run() {	
 
-	TestsSBCore::test_MassProperties_UQ_partials();
-	TestsSBCore::test_sbgat_transform_shape();
-	TestsSBCore::test_frame_conversion();
-	TestsSBCore::test_sbgat_mass_properties();
+	// TestsSBCore::test_MassProperties_UQ_partials();
+	// TestsSBCore::test_sbgat_transform_shape();
+	// TestsSBCore::test_frame_conversion();
+	// TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm_cube();
 	TestsSBCore::test_sbgat_pgm_sphere();
 	TestsSBCore::test_sbgat_pgm_speed();
@@ -240,9 +240,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	#pragma omp parallel for
 	for (vtkIdType i = 0; i < N_f; ++i){
 
-		// Input position must be in meters
-
-		arma::vec::fixed<3> p = 1000 * pgm_filter -> GetFacetCenter(i);
+		arma::vec::fixed<3> p = pgm_filter -> GetFacetCenter(i);
 
 		surface_accelerations.col(i) = pgm_filter -> GetAcceleration(p);
 		++progress;

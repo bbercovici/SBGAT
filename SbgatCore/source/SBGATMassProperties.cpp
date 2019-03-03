@@ -89,6 +89,8 @@ int SBGATMassProperties::RequestData(
   vtkInformation * r = nullptr;
   vtkInformationVector * o = nullptr;
 
+  this -> Clear();
+
   SBGATFilter::RequestData( r ,inputVector,o);
   
   // Traverse all cells, obtaining node coordinates.
