@@ -1264,7 +1264,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
 	pgm_filter -> SetDensity(density); 
-	pgm_filter -> SetScaleMeters();
+	pgm_filter -> SetScaleKiloMeters();
 	pgm_filter -> Update();
 
 	arma::vec::fixed<3> nom_acc;
