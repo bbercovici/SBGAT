@@ -575,27 +575,11 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 
 	double pot = 0;
-	double acc_x = 0;
-	double acc_y = 0;
-	double acc_z = 0;
-	double grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz;
-	double grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz;
-	double grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz;
-
-	grav_mat_acc_xx = 0;
-	grav_mat_acc_xy = 0;
-	grav_mat_acc_xz = 0;
-	grav_mat_acc_yx = 0;
-	grav_mat_acc_yy = 0;
-	grav_mat_acc_yz = 0;
-	grav_mat_acc_zx = 0;
-	grav_mat_acc_zy = 0;
-	grav_mat_acc_zz = 0;
-
+	acc = arma::zeros<arma::vec>(3);
 	gravity_gradient_mat = arma::zeros<arma::mat>(3,3);
 
 	// Facet loop
-	#pragma omp parallel for reduction(+:acc_x,acc_y,acc_z), reduction(-:pot,grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	#pragma omp parallel for reduction(+:pot) reduction(+:acc) reduction(+:gravity_gradient_mat)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
 
 		double * r0 = this -> vertices[this -> facets[facet_index][0]];
@@ -620,30 +604,17 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 			{F[6],F[7],F[8]}
 		};
 
-		acc_x += wf * a[0];
-		acc_y += wf * a[1];
-		acc_z += wf * a[2];
+		acc += wf * arma::vec({a[0],a[1],a[2]});
 
-		pot -= wf * vtkMath::Dot(r0m,a);
+		pot = - wf * vtkMath::Dot(r0m,a);
 
-
-		grav_mat_acc_xx -= F_arma(0,0) * wf;
-		grav_mat_acc_yx -= F_arma(1,0) * wf;
-		grav_mat_acc_zx -= F_arma(2,0) * wf;
-
-		grav_mat_acc_xy -= F_arma(0,1) * wf;
-		grav_mat_acc_yy -= F_arma(1,1) * wf;
-		grav_mat_acc_zy -= F_arma(2,1) * wf;
-
-		grav_mat_acc_xz -= F_arma(0,2) * wf;
-		grav_mat_acc_yz -= F_arma(1,2) * wf;
-		grav_mat_acc_zz -= F_arma(2,2) * wf;
+		gravity_gradient_mat += (- F_arma * wf);
 
 
 	}
 
 	// Edge loop
-	#pragma omp parallel for reduction(-:acc_x,acc_y,acc_z), reduction(+:pot,grav_mat_acc_xz,grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz,grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz)
+	#pragma omp parallel for reduction(+:acc) reduction(+:pot) reduction(+:gravity_gradient_mat)
 	for (int edge_index = 0; edge_index < this -> N_edges; ++ edge_index) {
 
 		double * r0 = this -> vertices[this -> edges[edge_index][0]];
@@ -671,35 +642,13 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 		pot += Le * vtkMath::Dot(r0m,a);
 
-		acc_x -= Le * a[0];
-		acc_y -= Le * a[1];
-		acc_z -= Le * a[2];
+		acc += arma::vec({a[0],a[2],a[2]}) * (- Le);
 
-		grav_mat_acc_xx += E_arma(0,0) * Le;
-		grav_mat_acc_xy += E_arma(0,1) * Le;
-		grav_mat_acc_xz += E_arma(0,2) * Le;
-
-		grav_mat_acc_yx += E_arma(1,0) * Le;
-		grav_mat_acc_yy += E_arma(1,1) * Le;
-		grav_mat_acc_yz += E_arma(1,2) * Le;
-
-		grav_mat_acc_zx += E_arma(2,0) * Le;
-		grav_mat_acc_zy += E_arma(2,1) * Le;
-		grav_mat_acc_zz += E_arma(2,2) * Le;
+		gravity_gradient_mat += Le * E_arma;
 
 		
 
 	}
-
-	acc(0) = acc_x;
-	acc(1) = acc_y;
-	acc(2) = acc_z;
-
-	gravity_gradient_mat = {
-		{grav_mat_acc_xx,grav_mat_acc_xy,grav_mat_acc_xz},
-		{grav_mat_acc_yx,grav_mat_acc_yy,grav_mat_acc_yz},
-		{grav_mat_acc_zx,grav_mat_acc_zy,grav_mat_acc_zz}
-	};
 
 	acc *= arma::datum::G  * this -> density * this -> scaleFactor ;
 	pot *= 0.5 * arma::datum::G * this -> density *  this -> scaleFactor *  this -> scaleFactor;
