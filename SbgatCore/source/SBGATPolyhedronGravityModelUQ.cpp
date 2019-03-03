@@ -1237,8 +1237,6 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(co
 
 
 
-
-
 arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialOmega(const int & f,const arma::vec::fixed<3> & Omega) const{
 
 
@@ -1249,8 +1247,6 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::PartialBodyFixedAcceleratio
 
 
 }
-
-
 
 
 void SBGATPolyhedronGravityModelUQ::TestPartialNormalizedVPartialNonNormalizedV(std::string filename,double tol,bool shape_in_meters){
