@@ -931,7 +931,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
 
-	double period = 1e10 * 12 * 3600;
+	double period = 12 * 3600;
 	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 	int f = 0;
 
@@ -952,7 +952,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 	
-	double period_standard_deviation = 0 * 3600 / 3;
+	double period_standard_deviation = 3600 / 3;
 
 	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
@@ -961,7 +961,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
-	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
+	shape_uq.ComputeVerticesCovarianceGlobal(1,70);
 	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
 	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
