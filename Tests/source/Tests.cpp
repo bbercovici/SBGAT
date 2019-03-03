@@ -951,7 +951,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
-	arma::vec period_error(N);
+	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
 
 	double period_standard_deviation = 3600 / 3;
@@ -1000,7 +1000,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	for (int i = 0; i < N ; ++i){
 		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
-		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
 	}
 
 
@@ -1155,6 +1154,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
 	double period_standard_deviation = 3600 / 3;
 
@@ -1203,7 +1203,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	for (int i = 0; i < N ; ++i){
 		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
-		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
 	}
 
 
@@ -1355,7 +1354,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
-	arma::vec period_error(N);
+	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
 
 	double period_standard_deviation = 3600 / 3;
@@ -1403,7 +1402,6 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	for (int i = 0; i < N ; ++i){
 		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
-		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
 	}
 
 
@@ -1506,8 +1504,6 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 
 	std::cout << "- Running test_PGM_UQ_covariance_consistency ..." << std::endl;
-
-
 
 
 	double density = 1970;
