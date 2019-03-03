@@ -952,7 +952,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 	
-	double period_standard_deviation = 3600 / 3;
+	double period_standard_deviation = 0 * 3600 / 3;
 
 	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
