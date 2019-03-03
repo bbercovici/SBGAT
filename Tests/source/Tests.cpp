@@ -1098,7 +1098,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	arma::mat P_CC = std::pow(10e0,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
 	double period_standard_deviation = 1./3600;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
