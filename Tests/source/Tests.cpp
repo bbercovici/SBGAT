@@ -876,6 +876,8 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 
 
 	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
+	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/skewed.obj",5e-2,false);
+
 	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
@@ -886,12 +888,12 @@ void TestsSBCore::test_PGM_UQ_partials(){
 	
 
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
+	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/skewed.obj",5e-2,false);
+	
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
 }
-
-
 
 
 void TestsSBCore::test_PGM_UQ_cube(){
@@ -1098,7 +1100,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	double period_standard_deviation = 3600;
+	double period_standard_deviation = 3600 / 3;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -1286,7 +1288,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	double period_standard_deviation = 3600;
+	double period_standard_deviation = 3600 / 3;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
