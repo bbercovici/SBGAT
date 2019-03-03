@@ -1243,7 +1243,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModelUQ::PartialBodyFixedAcceleratio
 
 
 	arma::vec::fixed<3> Pf = this -> model  -> GetFacetCenter(f);
-	const arma::vec::fixed<3> G = SBGATMassProperties::SafeDownCast(this -> model)  -> GetCenterOfMass();
+	const arma::vec::fixed<3> G = SBGATPolyhedronGravityModelUQ::SafeDownCast(this -> model)  -> GetCenterOfMass();
 
 	return RBK::tilde(arma::cross(Omega,Pf - G)) + RBK::tilde(Omega) * RBK::tilde(Pf - G);
 
