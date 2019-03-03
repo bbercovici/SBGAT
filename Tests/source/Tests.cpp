@@ -958,7 +958,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
+	shape_uq.SetModel(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
@@ -1040,7 +1040,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
+		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
 
 
@@ -1049,7 +1049,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1162,7 +1162,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
+	shape_uq.SetModel(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
@@ -1242,7 +1242,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
+		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
 
 		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
@@ -1250,7 +1250,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1362,7 +1362,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
+	shape_uq.SetModel(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
@@ -1441,7 +1441,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 		arma::vec::fixed<3> acc;
 		double pot;
-		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
+		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
 
 		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
@@ -1449,7 +1449,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1532,7 +1532,7 @@ void TestsSBCore::test_PGM_UQ_covariance_consistency(){
 	pgm_filter -> Update();
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
+	shape_uq.SetModel(pgm_filter);
 
 	shape_uq.ComputeVerticesCovarianceGlobal(10,50);
 
