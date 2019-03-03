@@ -156,9 +156,9 @@ arma::rowvec::fixed<9> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialTf(con
 
 	this -> model -> GetVerticesInFacet(f,r0,r1,r2);
 
-	arma::vec::fixed<3> R0 = arma::vec({r0[0],r0[1],r0[2]}) * this -> model -> GetScaleFactor();
-	arma::vec::fixed<3> R1 = arma::vec({r1[0],r1[1],r1[2]}) * this -> model -> GetScaleFactor();
-	arma::vec::fixed<3> R2 = arma::vec({r2[0],r2[1],r2[2]}) * this -> model -> GetScaleFactor();
+	arma::vec::fixed<3> R0 = arma::vec({r0[0],r0[1],r0[2]});
+	arma::vec::fixed<3> R1 = arma::vec({r1[0],r1[1],r1[2]});
+	arma::vec::fixed<3> R2 = arma::vec({r2[0],r2[1],r2[2]});
 
 	R0 -= pos;
 	R1 -= pos;
@@ -276,8 +276,8 @@ arma::rowvec::fixed<6> SBGATPolyhedronGravityModelUQ::PartialLePartialAe(const a
 
 	this -> model -> GetVerticesOnEdge(e,r0,r1);
 
-	arma::vec::fixed<3> r0_arma = arma::vec({r0[0],r0[1],r0[2]}) * this -> model -> GetScaleFactor() - pos;
-	arma::vec::fixed<3> r1_arma = arma::vec({r1[0],r1[1],r1[2]}) * this -> model -> GetScaleFactor() - pos;
+	arma::vec::fixed<3> r0_arma = arma::vec({r0[0],r0[1],r0[2]}) - pos;
+	arma::vec::fixed<3> r1_arma = arma::vec({r1[0],r1[1],r1[2]}) - pos;
 
 
 	double re_0 = arma::norm(r0_arma);
@@ -361,8 +361,8 @@ arma::rowvec::fixed<24> SBGATPolyhedronGravityModelUQ::PartialEqrPartialBe(const
 
 	this -> model -> GetVerticesOnEdge(e,r0,r1);
 
-	arma::vec::fixed<3> r0_arma = this -> model -> GetScaleFactor() * arma::vec({r0[0],r0[1],r0[2]});
-	arma::vec::fixed<3> r1_arma = this -> model -> GetScaleFactor() * arma::vec({r1[0],r1[1],r1[2]});
+	arma::vec::fixed<3> r0_arma = arma::vec({r0[0],r0[1],r0[2]});
+	arma::vec::fixed<3> r1_arma = arma::vec({r1[0],r1[1],r1[2]});
 
 	int f0,f1;
 

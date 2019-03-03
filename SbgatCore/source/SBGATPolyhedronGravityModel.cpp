@@ -227,15 +227,12 @@ bool SBGATPolyhedronGravityModel::Contains(const arma::vec::fixed<3> & point,dou
 bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) const{
 
 	double laplacian = 0;
-	double point_scaled[3] = {point[0],point[1],point[2]};
-	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);
-
 
 
 	// Facet loop
 	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
-		laplacian += this -> GetOmegaf(point_scaled, facet_index);
+		laplacian += this -> GetOmegaf(point, facet_index);
 	}
 
 	if (std::abs(laplacian) / (4 * arma::datum::pi) < tol) {
