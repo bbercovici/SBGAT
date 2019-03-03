@@ -61,6 +61,12 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(bool use_cholesky) const{
 
 void SBGATFilterUQ::SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1){
 
+	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+		this -> P_CC.clear();
+		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
+	}
+
+
 	this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = P * std::pow(this -> model ->  GetScaleFactor(),2);
 
 	// this -> P_CC_sparse.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2);
@@ -237,6 +243,13 @@ arma::mat::fixed<3,9> SBGATFilterUQ::PartialNfPartialTf(const int & f) const{
 
 
 void SBGATFilterUQ::ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance){
+
+
+	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+		this -> P_CC.clear();
+		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
+	}
+	
 
 	double epsilon = 1e-4;
 
