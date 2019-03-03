@@ -67,10 +67,10 @@ SOFTWARE.
 
 void TestsSBCore::run() {	
 
-	// TestsSBCore::test_MassProperties_UQ_partials();
-	// TestsSBCore::test_sbgat_transform_shape();
-	// TestsSBCore::test_frame_conversion();
-	// TestsSBCore::test_sbgat_mass_properties();
+	TestsSBCore::test_MassProperties_UQ_partials();
+	TestsSBCore::test_sbgat_transform_shape();
+	TestsSBCore::test_frame_conversion();
+	TestsSBCore::test_sbgat_mass_properties();
 	TestsSBCore::test_sbgat_pgm_cube();
 	TestsSBCore::test_sbgat_pgm_sphere();
 	TestsSBCore::test_sbgat_pgm_speed();
