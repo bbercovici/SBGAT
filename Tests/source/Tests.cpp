@@ -951,10 +951,11 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+	
+	double period_standard_deviation = 3600 / 3;
+
 	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
-
-	double period_standard_deviation = 3600 / 3;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -1154,10 +1155,10 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
-	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
 	double period_standard_deviation = 3600 / 3;
 
+	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
@@ -1354,10 +1355,11 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+	
+	double period_standard_deviation = 3600 / 3;
+
 	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
 
-
-	double period_standard_deviation = 3600 / 3;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
