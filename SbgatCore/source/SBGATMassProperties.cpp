@@ -364,7 +364,6 @@ return 1;
 }
 
 
-
 void SBGATMassProperties::PrintHeader(ostream& os, vtkIndent indent) {
 
 }

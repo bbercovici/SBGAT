@@ -2,7 +2,7 @@
 #include <RigidBodyKinematics.hpp>
 #include <vtkCleanPolyData.h>
 #include <vtkOBJReader.h>
-
+#include <SBGATPolyhedronGravityModel.hpp>
 
 #pragma omp declare reduction( + : arma::mat : omp_out += omp_in ) \
 initializer( omp_priv = arma::zeros<arma::mat>(omp_orig.n_rows,omp_orig.n_cols))
@@ -701,9 +701,7 @@ void SBGATMassPropertiesUQ::TestPartialDeltaIfPartialTf(std::string input,double
 
 	std::cout << "\t Passed TestPartialDeltaIfPartialTf with " << double(successes)/N * 100 << " \% of successes. \n";
 
-
 }
-
 
 arma::mat SBGATMassPropertiesUQ::GetPartialComPartialC() const{
 
@@ -762,7 +760,12 @@ arma::rowvec SBGATMassPropertiesUQ::GetPartialVolumePartialC() const{
 
 arma::mat::fixed<3,9> SBGATMassPropertiesUQ::PartialDeltaComPartialTf(const int & f) const{
 
-	SBGATMassProperties * mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	SBGATMassProperties * mass_model = nullptr;
+
+	mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	if (!mass_model){
+		mass_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
+	}
 
 
 	return (1./mass_model -> GetVolume() * ((mass_model -> GetDeltaCM(f) 
@@ -774,7 +777,12 @@ arma::mat::fixed<3,9> SBGATMassPropertiesUQ::PartialDeltaComPartialTf(const int 
 
 arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialEqDeltaIfErPartialTf(const int & f,const int & q, const int & r,const arma::vec::fixed<9> & Tf) const{
 
-	SBGATMassProperties * mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	SBGATMassProperties * mass_model = nullptr;
+
+	mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	if (!mass_model){
+		mass_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
+	}
 
 	arma::vec::fixed<3> e_q = arma::zeros<arma::vec >(3);
 	arma::vec::fixed<3> e_r = arma::zeros<arma::vec >(3);
@@ -1016,13 +1024,19 @@ void SBGATMassPropertiesUQ::ApplyDeviation(const arma::vec & delta_C){
 
 
 arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
+	SBGATMassProperties * mass_model = nullptr;
 
-	SBGATMassProperties * mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	
+	if (!mass_model){
+		mass_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
+	}
 
-
+	
 	arma::mat::fixed<3,3> BP = mass_model -> GetPrincipalAxes().t();
 
 	arma::vec::fixed<3> moments = mass_model -> GetUnitDensityInertiaMoments();
+
 
 	arma::mat::fixed<3,6> W1,W2,W3;
 	W1 = W2 = W3 = arma::zeros<arma::mat>(3,6);
@@ -1040,6 +1054,7 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 	W3(2,2) = 1;
 
 	arma::mat::fixed<3,6> dMdI = this -> GetPartialUnitDensityMomentsPartialI();
+
 
 	arma::mat::fixed<9,3> H = arma::zeros<arma::mat>(9,3);
 	arma::mat::fixed<9,6> V = arma::zeros<arma::mat>(9,6);
@@ -1087,7 +1102,6 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 		}
 	}
 
-
 	return arma::inv(H.t() * H) * H.t() * V;
 
 
@@ -1095,6 +1109,7 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 
 
 arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
+
 
 	return this -> GetPartialSigmaPartialI() * this -> GetPartialIPartialC();
 
@@ -1104,7 +1119,15 @@ arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
 
 arma::mat  SBGATMassPropertiesUQ::GetPartialUnitDensityMomentsPartialI() const{
 	
-	arma::mat::fixed<3,3> eigvec = SBGATMassProperties::SafeDownCast(this -> model) -> GetPrincipalAxes().t();
+
+	SBGATMassProperties * mass_model = nullptr;
+
+	mass_model = SBGATMassProperties::SafeDownCast(this -> model);
+	if (!mass_model){
+		mass_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
+	}
+
+	arma::mat::fixed<3,3> eigvec = mass_model -> GetPrincipalAxes().t();
 
 
 	arma::mat::fixed<3,6> W1,W2,W3;

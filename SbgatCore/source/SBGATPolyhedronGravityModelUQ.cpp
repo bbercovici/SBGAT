@@ -1125,12 +1125,17 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwC(const arma::vec::
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
+
 	arma::mat partial = arma::zeros<arma::mat>(3, 1 + 3 * N_C);
 	
 	arma::mat::fixed<3,3> PB = pgm_model -> GetPrincipalAxes();
 	arma::vec::fixed<3> rotation_axis_principal_frame = PB * arma::normalise(Omega);
 
 	partial.col(0) = arma::normalise(Omega);
+
+
+
+
 	partial.cols(1,3 * N_C) = - 4 * arma::norm(Omega) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> GetPartialSigmaPartialC();
 
 	return partial;
@@ -3536,6 +3541,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 		int N_C = pgm_filter -> GetN_vertices();
 
 		arma::mat partial = shape_uq.PartialOmegaPartialwC(Omega);
+		
 		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(N_C * 3) / pgm_filter -> GetScaleFactor();
 
 		arma::vec dw_vector = arma::randn<arma::vec>(1) * arma::norm(Omega) / 100;
