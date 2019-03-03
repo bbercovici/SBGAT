@@ -277,7 +277,7 @@ void TestsSBCore::test_sbgat_pgm_speed(){
 	elapsed_seconds = end-start;
 	std::cout << "-- Done computing pgm slopes, potentials and accelerations in " << elapsed_seconds.count() << " s\n";
 
-	assert(N_f == inertial_acc_magnitudes.size());
+	assert(N_f == (int)(inertial_acc_magnitudes.size()));
 
 	for (int i = 0; i < N_f; ++i){
 		assert(std::abs(arma::norm(surface_accelerations.col(i)) - inertial_acc_magnitudes[i]) / inertial_acc_magnitudes[i] < 1e-5);
@@ -932,7 +932,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	double nom_pot;
 
 	double period = 12 * 3600;
-	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 	int f = 0;
 
 	double nom_slope = pgm_filter  -> GetSlope(f,Omega);
@@ -1033,7 +1033,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		pgm_filter_mc -> Update();
 
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
-		shape_uq_mc.SetPGM(pgm_filter_mc);
+		shape_uq_mc.SetModel(pgm_filter_mc);
 		
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
@@ -1140,7 +1140,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	int f = 0;
 	double period = 12 * 3600;
-	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 	double nom_slope = pgm_filter  -> GetSlope(f,Omega);
 
@@ -1235,7 +1235,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		pgm_filter_mc -> Update();
 
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
-		shape_uq_mc.SetPGM(pgm_filter_mc);
+		shape_uq_mc.SetModel(pgm_filter_mc);
 		
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
@@ -1337,7 +1337,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	int f = 0;
 
 	double period = 12 * 3600;
-	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 	arma::vec::fixed<3> nom_acc;
@@ -1434,7 +1434,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		pgm_filter_mc -> Update();
 
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
-		shape_uq_mc.SetPGM(pgm_filter_mc);
+		shape_uq_mc.SetModel(pgm_filter_mc);
 		
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
