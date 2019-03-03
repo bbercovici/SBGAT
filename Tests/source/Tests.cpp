@@ -930,8 +930,15 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
+
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
+	std::cout << "Nominal slope : " << shape_uq.GetPGM() -> GetSlope(f,Omega);
+
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
 
@@ -1122,6 +1129,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	double nom_pot;
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
+	std::cout << "Nominal slope : " << shape_uq.GetPGM() -> GetSlope(f,Omega);
+
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
@@ -1315,7 +1324,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	double nom_pot;
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
-	std::cout << "Nominal slope : " << shape_uq_mc.GetPGM() -> GetSlope(f,Omega);
+	std::cout << "Nominal slope : " << shape_uq.GetPGM() -> GetSlope(f,Omega);
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
