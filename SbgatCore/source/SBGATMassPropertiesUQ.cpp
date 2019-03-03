@@ -28,7 +28,7 @@ arma::rowvec::fixed<9> SBGATMassPropertiesUQ::PartialDeltaVfPartialTf(const int 
 	partial.subvec(3,5) = - C0.t() * RBK::tilde(C2);
 	partial.subvec(6,8) = C0.t() * RBK::tilde(C1);
 
-	return 1./6 * partial * std::pow(this -> model -> GetScaleFactor(),2);
+	return 1./6 * partial;
 
 	
 }
@@ -849,7 +849,7 @@ arma::mat::fixed<6,9> SBGATMassPropertiesUQ::PartialDeltaIfPartialTf(const int &
 
 	this -> model -> GetVerticesInFacet(f,r0,r1,r2);
 
-	arma::vec::fixed<9> Tf = this -> model -> GetScaleFactor() * arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
+	arma::vec::fixed<9> Tf = arma::vec({r0[0],r0[1],r0[2],r1[0],r1[1],r1[2],r2[0],r2[1],r2[2]});
 
 	partial.row(0) = this -> PartialEqDeltaIfErPartialTf(f,0,0,Tf);
 	partial.row(1) = this -> PartialEqDeltaIfErPartialTf(f,1,1,Tf);

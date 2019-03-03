@@ -549,7 +549,7 @@ arma::vec::fixed<3> SBGATMassProperties::GetDeltaCM(const int & f) const {
  this -> GetVerticesInFacet(f,rf0,rf1,rf2);
 
 
- return (this -> scaleFactor/4 * arma::vec::fixed<3> ({rf0[0] + rf1[0] + rf2[0],
+ return (1./4 * arma::vec::fixed<3> ({rf0[0] + rf1[0] + rf2[0],
   rf0[1] + rf1[1] + rf2[1],
   rf0[2] + rf1[2] + rf2[2]}));
 
@@ -575,7 +575,7 @@ arma::mat::fixed<3,3> SBGATMassProperties::GetDeltaIOverDeltaV(const int & f) co
 
 
 
-  return - I * std::pow(this -> scaleFactor,2);
+  return - I ;
 
 }
 
