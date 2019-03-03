@@ -149,7 +149,7 @@ int SBGATFilter::RequestData(
 
   vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
   vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
-    
+
   // Required by vtkPolyData::GetPointCells 
   input -> BuildLinks();
 
@@ -294,7 +294,7 @@ void SBGATFilter::Clear(){
     }
     delete[] this -> vertices;
 
- 
+
   //Facets
     for(int i = 0; i < this -> N_facets; ++i) {
       delete[] this -> facets[i];   
@@ -339,7 +339,7 @@ arma::vec::fixed<3> SBGATFilter::GetNonNormalizedFacetNormal(const int & f) cons
   arma::vec::fixed<3> r0_arma = {r0[0],r0[1],r0[2]};
   arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
   arma::vec::fixed<3> r2_arma = {r2[0],r2[1],r2[2]};
-  return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma) * this -> GetScaleFactor() * this -> GetScaleFactor();
+  return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma) ;
 
 }
 
@@ -359,6 +359,11 @@ void SBGATFilter::GetVerticesInFacet(const int & f,double * r0,double * r1, doub
   r2[2] = this -> vertices[this -> facets[f][2]][2];
 
 
+  vtkMath::MultiplyScalar(r0,this -> GetScaleFactor());
+  vtkMath::MultiplyScalar(r1,this -> GetScaleFactor());
+  vtkMath::MultiplyScalar(r2,this -> GetScaleFactor());
+
+
 }
 
 
@@ -372,12 +377,20 @@ void SBGATFilter::GetVerticesOnEdge(const int & e,double * r0,double * r1) const
   r1[1] = this -> vertices[this -> edges[e][1]][1];
   r1[2] = this -> vertices[this -> edges[e][1]][2];
 
+  vtkMath::MultiplyScalar(r0,this -> GetScaleFactor());
+  vtkMath::MultiplyScalar(r1,this -> GetScaleFactor());
+
 }
 
 
 double SBGATFilter::GetEdgeLength(const int & e) const{
 
-  return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
+
+  double re0[3];
+  double re1[3];
+  this -> GetVerticesOnEdge(e,re0,re1);
+
+  return std::sqrt(vtkMath::Distance2BetweenPoints(re0,re1));
 }
 
 
@@ -389,52 +402,50 @@ void SBGATFilter::GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) c
 }
 
 arma::vec::fixed<3> SBGATFilter::GetFacetCenter(const int & f) const{
-  
+
   double r0[3];
   double r1[3];
   double r2[3];
   this -> GetVerticesInFacet(f,r0,r1,r2);
 
-  return 1./3 * this -> scaleFactor * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
+  return 1./3 * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
 
 
 }
 
 
 arma::vec::fixed<3> SBGATFilter::GetRe(const arma::vec::fixed<3> & pos,const int & e) const{
-  
+
   return this -> GetRe(pos.colptr(0),e);
 }
 
 arma::vec::fixed<3> SBGATFilter::GetRe(const double * pos,const int & e) const{
 
-  
-  double re[3];
-  double pos_scaled[3] = {pos[0],pos[1],pos[2]};
-  vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
 
+  double re0[3];
+  double re1[3];
 
-  vtkMath::Subtract(this -> vertices[this -> edges[e][0]],pos_scaled,re);
+  this -> GetVerticesOnEdge(e,re0,re1);
 
-  return this -> GetScaleFactor() * arma::vec({re[0],re[1],re[2]});
+  return  arma::vec({re0[0] - pos[0],re0[1] - pos[1],re0[2] - pos[2]}) - ;
 }
 
 
 
 arma::vec::fixed<3> SBGATFilter::GetRf(const arma::vec::fixed<3> & pos,const int & f) const{
-  
+
   return this -> GetRf(pos.colptr(0),f);
 }
 
 arma::vec::fixed<3> SBGATFilter::GetRf(const double * pos,const int & f) const{
 
-  
-  double rf[3];
-  double pos_scaled[3] = {pos[0],pos[1],pos[2]};
-  vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
 
-  vtkMath::Subtract(this -> vertices[this -> facets[f][0]],pos_scaled,rf);
+  double rf0[3];
+  double rf1[3];
+  double rf2[3];
 
-  return arma::vec({rf[0],rf[1],rf[2]}) * this -> GetScaleFactor();
+  this -> GetVerticesInFacet(f,rf0,rf1,rf2);
+
+  return arma::vec({rf0[0] - pos[0],rf0[1] - pos[1],rf0[2] - pos[2]}) ;
 }
 

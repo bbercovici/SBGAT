@@ -528,20 +528,30 @@ void SBGATMassProperties::SaveMassProperties(std::string path) const {
 
 double SBGATMassProperties::GetDeltaV(const int & f) const {
 
-  return 1./6 * vtkMath::Determinant3x3(
-    this -> vertices[this -> facets[f][0]],
-    this -> vertices[this -> facets[f][1]],
-    this -> vertices[this -> facets[f][2]]) * std::pow(this -> scaleFactor,3);
+
+  double rf0[3];
+  double rf1[3];
+  double rf2[3];
+
+  this -> GetVerticesInFacet(f,rf0,rf1,rf2);
+
+
+  return 1./6 * vtkMath::Determinant3x3(rf0,rf1,rf2) ;
 
 }
 
 arma::vec::fixed<3> SBGATMassProperties::GetDeltaCM(const int & f) const {
 
-  return (this -> scaleFactor/4 * arma::vec::fixed<3> ({
-    this -> vertices[this -> facets[f][0]][0] + this -> vertices[this -> facets[f][1]][0] + this -> vertices[this -> facets[f][2]][0],
-    this -> vertices[this -> facets[f][0]][1] + this -> vertices[this -> facets[f][1]][1] + this -> vertices[this -> facets[f][2]][1],
-    this -> vertices[this -> facets[f][0]][2] + this -> vertices[this -> facets[f][1]][2] + this -> vertices[this -> facets[f][2]][2]})
-  );
+ double rf0[3];
+ double rf1[3];
+ double rf2[3];
+
+ this -> GetVerticesInFacet(f,rf0,rf1,rf2);
+
+
+ return (this -> scaleFactor/4 * arma::vec::fixed<3> ({rf0[0] + rf1[0] + rf2[0],
+  rf0[1] + rf1[1] + rf2[1],
+  rf0[2] + rf1[2] + rf2[2]}));
 
 }
 
