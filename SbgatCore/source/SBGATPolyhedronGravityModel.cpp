@@ -614,15 +614,15 @@ void SBGATPolyhedronGravityModel::ComputeSurfacePGM(
 		double potential,slope;
 		arma::vec::fixed<3> acc,acc_body_fixed;
 
-		pgm_filter -> GetPotentialAcceleration(facet_center * pgm_filter -> GetScaleFactor(),potential,acc);
-		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center * pgm_filter -> GetScaleFactor() - com));
+		pgm_filter -> GetPotentialAcceleration(facet_center ,potential,acc);
+		acc_body_fixed = acc - arma::cross(omega,arma::cross(omega,facet_center  - com));
 
 		slope = std::acos(arma::dot(-arma::normalise(acc_body_fixed),normal)) * 180./arma::datum::pi;
 
 		slopes[cellId] = slope;
 		inertial_potentials[cellId] = potential;
-		body_fixed_potentials[cellId] = potential + 0.5 * arma::dot(RBK::tilde(omega) * (facet_center * pgm_filter -> GetScaleFactor() - com),
-			RBK::tilde(omega) * (facet_center * pgm_filter -> GetScaleFactor() - com));
+		body_fixed_potentials[cellId] = potential + 0.5 * arma::dot(RBK::tilde(omega) * (facet_center  - com),
+			RBK::tilde(omega) * (facet_center  - com));
 		inertial_acc_magnitudes[cellId] = arma::norm(acc);
 		body_fixed_acc_magnitudes[cellId] = arma::norm(acc_body_fixed);
 
