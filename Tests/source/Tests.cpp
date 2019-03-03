@@ -1098,7 +1098,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	double period_standard_deviation = 1./3600;
+	double period_standard_deviation = 3600;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
@@ -1286,13 +1286,13 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
-	double period_standard_deviation = 1./3600;
+	double period_standard_deviation = 3600;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
-	shape_uq.ComputeVerticesCovarianceGlobal(0,70);
+	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
 	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
 	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
