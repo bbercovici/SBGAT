@@ -1274,7 +1274,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	std::cout << "- Running test_PGM_UQ_skewed_km ..." << std::endl;
 
-	int N = 10000;
+	int N = 100000;
 	arma::arma_rng::set_seed(N) ;
 
 
@@ -1325,7 +1325,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
-	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
+	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
 	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
 	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
