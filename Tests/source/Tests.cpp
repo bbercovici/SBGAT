@@ -951,6 +951,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+	arma::vec period_error(N);
+
 
 	double period_standard_deviation = 3600 / 3;
 
@@ -994,6 +996,16 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
 	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
+
+
+	for (int i = 0; i < N ; ++i){
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
+	}
+
+
+
+
 	// MC
 	start = std::chrono::system_clock::now();	
 	boost::progress_display progress(N);
@@ -1023,7 +1035,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetPGM(pgm_filter_mc);
 		
-		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
 
@@ -1032,9 +1043,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 
-		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
 
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
@@ -1148,6 +1158,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	double period_standard_deviation = 3600 / 3;
 
+
+
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
 
@@ -1188,11 +1200,19 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
 	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
+
+	for (int i = 0; i < N ; ++i){
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
+	}
+
+
+
 	// MC
 	start = std::chrono::system_clock::now();	
 	boost::progress_display progress(N);
 
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < N ; ++i){
 
 		// Reading
@@ -1217,7 +1237,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetPGM(pgm_filter_mc);
 		
-		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
 
@@ -1226,9 +1245,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 
-		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
-
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
@@ -1338,6 +1355,8 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
+	arma::vec period_error(N);
+
 
 	double period_standard_deviation = 3600 / 3;
 
@@ -1381,6 +1400,13 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
 	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
 
+
+	for (int i = 0; i < N ; ++i){
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		period_error(i) = period_standard_deviation * arma::randn<arma::vec>(1);
+	}
+
+
 	// MC
 	start = std::chrono::system_clock::now();	
 	boost::progress_display progress(N);
@@ -1410,7 +1436,6 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetPGM(pgm_filter_mc);
 		
-		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
 
@@ -1419,9 +1444,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
 
-		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
-
-		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
 
 		U_mc(i) = pot;
