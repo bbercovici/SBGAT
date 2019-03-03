@@ -2,6 +2,9 @@
 #include <SBGATFilterUQ.hpp>
 #include <json.hpp>
 #include <RigidBodyKinematics.hpp>
+#include <vtkPolyDataNormals.h>
+#include <vtkFloatArray.h>
+#include <vtkPointData.h>
 
 arma::sp_mat  SBGATFilterUQ::PartialTfPartialC(const int & f) const{
 
