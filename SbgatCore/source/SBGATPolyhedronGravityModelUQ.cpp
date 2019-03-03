@@ -3989,7 +3989,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		shape_uq.SetPGM(pgm_filter);
 
 		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
-		double w = 2 * arma::datum::pi / (12 * 3600);
+		double w = 0 * arma::datum::pi / (12 * 3600);
 		arma::vec::fixed<3> Omega = w * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 
 		int N_facets = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfCells();
@@ -4005,7 +4005,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 		shape_uq.ApplyDeviation(deviation);
 
-		arma::vec::fixed<3> Omega_p = 1.01 * Omega;
+		arma::vec::fixed<3> Omega_p = 1.0 * Omega;
 
 		double slope_argument_p = arma::dot(arma::normalise(pgm_filter -> GetBodyFixedAccelerationf(f,Omega_p)),
 			arma::normalise(pgm_filter -> GetNonNormalizedFacetNormal(f)));
