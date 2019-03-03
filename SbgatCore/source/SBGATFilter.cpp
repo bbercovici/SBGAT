@@ -427,7 +427,7 @@ arma::vec::fixed<3> SBGATFilter::GetRe(const double * pos,const int & e) const{
 
   this -> GetVerticesOnEdge(e,re0,re1);
 
-  return  arma::vec({re0[0] - pos[0],re0[1] - pos[1],re0[2] - pos[2]}) - ;
+  return  arma::vec({re0[0] - pos[0],re0[1] - pos[1],re0[2] - pos[2]}) ;
 }
 
 
