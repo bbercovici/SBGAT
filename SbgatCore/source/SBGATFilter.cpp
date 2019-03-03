@@ -339,7 +339,7 @@ arma::vec::fixed<3> SBGATFilter::GetNonNormalizedFacetNormal(const int & f) cons
   arma::vec::fixed<3> r0_arma = {r0[0],r0[1],r0[2]};
   arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
   arma::vec::fixed<3> r2_arma = {r2[0],r2[1],r2[2]};
-  return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma);
+  return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma) * this -> GetScaleFactor() * this -> GetScaleFactor();
 
 }
 
