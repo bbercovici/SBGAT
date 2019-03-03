@@ -62,10 +62,7 @@ void SBGATFilterUQ::SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const
 
 	// this -> P_CC_sparse.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2) = this -> P_CC.submat(3 * v0,3 * v1,3 * v0 + 2,3 * v1 + 2);
 
-
 }
-
-
 
 
 void SBGATFilterUQ::SaveVerticesCovariance(std::string path) const{
