@@ -231,7 +231,7 @@ arma::mat::fixed<3,9> SBGATFilterUQ::PartialNfPartialTf(const int & f) const{
 	partial.cols(3,5) = RBK::tilde(r0_arma - r2_arma);
 	partial.cols(6,8) = RBK::tilde(r1_arma - r0_arma);
 
-	return partial * this -> model -> GetScaleFactor();
+	return partial ;
 
 }
 
