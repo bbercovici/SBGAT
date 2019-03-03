@@ -232,3 +232,67 @@ arma::mat::fixed<3,9> SBGATFilterUQ::PartialNfPartialTf(const int & f) const{
 
 }
 
+
+void SBGATFilterUQ::ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance){
+
+	double epsilon = 1e-4;
+
+	vtkPolyData * input = vtkPolyData::SafeDownCast(this -> model -> GetInput());
+	int N_C = input -> GetNumberOfPoints();
+	
+	vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+
+	normalGenerator -> SetInputData(input);
+	normalGenerator -> ComputePointNormalsOn();
+	normalGenerator -> ComputeCellNormalsOff();
+	normalGenerator -> SplittingOff ();
+	normalGenerator -> Update();
+
+	vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
+
+	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetPointData()->GetArray("Normals"));
+
+	assert(input_with_normals -> GetNumberOfPoints() == N_C);
+	assert(normals -> GetNumberOfTuples() == N_C);
+
+	this -> P_CC.fill(0);
+	
+	for (unsigned int i = 0; i < N_C; ++i){
+
+		double ni_[3];
+		double Pi_[3];
+		input -> GetPoint(i,Pi_);
+		normals -> GetTuple(i,ni_);
+		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]};
+		arma::vec::fixed<3> u_2 = arma::normalise(arma::cross(ni,arma::randn<arma::vec>(3)));
+		arma::vec u_1 = arma::cross(u_2,ni);
+		arma::mat::fixed<3,3> P = std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
+
+		this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
+
+		for (unsigned int j = i + 1; j < N_C; ++j){
+
+			double nj_[3];
+			double Pj_[3];
+			input -> GetPoint(j,Pj_);
+			normals -> GetTuple(j,nj_);
+			arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
+
+			double distance = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
+
+			if ( distance < 3 * correl_distance){
+				double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
+
+				arma::mat::fixed<3,3> P_correlation = std::pow(standard_dev,2) * decay * ni * nj.t();
+
+				this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
+				this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+
+			}
+
+		}
+
+	}
+
+}
+
