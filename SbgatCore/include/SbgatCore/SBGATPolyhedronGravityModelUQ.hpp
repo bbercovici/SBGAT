@@ -73,6 +73,14 @@ public:
 
 
 
+  /**
+  Returns the variance of the slope evaluated at the center of the designated facet
+  @param f facet index
+  @param Omega angular velocity vector expressed in the current body frame
+  @return variance in slope (rad^2)
+  */
+  double GetVarianceSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
+
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
@@ -245,6 +253,15 @@ Sets the vertices covariance to the provided one
     std::vector < std::vector<double> > & all_potentials ,
     std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
 
+
+
+  /**
+  Sets the standard deviation of the rotation period
+  @param standard deviation of the rotation period (s)
+  */
+  void SetPeriodErrorStandardDeviation(double rotation_period_sd){
+    this -> period_standard_deviation = rotation_period_sd;
+  }
 
 
   /**
@@ -676,6 +693,7 @@ to the shape coordinates
 
   arma::mat P_CC;
   arma::sp_mat P_CC_sparse;
+  double period_standard_deviation;
 
 
 

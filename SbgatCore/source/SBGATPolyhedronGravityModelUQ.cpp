@@ -4029,7 +4029,20 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 }
 
 
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ,const arma::vec::fixed<3> & Omega) const{
 
+	arma::mat augmented_PCC = arma::zeros<arma::mat>(this -> P_CC.n_rows + 1, this -> P_CC.n_rows + 1);
+
+
+	augmented_PCC(0,0) = - arma::dot(Omega,Omega) / (2 * arma::datum::pi) * std::pow(this -> period_standard_deviation,2);
+	augmented_PCC.submat(1,1,augmented_PCC.n_rows -1,augmented_PCC.n_rows -1) = this -> P_CC;
+
+	arma::rowvec partial = this -> GetPartialSlopePartialwPartialC(f,Omega);
+
+	return arma::dot(partial, augmented_PCC * partial.t()); 
+
+
+}
 
 
 
