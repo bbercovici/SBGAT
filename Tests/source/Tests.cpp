@@ -1322,6 +1322,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
+	
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
 	std::cout << "Nominal slope : " << pgm_filter  -> GetSlope(f,Omega);
