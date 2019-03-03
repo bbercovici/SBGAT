@@ -37,10 +37,10 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 #include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 #include <armadillo>
-#include "SBGATMassProperties.hpp"
+#include <SBGATMassProperties.hpp>
 
 
-class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public vtkPolyDataAlgorithm{
+class VTKFILTERSCORE_EXPORT SBGATPolyhedronGravityModel : public SBGATMassProperties{
 public:
 
   /**
@@ -83,13 +83,6 @@ public:
   */
   void GetPotentialAcceleration(double const * point,double & potential, 
     arma::vec::fixed<3> & acc) const;
-
-  /**
-  Returns coordinates of point at center of facet
-  @param f facet index
-  @return coordinates of f-th facet center
-  */
-  arma::vec::fixed<3> GetFacetCenter(const int & f) const;
 
 
   /**
@@ -189,18 +182,6 @@ the polydata used to construct the PGM
   */
   bool Contains(const arma::vec::fixed<3> & point,double tol = 1e-8) const;
 
-
-  /**
-  Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
-  */
-  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;this -> is_in_meters = true;}
-
-  /**
-  Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
-  */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
-
-
   /**
   Computes the slope as the center of the designated facet
   @param f facet index
@@ -211,49 +192,12 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the shape's scale factor
-  @return scale factor
-  */
-  double GetScaleFactor() const {return this -> scaleFactor;}
-
-  /**
-  Sets polyhedron density
-  @param density bulk density of polyhedron (kg/m^3)
-  */
-  void SetDensity(const double density){
-    this -> density = density;
-    this -> densitySet = true;
-  }
-
-  /**
-  Returns length of considered edge in meters
-  @param e edge index
-  @return edge length(m )
-*/  
-  double GetEdgeLength(const int & e) const;
-
-  /**
-  Get polyhedron density
-  @return density bulk density of polyhedron (kg/m^3)
-  */
-  double GetDensity() const{
-    return this -> density ;
-  }
-
-  /**
   Get polyhedron mass. Must have set the density and call
   @return mass (kg)
   */
   double GetMass() const{
-    return this -> density * this -> mass_properties -> GetVolume() * std::pow(this -> scaleFactor,3);
+    return this -> density * this -> GetVolume() * std::pow(this -> scaleFactor,3);
   }
-
-
-  /**
-  Gets pointer to associated mass properties
-  @return mass properties
-  */
-  vtkSmartPointer<SBGATMassProperties> GetMassProperties() const{return this -> mass_properties;}
 
   /**
   Returns the performance factor of the f-th facet at the specified position
@@ -287,79 +231,6 @@ the polydata used to construct the PGM
   */
   double GetLe( const double * pos, const int & e) const;
 
-
-  /**
-  Returns coordinates of the three vertices forming a facet
-  @param[in] f facet index
-  @param[out] r0 first vertex coordinates
-  @param[out] r1 first vertex coordinates
-  @param[out] r2 first vertex coordinates
-  */
-  void GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const;
-
-
-
-  /**
-  Returns coordinates of the two vertices forming an edge
-  @param[in] e edge index
-  @param[out] r0 first vertex coordinates
-  @param[out] r1 first vertex coordinates
-  */
-  void GetVerticesOnEdge(const int & e,double * r0,double * r1) const;
-
-
-  /**
-  Returns normal of facet f
-  @param[in] f facet index
-  @param[out] n normal at facet
-  */
-  void GetFacetNormal(const int & f, double * n) const{n[0] = this -> facet_normals[f][0];n[1] = this -> facet_normals[f][1];n[2] = this -> facet_normals[f][2];}
-
-
-  /**
-  Returns the indices of the two facets adjacent to the specified edge
-  @param[in] e edge index
-  @param[out] f0 index of first facet
-  @param[out] f1 index of second facet
-  */
-  void GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) const;
-
-
-  /**
-  Returns the vector from the field point to the first vertex on the designated edge
-  @param pos field point
-  @param e edge index
-  @return the vector from the field point to the first vertex on the designated edge
-  */
-  arma::vec::fixed<3> GetRe(const arma::vec::fixed<3> & pos,const int & e) const;
-
-
-  /**
-  Returns the vector from the field point to the first vertex on the designated edge
-  @param pos field point
-  @param e edge index
-  @return the vector from the field point to the first vertex on the designated edge
-  */
-  arma::vec::fixed<3> GetRe(const double * pos,const int & e) const;
-
-
-
-  /**
-  Returns the vector from the field point to the first vertex on the designated facet
-  @param pos field point
-  @param f facet index
-  @return the vector from the field point to the first vertex on the designated facet
-  */
-  arma::vec::fixed<3> GetRf(const arma::vec::fixed<3> & pos,const int & f) const;
-
-
-  /**
-  Returns the vector from the field point to the first vertex on the designated facet
-  @param pos field point
-  @param f facet index
-  @return the vector from the field point to the first vertex on the designated facet
-  */
-  arma::vec::fixed<3> GetRf(const double * pos,const int & f) const;
 
 
   /**
@@ -523,41 +394,11 @@ the polydata used to construct the PGM
 
 
 
-
-
-  /**
-  Returns the indices of the vertices forming the prescribed edge
-  @param[in] e edge index
-  @param[out] v0 first vertex index
-  @param[out] v1 second vertex index
-  */
-  void GetIndicesVerticesOnEdge(const int & e, int & v0,int & v1){v0 = this -> edges[e][0];v1 = this -> edges[e][1];}
-
-  /**
-  Returns the indices of the vertices forming the prescribed facet
-  @param[in] f facet index
-  @param[out] v0 first vertex index
-  @param[out] v1 second vertex index
-  @param[out] v2 third vertex index
-  */
-  void GetIndicesVerticesInFacet(const int & f, int & v0,int & v1,int & v2){v0 = this -> facets[f][0];v1 = this -> facets[f][1];v2 = this -> facets[f][2];}
-
-
-  /**
-  Returns the non-normalized facet normal at this facet
-  @param f facet index
-  @return non-normalized facet normal
-  */
-  arma::vec::fixed<3> GetNonNormalizedFacetNormal(const int & f) const;
-
-
 protected:
   SBGATPolyhedronGravityModel();
   ~SBGATPolyhedronGravityModel() override;
 
-
   void Clear();
-
 
   int RequestData(vtkInformation* request,
     vtkInformationVector** inputVector,
@@ -565,25 +406,6 @@ protected:
 
   double ** facet_dyads;
   double ** edge_dyads;
-  double ** facet_normals;
-  double ** vertices;
-
-  double scaleFactor = 1;
-  double density;
-
-  int ** edges;
-  int ** facets;
-  int ** edge_facets_ids;
-
-  bool scaleFactorSet;
-  bool densitySet;
-  bool is_in_meters = true;
-
-  int N_facets;
-  int N_edges;
-
-
-  vtkSmartPointer<SBGATMassProperties> mass_properties;
 
 
 private:
