@@ -166,6 +166,12 @@ public:
   */
   arma::rowvec GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
 
+  
+  /**
+  Applies prescribed deviation to all the N_vertices control points and updates model
+  @param delta_C deviation (3 * N_vertices x 1)
+  */  
+  virtual void ApplyDeviation(const arma::vec & delta_C);
 
   /**
   Returns the partial derivative of the gravitation slope at the center of face tf relative to 
