@@ -961,7 +961,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	shape_uq.SetPGM(pgm_filter);
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
-	shape_uq.ComputeVerticesCovarianceGlobal(1,70);
+	shape_uq.ComputeVerticesCovarianceGlobal(5,70);
 	
 	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
 	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
