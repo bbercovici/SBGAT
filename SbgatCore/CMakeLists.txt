@@ -121,6 +121,7 @@ add_library(${LIB_NAME}
 	SHARED
 	source/SBGATRefFrame.cpp
 	source/SBGATFilter.cpp
+	source/SBGATFilterUQ.cpp
 	source/SBGATFrameGraph.cpp
 	source/SBGATPolyhedronGravityModel.cpp
 	source/SBGATPolyhedronGravityModelUQ.cpp

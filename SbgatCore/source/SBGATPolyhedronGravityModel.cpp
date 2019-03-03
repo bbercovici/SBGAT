@@ -72,11 +72,8 @@ vtkStandardNewMacro(SBGATPolyhedronGravityModel);
 // Constructs with initial 0 values.
 SBGATPolyhedronGravityModel::SBGATPolyhedronGravityModel(){
 
-	this -> N_facets = 0;
-	this -> N_edges = 0;
 
-	
-	this->SetNumberOfOutputPorts(0);
+	this -> SetNumberOfOutputPorts(0);
 }
 
 //----------------------------------------------------------------------------
@@ -97,187 +94,59 @@ int SBGATPolyhedronGravityModel::RequestData(
 	vtkInformation *inInfo =
 	inputVector[0] -> GetInformationObject(0);
 
+	vtkInformation * r = nullptr;
+	vtkInformationVector * o = nullptr;
+
+	SBGATMassProperties::RequestData( r ,inputVector,o);
+
+
 	if (!(this -> densitySet && this -> scaleFactorSet)){
 		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
 	}
 
-  	// call ExecuteData
-	vtkPolyData * input_unclean = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-	vtkSmartPointer<vtkCleanPolyData> cleaner =
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleaner -> SetInputData (input_unclean);
-	cleaner -> SetOutputPointsPrecision	( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-	cleaner -> Update();
-
-	vtkPolyData * input = cleaner -> GetOutput();
-
-	vtkIdType cellId, numCells, numPts, numIds;
-
-	numCells = input -> GetNumberOfCells();
-	numPts = input -> GetNumberOfPoints();
-	if (numCells < 1 || numPts < 1){
-		vtkErrorMacro( << "No data to measure...!");
-		return 1;
-	}
-
-	vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-	ptIds->Allocate(VTK_CELL_SIZE);
-
-	// The facets are browsed to created the facet dyads
-	for (cellId=0; cellId < numCells; cellId++){
-		if ( input->GetCellType(cellId) != VTK_TRIANGLE){
-			vtkWarningMacro(<< "Input data type must be VTK_TRIANGLE not "
-				<< input->GetCellType(cellId));
-			continue;
-		}
-
-		input->GetCellPoints(cellId,ptIds);
-		numIds = ptIds->GetNumberOfIds();
-		assert(numIds == 3);
-
-	} 
-
-    // Generate normals
-	vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-
-	normalGenerator -> SetInputData(input);
-	normalGenerator -> ComputePointNormalsOff();
-	normalGenerator -> ComputeCellNormalsOn();
-	normalGenerator -> Update();
-
-	vtkPolyData * input_with_normals = normalGenerator -> GetOutput();
 	
-	// Required by vtkPolyData::GetPointCells	
-	input -> BuildLinks();
-
-	vtkFloatArray * normals =  vtkFloatArray::SafeDownCast(input_with_normals->GetCellData()->GetArray("Normals"));
-	
-	// Any data previously owned is erased
-
-	this -> Clear();
-
-	// The vertex coordinates are extracted
-	this -> vertices = new double * [input -> GetNumberOfPoints()];
-
-	#pragma omp parallel for
-	for(int i = 0; i < input -> GetNumberOfPoints(); ++i) {
-		this -> vertices[i] = new double[3];
-
-		input -> GetPoint(i,this -> vertices[i]);
-		
-	}
-
 	// The facet dyads are created
-	this -> facet_dyads = new double * [numCells];
-	this -> facet_normals = new double * [numCells];
-	this -> facets = new int * [numCells];
+	this -> facet_dyads = new double * [this -> N_facets];
 
 
 	#pragma omp parallel for
-	for(int i = 0; i < numCells; ++i) {
+	for(int i = 0; i < N_facets; ++i) {
 		this -> facet_dyads[i] = new double[9];
-		this -> facet_normals[i] = new double[3];
-		this -> facets[i] = new int[3];
 
-		vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
-		ptIds -> Allocate(VTK_CELL_SIZE);
-
-		input -> GetCellPoints(i,ptIds);
-
-
-		double normal[3];
-		normals -> GetTuple(i,normal);
-		this -> facet_dyads[i][0] = normal[0] * normal[0];
-		this -> facet_dyads[i][1] = normal[0] * normal[1];
-		this -> facet_dyads[i][2] = normal[0] * normal[2];
-		this -> facet_dyads[i][3] = normal[1] * normal[0];
-		this -> facet_dyads[i][4] = normal[1] * normal[1];
-		this -> facet_dyads[i][5] = normal[1] * normal[2];
-		this -> facet_dyads[i][6] = normal[2] * normal[0];
-		this -> facet_dyads[i][7] = normal[2] * normal[1];
-		this -> facet_dyads[i][8] = normal[2] * normal[2];
-		this -> facet_normals[i][0] = normal[0];
-		this -> facet_normals[i][1] = normal[1];
-		this -> facet_normals[i][2] = normal[2];
-		this -> facets[i][0] = ptIds -> GetId(0);
-		this -> facets[i][1] = ptIds -> GetId(1);
-		this -> facets[i][2] = ptIds -> GetId(2);
+		this -> facet_dyads[i][0] = this -> facet_normals[i][0] * this -> facet_normals[i][0];
+		this -> facet_dyads[i][1] = this -> facet_normals[i][0] * this -> facet_normals[i][1];
+		this -> facet_dyads[i][2] = this -> facet_normals[i][0] * this -> facet_normals[i][2];
+		this -> facet_dyads[i][3] = this -> facet_normals[i][1] * this -> facet_normals[i][0];
+		this -> facet_dyads[i][4] = this -> facet_normals[i][1] * this -> facet_normals[i][1];
+		this -> facet_dyads[i][5] = this -> facet_normals[i][1] * this -> facet_normals[i][2];
+		this -> facet_dyads[i][6] = this -> facet_normals[i][2] * this -> facet_normals[i][0];
+		this -> facet_dyads[i][7] = this -> facet_normals[i][2] * this -> facet_normals[i][1];
+		this -> facet_dyads[i][8] = this -> facet_normals[i][2] * this -> facet_normals[i][2];
 
 	}
 
-	// The edges are extracted
-	vtkSmartPointer<vtkExtractEdges> extractEdges = vtkSmartPointer<vtkExtractEdges>::New();
-	extractEdges -> SetInputData(input);
-	extractEdges -> Update();
-
-	unsigned int edge_count = extractEdges -> GetOutput() -> GetNumberOfCells();
-	std::vector<std::array<vtkIdType,4>> edge_points_ids_facet_ids(edge_count);
-
-	// Should get rid of this map and use a vector instead
-	// This loop cannot be parallelized since GetPointCells is 
-	// not thread-safe
-	for(vtkIdType i = 0; i < edge_count; i++){
-
-		vtkSmartPointer<vtkLine> line = vtkLine::SafeDownCast(extractEdges->GetOutput()->GetCell(i));
-		edge_points_ids_facet_ids[i][0] = line->GetPointIds()->GetId(0);
-		edge_points_ids_facet_ids[i][1] = line->GetPointIds()->GetId(1);
-
-		// We need to find the facets forming this edge
-		vtkSmartPointer<vtkIdList> facet_ids_point_1 = vtkSmartPointer<vtkIdList>::New();
-		vtkSmartPointer<vtkIdList> facet_ids_point_2 = vtkSmartPointer<vtkIdList>::New();
-
-		input -> GetPointCells	(	edge_points_ids_facet_ids[i][0],facet_ids_point_1 );
-		input -> GetPointCells	(	edge_points_ids_facet_ids[i][1],facet_ids_point_2 );
-
-
-
-		// Now, we find the two facet indices showing up in both facet_ids_point_1 and facet_ids_point_2
-		facet_ids_point_1 -> IntersectWith	(	facet_ids_point_2	)	;
-
-		if (facet_ids_point_1 -> GetNumberOfIds() != 2){
-			throw(std::runtime_error("In SBGATPolyhedronGravityModel.cpp: the intersection of the facet id lists should have exactly 2 items, not " + std::to_string(facet_ids_point_1 -> GetNumberOfIds())));
-		}
-
-		edge_points_ids_facet_ids[i][2] = facet_ids_point_1->GetId(0);
-		edge_points_ids_facet_ids[i][3] = facet_ids_point_1->GetId(1);
-		
-	}
-
+	
 
 	// The edges dyads are created
-	this -> edge_dyads = new double * [edge_points_ids_facet_ids.size()];
-	this -> edges = new int * [edge_points_ids_facet_ids.size()];
-	this -> edge_facets_ids = new int * [edge_points_ids_facet_ids.size()];
+	this -> edge_dyads = new double * [this -> N_edges];
 
 
 	#pragma omp parallel for
-	for(unsigned int i = 0; i < edge_points_ids_facet_ids.size(); ++i) {
+	for(unsigned int i = 0; i < this -> N_edges; ++i) {
 		this -> edge_dyads[i] = new double[9];
-		this -> edges[i] = new int[2];
-		this -> edge_facets_ids[i] = new int[2];
 
-		unsigned int p0_index = edge_points_ids_facet_ids[i][0];
-		unsigned int p1_index = edge_points_ids_facet_ids[i][1];
-		unsigned int fA_index = edge_points_ids_facet_ids[i][2];
-		unsigned int fB_index = edge_points_ids_facet_ids[i][3];
 
-		double nA[3];
-		double nB[3];
+		int p0_index = this -> edges[i][0] ;
+		int p1_index = this -> edges[i][1] ;
 
-		double p0[3];
-		double p1[3];
+		double * p0 = this -> vertices[p0_index];
+		double * p1 = this -> vertices[p1_index];
 
-		input -> GetPoint(p0_index,p0);
-		input -> GetPoint(p1_index,p1);
+		int fA_index = this -> edge_facets_ids[i][0];
+		int fB_index = this -> edge_facets_ids[i][1];
 
-		nA[0] = this -> facet_normals[fA_index][0];
-		nA[1] = this -> facet_normals[fA_index][1];
-		nA[2] = this -> facet_normals[fA_index][2];
-
-		nB[0] = this -> facet_normals[fB_index][0];
-		nB[1] = this -> facet_normals[fB_index][1];
-		nB[2] = this -> facet_normals[fB_index][2];
+		double * nA = this -> facet_normals[fA_index];
+		double * nB = this -> facet_normals[fB_index];
 
 		double edge_dir[3];
 		vtkMath::Cross(nA,nB,edge_dir);
@@ -289,8 +158,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 			vtkMath::MultiplyScalar(edge_dir,-1.);
 		} 
 		
-		
-
 		double edge_normal_A_to_B[3];
 		double edge_normal_B_to_A[3];
 
@@ -300,7 +167,6 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 		double dyad_A[3][3];
 		double dyad_B[3][3];
-
 
 		vtkMath::Outer(nA,edge_normal_A_to_B,dyad_A);
 		vtkMath::Outer(nB,edge_normal_B_to_A,dyad_B);
@@ -315,35 +181,11 @@ int SBGATPolyhedronGravityModel::RequestData(
 		this -> edge_dyads[i][7] = dyad_A[2][1] + dyad_B[2][1] ;
 		this -> edge_dyads[i][8] = dyad_A[2][2] + dyad_B[2][2] ;
 
-
-		this -> edges[i][0] = p0_index;
-		this -> edges[i][1] = p1_index;
-
-		this -> edge_facets_ids[i][0] = fA_index;
-		this -> edge_facets_ids[i][1] = fB_index;
-
-
 	}
-
-	this -> N_edges = edge_count;
-	this -> N_facets = numCells;
-
-	this -> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-	this -> mass_properties -> SetInputData(input);
-	if (this -> is_in_meters){
-		this -> mass_properties -> SetScaleMeters();
-	}
-	else{
-		this -> mass_properties -> SetScaleKiloMeters();
-	}
-
-	this -> mass_properties -> Update();
-
-	// Check that the Euler characteristic == 2
-	assert (input -> GetNumberOfPoints() - edge_count + numCells == 2);
-
+	
+	
 	// Check that the shape is topologically closed
-	assert(this -> mass_properties -> CheckClosed());
+	assert(this -> CheckClosed());
 
 	return 1;
 }
@@ -404,13 +246,6 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 	}
 
 }
-
-
-double SBGATPolyhedronGravityModel::GetEdgeLength(const int & e) const{
-
-	return std::sqrt(vtkMath::Distance2BetweenPoints(this -> vertices[this -> edges[e][0]],this -> vertices[this -> edges[e][1]])) * this -> scaleFactor;
-}
-
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(const arma::vec::fixed<3> & point) const{
 	return this-> GetAcceleration(  point.colptr(0));
@@ -1135,23 +970,6 @@ double SBGATPolyhedronGravityModel::GetLe( const double * pos, const int & e) co
 }
 
 
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const arma::vec::fixed<3> & pos,const int & e) const{
-	
-	return this -> GetRe(pos.colptr(0),e);
-}
-
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRe(const double * pos,const int & e) const{
-
-	
-	double re[3];
-	double pos_scaled[3] = {pos[0],pos[1],pos[2]};
-	vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
-
-
-	vtkMath::Subtract(this -> vertices[this -> edges[e][0]],pos_scaled,re);
-
-	return this -> GetScaleFactor() * arma::vec({re[0],re[1],re[2]});
-}
 
 arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXe(const arma::vec::fixed<3> & pos,const int & e) const{
 
@@ -1217,23 +1035,6 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAe(const arma::vec::fixed<10
 
 
 
-
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const arma::vec::fixed<3> & pos,const int & f) const{
-	
-	return this -> GetRf(pos.colptr(0),f);
-}
-
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetRf(const double * pos,const int & f) const{
-
-	
-	double rf[3];
-	double pos_scaled[3] = {pos[0],pos[1],pos[2]};
-	vtkMath::MultiplyScalar(pos_scaled,1./this -> GetScaleFactor());
-
-	vtkMath::Subtract(this -> vertices[this -> facets[f][0]],pos_scaled,rf);
-
-	return arma::vec({rf[0],rf[1],rf[2]}) * this -> GetScaleFactor();
-}
 
 arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXf(const arma::vec::fixed<3> & pos,const int & f) const{
 
@@ -1309,74 +1110,11 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAf(const arma::vec::fixed<10
 
 }
 
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetNonNormalizedFacetNormal(const int & f) const{
-
-	double r0[3], r1[3], r2[3];
-
-	this -> GetVerticesInFacet(f,r0,r1,r2);
-
-	arma::vec::fixed<3> r0_arma = {r0[0],r0[1],r0[2]};
-	arma::vec::fixed<3> r1_arma = {r1[0],r1[1],r1[2]};
-	arma::vec::fixed<3> r2_arma = {r2[0],r2[1],r2[2]};
-	return arma::cross(r1_arma - r0_arma,r2_arma - r1_arma) * std::pow(this -> scaleFactor,2);
-
-}
-
-
-void SBGATPolyhedronGravityModel::GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const{
-
-	r0[0] = this -> vertices[this -> facets[f][0]][0];
-	r0[1] = this -> vertices[this -> facets[f][0]][1];
-	r0[2] = this -> vertices[this -> facets[f][0]][2];
-
-	r1[0] = this -> vertices[this -> facets[f][1]][0];
-	r1[1] = this -> vertices[this -> facets[f][1]][1];
-	r1[2] = this -> vertices[this -> facets[f][1]][2];
-
-	r2[0] = this -> vertices[this -> facets[f][2]][0];
-	r2[1] = this -> vertices[this -> facets[f][2]][1];
-	r2[2] = this -> vertices[this -> facets[f][2]][2];
-
-
-}
-
-
-void SBGATPolyhedronGravityModel::GetVerticesOnEdge(const int & e,double * r0,double * r1) const{
-
-	r0[0] = this -> vertices[this -> edges[e][0]][0];
-	r0[1] = this -> vertices[this -> edges[e][0]][1];
-	r0[2] = this -> vertices[this -> edges[e][0]][2];
-
-	r1[0] = this -> vertices[this -> edges[e][1]][0];
-	r1[1] = this -> vertices[this -> edges[e][1]][1];
-	r1[2] = this -> vertices[this -> edges[e][1]][2];
-
-}
-
-
-void SBGATPolyhedronGravityModel::GetIndicesOfAdjacentFacets(const int & e,int & f0, int & f1) const{
-
-	f0 = this -> edge_facets_ids[e][0];
-	f1 = this -> edge_facets_ids[e][1];
-
-}
-
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetFacetCenter(const int & f) const{
-	
-	double r0[3];
-	double r1[3];
-	double r2[3];
-	this -> GetVerticesInFacet(f,r0,r1,r2);
-
-	return 1./3 * this -> scaleFactor * arma::vec({r0[0] + r1[0] + r2[0], r0[1] + r1[1] + r2[1], r0[2] + r1[2] + r2[2] } );
-
-
-}
 
 
 arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const{
 
-	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> mass_properties -> GetCenterOfMass()));
+	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> GetCenterOfMass()));
 
 
 }
@@ -1388,8 +1126,6 @@ double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fix
 }
 
 arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma::vec::fixed<3> & point) const {
-
-
 
 	double point_scaled[3] = {point[0],point[1],point[2]};
 	vtkMath::MultiplyScalar(point_scaled,1./this -> scaleFactor);

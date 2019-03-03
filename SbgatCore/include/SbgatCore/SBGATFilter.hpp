@@ -151,6 +151,44 @@ public:
   */
   arma::vec::fixed<3> GetNonNormalizedFacetNormal(const int & f) const;
 
+  
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated edge
+  @param pos field point
+  @param e edge index
+  @return the vector from the field point to the first vertex on the designated edge
+  */
+  arma::vec::fixed<3> GetRe(const arma::vec::fixed<3> & pos,const int & e) const;
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated edge
+  @param pos field point
+  @param e edge index
+  @return the vector from the field point to the first vertex on the designated edge
+  */
+  arma::vec::fixed<3> GetRe(const double * pos,const int & e) const;
+
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated facet
+  @param pos field point
+  @param f facet index
+  @return the vector from the field point to the first vertex on the designated facet
+  */
+  arma::vec::fixed<3> GetRf(const arma::vec::fixed<3> & pos,const int & f) const;
+
+
+  /**
+  Returns the vector from the field point to the first vertex on the designated facet
+  @param pos field point
+  @param f facet index
+  @return the vector from the field point to the first vertex on the designated facet
+  */
+  arma::vec::fixed<3> GetRf(const double * pos,const int & f) const;
+
 
   /**
   * Returns the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
@@ -196,15 +234,7 @@ public:
   */
   int GetN_vertices() const{return this -> N_vertices;}
 
-  /**
-  Returns the connectivity table associated with vector Tf, the parametrization 
-  of the vertices coordinates forming the f-th facet
-  @param f facet index
-  @return connectivity table
-  */
-  arma::sp_mat  PartialTfPartialC(const int & f) const;
-
-
+  
   /**
   Returns true if the input shape has its coordinates expressed in meters, false otherwise
   */
