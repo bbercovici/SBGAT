@@ -1269,60 +1269,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 }
 
 
-void TestsSBCore::test_PGM_UQ_covariance_consistency(){
-
-	std::cout << "- Running test_PGM_UQ_covariance_consistency ..." << std::endl;
-
-
-
-
-	double density = 1970;
-
-	std::string filename  = "../../resources/shape_models/itokawa_8.obj";
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName(filename.c_str());
-	reader -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-	cleaner -> SetInputConnection (reader -> GetOutputPort());
-	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-
-	cleaner -> Update();
-
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
-	pgm_filter -> SetDensity(density); 
-	pgm_filter -> SetScaleKiloMeters();
-	pgm_filter -> Update();
-
-	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
-
-	shape_uq.ComputeVerticesCovarianceGlobal(10,50);
-
-	shape_uq.SaveNonZeroVerticesCovariance("../output/shape_covariance.json");
-	shape_uq.SaveVerticesCovariance("../output/shape_covariance.txt");
-
-	arma::mat P_CC;
-	P_CC = shape_uq.GetVerticesCovariance();
-
-
-	assert(shape_uq.LoadVerticesCovarianceFromJson("../output/shape_covariance.json"));
-
-	arma::mat P_CC_from_Json = shape_uq.GetVerticesCovariance();
-
-
-	assert(arma::abs(P_CC - P_CC_from_Json).max() / std::pow(10,2) < 1e-10);
-	
-	std::cout << "- Done running test_PGM_UQ_covariance_consistency ..." << std::endl;
-
-
-}
-
 
 void TestsSBCore::test_PGM_UQ_skewed_km(){
 
