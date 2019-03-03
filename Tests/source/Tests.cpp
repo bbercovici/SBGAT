@@ -78,7 +78,7 @@ void TestsSBCore::run() {
 	// TestsSBCore::test_sbgat_shape_uq();
 	TestsSBCore::test_PGM_UQ_partials();
 	TestsSBCore::test_PGM_UQ_covariance_consistency();
-	TestsSBCore::test_PGM_UQ_cube();
+	TestsSBCore::test_PGM_UQ_skewed_km();
 	TestsSBCore::test_PGM_UQ_itokawa_m();
 	TestsSBCore::test_PGM_UQ_itokawa_km();
 
@@ -877,7 +877,6 @@ void TestsSBCore::test_MassProperties_UQ_partials(){
 
 	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
 	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/skewed.obj",5e-2,false);
-
 	SBGATMassPropertiesUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
@@ -889,163 +888,11 @@ void TestsSBCore::test_PGM_UQ_partials(){
 
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8_scaled.obj",5e-2,true);
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/skewed.obj",5e-2,false);
-	
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
 }
 
-
-void TestsSBCore::test_PGM_UQ_cube(){
-
-	std::cout << "- Running test_PGM_UQ_cube ..." << std::endl;
-
-	int N = 10000;
-
-	arma::arma_rng::set_seed(N) ;
-
-	arma::vec pos = {200,300,400};
-	double density = 1970;
-
-	std::string filename  = "../../resources/shape_models/skewed.obj";
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName(filename.c_str());
-	reader -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-	cleaner -> SetInputConnection (reader -> GetOutputPort());
-	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-
-	cleaner -> Update();
-
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
-	pgm_filter -> SetDensity(density); 
-	pgm_filter -> SetScaleMeters();
-	pgm_filter -> Update();
-
-	arma::vec::fixed<3> nom_acc;
-	double nom_pot;
-	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
-	std::cout << "Nominal potential : " << nom_pot << std::endl;
-	std::cout << "Nominal acceleration : " << nom_acc.t();
-
-
-	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
-	arma::mat P_CC = std::pow(1e-1,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
-
-	arma::vec U_mc(N);
-	arma::mat A_mc(3,N);
-	arma::mat deviations(3 * N_C,N);
-
-	SBGATPolyhedronGravityModelUQ shape_uq;
-	shape_uq.SetPGM(pgm_filter);
-
-	for (int i = 0; i < N_C; ++i){
-		for (int j = 0; j <= i; ++j){
-			const arma::mat::fixed<3,3> & P = P_CC.submat(3 * i,3 * j, 3 * i + 2,3 * j + 2);
-			shape_uq.SetCovarianceComponent(P,i,j);
-			shape_uq.SetCovarianceComponent(P.t(),j,i);
-		}
-	}
-
-	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
-	
-	auto start = std::chrono::system_clock::now();	
-	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
-	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
-	auto end = std::chrono::system_clock::now();
-
-	std::chrono::duration<double> elapsed_seconds = end-start;
-	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
-	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
-	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
-
-	// MC
-	start = std::chrono::system_clock::now();	
-	boost::progress_display progress(N);
-	#pragma omp parallel for
-
-	for (int i = 0; i < N ; ++i){
-
-		// Reading
-		vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
-		reader_mc -> SetFileName(filename.c_str());
-		reader_mc -> Update(); 
-
-	// Cleaning
-		vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
-		cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
-		cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-
-		cleaner_mc -> Update();
-
-	// Creating the PGM dyads
-		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
-		pgm_filter_mc -> SetInputConnection(cleaner_mc -> GetOutputPort());
-		pgm_filter_mc -> SetDensity(density); 
-		pgm_filter_mc -> SetScaleMeters();
-		pgm_filter_mc -> Update();
-
-		SBGATPolyhedronGravityModelUQ shape_uq_mc;
-		shape_uq_mc.SetPGM(pgm_filter_mc);
-		
-		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
-		shape_uq_mc.ApplyDeviation(deviations.col(i));
-
-		arma::vec::fixed<3> acc;
-		double pot;
-		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
-
-
-		U_mc(i) = pot;
-		A_mc.col(i) = acc;
-
-		if (i < 20){
-			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
-			writer -> SetInputData(vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()));
-			std::string path = "../output/cube_mc_shape_" + std::to_string(i) + ".obj";
-			writer -> SetFileName(path.c_str());
-			writer -> Update();
-		}
-		++progress;
-	}
-	end = std::chrono::system_clock::now();
-	elapsed_seconds = end-start;
-	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
-
-	std::vector<int> steps = {10,100,1000,N};
-
-	for (auto step : steps){
-
-		std::cout << "\t After " << step << " MC outcomes:\n";
-
-		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
-
-		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << std::endl;
-
-	}
-
-	
-	
-	arma::mat P_CC_mc = arma::cov(deviations.t(),deviations.t());
-	arma::vec sigma_sq_mc = arma::eig_sym(P_CC_mc);
-	arma::vec sigma_sq_true = arma::eig_sym(P_CC);
-	
-	std::cout << "\t Relative error in MC vs prescribed deviation covariance eigenvalues (%): " << arma::norm(sigma_sq_mc - sigma_sq_true)/arma::norm(sigma_sq_true) * 100 << std::endl;
-	std::cout << "\t Absolute difference in MC vs prescribed deviation covariance divided by mean prescribed deviation covariance eigenvalues (%): " << arma::abs(P_CC - P_CC_mc).max()/arma::mean(sigma_sq_true) * 100 << std::endl;
-
-
-	std::cout << "- Done running test_PGM_UQ_cube ..." << std::endl;
-
-
-}
 
 
 
@@ -1275,9 +1122,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
 	std::cout << "Nominal acceleration : " << nom_acc.t();
 
-
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
-
 
 	int f = 0;
 	double period = 12 * 3600;
@@ -1353,7 +1198,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 		pgm_filter_mc -> SetInputConnection(cleaner_mc -> GetOutputPort());
 		pgm_filter_mc -> SetDensity(density); 
-		pgm_filter_mc -> SetScaleMeters();
+		pgm_filter_mc -> SetScaleKiloMeters();
 		pgm_filter_mc -> Update();
 
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
@@ -1418,6 +1263,246 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 
 	std::cout << "- Done running test_PGM_UQ_itokawa_km ..." << std::endl;
+
+
+
+}
+
+
+void TestsSBCore::test_PGM_UQ_covariance_consistency(){
+
+	std::cout << "- Running test_PGM_UQ_covariance_consistency ..." << std::endl;
+
+
+
+
+	double density = 1970;
+
+	std::string filename  = "../../resources/shape_models/itokawa_8.obj";
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName(filename.c_str());
+	reader -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+	cleaner -> Update();
+
+	// Creating the PGM dyads
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+	pgm_filter -> SetDensity(density); 
+	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> Update();
+
+	SBGATPolyhedronGravityModelUQ shape_uq;
+	shape_uq.SetPGM(pgm_filter);
+
+	shape_uq.ComputeVerticesCovarianceGlobal(10,50);
+
+	shape_uq.SaveNonZeroVerticesCovariance("../output/shape_covariance.json");
+	shape_uq.SaveVerticesCovariance("../output/shape_covariance.txt");
+
+	arma::mat P_CC;
+	P_CC = shape_uq.GetVerticesCovariance();
+
+
+	assert(shape_uq.LoadVerticesCovarianceFromJson("../output/shape_covariance.json"));
+
+	arma::mat P_CC_from_Json = shape_uq.GetVerticesCovariance();
+
+
+	assert(arma::abs(P_CC - P_CC_from_Json).max() / std::pow(10,2) < 1e-10);
+	
+	std::cout << "- Done running test_PGM_UQ_covariance_consistency ..." << std::endl;
+
+
+}
+
+
+void TestsSBCore::test_PGM_UQ_skewed_km(){
+
+	std::cout << "- Running test_PGM_UQ_skewed_km ..." << std::endl;
+
+	int N = 10000;
+	arma::arma_rng::set_seed(N) ;
+
+
+	arma::vec pos = {200,300,400};
+	double density = 1970;
+
+	std::string filename  = "../../resources/shape_models/skewed.obj";
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
+	reader -> SetFileName(filename.c_str());
+	reader -> Update(); 
+
+	// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner -> SetInputConnection (reader -> GetOutputPort());
+	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+	cleaner -> Update();
+
+	// Creating the PGM dyads
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleaner -> GetOutputPort());
+	pgm_filter -> SetDensity(density); 
+	pgm_filter -> SetScaleKiloMeters();
+	pgm_filter -> Update();
+
+	arma::vec::fixed<3> nom_acc;
+	double nom_pot;
+	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
+	std::cout << "Nominal potential : " << nom_pot << std::endl;
+	std::cout << "Nominal acceleration : " << nom_acc.t();
+
+	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
+
+	int f = 0;
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+	arma::vec U_mc(N);
+	arma::vec slopes_mc(N);
+	arma::mat A_mc(3,N);
+	arma::mat deviations(3 * N_C,N);
+
+	double period_standard_deviation = 3600 / 3;
+
+	SBGATPolyhedronGravityModelUQ shape_uq;
+	shape_uq.SetPGM(pgm_filter);
+
+	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
+	shape_uq.ComputeVerticesCovarianceGlobal(10,70);
+	
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC;
+	arma::mat P_CC = shape_uq.GetVerticesCovariance();
+
+	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
+	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral).max();
+
+	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
+	std::cout << "\tCholesky: " << error_cholesky << std::endl;
+	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
+
+	if (error_cholesky < error_spectral){
+		std::cout << "Using cholesky square root\n";
+		C_CC = C_CC_cholesky;
+	}
+	else{
+		std::cout << "Using spectral decomposition square root\n";
+		C_CC = C_CC_spectral;
+	}
+
+
+	auto start = std::chrono::system_clock::now();	
+	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
+	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "Analytical statistics in potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
+	std::cout << "\tAnalytical variance in potential: " << variance_U_analytical << std::endl;
+	std::cout << "\tAnalytical variance in slope: " << variance_slope_analytical << std::endl;
+	std::cout << "\tAnalytical covariance in acceleration: \n" << covariance_A_analytical << std::endl;
+
+	// MC
+	start = std::chrono::system_clock::now();	
+	boost::progress_display progress(N);
+
+	#pragma omp parallel for
+	for (int i = 0; i < N ; ++i){
+
+		// Reading
+		vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
+		reader_mc -> SetFileName(filename.c_str());
+		reader_mc -> Update(); 
+
+	// Cleaning
+		vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
+		cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+		cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+		cleaner_mc -> Update();
+
+	// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter_mc -> SetInputConnection(cleaner_mc -> GetOutputPort());
+		pgm_filter_mc -> SetDensity(density); 
+		pgm_filter_mc -> SetScaleKiloMeters();
+		pgm_filter_mc -> Update();
+
+		SBGATPolyhedronGravityModelUQ shape_uq_mc;
+		shape_uq_mc.SetPGM(pgm_filter_mc);
+		
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
+		shape_uq_mc.ApplyDeviation(deviations.col(i));
+
+
+		arma::vec::fixed<3> acc;
+		double pot;
+		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
+
+
+		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
+
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+
+		U_mc(i) = pot;
+		A_mc.col(i) = acc;
+		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
+
+		if (i < 20){
+			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
+			writer -> SetInputData(vtkPolyData::SafeDownCast(pgm_filter_mc -> GetInput()));
+			std::string path = "../output/skewed_mc_shape_" + std::to_string(i) + ".obj";
+			writer -> SetFileName(path.c_str());
+			writer -> Update();
+		}
+		++progress;
+	}
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
+	std::cout << "\nMC of potential and acceleration computed in " << elapsed_seconds.count() << " seconds\n";
+
+
+	std::vector<int> steps = {10,100,1000,N};
+
+	for (auto step : steps){
+
+		std::cout << "\t After " << step << " MC outcomes:\n";
+
+		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
+
+		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
+
+		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
+		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << std::endl;
+
+	}
+	
+	arma::mat P_CC_mc = arma::cov(deviations.t(),deviations.t());
+	arma::vec sigma_sq_mc = arma::eig_sym(P_CC_mc);
+	arma::vec sigma_sq_true = arma::eig_sym(P_CC);
+	
+	
+	std::cout << "\t Relative error in MC vs prescribed deviation covariance eigenvalues (%): " << arma::norm(sigma_sq_mc - sigma_sq_true)/arma::norm(sigma_sq_true) * 100 << std::endl;
+	std::cout << "\t Absolute difference in MC vs prescribed deviation covariance divided by mean prescribed deviation covariance eigenvalues (%): " << arma::abs(P_CC - P_CC_mc).max()/arma::mean(sigma_sq_true) * 100 << std::endl;
+
+
+	std::cout << "- Done running test_PGM_UQ_skewed_km ..." << std::endl;
 
 
 
