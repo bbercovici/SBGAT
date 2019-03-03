@@ -889,7 +889,6 @@ void TestsSBCore::test_PGM_UQ_partials(){
 	SBGATPolyhedronGravityModelUQ::TestPartials("../../resources/shape_models/itokawa_8.obj",5e-2,false);
 
 
-
 }
 
 
@@ -1089,14 +1088,23 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
 
+
+	int f = 0;
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
 	arma::vec U_mc(N);
+	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
 	arma::mat deviations(3 * N_C,N);
 
 	arma::mat P_CC = std::pow(10e0,2) * arma::diagmat<arma::mat>( arma::ones<arma::vec>(3 * N_C));
+	double period_standard_deviation = 1./3600;
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetPGM(pgm_filter);
+
+	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 
 	for (int i = 0; i < N_C; ++i){
 		for (int j = 0; j <= i; ++j){
@@ -1113,6 +1121,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
 	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
 
@@ -1153,12 +1162,20 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * N_C);
 		shape_uq_mc.ApplyDeviation(deviations.col(i));
 
+
 		arma::vec::fixed<3> acc;
 		double pot;
 		shape_uq_mc.GetPGM() -> GetPotentialAcceleration(pos,pot,acc);
 
+
+		arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(1);
+
+		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(0)) * pgm_filter_mc -> GetMassProperties() -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
+		slopes_mc(i) = shape_uq_mc.GetPGM() -> GetSlope(f,Omega_p);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1179,6 +1196,9 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	for (auto step : steps){
 
 		std::cout << "\t After " << step << " MC outcomes:\n";
+
+		std::cout << "\t\tMC variance in slope: " << arma::var(slope_mc.subvec(0,step - 1)) << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slope_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
