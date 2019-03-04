@@ -3910,10 +3910,11 @@ double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ){
 }
 
 
-arma::vec SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(const std::vector<int> & facets){
+void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets){
 
 	this -> precomputed_partialGpartialC = this -> GetPartialComPartialC();
 	this -> precomputed_partialSigmapartialC = this -> GetPartialSigmaPartialC();
+	slope_variances = std::vector<double>(facets.size());
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
@@ -3928,7 +3929,12 @@ arma::vec SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(const std::vector<int
 		all_partials.row(f_index) = this -> GetPartialSlopePartialwPartialC(facets(f_index));
 	}
 
-	return arma::diag(all_partials * augmented_P_CC * all_partials.t());
+	arma::vec variances = arma::diag(all_partials * augmented_P_CC * all_partials.t());
+
+	#pragma omp parallel for
+	for (int f_index = 0; f_index < facets.size(); ++f_index){
+		slope_variances[f_index] = variances(f_index);
+	}
 
 
 }
