@@ -1137,7 +1137,7 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialOmegaPartialwC() const{
 
 
 
-	partial.cols(1,3 * N_C) = - 4 * arma::norm(pgm_model -> GetOmega()) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> GetPartialSigmaPartialC();
+	partial.cols(1,3 * N_C) = - 4 * arma::norm(pgm_model -> GetOmega()) * PB.t() * RBK::tilde(rotation_axis_principal_frame) * this -> precomputed_partialSigmapartialC;
 
 	return partial;
 
@@ -1171,7 +1171,7 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialC(c
 
 	return (this -> GetPartialAPartialC(facet_center)
 		+ pgm_model -> GetGravityGradient(facet_center) * 1./3 * mat * this -> PartialTfPartialC(f)
-		+ RBK::tilde(pgm_model -> GetOmega()) * RBK::tilde(pgm_model -> GetOmega()) * (this -> GetPartialComPartialC() - 
+		+ RBK::tilde(pgm_model -> GetOmega()) * RBK::tilde(pgm_model -> GetOmega()) * (this -> precomputed_partialGpartialC - 
 			1./3 * mat * this -> PartialTfPartialC(f)));
 
 }
@@ -3894,7 +3894,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 }
 
 
-double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ) const{
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ){
+
+	this -> precomputed_partialGpartialC = this -> GetPartialComPartialC();
+	this -> precomputed_partialSigmapartialC = this -> GetPartialSigmaPartialC();
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
@@ -3902,6 +3905,30 @@ double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ) const{
 
 	return (std::pow(partial(0),2) * std::pow( arma::dot(pgm_model -> GetOmega(),pgm_model -> GetOmega()) / (2 * arma::datum::pi),2) * std::pow(this -> period_standard_deviation,2)
 		+ arma::dot(partial.subvec(1,partial.n_cols - 1),this -> P_CC * partial.subvec(1,partial.n_cols - 1).t()));
+
+
+}
+
+
+arma::vec SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(const std::vector<int> & facets){
+
+	this -> precomputed_partialGpartialC = this -> GetPartialComPartialC();
+	this -> precomputed_partialSigmapartialC = this -> GetPartialSigmaPartialC();
+
+	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
+
+	arma::mat all_partials = arma::mat(facets.size(),3 * pgm_model -> GetN_vertices());
+
+	arma::mat augmented_P_CC = arma::zeros<arma::mat>(this -> P_CC .n_rows + 1,this -> P_CC .n_rows + 1);
+	augmented_P_CC(0,0) = std::pow( arma::dot(pgm_model -> GetOmega(),pgm_model -> GetOmega()) / (2 * arma::datum::pi),2) * std::pow(this -> period_standard_deviation,2);
+	augmented_P_CC.submat(1,1,augmented_P_CC.n_rows -1,augmented_P_CC.n_rows -1) = this -> P_CC;
+
+	#pragma omp parallel for
+	for (int f_index = 0; f_index < facets.size(); ++f_index){
+		all_partials.row(f_index) = this -> GetPartialSlopePartialwPartialC(facets(f_index));
+	}
+
+	return arma::diag(all_partials * augmented_P_CC * all_partials.t());
 
 
 }

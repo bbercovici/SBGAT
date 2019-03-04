@@ -119,13 +119,8 @@ int main(){
 	std::vector<double> analytical_variances_slopes(all_facets.size());
 
 	std::cout << "Computing analytical uncertainties ... ";
-	auto start = std::chrono::system_clock::now();
-	boost::progress_display progress(all_facets.size());
-	#pragma omp parallel for
-	for (int e = 0; e < all_facets.size(); ++e){
-		analytical_variances_slopes[e] = pgm_uq.GetVarianceSlope(all_facets[e]);
-		++progress;
-	}
+	pgm_uq.GetVarianceSlopes(all_facets);
+
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
