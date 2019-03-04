@@ -3169,6 +3169,11 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 
 	cleaner_mc -> Update();
 
+	for (int i = 0; i < N_samples ; ++i){
+		deviations[i] = C_CC * arma::randn<arma::vec>(3 * pgm_filter_mc -> GetN_vertices());
+
+	}
+
 
 	#pragma omp parallel for
 	for (int i = 0; i < N_samples ; ++i){
@@ -3192,7 +3197,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 		
 		shape_uq_mc.SetModel(pgm_filter_mc);
 
-		deviations[i] = C_CC * arma::randn<arma::vec>(3 * pgm_filter_mc -> GetN_vertices());
 		shape_uq_mc.ApplyDeviation(deviations[i]);
 
 		for (auto pos : all_positions){
