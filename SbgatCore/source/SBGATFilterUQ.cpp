@@ -506,7 +506,7 @@ void SBGATFilterUQ::AddUncertaintyRegionToCovariance(int region_center_index,con
 				normals -> GetTuple(j,nj_);
 				arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
 
-				double distance = this -> pgm_model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
+				double distance = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
 
 				if ( distance < 3 * correl_distance){
 					double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
