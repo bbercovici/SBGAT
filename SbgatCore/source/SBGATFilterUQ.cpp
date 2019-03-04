@@ -23,6 +23,48 @@ arma::sp_mat  SBGATFilterUQ::PartialTfPartialC(const int & f) const{
 }
 
 
+
+
+arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(arma::mat P_CC,std::string method){
+
+	if (method == "chol"){
+
+		try{
+			return arma::chol(P_CC,"lower") ;
+		}
+		catch(std::runtime_error & e){
+			return SBGATFilterUQ::GetCovarianceSquareRoot(P_CC,"eigen");
+		}
+	}
+	else if (method == "eigen"){
+		try{
+			arma::vec eigenvalues;
+			arma::mat eigenvector;
+			arma::eig_sym(eigenvalues,eigenvector,P_CC,"std");
+			for (int e = 0; e < eigenvalues.size(); ++e){
+				if(eigenvalues(e) < 0){
+					eigenvalues(e) = 0;
+				}
+			}
+
+			return eigenvector * arma::diagmat(arma::sqrt(eigenvalues)) * eigenvector.t();
+
+			
+			
+		}
+		catch(std::runtime_error & e){
+			return arma::zeros<arma::mat>(P_CC.n_rows,P_CC.n_rows);
+		}
+
+	}
+	
+	else{
+		throw(std::runtime_error("SBGATFilterUQ::GetCovarianceSquareRoot provided with unknown method: " + method));
+	}
+
+
+}
+
 arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 
 	if (method == "chol"){
@@ -55,24 +97,7 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 		}
 
 	}
-	else if(method == "svd"){
-
-		try{
-			
-			arma::mat U,V;
-			arma::vec s;
-
-			arma::svd(U,s,V, this -> P_CC ) ;
-
-
-			return V * (arma::diagmat(1./s)/  this -> model ->  GetScaleFactor()) * V.t();
-			
-		}
-		catch(std::runtime_error & e){
-			return arma::zeros<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
-		}
-
-	}
+	
 	else{
 		throw(std::runtime_error("SBGATFilterUQ::GetCovarianceSquareRoot provided with unknown method: " + method));
 	}
@@ -505,41 +530,47 @@ void SBGATFilterUQ::AddUncertaintyRegionToCovariance(int region_center_index,con
 	for (unsigned int i = 0; i < N_C; ++i){
 
 		double ni_[3];
-		double Pi_[3];
-		input -> GetPoint(i,Pi_);
+		double Ci[3];
+		input -> GetPoint(i,Ci);
 		normals -> GetTuple(i,ni_);
 		arma::vec::fixed<3> ni = {ni_[0],ni_[1],ni_[2]};
 		arma::vec::fixed<3> u_2 = arma::normalise(arma::cross(ni,arma::randn<arma::vec>(3)));
 		arma::vec u_1 = arma::cross(u_2,ni);
 		
-		double distance_from_center = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(center,Pi_));
+		double d_i_center = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(center,Ci));
 		
 		// If the following is false, skip $i, it is outside of the uncertainty region
-		if(distance_from_center < 3 * correl_distance){
-			double decay_from_center = std::exp(- std::pow(distance_from_center / correl_distance,2)) ;
+		if(d_i_center < 3 * correl_distance){
+			double decay_i_center = std::exp(- std::pow(d_i_center / correl_distance,2)) ;
 
-			arma::mat::fixed<3,3> P = decay_from_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
+			arma::mat::fixed<3,3> P_ii = decay_i_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
-			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P;
+			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P_ii;
 
-			for (unsigned int j = i + 1; j < N_C; ++j){
+			for (unsigned int j = 0; j < N_C; ++j){
+				double Cj[3];
+				input -> GetPoint(j,Cj);
+				double d_j_center = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(center,Cj));
+				
+				// If the following is false, skip $j, it is outside of the uncertainty region
+				if(d_j_center < 3 * correl_distance){
 
-				double nj_[3];
-				double Pj_[3];
-				input -> GetPoint(j,Pj_);
-				normals -> GetTuple(j,nj_);
-				arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
+					double nj_[3];
+					
+					normals -> GetTuple(j,nj_);
+					arma::vec::fixed<3> nj = {nj_[0],nj_[1],nj_[2]};
 
-				double distance = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Pj_,Pi_));
+					double d_ij = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Cj,Ci));
 
-				if ( distance < 3 * correl_distance){
-					double decay = std::exp(- std::pow(distance / correl_distance,2)) ;
+					if ( d_ij < 3 * correl_distance){
+						double decay_ij = std::exp(- std::pow(d_ij / ( correl_distance),2)) ;
 
-					arma::mat::fixed<3,3> P_correlation = decay_from_center * std::pow(standard_dev,2) * decay * ni * nj.t();
+						arma::mat::fixed<3,3> P_correlation = decay_i_center * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
 
-					this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
-					this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
+						this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
 
+					}
 				}
 
 			}
