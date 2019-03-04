@@ -119,6 +119,8 @@ int main(){
 	std::vector<double> analytical_variances_slopes;
 
 	std::cout << "Computing analytical uncertainties ... ";
+	auto start = std::chrono::system_clock::now();
+
 	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,all_facets);
 
 	auto end = std::chrono::system_clock::now();
