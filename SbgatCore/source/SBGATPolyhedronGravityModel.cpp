@@ -232,7 +232,7 @@ bool SBGATPolyhedronGravityModel::Contains(double const * point, double tol ) co
 	// Facet loop
 	#pragma omp parallel for reduction(+:laplacian)
 	for (vtkIdType facet_index = 0; facet_index < this -> N_facets; ++ facet_index) {
-		laplacian += this -> GetOmegaf(point, facet_index);
+		laplacian += this -> GetPerformanceFactor(point, facet_index);
 	}
 
 	if (std::abs(laplacian) / (4 * arma::datum::pi) < tol) {
@@ -265,7 +265,7 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAcceleration(double const * 
 		
 		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetPerformanceFactor( point, facet_index);
 		double * F = this -> facet_dyads[facet_index];
 
 		acc(0) += wf *( F[0] * r0m[0] + F[1] * r0m[1] +  F[2] * r0m[2]);
@@ -329,7 +329,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAcceleration(double const  * point
 
 		vtkMath::Subtract(r0,point_scaled,r0m);
 		
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetPerformanceFactor( point, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
 
@@ -420,7 +420,7 @@ void SBGATPolyhedronGravityModel::GetPotentialAccelerationGravityGradient(double
 
 		vtkMath::Subtract(r0,point_scaled,r0m);
 
-		double wf = this -> GetOmegaf( point, facet_index);
+		double wf = this -> GetPerformanceFactor( point, facet_index);
 
 		double * F = this -> facet_dyads[facet_index];
 
@@ -870,11 +870,11 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 
 }
 
-double SBGATPolyhedronGravityModel::GetOmegaf(const arma::vec::fixed<3> & pos, const int & f) const{
-	return this -> GetOmegaf(pos.colptr(0),f);
+double SBGATPolyhedronGravityModel::GetPerformanceFactor(const arma::vec::fixed<3> & pos, const int & f) const{
+	return this -> GetPerformanceFactor(pos.colptr(0),f);
 }
 
-double SBGATPolyhedronGravityModel::GetOmegaf( const double * pos, const int & f) const{
+double SBGATPolyhedronGravityModel::GetPerformanceFactor( const double * pos, const int & f) const{
 
 	const double * r0 = this -> vertices[this -> facets[f][0]];
 	const double * r1 = this -> vertices[this -> facets[f][1]];
@@ -1005,7 +1005,7 @@ arma::vec::fixed<10> SBGATPolyhedronGravityModel::GetXf(const arma::vec::fixed<3
 
 	arma::vec::fixed<10> Xf;
 
-	Xf(0) = this -> GetOmegaf(pos,f);
+	Xf(0) = this -> GetPerformanceFactor(pos,f);
 	Xf.subvec(1,3) = this -> GetRf(pos,f);
 	Xf.subvec(4,9) = this -> GetFfParam(f);
 	return Xf;
@@ -1077,17 +1077,17 @@ arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetAf(const arma::vec::fixed<10
 
 
 
-arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const{
+arma::vec::fixed<3> SBGATPolyhedronGravityModel::GetBodyFixedAccelerationf(const int & f) const{
 
-	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(Omega) * RBK::tilde(Omega) * (this -> GetFacetCenter(f) - this -> GetCenterOfMass()));
+	return (this -> GetAcceleration(this -> GetFacetCenter(f)) - RBK::tilde(this -> Omega) * RBK::tilde(this -> Omega) * (this -> GetFacetCenter(f) - this -> GetCenterOfMass()));
 
 
 }
 
 
-double SBGATPolyhedronGravityModel::GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const{
+double SBGATPolyhedronGravityModel::GetSlope(const int & f ) const{
 
-	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f,Omega)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
+	return std::acos(arma::dot(-arma::normalise(this -> GetBodyFixedAccelerationf(f)),arma::normalise(this -> GetNonNormalizedFacetNormal(f))));
 }
 
 arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma::vec::fixed<3> & point) const {
@@ -1114,7 +1114,7 @@ arma::mat::fixed<3,3> SBGATPolyhedronGravityModel::GetGravityGradient(const arma
 			{F[6],F[7],F[8]}
 		};
 
-		gravity_gradient += (- this -> GetOmegaf( point, facet_index) * F_arma);
+		gravity_gradient += (- this -> GetPerformanceFactor( point, facet_index) * F_arma);
 
 
 	}

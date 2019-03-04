@@ -87,7 +87,7 @@ public:
 
 
 	/**
-	Returns a pointer to the reference frame whose name is passed as argument
+	Return a pointer to the reference frame whose name is passed as argument
 	WARNINGS:
 		- an exception will be thrown if the frame is not present in the graph
 		- this method should only be used to read from the reference frame

@@ -879,7 +879,7 @@ enum class value_t : std::uint8_t
 /*!
 @brief comparison operator for JSON types
 
-Returns an ordering that is similar to Python:
+Return an ordering that is similar to Python:
 - order: null < boolean < number < object < array < string
 - furthermore, each type is not smaller than itself
 - discarded values are not comparable
@@ -8399,7 +8399,7 @@ inline char* format_buffer(char* buf, int len, int decimal_exponent,
 @brief generates a decimal representation of the floating-point number value in [first, last).
 
 The format of the resulting decimal representation is similar to printf's %g
-format. Returns an iterator pointing past-the-end of the decimal representation.
+format. Return an iterator pointing past-the-end of the decimal representation.
 
 @note The input number must be finite, i.e. NaN's and Inf's are not supported.
 @note The buffer must be large enough.
@@ -12667,7 +12667,7 @@ class basic_json
     /*!
     @brief access specified array element with bounds checking
 
-    Returns a reference to the element at specified location @a idx, with
+    Return a reference to the element at specified location @a idx, with
     bounds checking.
 
     @param[in] idx  index of the element to access
@@ -12714,7 +12714,7 @@ class basic_json
     /*!
     @brief access specified array element with bounds checking
 
-    Returns a const reference to the element at specified location @a idx,
+    Return a const reference to the element at specified location @a idx,
     with bounds checking.
 
     @param[in] idx  index of the element to access
@@ -12761,7 +12761,7 @@ class basic_json
     /*!
     @brief access specified object element with bounds checking
 
-    Returns a reference to the element at with specified key @a key, with
+    Return a reference to the element at with specified key @a key, with
     bounds checking.
 
     @param[in] key  key of the element to access
@@ -12812,7 +12812,7 @@ class basic_json
     /*!
     @brief access specified object element with bounds checking
 
-    Returns a const reference to the element at with specified key @a key,
+    Return a const reference to the element at with specified key @a key,
     with bounds checking.
 
     @param[in] key  key of the element to access
@@ -12863,7 +12863,7 @@ class basic_json
     /*!
     @brief access specified array element
 
-    Returns a reference to the element at specified location @a idx.
+    Return a reference to the element at specified location @a idx.
 
     @note If @a idx is beyond the range of the array (i.e., `idx >= size()`),
     then the array is silently filled up with `null` values to make `idx` a
@@ -12915,7 +12915,7 @@ class basic_json
     /*!
     @brief access specified array element
 
-    Returns a const reference to the element at specified location @a idx.
+    Return a const reference to the element at specified location @a idx.
 
     @param[in] idx  index of the element to access
 
@@ -12945,7 +12945,7 @@ class basic_json
     /*!
     @brief access specified object element
 
-    Returns a reference to the element at with specified key @a key.
+    Return a reference to the element at with specified key @a key.
 
     @note If @a key is not found in the object, then it is silently added to
     the object and filled with a `null` value to make `key` a valid reference.
@@ -12991,7 +12991,7 @@ class basic_json
     /*!
     @brief read-only access specified object element
 
-    Returns a const reference to the element at with specified key @a key. No
+    Return a const reference to the element at with specified key @a key. No
     bounds checking is performed.
 
     @warning If the element with key @a key does not exist, the behavior is
@@ -13033,7 +13033,7 @@ class basic_json
     /*!
     @brief access specified object element
 
-    Returns a reference to the element at with specified key @a key.
+    Return a reference to the element at with specified key @a key.
 
     @note If @a key is not found in the object, then it is silently added to
     the object and filled with a `null` value to make `key` a valid reference.
@@ -13080,7 +13080,7 @@ class basic_json
     /*!
     @brief read-only access specified object element
 
-    Returns a const reference to the element at with specified key @a key. No
+    Return a const reference to the element at with specified key @a key. No
     bounds checking is performed.
 
     @warning If the element with key @a key does not exist, the behavior is
@@ -13123,7 +13123,7 @@ class basic_json
     /*!
     @brief access specified object element with default value
 
-    Returns either a copy of an object's element at the specified key @a key
+    Return either a copy of an object's element at the specified key @a key
     or a given default value if no element with key @a key exists.
 
     The function is basically equivalent to executing
@@ -13200,7 +13200,7 @@ class basic_json
     /*!
     @brief access specified object element via JSON Pointer with default value
 
-    Returns either a copy of an object's element at the specified key @a key
+    Return either a copy of an object's element at the specified key @a key
     or a given default value if no element with key @a key exists.
 
     The function is basically equivalent to executing
@@ -13271,7 +13271,7 @@ class basic_json
     /*!
     @brief access the first element
 
-    Returns a reference to the first element in the container. For a JSON
+    Return a reference to the first element in the container. For a JSON
     container `c`, the expression `c.front()` is equivalent to `*c.begin()`.
 
     @return In case of a structured type (array or object), a reference to the
@@ -13309,7 +13309,7 @@ class basic_json
     /*!
     @brief access the last element
 
-    Returns a reference to the last element in the container. For a JSON
+    Return a reference to the last element in the container. For a JSON
     container `c`, the expression `c.back()` is equivalent to
     @code {.cpp}
     auto tmp = c.end();
@@ -13714,7 +13714,7 @@ class basic_json
     /*!
     @brief returns the number of occurrences of a key in a JSON object
 
-    Returns the number of elements with key @a key. If ObjectType is the
+    Return the number of elements with key @a key. If ObjectType is the
     default `std::map` type, the return value will always be `0` (@a key was
     not found) or `1` (@a key was found).
 
@@ -13752,7 +13752,7 @@ class basic_json
     /*!
     @brief returns an iterator to the first element
 
-    Returns an iterator to the first element.
+    Return an iterator to the first element.
 
     @image html range-begin-end.svg "Illustration from cppreference.com"
 
@@ -13791,7 +13791,7 @@ class basic_json
     /*!
     @brief returns a const iterator to the first element
 
-    Returns a const iterator to the first element.
+    Return a const iterator to the first element.
 
     @image html range-begin-end.svg "Illustration from cppreference.com"
 
@@ -13823,7 +13823,7 @@ class basic_json
     /*!
     @brief returns an iterator to one past the last element
 
-    Returns an iterator to one past the last element.
+    Return an iterator to one past the last element.
 
     @image html range-begin-end.svg "Illustration from cppreference.com"
 
@@ -13862,7 +13862,7 @@ class basic_json
     /*!
     @brief returns a const iterator to one past the last element
 
-    Returns a const iterator to one past the last element.
+    Return a const iterator to one past the last element.
 
     @image html range-begin-end.svg "Illustration from cppreference.com"
 
@@ -13894,7 +13894,7 @@ class basic_json
     /*!
     @brief returns an iterator to the reverse-beginning
 
-    Returns an iterator to the reverse-beginning; that is, the last element.
+    Return an iterator to the reverse-beginning; that is, the last element.
 
     @image html range-rbegin-rend.svg "Illustration from cppreference.com"
 
@@ -13930,7 +13930,7 @@ class basic_json
     /*!
     @brief returns an iterator to the reverse-end
 
-    Returns an iterator to the reverse-end; that is, one before the first
+    Return an iterator to the reverse-end; that is, one before the first
     element.
 
     @image html range-rbegin-rend.svg "Illustration from cppreference.com"
@@ -13967,7 +13967,7 @@ class basic_json
     /*!
     @brief returns a const reverse iterator to the last element
 
-    Returns a const iterator to the reverse-beginning; that is, the last
+    Return a const iterator to the reverse-beginning; that is, the last
     element.
 
     @image html range-rbegin-rend.svg "Illustration from cppreference.com"
@@ -13996,7 +13996,7 @@ class basic_json
     /*!
     @brief returns a const reverse iterator to one before the first
 
-    Returns a const reverse iterator to the reverse-end; that is, one before
+    Return a const reverse iterator to the reverse-end; that is, one before
     the first element.
 
     @image html range-rbegin-rend.svg "Illustration from cppreference.com"
@@ -14244,7 +14244,7 @@ class basic_json
     /*!
     @brief returns the number of elements
 
-    Returns the number of elements in a JSON value.
+    Return the number of elements in a JSON value.
 
     @return The return value depends on the different types and is
             defined as follows:
@@ -14316,7 +14316,7 @@ class basic_json
     /*!
     @brief returns the maximum possible number of elements
 
-    Returns the maximum number of elements a JSON value is able to hold due to
+    Return the maximum number of elements a JSON value is able to hold due to
     system or library implementation limitations, i.e. `std::distance(begin(),
     end())` for the JSON value.
 
@@ -15966,7 +15966,7 @@ class basic_json
     /*!
     @brief return the type as string
 
-    Returns the type name as string to be used in error messages - usually to
+    Return the type name as string to be used in error messages - usually to
     indicate that a function was called on a wrong JSON type.
 
     @return a string representation of a the @a m_type member:
@@ -16681,7 +16681,7 @@ class basic_json
     /*!
     @brief access specified element via JSON Pointer
 
-    Returns a reference to the element at with specified JSON pointer @a ptr,
+    Return a reference to the element at with specified JSON pointer @a ptr,
     with bounds checking.
 
     @param[in] ptr  JSON pointer to the desired element
@@ -16724,7 +16724,7 @@ class basic_json
     /*!
     @brief access specified element via JSON Pointer
 
-    Returns a const reference to the element at with specified JSON pointer @a
+    Return a const reference to the element at with specified JSON pointer @a
     ptr, with bounds checking.
 
     @param[in] ptr  JSON pointer to the desired element

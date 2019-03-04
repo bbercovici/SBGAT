@@ -103,7 +103,7 @@ public:
   }
 
   /*
-  Returns Cnm array of coefficients ordered like in the exemple below where degree = 5
+  Return Cnm array of coefficients ordered like in the exemple below where degree = 5
 
     1     0     0     0    0      0
   C_10  C_11  C_12  C_13  C_14  C_15
@@ -119,7 +119,7 @@ public:
 
 
   /*
-  Returns Cnm array of coefficients ordered like in the exemple below where degree = 5
+  Return Cnm array of coefficients ordered like in the exemple below where degree = 5
 
     1     0     0     0    0      0
   C_10  C_11  C_12  C_13  C_14  C_15
@@ -136,7 +136,7 @@ public:
 
   /*
   
-  Returns Snm array of coefficients ordered like in the exemple below where degree = 5
+  Return Snm array of coefficients ordered like in the exemple below where degree = 5
 
     0     0     0     0    0      0
     0  S_11  S_12  S_13  S_14  S_15
@@ -151,7 +151,7 @@ public:
   arma::mat GetSnm() {this -> Update(); return this -> Snm;}
 
   /*
-  Returns Snm array of coefficients ordered like in the exemple below where degree = 5
+  Return Snm array of coefficients ordered like in the exemple below where degree = 5
 
     0     0     0     0    0      0
     0  S_11  S_12  S_13  S_14  S_15
@@ -165,7 +165,7 @@ public:
   void GetSnm(arma::mat & S_nm) {this -> Update(); S_nm = this -> Snm;}
 
   /**
-  Returns the acceleration due to gravity at the specified point
+  Return the acceleration due to gravity at the specified point
   @param pos position at which the acceleration must be evaluated (meters)
   @return acceleration (m / s ^ 2)
   */

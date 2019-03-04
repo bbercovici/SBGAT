@@ -194,7 +194,7 @@ arma::vec::fixed<3> GetUnitDensityInertiaMoments() const {
 }
 
   /**
-  Returns the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m)
+  Return the average radius of the shape (that is, the radius of a sphere occupying the same volume) (m)
   */
 double GetAverageRadius() const {
  return this -> r_avg;
@@ -219,7 +219,7 @@ static void ComputeAndSaveMassProperties(vtkSmartPointer<vtkPolyData> shape,std:
 void SaveMassProperties(std::string path) const ;
 
 /**
-  Returns signed contribution to total volume of tetrahedron subtended by facet
+  Return signed contribution to total volume of tetrahedron subtended by facet
   f (m^3)
   @param f facet index
   @return signed volume of tetrahedron subtended by facet
@@ -227,21 +227,21 @@ void SaveMassProperties(std::string path) const ;
 double GetDeltaV(const int & f) const;
 
   /**
-  Returns coordinates of the tetrahedron's center-of-mass (m)
+  Return coordinates of the tetrahedron's center-of-mass (m)
   @param f facet index
   @return coordinates of tetrahedron
   */
 arma::vec::fixed<3> GetDeltaCM(const int & f) const ;
 
   /**
-  Returns the unit-density tetrahedron's inertia tensor divided by tetrahedron's signed volume (m^2)
+  Return the unit-density tetrahedron's inertia tensor divided by tetrahedron's signed volume (m^2)
   @param f facet index
   @return tetrahedron's inertia tensor divided by tetrahedron's signed volume
   */
 arma::mat::fixed<3,3> GetDeltaIOverDeltaV(const int & f) const ;
 
 /**
-Returns the parametrization of the the unit-density tetrahedron's inertia tensor
+Return the parametrization of the the unit-density tetrahedron's inertia tensor
 @param f facet index
 @return parametrization of the tetrahedron's inertia tensor
 */
