@@ -58,11 +58,20 @@ public:
 
 
   /**
-  Return the variance of the slope evaluated at the center of the designated facet
+  Return the variance of the slope evaluated at the center of the designated facet. This method is NOT thread safe
   @param f facet index
   @return variance in slope (rad^2)
   */
-  double GetVarianceSlope(const int & f ) const;
+  double GetVarianceSlope(const int & f );
+
+
+
+  /**
+  Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe
+  @param f facet index
+  @return variance in slope (rad^2)
+  */
+  double GetVarianceSlopes(const std::vector<int> & facets);
 
 
   /**
@@ -643,6 +652,10 @@ to the shape coordinates
   static void TestPartialSlopeArgumentPartialOmegaC(std::string input , double tol, bool shape_in_meters);
 
   double period_standard_deviation;
+
+  arma::mat precomputed_partialGpartialC;
+  arma::mat precomputed_partialSigmapartialC;
+
 
 
 
