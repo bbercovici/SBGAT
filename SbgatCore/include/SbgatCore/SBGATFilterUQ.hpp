@@ -63,10 +63,20 @@ public:
   Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $regioN_verticesenter_index.
   The only 3x3 block-component of the global covariance affected by this method is the one
   starting at (3 * regioN_verticesenter_index,3 * regioN_verticesenter_index). The other components are off-diagonal
+  @param standard_dev standard deviation in radial component (m)
+  @param correl_distance one-sigma correlation distance between points (m)
+  */
+  void AddRadialUncertaintyRegionToCovariance(int regioN_verticesenter_index,const double & standard_dev,const double & correl_distance);
+
+
+  /**
+  Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $regioN_verticesenter_index.
+  The only 3x3 block-component of the global covariance affected by this method is the one
+  starting at (3 * regioN_verticesenter_index,3 * regioN_verticesenter_index). The other components are off-diagonal
   @param standard_dev standard deviation in normal component (m)
   @param correl_distance one-sigma correlation distance between points (m)
   */
-  void AddUncertaintyRegionToCovariance(int regioN_verticesenter_index,const double & standard_dev,const double & correl_distance);
+  void AddNormalUncertaintyRegionToCovariance(int regioN_verticesenter_index,const double & standard_dev,const double & correl_distance);
 
 
   /**
