@@ -48,10 +48,6 @@ int main(){
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(DENSITY);
 
-
-
-	
-
 	
 	if(UNIT_IN_METERS){
 		pgm_filter -> SetScaleMeters();
@@ -128,7 +124,7 @@ int main(){
 	start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
-		pgm_uq.GetVerticesCovariance(),
+		pgm_uq.GetCovarianceSquareRoot(),
 		N_MONTE_CARLO, 
 		all_positions,
 		OUTPUT_DIR,

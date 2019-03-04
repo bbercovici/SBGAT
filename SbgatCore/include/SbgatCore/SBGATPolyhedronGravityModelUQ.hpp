@@ -124,7 +124,7 @@ public:
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
-  @param[in] P_CC covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
@@ -140,7 +140,7 @@ public:
   static void RunMCUQ(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
-    const arma::mat & P_CC,
+    const arma::mat & C_CC,
     const unsigned int & N_samples,
     const std::vector<arma::vec::fixed<3> > & all_positions,
     std::string output_dir,
@@ -190,7 +190,7 @@ public:
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
-  @param[in] P_CC covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] position the position where acceleration & potential must be sampled
@@ -207,7 +207,7 @@ public:
   static void RunMCUQ(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
-    const arma::mat & P_CC,
+    const arma::mat & C_CC,
     const unsigned int & N_samples,
     const arma::vec::fixed<3> & position,
     std::string output_dir,

@@ -3100,7 +3100,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialC(std::string filename,d
 void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	const double & density,
 	const bool & shape_in_meters,
-	const arma::mat & P_CC,
+	const arma::mat & C_CC,
 	const unsigned int & N_samples,
 	const arma::vec::fixed<3> & position,
 	std::string output_dir,
@@ -3121,7 +3121,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	SBGATPolyhedronGravityModelUQ::RunMCUQ(path_to_shape,
 		density,
 		shape_in_meters,
-		P_CC,
+		C_CC,
 		N_samples,
 		all_positions,
 		output_dir,
@@ -3141,7 +3141,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	const double & density,
 	const bool & shape_in_meters,
-	const arma::mat & P_CC,
+	const arma::mat & C_CC,
 	const unsigned int & N_samples,
 	const std::vector<arma::vec::fixed<3> > & all_positions,
 	std::string output_dir,
@@ -3191,9 +3191,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		
 		shape_uq_mc.SetModel(pgm_filter_mc);
-		shape_uq_mc.SetCovariance(P_CC);
-
-		arma::mat C_CC = shape_uq_mc.GetCovarianceSquareRoot(false);
 
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * pgm_filter_mc -> GetN_vertices());
 		shape_uq_mc.ApplyDeviation(deviations[i]);
