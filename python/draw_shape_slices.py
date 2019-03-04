@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import os
 import glob
 
 
 
-def draw_slices_in_dir(input_dir,output_dir = None,prefix = ""):
+def draw_slices_in_dir(input_dir,output_dir = "",prefix = ""):
 
 	slice_counter = len(glob.glob1(input_dir,"slice_x_*"))
+	print("Printing slices from " + str(slice_counter) + " MC shapes\n")
 
 	if(slice_counter>0):
 
@@ -27,7 +29,7 @@ def draw_slices_in_dir(input_dir,output_dir = None,prefix = ""):
 
 
 
-def draw_slice(axis,slices,output_dir = None,prefix = ""):
+def draw_slice(axis,slices,output_dir = "",prefix = ""):
 
 	cut_names = ["Y-Z","X-Z","X-Y"]
 
@@ -54,8 +56,8 @@ def draw_slice(axis,slices,output_dir = None,prefix = ""):
 			alpha = 0.7
 
 		for i in range(lines_file.shape[0]):
-			x = [1e3 * lines_file[i][0],1e3 * lines_file[i][2]]
-			y = [1e3 * lines_file[i][1],1e3 * lines_file[i][3]]
+			x = [ lines_file[i][0], lines_file[i][2]]
+			y = [ lines_file[i][1], lines_file[i][3]]
 			x_max = max(max(x),x_max)
 			y_max = max(max(y),y_max)
 			x_min = min(min(x),x_min)
