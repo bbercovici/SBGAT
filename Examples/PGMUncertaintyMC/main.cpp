@@ -74,9 +74,9 @@ int main(){
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	// Saving baseline slices
-	pgm_uq.TakeAndSaveSlice(0,output_dir + "baseline_slice_x.txt",0);
-	pgm_uq.TakeAndSaveSlice(1,output_dir + "baseline_slice_y.txt",0);
-	pgm_uq.TakeAndSaveSlice(2,output_dir + "baseline_slice_z.txt",0);
+	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
+	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
+	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
 
 	std::vector<arma::vec::fixed<3> > all_positions = {
 		arma::vec::fixed<3>({300,0,0}),
