@@ -60,6 +60,7 @@ to apply the update (if any).
 
 #### New
 - Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`
+- A Python script producing shape "slices" has been added
 
 ### Improvement
 - `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`

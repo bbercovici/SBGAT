@@ -3533,7 +3533,6 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 	int successes = 0;
 	arma::arma_rng::set_seed(0);
 
-
 	#pragma omp parallel for reduction(+:successes)
 	for (int i = 0; i < N ; ++i){
 
@@ -3560,10 +3559,8 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 		}
 
 
-
-
 		pgm_filter -> Update();
-		double w = 2 * arma::datum::pi / (12 * 3600);
+		double w = 0 * 2 * arma::datum::pi / (12 * 3600);
 		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
 		arma::vec::fixed<3> Omega = w * pgm_filter -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 		pgm_filter -> SetOmega(Omega);
