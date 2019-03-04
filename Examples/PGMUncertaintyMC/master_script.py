@@ -42,7 +42,6 @@ base_dictionnary = {
 "ERROR_STANDARD_DEV" : 10,
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
-"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -55,7 +54,9 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"N_MONTE_CARLO" : [10,100,1000,10000]
+"N_MONTE_CARLO" : [10,100,1000,10000],
+"PATH_SHAPE" : ["../../../resources/shape_models/itokawa_8_scaled.obj",
+"../../../resources/shape_models/itokawa_16_scaled.obj"]
 }
 
 # There shouldn't be any reason to modify the following
