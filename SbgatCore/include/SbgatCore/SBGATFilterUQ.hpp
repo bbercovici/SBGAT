@@ -140,6 +140,18 @@ Sets the vertices covariance to the provided one
   arma::mat::fixed<3,9> PartialNfPartialTf(const int & f) const;
 
 
+
+  /**
+  Takes a slice of the shape along a plane of normal e_axis (axis in {0,1,2})
+  and saves the corresponding interesections (line segments) to a text file
+  @param axis direction of plane normal (axis in {0,1,2})
+  @param path savepath
+  @param c distance from the plane to (0,0,0) measured along the plane normal vector
+  */
+  void TakeAndSaveSlice(int axis,std::string path, const double & c) const ;
+
+
+
 protected:
 
 
@@ -150,6 +162,11 @@ protected:
   @param f facet index
   */
   virtual void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f) = 0;
+
+
+
+  void SaveSlice(int axis, std::string path, const std::vector<std::vector<arma::vec> > & lines) const;
+  void TakeSlice(int axis,std::vector<std::vector<arma::vec> > & lines,const double & c) const;
 
   vtkSmartPointer<SBGATFilter> model;
 

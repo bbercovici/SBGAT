@@ -6,6 +6,7 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
+#include <SBGATObjWriter.hpp>
 
 
 #include <json.hpp>
@@ -3102,10 +3103,11 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	const arma::mat & P_CC,
 	const unsigned int & N_samples,
 	const arma::vec::fixed<3> & position,
+	std::string output_dir,
+	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
 	std::vector<arma::vec::fixed<3> > & accelerations,
-	std::vector<double> & potentials,
-	std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes){
+	std::vector<double> & potentials){
 
 	std::vector< std::vector < arma::vec::fixed<3> > > all_accelerations(N_samples);
 	std::vector< std::vector< double> > all_potentials(N_samples);
@@ -3122,10 +3124,11 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 		P_CC,
 		N_samples,
 		all_positions,
+		output_dir,
+		N_saved_shapes,
 		deviations,
 		all_accelerations,
-		all_potentials,
-		saved_shapes);
+		all_potentials);
 
 	for (int i = 0; i < N_samples; ++i){
 		accelerations[i] = all_accelerations[i][0];
@@ -3141,10 +3144,11 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	const arma::mat & P_CC,
 	const unsigned int & N_samples,
 	const std::vector<arma::vec::fixed<3> > & all_positions,
+	std::string output_dir,
+	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
 	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
-	std::vector<std::vector<double > > & all_potentials,
-	std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes){
+	std::vector<std::vector<double > > & all_potentials){
 
 	if (all_accelerations.size() == 0)
 		all_accelerations = std::vector< std::vector < arma::vec::fixed<3> > >(N_samples);
@@ -3206,10 +3210,18 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 		}
 
 
-		if (i < saved_shapes.size()){
-			vtkSmartPointer<vtkPolyData> shape = vtkSmartPointer<vtkPolyData>::New();
-			shape -> DeepCopy(pgm_filter_mc -> GetInput());
-			saved_shapes[i] = shape;
+		if (i < N_saved_shapes){
+			shape_uq_mc.TakeAndSaveSlice(0,output_dir + "slice_" + std::to_string(i) + "_x.txt",0);
+			shape_uq_mc.TakeAndSaveSlice(1,output_dir + "slice_" + std::to_string(i) + "_y.txt",0);
+			shape_uq_mc.TakeAndSaveSlice(2,output_dir + "slice_" + std::to_string(i) + "_z.txt",0);
+			vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+
+			writer -> SetInputData(pgm_filter_mc -> GetInput());
+
+			writer -> SetFileName(std::string({output_dir + "mc_shape_" + std::to_string(i) + ".obj"}).c_str());
+			writer -> Update();	
+
+
 		}
 	}
 

@@ -312,3 +312,141 @@ void SBGATFilterUQ::ComputeVerticesCovarianceGlobal(const double & standard_dev,
 
 }
 
+
+void SBGATFilterUQ::TakeAndSaveSlice(int axis,std::string path, const double & c) const {
+	std::vector<std::vector<arma::vec> > lines;
+	this -> TakeSlice(axis,lines,c);
+	this -> SaveSlice(axis,path,lines);
+}
+
+
+void SBGATFilterUQ::SaveSlice(int axis, 
+	std::string path, const std::vector<std::vector<arma::vec> > & lines) const{
+
+	int a_1,a_2;
+
+	if (axis == 0){
+		a_1 = 1;
+		a_2 = 2;
+	}
+	else if (axis == 1){
+		a_1 = 0;
+		a_2 = 2;
+	}
+	else if (axis == 2 ){
+		a_1 = 0;
+		a_2 = 1;	
+	}
+	else{
+		a_1 = a_2 = 0;
+		throw(std::runtime_error("Specified incorrect axis: " + std::to_string(axis)));
+	}
+
+
+
+	arma::mat lines_arma;
+
+	if (lines.size() > 0){
+		lines_arma = arma::mat(lines.size(),4);
+
+		for (int i = 0; i < lines.size() ; ++i){
+
+			arma::rowvec rowvec = {lines[i][0](a_1),lines[i][0](a_2),lines[i][1](a_1),lines[i][1](a_2)};
+			lines_arma.row(i) = rowvec;
+		}
+
+		lines_arma.save(path, arma::raw_ascii);
+
+	}
+
+}
+
+
+
+void SBGATFilterUQ::TakeSlice(int axis,
+	std::vector<std::vector<arma::vec> > & lines,
+	const double & c) const{
+
+	arma::vec n_plane = {0,0,0};
+	n_plane(axis) = 1;
+
+
+	arma::mat::fixed<3,2> T = {
+		{1,0},
+		{0,1},
+		{-1,-1}
+	};
+
+	arma::vec::fixed<3> e3 = {0,0,1};
+	arma::mat::fixed<3,3> C;
+
+	// Each surface element is "sliced"
+	for (int el = 0; el < this -> model -> GetN_facets(); ++el){
+
+
+		double rf0[3];
+		double rf1[3];
+		double rf2[3];
+
+		int p0,p1,p2;
+		this -> model -> GetIndicesVerticesInFacet(el,p0,p1,p2);
+		this -> model -> GetVerticesInFacet(el,rf0,rf1,rf2);
+
+		C.col(0) = arma::vec({rf0[0],rf0[1],rf0[2]});
+		C.col(1) = arma::vec({rf1[0],rf1[1],rf1[2]});
+		C.col(2) = arma::vec({rf2[0],rf2[1],rf2[2]});
+
+		arma::rowvec M = n_plane.t() * C * T;
+		double e = c - arma::dot(n_plane,C * e3);
+		arma::vec intersect;
+
+		std::vector <arma::vec> intersects;
+
+		// Looking for an intersect along the u = 0 edge
+		if (std::abs(M(1)) > 1e-6){
+			double v_intersect = e / M(1);
+			if (v_intersect >= 0 && v_intersect <= 1 ){
+				arma::vec Y = {0,v_intersect};
+
+				intersect = C * (T * Y + e3);
+				intersects.push_back(intersect);
+			}
+		}
+
+		// Looking for an intersect along the v = 0 edge
+		if (std::abs(M(0)) > 1e-6){
+			double u_intersect = e / M(0);
+			if (u_intersect >= 0 && u_intersect <= 1 ){
+				arma::vec Y = {u_intersect,0};
+
+				intersect = C * (T * Y + e3);
+				intersects.push_back(intersect);
+			}
+		}
+
+		// Looking for an intersect along the w = 0 edge
+		// using u as the parameter
+
+		if (std::abs(M(0) - M(1)) > 1e-6){
+			double u_intersect = (e - M(1)) / (M(0) - M(1));
+			if (u_intersect >= 0 && u_intersect <= 1 ){
+				arma::vec Y = {u_intersect,1 - u_intersect};
+
+				intersect = C * (T * Y + e3);
+				intersects.push_back(intersect);
+			}
+		}
+		if (intersects.size() == 2){
+			lines.push_back(intersects);
+		}
+
+	}
+
+}
+
+
+
+
+
+
+

@@ -25,7 +25,7 @@ for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 class SBGATPolyhedronGravityModelUQ : public SBGATMassPropertiesUQ {
 public:
 
- 
+
   /**
   Evaluates the Polyhedron Gravity Model potential variance at the specified point assuming 
   a constant density
@@ -102,7 +102,7 @@ public:
   */
   arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
 
- 
+
 
   /**
   Get covariance in acceleration arising from the uncertain shape
@@ -128,11 +128,13 @@ public:
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
   @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
   @param[out] all_potentials holds N_samples vectors, each storing the potential evaluated at the specified points
-  @param[in] saved_shapes presized vector of size P (between 0 and N_samples) to save (or not) P shape outcomes
   */
 
   static void RunMCUQ(std::string path_to_shape,
@@ -141,10 +143,11 @@ public:
     const arma::mat & P_CC,
     const unsigned int & N_samples,
     const std::vector<arma::vec::fixed<3> > & all_positions,
+    std::string output_dir,
+    int N_saved_shapes,
     std::vector<arma::vec> & deviations,
     std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
-    std::vector < std::vector<double> > & all_potentials ,
-    std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
+    std::vector < std::vector<double> > & all_potentials );
 
 
 
@@ -191,11 +194,14 @@ public:
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] position the position where acceleration & potential must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   @param[out] potentials holds N_samples potential evaluated at the specified point
-  @param[in] saved_shapes presized vector of size P (between 0 and N_samples) to save (or not) P shape outcomes
+  
   */
 
   static void RunMCUQ(std::string path_to_shape,
@@ -204,10 +210,11 @@ public:
     const arma::mat & P_CC,
     const unsigned int & N_samples,
     const arma::vec::fixed<3> & position,
+    std::string output_dir,
+    int N_saved_shapes,
     std::vector<arma::vec> & deviations,
     std::vector<arma::vec::fixed<3> > & accelerations,
-    std::vector<double> & potentials,
-    std::vector<vtkSmartPointer<vtkPolyData> > & saved_shapes);
+    std::vector<double> & potentials);
 
 protected:
 
