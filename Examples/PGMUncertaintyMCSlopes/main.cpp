@@ -21,6 +21,10 @@ int main(){
 
 	double ERROR_STANDARD_DEV  = input_data["ERROR_STANDARD_DEV"];
 	double DENSITY  = input_data["DENSITY"];
+	double PERIOD_SD  = input_data["PERIOD_SD"];
+	double PERIOD  = input_data["PERIOD"];
+
+
 
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
 
@@ -31,7 +35,9 @@ int main(){
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
+	std::cout << "- Standard deviation on rotation period (s) : " << PERIOD_SD << std::endl;
 	std::cout << "- Density (kg/m^3) : " << DENSITY << std::endl;
+	std::cout << "- Rotation period (s) : " << PERIOD << std::endl;
 	std::cout << "- Monte Carlo Draws : " << N_MONTE_CARLO << std::endl;
 
 
@@ -54,12 +60,14 @@ int main(){
 	}
 
 	std::cout << "Building pgm ...\n";
+	pgm_filter -> SetOmega(2 * arma::datum::pi / PERIOD * arma::vec({0,0,1}));
 	pgm_filter -> Update();
 
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
+	pgm_uq.SetPeriodErrorStandardDeviation(PERIOD_SD);
 
 	// Saving baseline slices
 	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
@@ -85,39 +93,20 @@ int main(){
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	
-	std::vector<arma::vec::fixed<3> > all_positions = {
-		arma::vec::fixed<3>({300e3,0,0}),
-		arma::vec::fixed<3>({400e3,0,0}),
-		arma::vec::fixed<3>({500e3,0,0}),
-		arma::vec::fixed<3>({-300e3,0,0}),
-		arma::vec::fixed<3>({-400e3,0,0}),
-		arma::vec::fixed<3>({-500e3,0,0}),
-		arma::vec::fixed<3>({0,300e3,0}),
-		arma::vec::fixed<3>({0,400e3,0}),
-		arma::vec::fixed<3>({0,500e3,0}),
-		arma::vec::fixed<3>({0,-300e3,0}),
-		arma::vec::fixed<3>({0,-400e3,0}),
-		arma::vec::fixed<3>({0,-500e3,0}),
-		arma::vec::fixed<3>({0,0,300e3}),
-		arma::vec::fixed<3>({0,0,400e3}),
-		arma::vec::fixed<3>({0,0,500e3}),
-		arma::vec::fixed<3>({0,0,-300e3}),
-		arma::vec::fixed<3>({0,0,-400e3}),
-		arma::vec::fixed<3>({0,0,-500e3}),
+	std::vector<int > all_facets = {
+		0,10,100,1000,200,300
 	};
 
 
 	// Analytical UQ
 
-	std::vector<arma::mat::fixed<3,3> > analytical_covariances_acc(all_positions.size());
-	std::vector<double> analytical_variances_pot(all_positions.size());
+	std::vector<double> analytical_variances_pot(all_facets.size());
 
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
 	#pragma omp parallel for
-	for (int e = 0; e < all_positions.size(); ++e){
-		analytical_variances_pot[e] = pgm_uq.GetVariancePotential(all_positions[e]);
-		analytical_covariances_acc[e] = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
+	for (int e = 0; e < all_facets.size(); ++e){
+		analytical_variances_slopes[e] = pgm_uq.GetVarianceSlope(all_facets[e]);
 	}
 	auto end = std::chrono::system_clock::now();
 
@@ -126,23 +115,30 @@ int main(){
 
 	// Running a Monte Carlo to compare against
 	std::vector<arma::vec> deviations;
-	std::vector<std::vector<arma::vec::fixed<3> > >  all_accelerations;
-	std::vector < std::vector<double> > all_potentials;
+	std::vector<double> period_errors;
+
+	std::vector < std::vector<double> > all_slopes;
+
 
 	std::cout << "Running MC ... ";
 
 	
 	start = std::chrono::system_clock::now();
-	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
+	SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(PATH_SHAPE,
+		DENSITY,
+		Omega,
 		UNIT_IN_METERS,
 		C_CC,
+		PERIOD_SD,
 		N_MONTE_CARLO, 
-		all_positions,
+		all_facets,
 		OUTPUT_DIR,
 		std::min(30,N_MONTE_CARLO),
 		deviations,
-		all_accelerations,
-		all_potentials);
+		period_errors,
+		all_slopes);
+
+
 	
 
 	end = std::chrono::system_clock::now();
@@ -152,40 +148,32 @@ int main(){
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
 	
-	std::vector<double> mc_variances_pot(all_positions.size());
-	std::vector<arma::mat > mc_covariances_acc(all_positions.size());
+	std::vector<double> mc_variances_slopes(all_facets.size());
 
 	std::cout << "Computing MC dispersions...\n";
 	
 	#pragma omp parallel for
-	for (int e = 0; e < mc_variances_pot.size(); ++e){
+	for (int e = 0; e < mc_variances_slopes.size(); ++e){
 
-		arma::vec potentials_mc(N_MONTE_CARLO);
-		arma::mat accelerations_mc(3,N_MONTE_CARLO);
+		arma::vec slopes_mc(N_MONTE_CARLO);
 
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
-			potentials_mc(sample) = all_potentials[sample][e];
-			accelerations_mc.col(sample) = all_accelerations[sample][e];
+			slopes_mc(sample) = all_slopes[sample][e];
 		}
 
-		mc_variances_pot[e] = arma::var(potentials_mc);
-		mc_covariances_acc[e] = arma::cov(accelerations_mc.t());
+		mc_variances_slopes[e] = arma::var(slopes_mc);
 
 	}
 
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
 
-	for (int e = 0; e < all_positions.size(); ++e){
+	for (int e = 0; e < all_facets.size(); ++e){
 		all_positions[e].t().print("\t At: ");
-		std::cout << "\t\tMC variance in potential: " << mc_variances_pot[e] << std::endl;
-		std::cout << "\t\tAnalytical variance in potential: " << analytical_variances_pot[e] << std::endl;
+		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
+		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
 
-		std::cout << "\t\tError (%): " << (mc_variances_pot[e] - analytical_variances_pot[e])/analytical_variances_pot[e] * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
 
-		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
-		std::cout << "\t\tAnalytical covariance in acceleration: \n" << analytical_covariances_acc[e] << std::endl;
-		
-		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariances_acc[e])/arma::norm(analytical_covariances_acc[e],"fro") * 100 << std::endl;
 	}
 
 

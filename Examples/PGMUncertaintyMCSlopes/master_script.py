@@ -42,6 +42,9 @@ base_dictionnary = {
 "ERROR_STANDARD_DEV" : 10e3,
 "DENSITY" : 3700,
 "UNIT_IN_METERS" : False,
+"PERIOD" : 4.195948 * 3600,
+"PERIOD_SD" : 1e-5 * 4.195948 * 3600,
+
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj"
 }
 
