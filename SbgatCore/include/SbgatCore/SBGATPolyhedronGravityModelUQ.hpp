@@ -68,10 +68,10 @@ public:
 
   /**
   Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe
-  @param f facet index
-  @return variance in slope (rad^2)
+  @param[out] slope_variances
+  @param[in] facets indices of facets where to evaluate the slope variance
   */
-  double GetVarianceSlopes(const std::vector<int> & facets);
+  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets);
 
 
   /**
