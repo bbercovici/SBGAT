@@ -78,16 +78,17 @@ int main(){
 	std::cout << "Populating shape covariance ...\n";
 
 	// Populate the shape vertices covariance
-	pgm_uq.AddUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-	pgm_uq.AddUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	// pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	// pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+
+	pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
-	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
+	// P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
-
-
 
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
 
@@ -95,7 +96,11 @@ int main(){
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	
-	std::vector<int > all_facets = {0,10,100,1000,200,300};
+	std::vector<int > all_facets;
+
+	for (int f = 0; f < pgm_filter -> GetN_facets(); ++f){
+		all_facets.push_back(f);
+	}
 
 
 	// Analytical UQ
@@ -152,15 +157,11 @@ int main(){
 	
 	#pragma omp parallel for
 	for (int e = 0; e < mc_variances_slopes.size(); ++e){
-
 		arma::vec slopes_mc(N_MONTE_CARLO);
-
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
 			slopes_mc(sample) = all_slopes[sample][e];
 		}
-
 		mc_variances_slopes[e] = arma::var(slopes_mc);
-
 	}
 
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
@@ -169,10 +170,10 @@ int main(){
 		std::cout << "\tAt facet " << all_facets[e] << "\n";
 		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
 		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
-
 		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
-
 	}
+
+
 
 
 	return 0;
