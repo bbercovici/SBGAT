@@ -101,10 +101,7 @@ int SBGATPolyhedronGravityModel::RequestData(
 
 	SBGATMassProperties::RequestData( r ,inputVector,o);
 
-	if (!(this -> densitySet && this -> scaleFactorSet)){
-		throw(std::runtime_error("Trying to evaluate polyhedron gravity model although the density and scale factor have not been properly set"));
-	}
-
+	
 	// The facet dyads are created
 	this -> facet_dyads = new double * [this -> N_facets];
 

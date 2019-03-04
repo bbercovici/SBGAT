@@ -52,12 +52,12 @@ public:
   /**
   Sets the scale factor to 1, indicative that the polydata has its coordinates expressed in meters
   */
-  void SetScaleMeters() { this -> scaleFactor = 1; this -> scaleFactorSet = true;this -> is_in_meters = true;}
+  void SetScaleMeters() { this -> scaleFactor = 1;this -> is_in_meters = true;}
 
   /**
   Sets the scale factor to 1000, indicative that the polydata has its coordinates expressed in kilometers
   */
-  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
+  void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> is_in_meters = false;}
 
   /**
   Return the shape's scale factor
@@ -71,7 +71,6 @@ public:
   */
   void SetDensity(const double density){
     this -> density = density;
-    this -> densitySet = true;
   }
 
 
@@ -268,8 +267,7 @@ protected:
   int ** facets;
   int ** edge_facets_ids;
 
-  bool scaleFactorSet;
-  bool densitySet;
+  
   bool is_in_meters = true;
 
   int N_facets;
