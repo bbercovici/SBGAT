@@ -27,7 +27,8 @@ int main(){
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
-
+	std::string UNCERTAINTY_TYPE = = input_data["UNCERTAINTY_TYPE"];
+	
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
@@ -72,8 +73,19 @@ int main(){
 	std::cout << "Populating shape covariance ...\n";
 
 	// Populate the shape vertices covariance
-	pgm_uq.AddUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-	pgm_uq.AddUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		
+	if (UNCERTAINTY_TYPE == "radial"){
+		pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	}
+
+	else if (UNCERTAINTY_TYPE == "normal"){
+		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	}
+	else{
+		throw(std::runtime_error("Got unknown uncertainty direction type: " + std::to_string(UNCERTAINTY_TYPE)));
+	}
 
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();

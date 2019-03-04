@@ -127,7 +127,7 @@ int main(){
 
 	
 	start = std::chrono::system_clock::now();
-	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,
+	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
 		pgm_uq.GetCovarianceSquareRoot(),
 		N_MONTE_CARLO, 
