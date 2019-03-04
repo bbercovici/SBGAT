@@ -78,14 +78,6 @@ int main(){
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
 
-	P_CC.save("P_CC.txt",arma::raw_ascii);
-	C_CC.save("C_CC.txt",arma::raw_ascii);
-
-	arma::mat P_CC_from_sqrt = C_CC * C_CC;
-	P_CC_from_sqrt.save("P_CC_from_sqrt.txt",arma::raw_ascii);
-
-
-
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - P_CC_from_sqrt).max() << std::endl;
 
 
