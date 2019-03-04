@@ -38,10 +38,10 @@ SIM_PREFIX = "PGMUncertaintyMCPoles"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"CORRELATION_DISTANCE" : 30,
-"ERROR_STANDARD_DEV" : 10,
+"CORRELATION_DISTANCE" : 30e3,
+"ERROR_STANDARD_DEV" : 10e3,
 "DENSITY" : 3700,
-"UNIT_IN_METERS" : True,
+"UNIT_IN_METERS" : False,
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj"
 }
 

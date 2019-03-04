@@ -23,35 +23,53 @@ arma::sp_mat  SBGATFilterUQ::PartialTfPartialC(const int & f) const{
 }
 
 
-arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(bool use_cholesky) const{
+arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 
-	if (use_cholesky){
+	if (method == "chol"){
 
 		try{
 			return arma::chol(this -> P_CC,"lower") / this -> model ->  GetScaleFactor() ;
 		}
 		catch(std::runtime_error & e){
-			return arma::eye<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
+			return this -> GetCovarianceSquareRoot("eigen");
 		}
 	}
-	else{
+	else if (method == "eigen"){
 		try{
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
-
-			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC);
-
-			for (int e =0; e < eigenvalues.size(); ++e){
+			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC,"std");
+			for (int e = 0; e < eigenvalues.size(); ++e){
 				if(eigenvalues(e) < 0){
 					eigenvalues(e) = 0;
 				}
 			}
 
-
 			return eigenvector * arma::diagmat(arma::sqrt(eigenvalues)) /  this -> model ->  GetScaleFactor() * eigenvector.t();
+
+			
+			
 		}
 		catch(std::runtime_error & e){
-			return arma::eye<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
+			return arma::zeros<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
+		}
+
+	}
+	else if(method == "svd"){
+
+		try{
+			
+			arma::mat U,V;
+			arma::vec s;
+
+			arma::svd(U,s,V, this -> P_CC ) ;
+
+
+			return V * (arma::diagmat(1./s)/  this -> model ->  GetScaleFactor()) * V.t();
+			
+		}
+		catch(std::runtime_error & e){
+			return arma::zeros<arma::mat>(this -> P_CC.n_rows,this -> P_CC.n_rows);
 		}
 
 	}
@@ -403,7 +421,7 @@ void SBGATFilterUQ::TakeSlice(int axis,
 		std::vector <arma::vec> intersects;
 
 		// Looking for an intersect along the u = 0 edge
-		if (std::abs(M(1)) > 1e-6){
+		if (std::abs(M(1)) > 1e-16){
 			double v_intersect = e / M(1);
 			if (v_intersect >= 0 && v_intersect <= 1 ){
 				arma::vec Y = {0,v_intersect};
@@ -414,7 +432,7 @@ void SBGATFilterUQ::TakeSlice(int axis,
 		}
 
 		// Looking for an intersect along the v = 0 edge
-		if (std::abs(M(0)) > 1e-6){
+		if (std::abs(M(0)) > 1e-16){
 			double u_intersect = e / M(0);
 			if (u_intersect >= 0 && u_intersect <= 1 ){
 				arma::vec Y = {u_intersect,0};
@@ -427,7 +445,7 @@ void SBGATFilterUQ::TakeSlice(int axis,
 		// Looking for an intersect along the w = 0 edge
 		// using u as the parameter
 
-		if (std::abs(M(0) - M(1)) > 1e-6){
+		if (std::abs(M(0) - M(1)) > 1e-16 && intersects.size() < 2){
 			double u_intersect = (e - M(1)) / (M(0) - M(1));
 			if (u_intersect >= 0 && u_intersect <= 1 ){
 				arma::vec Y = {u_intersect,1 - u_intersect};
@@ -436,9 +454,12 @@ void SBGATFilterUQ::TakeSlice(int axis,
 				intersects.push_back(intersect);
 			}
 		}
+
 		if (intersects.size() == 2){
 			lines.push_back(intersects);
 		}
+
+		
 
 	}
 

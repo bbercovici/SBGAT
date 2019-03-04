@@ -41,11 +41,13 @@ public:
   decomposition of the covariance (slower but more stable), where R = U * sqrt(D') * U.T with U == orthogonal matrix of eigenvectors and
   D' == diagonal matrix of clamped eigenvalues (there may be a few negative eigenvalues, these are clamped to 0). In case either of the methods fail, the 
   method return the identity matrix
-  @param use_cholesky if true will make the method extract the square root of the covariance matrix through a lower Cholesky 
-  decomposition of the covariance. If false, will use a clamped spectral decomposition instead
+  @param method picked from {"chol","eigen","svd"}. "chol" will attempt extracting a lower cholesky decomposition
+  of the covariance matrix. "eigen" looks for a spectral decomposition of P = U * D * U^T and returns U * sqrt(D) * U^T 
+  where any negative eigenvalue in D has been clamped to zero. "svd" return the singular value decomposition square root
+  (from P = U * S * V^T, the square root is given by V * inv(S) * V^T)
   @return covariance square root. Its unit are the same as those of the input shape (hence, m^2 or km^2)
   */
-  arma::mat GetCovarianceSquareRoot(bool use_cholesky = true) const;
+  arma::mat GetCovarianceSquareRoot(std::string method = "chol") const;
 
   /**
   Populates the covariance components over the entire shape by looping over each vertex Ci and:
