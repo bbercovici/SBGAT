@@ -114,6 +114,7 @@ int main(){
 	}
 
 	// Populate the grid with points that are strictly outside of the reference shape
+	std::vector<int[2]> indices;
 	for (int i = 0; i < i_max; ++i){
 		for (int j = 0; j < j_max; ++j){
 
@@ -131,7 +132,6 @@ int main(){
 			else if (PROJECTION_AXIS == 1){
 
 				double x = xmin + i * STEP_SIZE;
-
 				double z = zmin + j * STEP_SIZE;
 
 				point(0) = x;
@@ -149,6 +149,7 @@ int main(){
 			}
 			
 			grid.push_back(point);
+			indices.push_back({i,j});
 		}
 	}
 	std::cout << "- Grid size: " << grid.size() << std::endl;
@@ -162,9 +163,9 @@ int main(){
 	std::cout << "- Sampling grid ...\n";
 
 	// Evaluate the uncertainty at each point on the grid
-	arma::vec trace_sqrt_cov_vector(grid.size());
-	arma::vec reference_acceleration(grid.size());
-	arma::vec uncertainty_over_reference_acc_percentage(grid.size());
+	arma::mat trace_sqrt_cov_vector(i_max,j_max);
+	arma::mat reference_acceleration(i_max,j_max);
+	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
 
 
 	auto start = std::chrono::system_clock::now();
@@ -172,14 +173,18 @@ int main(){
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 
+
+		int i = indices[p][0];
+		int j = indices[p][1];
+
 		if (pgm_filter -> Contains(grid[p])){
-			trace_sqrt_cov_vector(p) = arma::datum::nan;
-			reference_acceleration(p) = arma::datum::nan;
+			trace_sqrt_cov_vector(i,j) = arma::datum::nan;
+			reference_acceleration(i,j) = arma::datum::nan;
 		}
 		else{
 
-			trace_sqrt_cov_vector(p) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
-			reference_acceleration(p) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
+			trace_sqrt_cov_vector(i,j) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
+			reference_acceleration(i,j) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
 		}
 		++progress;
 	}
@@ -250,7 +255,6 @@ int main(){
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
 
 	for (int e = 0; e < all_positions.size(); ++e){
-
 
 		arma::mat analytical_covariance_acc = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
 		double analytical_variance_pot = pgm_uq.GetVariancePotential(all_positions[e]);
