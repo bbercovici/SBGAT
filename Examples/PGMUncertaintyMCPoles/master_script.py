@@ -38,7 +38,7 @@ SIM_PREFIX = "PGMUncertaintyMCPoles"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"CORRELATION_DISTANCE" : 30e3,
+"CORRELATION_DISTANCE" : 50e3,
 "ERROR_STANDARD_DEV" : 10e3,
 "DENSITY" : 3700,
 "UNIT_IN_METERS" : False,
@@ -55,7 +55,8 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"N_MONTE_CARLO" : [1000,10000]
+"N_MONTE_CARLO" : [1000,10000],
+"UNCERTAINTY_TYPE" : ["normal","radial"]
 }
 
 # There shouldn't be any reason to modify the following
