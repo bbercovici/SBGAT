@@ -81,6 +81,6 @@ for data in all_data:
         json.dump(data, outfile)
     print("\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
-    os.system("./PGMUncertaintyMC 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
+    os.system("./PGMUncertaintyMCGlobal 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
 
