@@ -63,44 +63,58 @@ int main(){
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
 
+	// Saving baseline slices
+	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
+	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
+	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
+
+
 	std::cout << "Populating shape covariance ...\n";
 
 	// Populate the shape vertices covariance
 	pgm_uq.AddUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	pgm_uq.AddUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 
+	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
+	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
+
+	P_CC.save("P_CC.txt",arma::raw_ascii);
+	C_CC.save("C_CC.txt",arma::raw_ascii);
+
+	arma::mat P_CC_from_sqrt = C_CC * C_CC;
+	P_CC_from_sqrt.save("P_CC_from_sqrt.txt",arma::raw_ascii);
+
+
+
+	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - P_CC_from_sqrt).max() << std::endl;
+
+
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
 
 	// Save the covariance
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
-	// Saving baseline slices
-	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
-	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
-	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
-
+	
 	std::vector<arma::vec::fixed<3> > all_positions = {
-		arma::vec::fixed<3>({300,0,0}),
-		arma::vec::fixed<3>({400,0,0}),
-		arma::vec::fixed<3>({500,0,0}),
-		arma::vec::fixed<3>({-300,0,0}),
-		arma::vec::fixed<3>({-400,0,0}),
-		arma::vec::fixed<3>({-500,0,0}),
-		arma::vec::fixed<3>({0,300,0}),
-		arma::vec::fixed<3>({0,400,0}),
-		arma::vec::fixed<3>({0,500,0}),
-		arma::vec::fixed<3>({0,-300,0}),
-		arma::vec::fixed<3>({0,-400,0}),
-		arma::vec::fixed<3>({0,-500,0}),
-		arma::vec::fixed<3>({0,0,300}),
-		arma::vec::fixed<3>({0,0,400}),
-		arma::vec::fixed<3>({0,0,500}),
-		arma::vec::fixed<3>({0,0,-300}),
-		arma::vec::fixed<3>({0,0,-400}),
-		arma::vec::fixed<3>({0,0,-500}),
+		arma::vec::fixed<3>({300e3,0,0}),
+		arma::vec::fixed<3>({400e3,0,0}),
+		arma::vec::fixed<3>({500e3,0,0}),
+		arma::vec::fixed<3>({-300e3,0,0}),
+		arma::vec::fixed<3>({-400e3,0,0}),
+		arma::vec::fixed<3>({-500e3,0,0}),
+		arma::vec::fixed<3>({0,300e3,0}),
+		arma::vec::fixed<3>({0,400e3,0}),
+		arma::vec::fixed<3>({0,500e3,0}),
+		arma::vec::fixed<3>({0,-300e3,0}),
+		arma::vec::fixed<3>({0,-400e3,0}),
+		arma::vec::fixed<3>({0,-500e3,0}),
+		arma::vec::fixed<3>({0,0,300e3}),
+		arma::vec::fixed<3>({0,0,400e3}),
+		arma::vec::fixed<3>({0,0,500e3}),
+		arma::vec::fixed<3>({0,0,-300e3}),
+		arma::vec::fixed<3>({0,0,-400e3}),
+		arma::vec::fixed<3>({0,0,-500e3}),
 	};
-
-	all_positions *= 1e3;
 
 
 	// Analytical UQ
@@ -132,7 +146,7 @@ int main(){
 	start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
-		pgm_uq.GetCovarianceSquareRoot(),
+		C_CC,
 		N_MONTE_CARLO, 
 		all_positions,
 		OUTPUT_DIR,
