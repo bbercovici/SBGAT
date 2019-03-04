@@ -1,17 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.patches import Ellipse
-import np_array_to_latex as nptlatex
-from np_array_to_latex import np_array_to_latex
-from pprint import pprint
-import json
 import os
+import glob
 
-def draw_slice(axis,slices,output_dir = None,zoom = False,prefix = ""):
+
+
+def draw_slices_in_dir(input_dir,output_dir = None,prefix = ""):
+
+	slice_counter = len(glob.glob1(input_dir,"slice_x_*"))
+
+	if(slice_counter>0):
+
+		slices_x = [input_dir + "/slice_x_"+str(i)+ ".txt" for i in range(slice_counter)]
+		slices_y = [input_dir + "/slice_y_"+str(i)+ ".txt" for i in range(slice_counter)]
+		slices_z = [input_dir + "/slice_z_"+str(i)+ ".txt" for i in range(slice_counter)]
+
+		slices_x = [input_dir + "/baseline_slice_x.txt"] + slices_x
+		slices_y = [input_dir + "/baseline_slice_y.txt"] + slices_y
+		slices_z = [input_dir + "/baseline_slice_z.txt"] + slices_z
+
+
+		draw_slice(0,slices_x,output_dir = output_dir,prefix = prefix)
+		draw_slice(1,slices_y,output_dir = output_dir,prefix = prefix)
+		draw_slice(2,slices_z,output_dir = output_dir,prefix = prefix)
+
+
+
+
+def draw_slice(axis,slices,output_dir = None,prefix = ""):
 
 	cut_names = ["Y-Z","X-Z","X-Y"]
-	zoom_options = " with zoom ... \n" if zoom else " without zoom ... \n"
 
 	cmap = plt.cm.get_cmap(plt.cm.viridis)
 
@@ -57,16 +75,12 @@ def draw_slice(axis,slices,output_dir = None,zoom = False,prefix = ""):
 
 	plt.scatter(0,0,marker = ".",color = "black" )
 	
-	if zoom is False:
-		plt.xlim(1.5 * x_min, 1.5 * x_max)
-		plt.ylim(1.5 * y_min, 1.5 * y_max)
+	plt.xlim(1.5 * x_min, 1.5 * x_max)
+	plt.ylim(1.5 * y_min, 1.5 * y_max)
 
 	plt.axis("equal")
 
 	if (len(output_dir) > 0):
-		if (zoom is True):
-			plt.savefig(output_dir + "/" + prefix +"slice_zoom_" + str(axis) + ".pdf", bbox_inches='tight')
-		else:
 			plt.savefig(output_dir + "/" + prefix +"slice_" + str(axis) + ".pdf", bbox_inches='tight')
 	else:
 		plt.show()

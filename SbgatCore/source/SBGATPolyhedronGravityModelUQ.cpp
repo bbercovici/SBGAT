@@ -3208,9 +3208,9 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 
 
 		if (i < N_saved_shapes){
-			shape_uq_mc.TakeAndSaveSlice(0,output_dir + "slice_" + std::to_string(i) + "_x.txt",0);
-			shape_uq_mc.TakeAndSaveSlice(1,output_dir + "slice_" + std::to_string(i) + "_y.txt",0);
-			shape_uq_mc.TakeAndSaveSlice(2,output_dir + "slice_" + std::to_string(i) + "_z.txt",0);
+			shape_uq_mc.TakeAndSaveSlice(0,output_dir + "slice_x_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc.TakeAndSaveSlice(1,output_dir + "slice_y_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc.TakeAndSaveSlice(2,output_dir + "slice_z_" + std::to_string(i) + ".txt",0);
 			vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
 			writer -> SetInputData(pgm_filter_mc -> GetInput());
