@@ -15,35 +15,24 @@ def plot_uncertainty_grid(path):
     
 
     if data["PROJECTION_AXIS"] == 0:
-        
 
-        y_min = np.amin(grid[1,:])
-        y_max = np.amax(grid[1,:])
-        
-        z_min = np.amin(grid[2,:])
-        z_max = np.amax(grid[2,:])
 
-       
-        grid_y, grid_z = np.mgrid[y_min:y_max:1000j, z_min:z_max:1000j]
+        plt.imshow(uncertainty_percentage,interpolation = "bicubic")
+        plt.colorbar()
 
-        print(np.sum(np.isnan(uncertainty_percentage)))
-
-        grid_yz = griddata(grid[[2,1],:].T, uncertainty_percentage, (grid_z, grid_y), method='linear')
-
-        # plt.imshow(grid_yz)
-        
+        cont = plt.contour(uncertainty_percentage, levels = np.array([14,15,16,17]), origin='upper',cmap = plt.get_cmap("rainbow"))
+        plt.gca().clabel(cont,cont.levels)
         # plt.xlabel("Y")
         # plt.ylabel("Z")
         # plt.title(r"Acceleration error $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
-        # plt.colorbar()
-        # plt.show()
+        plt.show()
 
        
 
-        plt.figure()
-		CS = plt.contour(grid_y, grid_z, Z)
-		plt.clabel(CS, inline=1, fontsize=10)
-		plt.title('Simplest default with labels')
+  #       plt.figure()
+        # CS = plt.contour(grid_y, grid_z, Z)
+        # plt.clabel(CS, inline=1, fontsize=10)
+        # plt.title('Simplest default with labels')
 
 
 

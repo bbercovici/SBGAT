@@ -82,12 +82,12 @@ int main(){
 	mass_properties -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
 	
 	// Inflate
-	xmin *= 2;
-	xmax *= 2;
-	ymin *= 2;
-	ymax *= 2;
-	zmin *= 2;
-	zmax *= 2;
+	xmin *= 2.5;
+	xmax *= 2.5;
+	ymin *= 2.5;
+	ymax *= 2.5;
+	zmin *= 2.5;
+	zmax *= 2.5;
 
 	// Define grid indices
 	int i_max,j_max;
@@ -115,6 +115,13 @@ int main(){
 
 	// Populate the grid with points that are strictly outside of the reference shape
 	std::vector<std::vector<int> > indices;
+	arma::mat trace_sqrt_cov_vector(i_max,j_max);
+	arma::mat reference_acceleration(i_max,j_max);
+	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
+	arma::mat inside_outside(i_max,j_max);
+
+
+
 	for (int i = 0; i < i_max; ++i){
 		for (int j = 0; j < j_max; ++j){
 
@@ -150,6 +157,13 @@ int main(){
 			
 			grid.push_back(point);
 			indices.push_back(std::vector<int>({i,j}));
+
+			if (pgm_filter -> Contains(point)){
+				inside_outside(i,j) = 1;
+			}
+			else{
+				inside_outside(i,j) = 0;
+			}
 		}
 	}
 	std::cout << "- Grid size: " << grid.size() << std::endl;
@@ -162,11 +176,6 @@ int main(){
 
 	std::cout << "- Sampling grid ...\n";
 
-	// Evaluate the uncertainty at each point on the grid
-	arma::mat trace_sqrt_cov_vector(i_max,j_max);
-	arma::mat reference_acceleration(i_max,j_max);
-	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
-
 
 	auto start = std::chrono::system_clock::now();
 	boost::progress_display progress(grid.size());
@@ -174,18 +183,14 @@ int main(){
 	for (int p = 0; p < grid.size(); ++p){
 
 
+
+
 		int i = indices[p][0];
 		int j = indices[p][1];
 
-		if (pgm_filter -> Contains(grid[p])){
-			trace_sqrt_cov_vector(i,j) = arma::datum::nan;
-			reference_acceleration(i,j) = arma::datum::nan;
-		}
-		else{
-
-			trace_sqrt_cov_vector(i,j) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
-			reference_acceleration(i,j) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
-		}
+		trace_sqrt_cov_vector(i,j) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
+		reference_acceleration(i,j) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
+		
 		++progress;
 	}
 
@@ -273,6 +278,8 @@ int main(){
 
 	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
+	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
+
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
 
 	return 0;
