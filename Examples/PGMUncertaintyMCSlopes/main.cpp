@@ -12,6 +12,7 @@
 
 int main(){
 
+
 	std::ifstream i("input_file.json");
 	nlohmann::json input_data;
 	i >> input_data;
@@ -74,7 +75,6 @@ int main(){
 	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
 	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
 
-
 	std::cout << "Populating shape covariance ...\n";
 
 	// Populate the shape vertices covariance
@@ -83,8 +83,10 @@ int main(){
 
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
+	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
+
 
 
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
@@ -93,9 +95,7 @@ int main(){
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	
-	std::vector<int > all_facets = {
-		0,10,100,1000,200,300
-	};
+	std::vector<int > all_facets = {0,10,100,1000,200,300};
 
 
 	// Analytical UQ
@@ -138,8 +138,6 @@ int main(){
 		period_errors,
 		all_slopes);
 
-
-	
 
 	end = std::chrono::system_clock::now();
 

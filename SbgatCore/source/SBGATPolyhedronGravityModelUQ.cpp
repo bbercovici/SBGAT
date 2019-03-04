@@ -3331,7 +3331,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		period_errors[i] = arma::sum(arma::randn<arma::vec>(1)) * period_standard_deviation;
 	}
 
-
 	// Getting the nominal rotation axis
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(cleaner_mc -> GetOutputPort());
@@ -3895,18 +3894,14 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 }
 
 
-double SBGATPolyhedronGravityModelUQ::  GetVarianceSlope(const int & f ) const{
-
-	arma::mat augmented_PCC = arma::zeros<arma::mat>(this -> P_CC.n_rows + 1, this -> P_CC.n_rows + 1);
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f ) const{
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
-	augmented_PCC(0,0) = std::pow( arma::dot(pgm_model -> GetOmega(),pgm_model -> GetOmega()) / (2 * arma::datum::pi),2) * std::pow(this -> period_standard_deviation,2);
-	augmented_PCC.submat(1,1,augmented_PCC.n_rows -1,augmented_PCC.n_rows -1) = this -> P_CC;
-
 	arma::rowvec partial = this -> GetPartialSlopePartialwPartialC(f);
 
-	return arma::dot(partial, augmented_PCC * partial.t()); 
+	return (std::pow(partial(0),2) * std::pow( arma::dot(pgm_model -> GetOmega(),pgm_model -> GetOmega()) / (2 * arma::datum::pi),2) * std::pow(this -> period_standard_deviation,2)
+		+ arma::dot(partial.subvec(1,partial.n_cols - 1),this -> P_CC * partial.subvec(1,partial.n_cols - 1).t()));
 
 
 }
