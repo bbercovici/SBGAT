@@ -58,7 +58,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"UNCERTAINTY_TYPE" = ["global","normal","radial"]
+"UNCERTAINTY_TYPE" : ["global","normal","radial"]
 }
 
 # There shouldn't be any reason to modify the following
