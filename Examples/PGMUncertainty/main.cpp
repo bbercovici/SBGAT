@@ -114,7 +114,7 @@ int main(){
 	}
 
 	// Populate the grid with points that are strictly outside of the reference shape
-	std::vector<int[2]> indices;
+	std::vector<std::vector<int> > indices;
 	for (int i = 0; i < i_max; ++i){
 		for (int j = 0; j < j_max; ++j){
 
@@ -149,7 +149,7 @@ int main(){
 			}
 			
 			grid.push_back(point);
-			indices.push_back({i,j});
+			indices.push_back(std::vector<int>({i,j}));
 		}
 	}
 	std::cout << "- Grid size: " << grid.size() << std::endl;
