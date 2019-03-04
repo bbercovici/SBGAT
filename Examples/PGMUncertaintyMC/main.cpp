@@ -126,24 +126,24 @@ int main(){
 
 	
 	start = std::chrono::system_clock::now();
-	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,UNIT_IN_METERS,pgm_uq.GetVerticesCovariance(),
-		N_MONTE_CARLO, all_positions,deviations,all_accelerations,all_potentials,saved_shapes);
+	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,
+		UNIT_IN_METERS,
+		pgm_uq.GetVerticesCovariance(),
+		N_MONTE_CARLO, 
+		all_positions,
+		OUTPUT_DIR,
+		10,
+		deviations,
+		all_accelerations,
+		all_potentials);
+
 	end = std::chrono::system_clock::now();
 
 	elapsed_seconds = end-start;
 
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
-	for (int i = 0; i < saved_shapes.size(); ++i){
-		vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
-
-		writer -> SetInputData(saved_shapes[i]);
-
-		writer -> SetFileName(std::string({OUTPUT_DIR + "mc_shape_" + std::to_string(i) + ".obj"}).c_str());
-		writer -> Update();
-	}
-
-
+	
 
 	std::vector<double> mc_variances_pot(all_positions.size());
 	std::vector<arma::mat > mc_covariances_acc(all_positions.size());
