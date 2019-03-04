@@ -36,7 +36,6 @@ else:
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
 SIM_PREFIX = "PGMUncertainty"
 
-
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
 "CORRELATION_DISTANCE" : 200,
