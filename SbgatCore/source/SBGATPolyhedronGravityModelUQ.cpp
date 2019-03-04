@@ -3170,7 +3170,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 	cleaner_mc -> Update();
 
 	for (int i = 0; i < N_samples ; ++i){
-		deviations[i] = C_CC * arma::randn<arma::vec>(3 * pgm_filter_mc -> GetN_vertices());
+		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
 
 	}
 
