@@ -186,7 +186,6 @@ int main(){
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 
-
 	all_positions.push_back(grid[0]);
 	all_positions.push_back(grid[100]);
 	all_positions.push_back(grid[200]);
