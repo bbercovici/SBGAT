@@ -126,17 +126,16 @@ int main(){
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Done computing analytical uncertainties in " << elapsed_seconds.count() << " s\n";
 
-	// Running a Monte Carlo to compare againnst
+	// Running a Monte Carlo to compare against
 	std::vector<arma::vec> deviations;
 	std::vector<std::vector<arma::vec::fixed<3> > >  all_accelerations;
 	std::vector < std::vector<double> > all_potentials;
-	std::vector<vtkSmartPointer<vtkPolyData > > saved_shapes(10);
 
 	std::cout << "Running MC ... ";
 
 	
 	start = std::chrono::system_clock::now();
-	SBGATPolyhedronGravityModelUQ::RunMCUQ(PATH_SHAPE,DENSITY,
+	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
 		C_CC,
 		N_MONTE_CARLO, 
@@ -154,7 +153,6 @@ int main(){
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
 	
-
 	std::vector<double> mc_variances_pot(all_positions.size());
 	std::vector<arma::mat > mc_covariances_acc(all_positions.size());
 

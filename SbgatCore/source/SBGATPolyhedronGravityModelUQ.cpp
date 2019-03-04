@@ -3146,17 +3146,21 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	const arma::vec::fixed<3> & Omega,
 	const bool & shape_in_meters,
 	const arma::mat & C_CC,
+	const double & period_standard_deviation,
+
 	const unsigned int & N_samples,
 	const int & facet,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & period_errors,
 	std::vector<double> & slopes){
 
 	std::vector< std::vector< double> > all_slopes(N_samples);
 	std::vector< int > all_facets = {facet};
 	
 	slopes = std::vector<double>(N_samples);
+	period_errors = std::vector<double>(N_samples);
 	deviations = std::vector<arma::vec>(N_samples);
 
 
@@ -3165,11 +3169,13 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		Omega,
 		shape_in_meters,
 		C_CC,
+		period_standard_deviation,
 		N_samples,
 		all_facets,
 		output_dir,
 		N_saved_shapes,
 		deviations,
+		period_errors,
 		all_slopes);
 
 	for (int i = 0; i < N_samples; ++i){
@@ -3290,17 +3296,23 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	const arma::vec::fixed<3> & Omega,
 	const bool & shape_in_meters,
 	const arma::mat & C_CC,
+
+	const double & period_standard_deviation,
 	const unsigned int & N_samples,
 	const std::vector<int > & all_facets,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & period_errors,
 	std::vector<std::vector<double > > & all_slopes){
 
 	if (all_slopes.size() == 0)
 		all_slopes = std::vector< std::vector < double > > (N_samples);
 	if (deviations.size() == 0)
 		deviations = std::vector<arma::vec>(N_samples);
+	if (period_errors.size() == 0)
+		period_errors = std::vector< double > (N_samples);
+
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
@@ -3316,7 +3328,20 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 
 	for (int i = 0; i < N_samples ; ++i){
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
+		period_errors[i] = arma::sum(arma::randn<arma::vec>(1)) * period_standard_deviation;
 	}
+
+
+	// Getting the nominal rotation axis
+	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+	pgm_filter -> SetInputConnection(cleaner_mc -> GetOutputPort());
+	pgm_filter -> SetDensity(density); 
+
+	pgm_filter -> Update();
+
+	arma::vec::fixed<3> e = pgm_filter -> GetPrincipalAxes() * arma::normalise(Omega);
+
+	double period = 2 * arma::datum::pi / arma::norm(Omega);
 
 
 	#pragma omp parallel for
@@ -3330,7 +3355,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		pgm_filter_mc -> SetInputData(shape_copy);
 		pgm_filter_mc -> SetDensity(density); 
 		pgm_filter_mc -> SetOmega(Omega); 
-
 		
 		if (shape_in_meters){
 			pgm_filter_mc -> SetScaleMeters();
@@ -3338,13 +3362,20 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		else{
 			pgm_filter_mc -> SetScaleKiloMeters();
 		}
-		
-		pgm_filter_mc -> Update();
+
+		// That's a test
+		// pgm_filter_mc -> Update();
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		
 		shape_uq_mc.SetModel(pgm_filter_mc);
 
 		shape_uq_mc.ApplyDeviation(deviations[i]);
+
+
+		arma::vec::fixed<3> Omega_p = (2 * arma::datum::pi / (period + period_errors[i])) * pgm_filter_mc -> GetPrincipalAxes().t() * e;
+
+		pgm_filter_mc -> SetOmega(Omega_p);
+
 
 		for (auto facet : all_facets){
 
@@ -3739,7 +3770,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
 
-	
+
 		int N_C = pgm_filter -> GetN_vertices();
 
 		arma::mat partial = shape_uq.PartialOmegaPartialwC();
@@ -3813,7 +3844,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		}
 		pgm_filter -> Update();
 
-			arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
+		arma::vec::fixed<3> rotation_axis_principal_frame = arma::normalise(arma::randn<arma::vec>(3));
 		double w = arma::datum::pi / (12 * 3600);
 		arma::vec::fixed<3> Omega = w * pgm_filter -> GetPrincipalAxes().t() * rotation_axis_principal_frame;
 
@@ -3823,7 +3854,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
 
-	
+
 		int N_facets = pgm_filter -> GetN_facets();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
 		int f = f_vec(0);

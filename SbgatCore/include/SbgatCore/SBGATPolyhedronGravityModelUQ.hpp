@@ -157,8 +157,9 @@ public:
   @param[in] density small body density in kg/m^3
   @param[in] Omega angular velocity of small body in kg/m^3, expressed in the small body frame
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
-  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
+  @param[in] period_standard_deviation standard deviation of the rotation period in seconds
   @param[in] N_samples number of shape outcomes to draw
   @param[in] all_facets vector storing all the facet indices where the gravitational slopes must be sampled
   @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
@@ -166,6 +167,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] period_errors holds N_samples of the error on the rotation period
+
   @param[out] all_slopes holds N_samples vectors, each storing the slopes evaluated at the specified facets
   */
 
@@ -174,11 +177,13 @@ public:
     const arma::vec::fixed<3> & Omega,
     const bool & shape_in_meters,
     const arma::mat & C_CC,
+    const double & period_standard_deviation,
     const unsigned int & N_samples,
     const std::vector<int > & all_facets,
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & period_errors,
     std::vector < std::vector<double> > & all_slopes );
 
 
@@ -255,6 +260,7 @@ public:
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
   @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
+  @param[in] period_standard_deviation standard deviation of the rotation period in seconds
   @param[in] N_samples number of shape outcomes to draw
   @param[in] facet index of the facet where the surface pgm must be sampled
   @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
@@ -262,6 +268,7 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] period_errors holds N_samples of the error on the rotation period
   @param[out] slopes holds N_samples slopes evaluated at the specified facet
   */
   static void RunMCUQSlopes(std::string path_to_shape,
@@ -269,11 +276,13 @@ public:
     const arma::vec::fixed<3> & Omega,
     const bool & shape_in_meters,
     const arma::mat & C_CC,
+    const double & period_standard_deviation,
     const unsigned int & N_samples,
     const int & facet,
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & period_errors,
     std::vector<double> & slopes);
 
 
