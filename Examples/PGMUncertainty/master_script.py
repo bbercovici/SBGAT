@@ -24,7 +24,6 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
     return all_cases_dictionnary_list
 
-
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (platform.system() == 'Linux'):
