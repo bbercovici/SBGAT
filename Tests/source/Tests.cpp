@@ -965,8 +965,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
 	arma::mat C_CC;
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
@@ -1055,7 +1055,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1172,8 +1172,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
 	arma::mat C_CC;
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
@@ -1196,7 +1196,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
-	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f);
 	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
 
@@ -1377,8 +1377,8 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
 	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot();
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot(false);
+	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
+	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
 	arma::mat C_CC;
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
@@ -1401,7 +1401,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
-	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f);
 	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
 
