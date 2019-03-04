@@ -35,8 +35,6 @@ int main(){
 	std::cout << "- Monte Carlo Draws : " << N_MONTE_CARLO << std::endl;
 
 
-
-
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
 	reader -> SetFileName(PATH_SHAPE.c_str());
@@ -145,6 +143,7 @@ int main(){
 		deviations,
 		all_accelerations,
 		all_potentials);
+	
 
 	end = std::chrono::system_clock::now();
 

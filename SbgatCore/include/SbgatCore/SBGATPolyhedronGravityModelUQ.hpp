@@ -58,12 +58,11 @@ public:
 
 
   /**
-  Returns the variance of the slope evaluated at the center of the designated facet
+  Return the variance of the slope evaluated at the center of the designated facet
   @param f facet index
-  @param Omega angular velocity vector expressed in the current body frame
   @return variance in slope (rad^2)
   */
-  double GetVarianceSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
+  double GetVarianceSlope(const int & f ) const;
 
 
   /**
@@ -137,7 +136,7 @@ public:
   @param[out] all_potentials holds N_samples vectors, each storing the potential evaluated at the specified points
   */
 
-  static void RunMCUQ(std::string path_to_shape,
+  static void RunMCUQPotentialAccelerationInertial(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
     const arma::mat & C_CC,
@@ -151,6 +150,40 @@ public:
 
 
 
+
+  /**
+  Runs a Monte Carlo on the shape and samples the slopes at the provided facets
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] Omega angular velocity of small body in kg/m^3, expressed in the small body frame
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] all_facets vector storing all the facet indices where the gravitational slopes must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] all_slopes holds N_samples vectors, each storing the slopes evaluated at the specified facets
+  */
+
+  static void RunMCUQSlopes(std::string path_to_shape,
+    const double & density,
+    const arma::vec::fixed<3> & Omega,
+    const bool & shape_in_meters,
+    const arma::mat & C_CC,
+    const unsigned int & N_samples,
+    const std::vector<int > & all_facets,
+    std::string output_dir,
+    int N_saved_shapes,
+    std::vector<arma::vec> & deviations,
+    std::vector < std::vector<double> > & all_slopes );
+
+
+
+
   /**
   Sets the standard deviation of the rotation period
   @param standard deviation of the rotation period (s)
@@ -161,13 +194,12 @@ public:
 
 
   /**
-  Returns the partial derivative of the slope at the center of facet f relative to 
+  Return the partial derivative of the slope at the center of facet f relative to 
   the angular velocity magnitude and shape vertices coordinates
   @param f facet index
-  @param Omega angular velocity vector expressed in the body frame (rad/s)
   @return partials
   */
-  arma::rowvec GetPartialSlopePartialwPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::rowvec GetPartialSlopePartialwPartialC(const int & f) const;
 
   
   /**
@@ -177,7 +209,7 @@ public:
   virtual void ApplyDeviation(const arma::vec & delta_C);
 
   /**
-  Returns the partial derivative of the gravitation slope at the center of face tf relative to 
+  Return the partial derivative of the gravitation slope at the center of face tf relative to 
   the shape vertices coordinates
   @param f facet index
   @return partial derivative of the slope at the center of facet f relative to the shape vertices coordinates
@@ -186,7 +218,7 @@ public:
   arma::rowvec GetPartialSlopePartialC(const int & f) const;
 
   /**
-  Runs a Monte Carlo on the shape and samples accelerations & potentials at the provided position
+  Runs a Monte Carlo on the shape and samples inertial accelerations & potentials at the provided position
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
@@ -201,10 +233,8 @@ public:
   reference shape at every sample
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   @param[out] potentials holds N_samples potential evaluated at the specified point
-  
   */
-
-  static void RunMCUQ(std::string path_to_shape,
+  static void RunMCUQPotentialAccelerationInertial(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
     const arma::mat & C_CC,
@@ -216,6 +246,40 @@ public:
     std::vector<arma::vec::fixed<3> > & accelerations,
     std::vector<double> & potentials);
 
+
+  /**
+  Runs a Monte Carlo on the shape and samples the gravitational slopes at the provided facets
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] Omega angular velocity of small body in kg/m^3, expressed in the small body frame
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] facet index of the facet where the surface pgm must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] slopes holds N_samples slopes evaluated at the specified facet
+  */
+  static void RunMCUQSlopes(std::string path_to_shape,
+    const double & density,
+    const arma::vec::fixed<3> & Omega,
+    const bool & shape_in_meters,
+    const arma::mat & C_CC,
+    const unsigned int & N_samples,
+    const int & facet,
+    std::string output_dir,
+    int N_saved_shapes,
+    std::vector<arma::vec> & deviations,
+    std::vector<double> & slopes);
+
+
+
+
+
 protected:
 
   arma::vec GetBe() const;
@@ -225,45 +289,41 @@ protected:
   /**
   Get partial derivative of the angular velocity vector relative to 1) the angular velocity magnitude 2) the shape vertices
   coordinates
-  @param Omega angular velocity expressed in current body-frame (rad/s)
   @return partial derivative of Omega relative to its magnitude shape vertices coordinates
   */
-  arma::mat PartialOmegaPartialwC(const arma::vec::fixed<3> & Omega) const;
+  arma::mat PartialOmegaPartialwC() const;
 
 
   /**
-  Returns the partial derivative of the body-fixed angular velocity and the vertices coordinates relative
+  Return the partial derivative of the body-fixed angular velocity and the vertices coordinates relative
   to the angular velocity magnitude and shape vertices coordinates
-  @param Omega angular velocity expressed in current body-frame (rad/s)
   @return partial
   */
-  arma::sp_mat PartialOmegaCPartialwC(const arma::vec::fixed<3> & Omega) const;
+  arma::sp_mat PartialOmegaCPartialwC() const;
 
 
 /**
-Returns the partial derivative of the body-fixed acceleration at the center of facet f relative
+Return the partial derivative of the body-fixed acceleration at the center of facet f relative
 to the shape coordinates
 @param f facet index
-@param Omega angular velocity vector expressed in the body frame
 @return partial derivative
 */
-  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f) const;
 
 
 
   /**
-  Returns the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
+  Return the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
   the angular velocity and vertices coordinates
   @param f facet index
-  @param Omega angular velocity
   @return partial derivative
   */
-  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f) const;
 
 
 
 
-  arma::mat::fixed<3,3> PartialBodyFixedAccelerationfPartialOmega(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::mat::fixed<3,3> PartialBodyFixedAccelerationfPartialOmega(const int & f) const;
 
 
 
@@ -317,7 +377,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of an individual edge contribution to the potential (Ue) 
+  Return the partial derivative of an individual edge contribution to the potential (Ue) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
   @param pos position where to evaluate the partial
   @param e edge index
@@ -327,7 +387,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of an individual facet contribution to the potential (Uf) 
+  Return the partial derivative of an individual facet contribution to the potential (Uf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
   @param pos position where to evaluate the partial
   @param f facet index
@@ -341,7 +401,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of an individual edge contribution to the acceleration (Acce) 
+  Return the partial derivative of an individual edge contribution to the acceleration (Acce) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
   @param pos position where to evaluate the partial
   @param e edge index
@@ -351,7 +411,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of an individual facet contribution to the acceleration (Accf) 
+  Return the partial derivative of an individual facet contribution to the acceleration (Accf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
   @param pos position where to evaluate the partial
   @param f facet index
@@ -362,7 +422,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of Xf^F, the vector holding the f-th facet dyadic factors, 
+  Return the partial derivative of Xf^F, the vector holding the f-th facet dyadic factors, 
   with respect to the vertices coordiantes constitutive of the f-th triangle (Tf) 
   @param pos position where to evaluate the partial
   @param f facet index
@@ -372,7 +432,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the performance factor omega_f
+  Return the partial derivative of the performance factor omega_f
   with respect to the vertices coordiantes constitutive of the f-th triangle (Tf) 
   @param pos position where to evaluate the partial
   @param f facet index
@@ -383,7 +443,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of Z_f = (alpha_f,gamma_f)^T (as in wf = 2 * arctan2(Z_f) )
+  Return the partial derivative of Z_f = (alpha_f,gamma_f)^T (as in wf = 2 * arctan2(Z_f) )
   with respect to the unit vectors from the field point to the facet vertices
   @param UnitRf 3 unit vectors stacked up
   @return PartialZfPartialUnitRf (2x9)
@@ -392,7 +452,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of arctan2(Z_f) w/r to Z_f 
+  Return the partial derivative of arctan2(Z_f) w/r to Z_f 
   with respect to the unit vectors from the field point to the facet vertices
   @param Zf 
   @return PartialAtan2PartialZf (1x2)
@@ -401,7 +461,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of arctan(y/x)
+  Return the partial derivative of arctan(y/x)
   @param xy input
   @return partial derivative
   */
@@ -409,7 +469,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the facet dyad parametrization (Ff)
+  Return the partial derivative of the facet dyad parametrization (Ff)
   with respect to the vertices coordinates constitutive of the f-th triangle (Tf) 
   @param f facet index
   @return PartialFfPartialTf (6x9)
@@ -419,7 +479,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of a normalized vector n relative to the non-normalized
+  Return the partial derivative of a normalized vector n relative to the non-normalized
   vector N such that n = N / || N ||
   @param non_normalized_V non-normalized vector used to produce the normalized vector
   @return PartialNormalizedVPartialNonNormalizedV (3x3)
@@ -429,7 +489,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the f-th facet dyad parametrization with respect to the 
+  Return the partial derivative of the f-th facet dyad parametrization with respect to the 
   normalized normal of the f-th facet
   @param nf facet normal
   @return PartialFfPartialnf (6x3)
@@ -440,7 +500,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the wire potential Le 
+  Return the partial derivative of the wire potential Le 
   with respect to the coordinates of the two vertices forming the edge (stacked in Ae)
   @param pos position where to evaluate the partial
   @param e edge index
@@ -450,7 +510,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of field-point to edge-point vector
+  Return the partial derivative of field-point to edge-point vector
   with respect to the coordinates of the two vertices forming the edge (stacked in Ae)
   @return PartialRadiusEePartialAe (3x6)
   */
@@ -458,7 +518,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of field-point to facet-point vector
+  Return the partial derivative of field-point to facet-point vector
   with respect to the coordinates of the three vertices forming the facet (stacked in Tf)
   @return PartialRadiusFfPartialTf (3x9)
   */
@@ -466,7 +526,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the parametrization of the Xe dyadic vector
+  Return the partial derivative of the parametrization of the Xe dyadic vector
   with respect to the coordinates of the edges points and adjacent facets points
   @param pos position where to evaluate the partial
   @param e edge index
@@ -475,7 +535,7 @@ to the shape coordinates
   arma::mat::fixed<10,24> PartialXePartialBe(const arma::vec::fixed<3> & pos,const int & e) const;
 
   /**
-  Returns the partial derivative of the edge length le
+  Return the partial derivative of the edge length le
   with respect to the coordinates of the edges points
   @param e edge index
   @return PartialEdgeLengthPartialAe (10x24)
@@ -483,7 +543,7 @@ to the shape coordinates
   arma::rowvec::fixed<6> PartialEdgeLengthPartialAe(const int & e) const;
 
   /**
-  Returns the partial derivative of the (q,r) component of the Ee dyad with respect to the 
+  Return the partial derivative of the (q,r) component of the Ee dyad with respect to the 
   with respect to the coordinates of the edges points and adjacent facets points
   @param e edge index
   @param q row index
@@ -494,19 +554,18 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the f-th facet slope argument (u as in slope = arcos(-u))
+  Return the partial derivative of the f-th facet slope argument (u as in slope = arcos(-u))
   with respect to the angular velocity and the shape coordinates
   @param f facet index
-  @param Omega angular velocity vector
   @param body_fixed_acc body-fixed acceleration at the center of facet f
   @return partial derivative
   */
-  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,const arma::vec::fixed<3> & Omega,
+  arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,
     const arma::vec::fixed<3> & body_fixed_acc) const;
 
 
   /**
-  Returns the partial derivative of the Ee dyad parametrization with respect 
+  Return the partial derivative of the Ee dyad parametrization with respect 
   to the coordinates of the edges points and adjacent facets points
   @param e edge index
   @return PartialEPartialBe (6x24)
@@ -515,7 +574,7 @@ to the shape coordinates
 
 
   /**
-  Returns the connectivity table associated with vector Be
+  Return the connectivity table associated with vector Be
   @param e edge index
   @return connectivity table
   */
@@ -524,7 +583,7 @@ to the shape coordinates
 
 
   /**
-  Returns the partial derivative of the slope s == arcos(-u) relative to the slope argument u
+  Return the partial derivative of the slope s == arcos(-u) relative to the slope argument u
   @param u input parameter
   @param partial derivative of slope with respect to u
   */

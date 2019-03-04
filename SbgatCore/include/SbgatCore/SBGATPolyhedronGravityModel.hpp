@@ -113,10 +113,9 @@ the polydata used to construct the PGM
 /**
 Get the body-fixed acceleration at the center of the specified facet
 @param f facet index 
-@param Omega angular velocity vector expressed in the body-frame
 @return body-fixed acceleration (m/s^2)
 */
-  arma::vec::fixed<3> GetBodyFixedAccelerationf(const int & f,const arma::vec::fixed<3> & Omega) const;
+  arma::vec::fixed<3> GetBodyFixedAccelerationf(const int & f) const;
 
 
 
@@ -185,10 +184,9 @@ the polydata used to construct the PGM
   /**
   Computes the slope as the center of the designated facet
   @param f facet index
-  @param Omega angular velocity vector (rad/s)
   @return slope (rad)
   */
-  double GetSlope(const int & f ,const arma::vec::fixed<3> & Omega) const;
+  double GetSlope(const int & f ) const;
 
 
   /**
@@ -200,23 +198,23 @@ the polydata used to construct the PGM
   }
 
   /**
-  Returns the performance factor of the f-th facet at the specified position
+  Return the performance factor of the f-th facet at the specified position
   @param pos position of field point
   @param f facet index
   @return omega_f
   */
-  double GetOmegaf(const arma::vec::fixed<3> & pos, const int & f) const;
+  double GetPerformanceFactor(const arma::vec::fixed<3> & pos, const int & f) const;
 
   /**
-  Returns the performance factor of the f-th facet at the specified position
+  Return the performance factor of the f-th facet at the specified position
   @param pos position of field point
   @param f facet index
   @return omega_f
   */
-  double GetOmegaf( const double * pos, const int & f) const;
+  double GetPerformanceFactor( const double * pos, const int & f) const;
 
   /**
-  Returns the wire potential of the e-th edge at the specified position
+  Return the wire potential of the e-th edge at the specified position
   @param pos position of field point
   @param e edge index
   @return L_e
@@ -224,7 +222,7 @@ the polydata used to construct the PGM
   double GetLe(const arma::vec::fixed<3> & pos, const int & e) const;
 
   /**
-  Returns the wire potential of the e-th edge at the specified position
+  Return the wire potential of the e-th edge at the specified position
   @param pos position of field point
   @param e edge index
   @return L_e
@@ -309,7 +307,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the Xe^E vector holding the e-th edge dyadic factors (Le,r_ie_0^T,Ee^T)^T
+  Return the Xe^E vector holding the e-th edge dyadic factors (Le,r_ie_0^T,Ee^T)^T
   @param pos field point
   @param e edge index
   @return Xe^E vector holding the e-th edge dyadic factors
@@ -318,7 +316,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the Xf^F vector holding the f-th facet dyadic factors (omega_f,r_if_0^T,Ff^T)^T
+  Return the Xf^F vector holding the f-th facet dyadic factors (omega_f,r_if_0^T,Ff^T)^T
   @param pos field point
   @param f facet index
   @return Xf^F vector holding the f-th facet dyadic factors
@@ -326,7 +324,7 @@ the polydata used to construct the PGM
   arma::vec::fixed<10> GetXf(const arma::vec::fixed<3> & pos,const int & f) const;
 
   /**
-  Returns the parametrization of the designated edge dyad Ee. This dyad 
+  Return the parametrization of the designated edge dyad Ee. This dyad 
   is stored in a flattened double container holding nine values and ordered like so
 
   E = {
@@ -344,7 +342,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the parametrization of the designated facet dyad Ff. This dyad 
+  Return the parametrization of the designated facet dyad Ff. This dyad 
   is stored in a flattened double container holding nine values and ordered like so
 
   F = {
@@ -362,7 +360,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the contribution of a specific edge to the potential at a specified field point
+  Return the contribution of a specific edge to the potential at a specified field point
   @param Xe vector of dyadic coefficients for edge e at the prescribed fieldpoint
   @return contribution to the potential of this specific edge at the prescribed fieldpoint
   */
@@ -370,7 +368,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the contribution of a specific facet to the potential at a specified field point
+  Return the contribution of a specific facet to the potential at a specified field point
   @param Xf vector of dyadic coefficients for facet f at the prescribed fieldpoint
   @return contribution to the potential of this specific facet at the prescribed fieldpoint
   */
@@ -378,7 +376,7 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the contribution of a specific edge to the acceleration at a specified field point
+  Return the contribution of a specific edge to the acceleration at a specified field point
   @param Xe vector of dyadic coefficients for edge e at the prescribed fieldpoint
   @return contribution to the potential of this specific edge at the prescribed fieldpoint
   */
@@ -386,13 +384,23 @@ the polydata used to construct the PGM
 
 
   /**
-  Returns the contribution of a specific facet to the acceleration at a specified field point
+  Return the contribution of a specific facet to the acceleration at a specified field point
   @param Xf vector of dyadic coefficients for facet f at the prescribed fieldpoint
   @return contribution to the potential of this specific facet at the prescribed fieldpoint
   */
   static arma::vec::fixed<3> GetAf(const arma::vec::fixed<10> & Xf);
 
+  /**
+  Set the angular velocity vector
+  @param Omega angular velocity expressed in body-frame (rad/s)
+  */
+  void SetOmega(arma::vec::fixed<3> Omega){this -> Omega = Omega;}
 
+  /**
+  Return the angular velocity vector
+  @return Omega angular velocity expressed in body-frame (rad/s)
+  */
+  arma::vec::fixed<3> GetOmega() const {return this -> Omega;}
 
 protected:
   SBGATPolyhedronGravityModel();
@@ -406,6 +414,8 @@ protected:
 
   double ** facet_dyads;
   double ** edge_dyads;
+
+  arma::vec::fixed<3> Omega;
 
 
 private:

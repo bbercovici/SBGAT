@@ -51,7 +51,7 @@ public:
 	void SetScaleKiloMeters() { this -> scaleFactor = 1000; }
 
 	/**
-	Returns the number of considered bodies
+	Return the number of considered bodies
 	@return number of considered bodies
 	*/
 	int get_number_of_bodies() const {return this -> number_of_bodies;}

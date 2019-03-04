@@ -60,7 +60,7 @@ public:
   void SetScaleKiloMeters() { this -> scaleFactor = 1000; this -> scaleFactorSet = true;this -> is_in_meters = false;}
 
   /**
-  Returns the shape's scale factor
+  Return the shape's scale factor
   @return scale factor
   */
   double GetScaleFactor() const {return this -> scaleFactor;}
@@ -85,7 +85,7 @@ public:
 
 
   /**
-  Returns coordinates of the three vertices forming a facet
+  Return coordinates of the three vertices forming a facet
   @param[in] f facet index
   @param[out] r0 first vertex coordinates
   @param[out] r1 first vertex coordinates
@@ -94,14 +94,14 @@ public:
   void GetVerticesInFacet(const int & f,double * r0,double * r1, double * r2) const;
 
   /**
-  Returns coordinates of point at center of facet
+  Return coordinates of point at center of facet
   @param f facet index
   @return coordinates of f-th facet center
   */
   arma::vec::fixed<3> GetFacetCenter(const int & f) const;
 
   /**
-  Returns coordinates of the two vertices forming an edge
+  Return coordinates of the two vertices forming an edge
   @param[in] e edge index
   @param[out] r0 first vertex coordinates
   @param[out] r1 first vertex coordinates
@@ -110,7 +110,7 @@ public:
 
 
   /**
-  Returns normal of facet f
+  Return normal of facet f
   @param[in] f facet index
   @param[out] n normal at facet
   */
@@ -118,7 +118,7 @@ public:
 
 
   /**
-  Returns the indices of the two facets adjacent to the specified edge
+  Return the indices of the two facets adjacent to the specified edge
   @param[in] e edge index
   @param[out] f0 index of first facet
   @param[out] f1 index of second facet
@@ -127,7 +127,7 @@ public:
 
 
   /**
-  Returns the indices of the vertices forming the prescribed edge
+  Return the indices of the vertices forming the prescribed edge
   @param[in] e edge index
   @param[out] v0 first vertex index
   @param[out] v1 second vertex index
@@ -135,7 +135,7 @@ public:
   void GetIndicesVerticesOnEdge(const int & e, int & v0,int & v1) const {v0 = this -> edges[e][0];v1 = this -> edges[e][1];}
 
   /**
-  Returns the indices of the vertices forming the prescribed facet
+  Return the indices of the vertices forming the prescribed facet
   @param[in] f facet index
   @param[out] v0 first vertex index
   @param[out] v1 second vertex index
@@ -145,7 +145,7 @@ public:
 
 
   /**
-  Returns the non-normalized facet normal at this facet
+  Return the non-normalized facet normal at this facet
   @param f facet index
   @return non-normalized facet normal
   */
@@ -154,7 +154,7 @@ public:
   
 
   /**
-  Returns the vector from the field point to the first vertex on the designated edge
+  Return the vector from the field point to the first vertex on the designated edge
   @param pos field point
   @param e edge index
   @return the vector from the field point to the first vertex on the designated edge
@@ -163,7 +163,7 @@ public:
 
 
   /**
-  Returns the vector from the field point to the first vertex on the designated edge
+  Return the vector from the field point to the first vertex on the designated edge
   @param pos field point
   @param e edge index
   @return the vector from the field point to the first vertex on the designated edge
@@ -173,7 +173,7 @@ public:
 
 
   /**
-  Returns the vector from the field point to the first vertex on the designated facet
+  Return the vector from the field point to the first vertex on the designated facet
   @param pos field point
   @param f facet index
   @return the vector from the field point to the first vertex on the designated facet
@@ -182,7 +182,7 @@ public:
 
 
   /**
-  Returns the vector from the field point to the first vertex on the designated facet
+  Return the vector from the field point to the first vertex on the designated facet
   @param pos field point
   @param f facet index
   @return the vector from the field point to the first vertex on the designated facet
@@ -191,7 +191,7 @@ public:
 
 
   /**
-  * Returns the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
+  * Return the bounding box (xmin,xmax,ymin,ymax,zmin,zmax) (m)
   @param[in] xmin minimum x-bound of the shape (m)
   @param[in] xmax maximum x-bound of the shape (m)
   @param[in] ymin minimum y-bound of the shape (m)
@@ -210,7 +210,7 @@ public:
 
 
 /**
-  Returns length of considered edge in meters
+  Return length of considered edge in meters
   @param e edge index
   @return edge length(m )
 */  
@@ -218,31 +218,31 @@ public:
 
 
   /**
-  Returns number of facets in shape
+  Return number of facets in shape
   @return number of facets
   */
   int GetN_facets() const{return this -> N_facets;}
   /**
-  Returns number of edges in shape
+  Return number of edges in shape
   @return number of edges
   */
   int GetN_edges() const{return this -> N_edges;}
 
   /**
-  Returns number of vertices in shape
+  Return number of vertices in shape
   @return number of vertices
   */
   int GetN_vertices() const{return this -> N_vertices;}
 
   
   /**
-  Returns true if the input shape has its coordinates expressed in meters, false otherwise
+  Return true if the input shape has its coordinates expressed in meters, false otherwise
   */
   bool GetIsInMeters() const{ return this -> is_in_meters;}
 
 
   /**
-  Returns true if the input shape has its coordinates expressed in kilometers, false otherwise
+  Return true if the input shape has its coordinates expressed in kilometers, false otherwise
   */
   bool GetIsInKiloMeters() const{ return !this -> is_in_meters;}
 

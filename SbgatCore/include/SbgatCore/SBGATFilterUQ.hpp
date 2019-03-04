@@ -34,7 +34,7 @@ public:
 
 
   /**
-  Returns a square root of the covariance matrix.
+  Return a square root of the covariance matrix.
   The covariance square root is expressed in the original shape's unit squared (that is, 
   meters or kilometers). This method will attempt extracting the square root through 
   a cholesky decomposition of the covariance(P_CC = R * R.T) . Users can also ask for a square root derived from a spectral
@@ -96,7 +96,7 @@ Sets the vertices covariance to the provided one
 
 
   /**
-  Returns a copy of the vertices covariance. Its unit are the same as those of the input
+  Return a copy of the vertices covariance. Its unit are the same as those of the input
   shape (hence, m^2 or km^2)
   @return P_CC
   */
@@ -125,7 +125,7 @@ Sets the vertices covariance to the provided one
   virtual void ApplyDeviation(const arma::vec & delta_C) = 0;
 
   /**
-  Returns the connectivity table associated with vector Tf, the parametrization 
+  Return the connectivity table associated with vector Tf, the parametrization 
   of the vertices coordinates forming the f-th facet
   @param f facet index
   @return connectivity table
@@ -134,7 +134,7 @@ Sets the vertices covariance to the provided one
 
 
   /**
-  Returns the partial derivative of the non-normalized normal at the f-th facet 
+  Return the partial derivative of the non-normalized normal at the f-th facet 
   with respect to the vertices coordinates constitutive of the f-th triangle (Tf) 
   @param f facet index
   @return PartialNfPartialTf (3x9)

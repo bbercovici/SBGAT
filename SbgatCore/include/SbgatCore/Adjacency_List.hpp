@@ -270,7 +270,7 @@ public:
 
 	/**
 	\brief std::set<T2> get_edges()
-	\details Returns a set storing all the existing edges
+	\details Return a set storing all the existing edges
 	*/
 
 	std::set<T2> get_edges() {
@@ -296,7 +296,7 @@ public:
 
 	/**
 	\brief std::set<T1> get_vertices()
-	\details Returns a set storing all the existing vertices
+	\details Return a set storing all the existing vertices
 	*/
 
 	std::set<T1> get_vertices() {

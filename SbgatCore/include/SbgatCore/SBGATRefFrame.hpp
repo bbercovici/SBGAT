@@ -55,7 +55,7 @@ public:
 	~SBGATRefFrame();
 
 	/**
-	Returns the reference frame name
+	Return the reference frame name
 	@return name of reference frame
 	*/
 	std::string get_name() const;
@@ -77,20 +77,20 @@ public:
 	void set_origin_from_parent(arma::vec & origin) ;
 
 	/**
-	Returns the mrp of $this with respect to its parent
+	Return the mrp of $this with respect to its parent
 	@return mrp of $this with respect to its parent
 	*/
 	const arma::vec::fixed<3> & get_mrp_from_parent() const;
 
 
 	/**
-	Returns the dcm of $this with respect to its parent
+	Return the dcm of $this with respect to its parent
 	@return dcm of $this with respect to its parent
 	*/
 	const arma::mat::fixed<3,3> & get_dcm_from_parent() const;
 
 	/**
-	Returns the origin of $this with respect to its parent
+	Return the origin of $this with respect to its parent
 	expressed in the parent reference frame
 	@return origin of $this with respect to its parent
 	*/
