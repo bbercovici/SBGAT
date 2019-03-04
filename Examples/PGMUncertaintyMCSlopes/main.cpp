@@ -33,7 +33,7 @@ int main(){
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
-	std::cout << "- Uncertainty type: " << PATH_SHAPE << std::endl;
+	std::cout << "- Uncertainty type: " << UNCERTAINTY_TYPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
 	std::cout << "- Standard deviation on rotation period (s) : " << PERIOD_SD << std::endl;
