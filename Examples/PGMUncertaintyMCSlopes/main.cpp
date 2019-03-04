@@ -100,7 +100,7 @@ int main(){
 
 	// Analytical UQ
 
-	std::vector<double> analytical_variances_pot(all_facets.size());
+	std::vector<double> analytical_variances_slopes(all_facets.size());
 
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
@@ -126,7 +126,7 @@ int main(){
 	start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(PATH_SHAPE,
 		DENSITY,
-		Omega,
+		pgm_filter -> GetOmega() ,
 		UNIT_IN_METERS,
 		C_CC,
 		PERIOD_SD,
@@ -168,7 +168,7 @@ int main(){
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
 
 	for (int e = 0; e < all_facets.size(); ++e){
-		all_positions[e].t().print("\t At: ");
+		std::cout << "\tAt facet " << all_facets[e] << "\n";
 		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
 		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
 
