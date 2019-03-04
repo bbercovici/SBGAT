@@ -109,9 +109,11 @@ int main(){
 
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
+	boost::progress_display progress(all_facets.size());
 	#pragma omp parallel for
 	for (int e = 0; e < all_facets.size(); ++e){
 		analytical_variances_slopes[e] = pgm_uq.GetVarianceSlope(all_facets[e]);
+		++progress;
 	}
 	auto end = std::chrono::system_clock::now();
 
