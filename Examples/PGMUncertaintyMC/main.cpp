@@ -65,7 +65,7 @@ int main(){
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
-	pgm_uq.SetPGM(pgm_filter);
+	pgm_uq.SetModel(pgm_filter);
 
 	std::cout << "Populating shape covariance ...\n";
 
