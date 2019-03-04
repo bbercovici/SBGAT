@@ -84,4 +84,3 @@ for data in all_data:
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
     os.system("./PGMUncertainty 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
-
