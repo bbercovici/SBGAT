@@ -73,6 +73,9 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 		}
 
 	}
+	else{
+		throw(std::runtime_error("SBGATFilterUQ::GetCovarianceSquareRoot provided with unknown method: " + method));
+	}
 
 
 }
