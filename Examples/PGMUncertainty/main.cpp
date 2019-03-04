@@ -172,7 +172,7 @@ int main(){
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 
-		if (pgm_filter -> Contains(point)){
+		if (pgm_filter -> Contains(grid[p])){
 			trace_sqrt_cov_vector(p) = arma::datum::nan;
 			reference_acceleration(p) = arma::datum::nan;
 		}
