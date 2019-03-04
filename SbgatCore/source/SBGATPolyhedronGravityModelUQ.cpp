@@ -3918,7 +3918,7 @@ void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slop
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
-	arma::mat all_partials = arma::mat(facets.size(),3 * pgm_model -> GetN_vertices());
+	arma::mat all_partials = arma::mat(facets.size(),1 + 3 * pgm_model -> GetN_vertices());
 
 	arma::mat augmented_P_CC = arma::zeros<arma::mat>(this -> P_CC .n_rows + 1,this -> P_CC .n_rows + 1);
 	augmented_P_CC(0,0) = std::pow( arma::dot(pgm_model -> GetOmega(),pgm_model -> GetOmega()) / (2 * arma::datum::pi),2) * std::pow(this -> period_standard_deviation,2);
