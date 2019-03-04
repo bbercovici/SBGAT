@@ -30,7 +30,7 @@ int main(){
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
-	std::string UNCERTAINTY_TYPE = = input_data["UNCERTAINTY_TYPE"];
+	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
