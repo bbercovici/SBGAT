@@ -100,6 +100,8 @@ int main(){
 		arma::vec::fixed<3>({0,0,-500}),
 	};
 
+	all_positions *= 1e3;
+
 
 	// Analytical UQ
 
