@@ -927,14 +927,18 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	pgm_filter -> SetScaleMeters();
 	pgm_filter -> Update();
 
+	double period = 12 * 3600;
+	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+	pgm_filter -> SetOmega(Omega);
+
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
 
-	double period = 12 * 3600;
-	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+	
 	int f = 0;
 
-	double nom_slope = pgm_filter  -> GetSlope(f,Omega);
+	double nom_slope = pgm_filter  -> GetSlope(f);
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
 	std::cout << "Nominal slope : " << nom_slope << std::endl;
@@ -945,7 +949,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	int N_C = vtkPolyData::SafeDownCast(pgm_filter -> GetInput()) -> GetNumberOfPoints();
 
 
-	
 	arma::vec U_mc(N);
 	arma::vec slopes_mc(N);
 	arma::mat A_mc(3,N);
@@ -986,7 +989,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
-	double variance_slope_analytical = shape_uq.GetVarianceSlope(f,Omega);
+	double variance_slope_analytical = shape_uq.GetVarianceSlope(f);
 	arma::mat::fixed<3,3> covariance_A_analytical = shape_uq.GetCovarianceAcceleration(pos);
 	auto end = std::chrono::system_clock::now();
 
@@ -1031,6 +1034,11 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		pgm_filter_mc -> SetScaleMeters();
 		pgm_filter_mc -> Update();
 
+
+		arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (12 * 3600 ) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+		pgm_filter_mc -> SetOmega(Omega);
+
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetModel(pgm_filter_mc);
 		
@@ -1041,14 +1049,13 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		double pot;
 		pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
 
-
-
 		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
 
+		pgm_filter_mc -> SetOmega(Omega_p);
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1140,8 +1147,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	int f = 0;
 	double period = 12 * 3600;
 	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
-
-	double nom_slope = pgm_filter  -> GetSlope(f,Omega);
+	pgm_filter -> SetOmega(Omega);
+	double nom_slope = pgm_filter  -> GetSlope(f);
 
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
@@ -1158,7 +1165,6 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	double period_standard_deviation = 3600 / 3;
 
 	arma::vec period_error = period_standard_deviation * arma::randn<arma::vec>(N);
-
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
@@ -1233,6 +1239,9 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		pgm_filter_mc -> SetScaleKiloMeters();
 		pgm_filter_mc -> Update();
 
+		arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (12 * 3600 ) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		pgm_filter_mc -> SetOmega(Omega);
+
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetModel(pgm_filter_mc);
 		
@@ -1245,11 +1254,12 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 
 		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		pgm_filter_mc -> SetOmega(Omega_p);
 
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();
@@ -1337,12 +1347,13 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	double period = 12 * 3600;
 	arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (period) * pgm_filter  -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+	pgm_filter -> SetOmega(Omega);
 
 
 	arma::vec::fixed<3> nom_acc;
 	double nom_pot;
 	
-	double nom_slope = pgm_filter  -> GetSlope(f,Omega);
+	double nom_slope = pgm_filter  -> GetSlope(f);
 	pgm_filter -> GetPotentialAcceleration(pos,nom_pot,nom_acc);
 	std::cout << "Nominal potential : " << nom_pot << std::endl;
 	std::cout << "Nominal slope : " << nom_slope << std::endl;
@@ -1432,6 +1443,9 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		pgm_filter_mc -> SetScaleKiloMeters();
 		pgm_filter_mc -> Update();
 
+		arma::vec::fixed<3> Omega = 2 * arma::datum::pi / (12 * 3600 ) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+
+		pgm_filter_mc -> SetOmega(Omega);
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		shape_uq_mc.SetModel(pgm_filter_mc);
 		
@@ -1444,11 +1458,12 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 
 		arma::vec::fixed<3> Omega_p = 2 * arma::datum::pi / (12 * 3600 + period_error(i)) * pgm_filter_mc -> GetPrincipalAxes().t() * arma::vec({0,0,1});
+		pgm_filter_mc -> SetOmega(Omega_p);
 
 
 		U_mc(i) = pot;
 		A_mc.col(i) = acc;
-		slopes_mc(i) = pgm_filter_mc -> GetSlope(f,Omega_p);
+		slopes_mc(i) = pgm_filter_mc -> GetSlope(f);
 
 		if (i < 20){
 			vtkSmartPointer<SBGATObjWriter> writer = SBGATObjWriter::New();

@@ -1,0 +1,1 @@
+{"N_MONTE_CARLO": 10, "CORRELATION_DISTANCE": 200, "ERROR_STANDARD_DEV": 10, "DENSITY": 2000, "UNIT_IN_METERS": true, "PATH_SHAPE": "../../../resources/shape_models/itokawa_8_scaled.obj", "INPUT_DIR": "../input/first_round_of_sims_0/", "OUTPUT_DIR": "../output/first_round_of_sims_0/"}
