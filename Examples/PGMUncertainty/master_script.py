@@ -8,6 +8,7 @@ import sys
 import itertools
 import time
 
+
 def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,base_location,sim_name):
 
     if len(all_cases_dictionnary) > 0:
