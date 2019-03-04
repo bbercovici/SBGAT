@@ -70,6 +70,11 @@ int main(){
 	// Save the covariance
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
+	// Saving baseline slices
+	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
+	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
+	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
+
 	// That's where the grid search should start.
 	// First, create the grid from the bounding box
 	std::vector<arma::vec::fixed<3> > grid;
@@ -94,8 +99,8 @@ int main(){
 	}
 	else if (PROJECTION_AXIS == 1){
 
-		i_max = 1./STEP_SIZE * (zmax - zmin);
-		j_max = 1./STEP_SIZE * (xmax - xmin);
+		i_max = 1./STEP_SIZE * (xmax - xmin);
+		j_max = 1./STEP_SIZE * (zmax - zmin);
 
 	}
 	else if (PROJECTION_AXIS == 2){
@@ -125,12 +130,13 @@ int main(){
 			}
 			else if (PROJECTION_AXIS == 1){
 
-				double z = zmin + i * STEP_SIZE;
-				double x = xmin + j * STEP_SIZE;
+				double x = xmin + i * STEP_SIZE;
 
-				point(0) = z;
+				double z = zmin + j * STEP_SIZE;
+
+				point(0) = x;
 				point(1) = 0;
-				point(2) = x;
+				point(2) = z;
 			}
 			else{
 
@@ -142,8 +148,7 @@ int main(){
 				point(2) = 0;
 			}
 			
-			if (!pgm_filter -> Contains(point))
-				grid.push_back(point);
+			grid.push_back(point);
 		}
 	}
 	std::cout << "- Grid size: " << grid.size() << std::endl;
@@ -166,8 +171,16 @@ int main(){
 	boost::progress_display progress(grid.size());
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
-		trace_sqrt_cov_vector(p) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
-		reference_acceleration(p) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
+
+		if (pgm_filter -> Contains(point)){
+			trace_sqrt_cov_vector(p) = arma::datum::nan;
+			reference_acceleration(p) = arma::datum::nan;
+		}
+		else{
+
+			trace_sqrt_cov_vector(p) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
+			reference_acceleration(p) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
+		}
 		++progress;
 	}
 
