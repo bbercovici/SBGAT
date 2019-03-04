@@ -102,11 +102,8 @@ list(REMOVE_ITEM dirs "/Applications/Xcode.app/Contents/Developer/Platforms/MacO
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${dirs})
 
 # Add source files in root directory
-add_executable(${EXE_NAME}
-	include/Tests.hpp
-	source/main.cpp
-	source/Tests.cpp
-	)
+add_executable(${EXE_NAME} main.cpp )
+
 
 set(library_dependencies
 	${ARMADILLO_LIBRARIES}
