@@ -450,6 +450,11 @@ void SBGATFilterUQ::TakeSlice(int axis,
 void SBGATFilterUQ::AddUncertaintyRegionToCovariance(int region_center_index,const double & standard_dev,const double & correl_distance){
 
 
+	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+		this -> P_CC.clear();
+		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
+	}
+	
 	double epsilon = 1e-4;
 
 	vtkPolyData * input = vtkPolyData::SafeDownCast(this -> model -> GetInput());

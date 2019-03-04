@@ -34,15 +34,15 @@ else:
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertaintyMCGlobal"
+SIM_PREFIX = "PGMUncertaintyMCPoles"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"CORRELATION_DISTANCE" : 200,
-"ERROR_STANDARD_DEV" : 10,
-"DENSITY" : 2000,
-"UNIT_IN_METERS" : True,
-"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
+"CORRELATION_DISTANCE" : 30e3,
+"ERROR_STANDARD_DEV" : 10e3,
+"DENSITY" : 3700,
+"UNIT_IN_METERS" : False,
+"PATH_SHAPE" : "../../../resources/shape_models/psyche.obj"
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -55,7 +55,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"N_MONTE_CARLO" : [10,100,1000,10000]
+"N_MONTE_CARLO" : [1000,10000]
 }
 
 # There shouldn't be any reason to modify the following

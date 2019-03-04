@@ -944,10 +944,11 @@ void Mainwindow::compute_geometric_measures(){
 
  this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box (m) :"));
 
- double * bbox =  mass_properties_filter -> GetBoundingBox();
+ double xmin,xmax, ymin, ymax, zmin, zmax;
+ mass_properties_filter -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
 
- this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(bbox[0]) + " "+ std::to_string(bbox[2]) + " "+ std::to_string(bbox[4])));
- this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(bbox[1]) + " "+ std::to_string(bbox[3]) + " "+ std::to_string(bbox[5])));
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(xmin) + " "+ std::to_string(ymin) + " "+ std::to_string(zmin)));
+ this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(xmax) + " "+ std::to_string(ymax) + " "+ std::to_string(zmax)));
 
  ss.str(std::string());
  ss.precision(10);
