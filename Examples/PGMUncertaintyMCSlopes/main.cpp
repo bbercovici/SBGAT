@@ -91,7 +91,7 @@ int main(){
 		pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 	else{
-		throw(std::runtime_error("Got unknown uncertainty direction type: " + std::to_string(UNCERTAINTY_TYPE)));
+		throw(std::runtime_error("Got unknown uncertainty direction type: " + UNCERTAINTY_TYPE));
 	}
 
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
