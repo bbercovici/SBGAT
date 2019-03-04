@@ -133,7 +133,7 @@ int main(){
 		N_MONTE_CARLO, 
 		all_positions,
 		OUTPUT_DIR,
-		10,
+		std::min(30,N_MONTE_CARLO),
 		deviations,
 		all_accelerations,
 		all_potentials);

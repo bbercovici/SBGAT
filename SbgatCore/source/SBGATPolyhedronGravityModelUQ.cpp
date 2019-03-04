@@ -3171,7 +3171,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 
 	for (int i = 0; i < N_samples ; ++i){
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
-
 	}
 
 
@@ -3185,13 +3184,14 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQ(std::string path_to_shape,
 		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 		pgm_filter_mc -> SetInputData(shape_copy);
 		pgm_filter_mc -> SetDensity(density); 
+		
 		if (shape_in_meters){
 			pgm_filter_mc -> SetScaleMeters();
 		}
 		else{
 			pgm_filter_mc -> SetScaleKiloMeters();
-
 		}
+		
 		pgm_filter_mc -> Update();
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		
