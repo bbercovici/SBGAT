@@ -44,7 +44,7 @@ base_dictionnary = {
 "UNIT_IN_METERS" : False,
 "PERIOD" : 4.195948 * 3600,
 "PERIOD_SD" : 1e-5 * 4.195948 * 3600,
-
+"N_MONTE_CARLO" : 1000,
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj"
 }
 
@@ -58,8 +58,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"UNCERTAINTY_TYPE" = ["normal","radial"]
-"N_MONTE_CARLO" : [1000,10000]
+"UNCERTAINTY_TYPE" = ["global","normal","radial"]
 }
 
 # There shouldn't be any reason to modify the following

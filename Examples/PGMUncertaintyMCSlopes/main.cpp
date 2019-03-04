@@ -31,7 +31,7 @@ int main(){
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 	std::string UNCERTAINTY_TYPE = = input_data["UNCERTAINTY_TYPE"];
-	
+
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
@@ -86,6 +86,9 @@ int main(){
 	else if (UNCERTAINTY_TYPE == "normal"){
 		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	}
+	else if (UNCERTAINTY_TYPE == "global"){
+		pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 	else{
 		throw(std::runtime_error("Got unknown uncertainty direction type: " + std::to_string(UNCERTAINTY_TYPE)));

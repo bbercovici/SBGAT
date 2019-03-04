@@ -58,13 +58,18 @@ to apply the update (if any).
 ## Changelog
 ### [SBGAT 2.03.1](https://github.com/bbercovici/SBGAT/releases/tag/2.03.1)
 
+#### New
+- Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`
+
 ### Improvement
+- `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`
 - Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.
+
 
 
 ### [SBGAT 2.02.4](https://github.com/bbercovici/SBGAT/releases/tag/2.02.4)
 
-### New
+#### New
 - SBGAT 2.02.4 introduces `SBGATPolyhedronGravityModelUQ`, a class dedicated to uncertainty quantification in Polyhedron Gravity potentials and accelerations arising from a stochastic shape. This class enables the evaluation of the variance in the potential and covariance in the acceleration at any point in space (excluding shape edges)
 - Expanded and consolidated the Tests suite.
 
@@ -132,7 +137,7 @@ to apply the update (if any).
 
 ### [SBGAT 2.01.1](https://github.com/bbercovici/SBGAT/releases/tag/2.01.1)
 
-### New:
+#### New:
 - Facets can now be individually selected in `SbgatGui` by clicking on them. If the surface PGM of the selected shape is available, the results for the selected facet will be shown in the console
 
 #### Improvements
@@ -144,7 +149,7 @@ to apply the update (if any).
 
 ### [SBGAT 1.12.2](https://github.com/bbercovici/SBGAT/releases/tag/1.12.2)
 
-### New:
+#### New:
 - A previously evaluated surface Polyhedron Gravity Model can now be loaded from a JSON file via the static method `SBGATPolyhedronGravityModel::LoadSurfacePGM`
 - `SbgatGui` can now overlay previously computed surface PGM results over a corresponding shape model (aka featuring the same number of facets as the one used to generate the surface PGM)
 
@@ -158,7 +163,7 @@ to apply the update (if any).
 
 ### [SBGAT 1.12.1](https://github.com/bbercovici/SBGAT/releases/tag/1.12.1)
 
-### New:
+#### New:
 - The gravity-gradient matrix deriving from the polyhedron gravity model can now be evaluated
 - The evaluation of the surface polyhedron gravity model can now be saved to a JSON file through `SBGATPolyhedronGravityModel::SaveSurfacePGM`
 - This static method is available in `SbgatGUI` as the evaluation of the PGM will now require the specification of an output file
