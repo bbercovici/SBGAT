@@ -34,7 +34,7 @@ else:
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "first_round_of_sims"
+SIM_PREFIX = "PGMUncertainty"
 
 
 # Dictionnary storing simulation inputs to be kept constant
@@ -44,6 +44,7 @@ base_dictionnary = {
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
 "STEP_SIZE" : 10.,
+"N_MONTE_CARLO" : 1000,
 "PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
 }
 

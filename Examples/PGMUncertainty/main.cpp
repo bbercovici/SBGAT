@@ -24,6 +24,7 @@ int main(){
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
 
 	int PROJECTION_AXIS = input_data["PROJECTION_AXIS"];
+	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 
@@ -61,7 +62,7 @@ int main(){
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
-	pgm_uq.SetPGM(pgm_filter);
+	pgm_uq.SetModel(pgm_filter);
 
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
@@ -100,7 +101,7 @@ int main(){
 	else if (PROJECTION_AXIS == 2){
 
 		i_max = 1./STEP_SIZE * (xmax - xmin);
-		j_max = 1./STEP_SIZE * (zmax - zmin);
+		j_max = 1./STEP_SIZE * (ymax - ymin);
 
 	}
 	else{
@@ -157,22 +158,106 @@ int main(){
 
 	// Evaluate the uncertainty at each point on the grid
 	arma::vec trace_sqrt_cov_vector(grid.size());
+	arma::vec reference_acceleration(grid.size());
+	arma::vec uncertainty_over_reference_acc_percentage(grid.size());
+
 
 	auto start = std::chrono::system_clock::now();
 	boost::progress_display progress(grid.size());
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 		trace_sqrt_cov_vector(p) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
+		reference_acceleration(p) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
 		++progress;
 	}
+
+	uncertainty_over_reference_acc_percentage = trace_sqrt_cov_vector / reference_acceleration * 100;
 
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "\n-- Done sampling grid " << elapsed_seconds.count() << " s\n";
 
-	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 
-	
+
+	// Running a Monte Carlo on a subset of the grid
+
+	std::vector<arma::vec::fixed<3> > all_positions;
+	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
+	std::vector<std::vector<double > > all_potentials;
+	std::vector<arma::vec> deviations;
+
+
+	all_positions.push_back(grid[0]);
+	all_positions.push_back(grid[100]);
+	all_positions.push_back(grid[200]);
+	all_positions.push_back(grid[300]);
+	all_positions.push_back(grid[400]);
+	all_positions.push_back(grid[500]);
+	all_positions.push_back(grid[600]);
+
+	std::cout << "Running MC ... ";
+
+	start = std::chrono::system_clock::now();
+	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
+		UNIT_IN_METERS,
+		pgm_uq.GetCovarianceSquareRoot(),
+		N_MONTE_CARLO, 
+		all_positions,
+		OUTPUT_DIR,
+		std::min(30,N_MONTE_CARLO),
+		deviations,
+		all_accelerations,
+		all_potentials);
+
+	end = std::chrono::system_clock::now();
+
+	elapsed_seconds = end-start;
+
+	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
+
+// Computing MC Dispersions
+	std::vector<double> mc_variances_pot(all_positions.size());
+	std::vector<arma::mat::fixed<3,3> > mc_covariances_acc(all_positions.size());
+
+#pragma omp parallel for
+	for (int e = 0; e < all_positions.size(); ++e){
+
+		arma::vec potentials_mc(N_MONTE_CARLO);
+		arma::mat accelerations_mc(3,N_MONTE_CARLO);
+
+		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
+			potentials_mc(sample) = all_potentials[sample][e];
+			accelerations_mc.col(sample) = all_accelerations[sample][e];
+		}
+
+		mc_variances_pot[e] = arma::var(potentials_mc);
+		mc_covariances_acc[e] = arma::cov(accelerations_mc.t());
+
+	}
+
+	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
+
+	for (int e = 0; e < all_positions.size(); ++e){
+
+
+		arma::mat analytical_covariance_acc = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
+		double analytical_variance_pot = pgm_uq.GetVariancePotential(all_positions[e]);
+
+		all_positions[e].t().print("\t At: ");
+		std::cout << "\t\tMC variance in potential: " << mc_variances_pot[e] << std::endl;
+		std::cout << "\t\tAnalytical variance in potential: " << analytical_variance_pot << std::endl;
+
+		std::cout << "\t\tError (%): " << (mc_variances_pot[e] - analytical_variance_pot)/mc_variances_pot[e] * 100 << std::endl;
+
+		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
+		std::cout << "\t\tAnalytical covariance in acceleration: \n" << analytical_covariance_acc << std::endl;
+		
+		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariance_acc)/arma::norm(mc_covariances_acc[e]) * 100 << std::endl;
+	}
+
+	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
+	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
+	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
 
 	return 0;
 }
