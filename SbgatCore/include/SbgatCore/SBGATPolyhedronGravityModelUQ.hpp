@@ -306,7 +306,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   reference shape at every sample
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   */
-void RunMCUQAccelerationInertial(std::string path_to_shape,
+static void RunMCUQAccelerationInertial(std::string path_to_shape,
   const double & density,
   const bool & shape_in_meters,
   const arma::mat & C_CC,
