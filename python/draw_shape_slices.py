@@ -4,8 +4,6 @@ import matplotlib as mpl
 import os
 import glob
 
-
-
 def draw_slices_in_dir(input_dir,output_dir = "",prefix = ""):
 
 	slice_counter = len(glob.glob1(input_dir,"slice_x_*"))
@@ -21,15 +19,12 @@ def draw_slices_in_dir(input_dir,output_dir = "",prefix = ""):
 		slices_y = [input_dir + "/baseline_slice_y.txt"] + slices_y
 		slices_z = [input_dir + "/baseline_slice_z.txt"] + slices_z
 
-
 		draw_slice(0,slices_x,output_dir = output_dir,prefix = prefix)
 		draw_slice(1,slices_y,output_dir = output_dir,prefix = prefix)
 		draw_slice(2,slices_z,output_dir = output_dir,prefix = prefix)
 
 
-
-
-def draw_slice(axis,slices,output_dir = "",prefix = ""):
+def draw_slice(axis,slices,delay_plot = False,output_dir = "",prefix = ""):
 
 	cut_names = ["Y-Z","X-Z","X-Y"]
 
@@ -65,6 +60,7 @@ def draw_slice(axis,slices,output_dir = "",prefix = ""):
 
 			plt.gca().add_line(mpl.lines.Line2D(x, y,color = c,alpha = alpha))
 
+
 	if axis == 0:
 		plt.xlabel("Y (m)")
 		plt.ylabel("Z (m)")
@@ -75,13 +71,13 @@ def draw_slice(axis,slices,output_dir = "",prefix = ""):
 		plt.xlabel("X (m)")
 		plt.ylabel("Y (m)")
 
-	plt.scatter(0,0,marker = ".",color = "black" )
 	
 	plt.xlim(1.5 * x_min, 1.5 * x_max)
 	plt.ylim(1.5 * y_min, 1.5 * y_max)
 
 	plt.axis("equal")
-
+	if (delay_plot):
+		return
 	if (len(output_dir) > 0):
 			plt.savefig(output_dir + "/" + prefix +"slice_" + str(axis) + ".pdf", bbox_inches='tight')
 	else:
@@ -90,4 +86,4 @@ def draw_slice(axis,slices,output_dir = "",prefix = ""):
 	plt.cla()
 	plt.clf()
 
-draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_0")
+# draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCPoles/output/PGMUncertaintyMCPoles_0")

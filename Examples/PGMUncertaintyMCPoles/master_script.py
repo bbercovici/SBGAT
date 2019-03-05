@@ -42,7 +42,8 @@ base_dictionnary = {
 "ERROR_STANDARD_DEV" : 10e3,
 "DENSITY" : 3700,
 "UNIT_IN_METERS" : False,
-"PATH_SHAPE" : "../../../resources/shape_models/psyche.obj"
+"PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
+"N_MONTE_CARLO" : 1000
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -55,7 +56,6 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"N_MONTE_CARLO" : [1000,10000],
 "UNCERTAINTY_TYPE" : ["normal","radial"]
 }
 

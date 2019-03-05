@@ -21,7 +21,6 @@ def plot_uncertainty_grid(path):
                     uncertainty_percentage[i,j] = np.nan
     uncertainty_percentage = uncertainty_percentage.T
     
-
     min_uncertainty = np.min(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
     max_uncertainty = np.max(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
 
