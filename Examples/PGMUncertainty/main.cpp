@@ -68,12 +68,12 @@ int main(){
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 
 	// Save the covariance
-	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
+	// pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	// Saving baseline slices
-	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
-	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
-	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",0);
+	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",1e-6);
+	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",1e-6);
+	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",1e-6);
 
 	// That's where the grid search should start.
 	// First, create the grid from the bounding box
@@ -88,6 +88,17 @@ int main(){
 	ymax *= 2.5;
 	zmin *= 2.5;
 	zmax *= 2.5;
+
+	double min_dim = std::min(xmin,std::min(ymin,zmin));
+	double max_dim = std::max(xmax,std::max(ymax,zmax));
+
+	xmax = max_dim;
+	ymax = max_dim;
+	zmax = max_dim;
+
+	xmin = min_dim;
+	ymin = min_dim;
+	zmin = min_dim;
 
 	// Define grid indices
 	int i_max,j_max;
@@ -279,7 +290,6 @@ int main(){
 	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
 	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
-
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
 
 	return 0;
