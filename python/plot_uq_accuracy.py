@@ -36,7 +36,7 @@ def plot_uq_accuracy(path):
         plt.colorbar()
         plt.ylabel("Z(m)")
         plt.xlabel("Y(m)")
-        plt.title(r"$\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}$")
+        plt.title(r"Relative Accuracy $\left(\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}\cdot 100 \%\right)$")
 
         plt.show()
         draw_slice(0, [path + "/baseline_slice_x.txt"] ,delay_plot = True)
@@ -70,7 +70,7 @@ def plot_uq_accuracy(path):
         plt.colorbar()
         plt.ylabel("X(m)")
         plt.xlabel("Z(m)")
-        plt.title(r"$\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}$")
+        plt.title(r"Relative Accuracy $\left(\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}\cdot 100 \%\right)$")
 
         plt.show()
         draw_slice(1, [path + "/baseline_slice_y.txt"] ,delay_plot = True)
@@ -105,7 +105,7 @@ def plot_uq_accuracy(path):
         plt.colorbar()
         plt.ylabel("Y(m)")
         plt.xlabel("Z(m)")
-        plt.title(r"$\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}$")
+        plt.title(r"Relative Accuracy $\left(\frac{\sqrt{\Vert P_{\mathbf{a},mc} - P_{\mathbf{a}}\Vert}}{\mathrm{E}\left(\mathbf{a}_{mc}\right)}\cdot 100 \%\right)$")
 
         plt.show()
         draw_slice(2, [path + "/baseline_slice_z.txt"] ,delay_plot = True)
