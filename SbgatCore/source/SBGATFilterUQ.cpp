@@ -651,11 +651,11 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 
 double SBGATFilterUQ::KLDivergence(const arma::vec & m0,const arma::mat & m1,const arma::mat & P0,const arma::mat & P1){
 
-	assert(m0.n_rows = m1.n_rows);
-	assert(P0.n_rows = P1.n_rows);
-	assert(P0.n_cols = P1.n_cols);
-	assert(P0.n_cols = m0.n_rows);
-	assert(P1.n_cols = m1.n_rows);
+	assert(m0.n_rows == m1.n_rows);
+	assert(P0.n_rows == P1.n_rows);
+	assert(P0.n_cols == P1.n_cols);
+	assert(P0.n_cols == m0.n_rows);
+	assert(P1.n_cols == m1.n_rows);
 
 	arma::mat P1_inv = arma::inv(P1);
 
