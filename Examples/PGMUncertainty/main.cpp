@@ -300,7 +300,8 @@ int main(){
 		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point);
 		
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
-		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) / reference_acceleration(i,j) * 100;
+		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
+		uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100
 
 		++progress;
 	}
