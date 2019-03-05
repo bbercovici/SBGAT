@@ -32,6 +32,10 @@ int main(){
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
 	std::cout << "- Correlation distance (m) : " << CORRELATION_DISTANCE << std::endl;
 	std::cout << "- Density (kg/m^3) : " << DENSITY << std::endl;
+	std::cout << "- Monte-Carlo draws : " << N_MONTE_CARLO << std::endl;
+	std::cout << "- Step size : " << STEP_SIZE << std::endl;
+	std::cout << "- Projection axis : " << PROJECTION_AXIS << std::endl;
+
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -44,20 +48,13 @@ int main(){
 	pgm_filter -> SetInputConnection(reader -> GetOutputPort());
 	pgm_filter -> SetDensity(DENSITY);
 
-	// An instance of SBGATPolyhedronGravityModel is created to get the bounding
-	// box of the provided polydata
-	vtkSmartPointer<SBGATMassProperties> mass_properties = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_properties -> SetInputConnection(reader -> GetOutputPort());
 	
 	if(UNIT_IN_METERS){
 		pgm_filter -> SetScaleMeters();
-		mass_properties -> SetScaleMeters();
 	} else{
 		pgm_filter -> SetScaleKiloMeters();
-		mass_properties -> SetScaleKiloMeters();
 	}
 	pgm_filter -> Update();
-	mass_properties -> Update();
 
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
@@ -66,20 +63,24 @@ int main(){
 
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 
-	// Save the covariance
-	// pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
+	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
+
+	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
+	std::cout << "Saving shape covariance ...\n";
+	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
+	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 
 	// Saving baseline slices
 	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",1e-6);
 	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",1e-6);
 	pgm_uq.TakeAndSaveSlice(2,OUTPUT_DIR + "baseline_slice_z.txt",1e-6);
 
-	// That's where the grid search should start.
 	// First, create the grid from the bounding box
 	std::vector<arma::vec::fixed<3> > grid;
 	double xmin,xmax,ymin,ymax,zmin,zmax;
-	mass_properties -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
+	pgm_filter -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
 	
 	// Inflate
 	xmin *= 2.5;
@@ -121,18 +122,21 @@ int main(){
 
 	}
 	else{
-		throw(std::runtime_error("PROJECTION_AXIS has to be 0,1 or 2. It can't be equal to " + std::to_string(PROJECTION_AXIS)));
+		throw(std::runtime_error("PROJECTION_AXIS has to be either 0, 1 or 2. It can't be equal to " + std::to_string(PROJECTION_AXIS)));
 	}
 
-	// Populate the grid with points that are strictly outside of the reference shape
+	// Create the grid containers
 	std::vector<std::vector<int> > indices;
-	arma::mat trace_sqrt_cov_vector(i_max,j_max);
+	arma::mat trace_sqrt_cov(i_max,j_max);
 	arma::mat reference_acceleration(i_max,j_max);
 	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
 	arma::mat inside_outside(i_max,j_max);
+	arma::mat KL_divergence_analytical_vs_mc(i_max,j_max);
+	arma::mat abs_value_cov_difference_analytical_vs_mc(i_max,j_max);
+	arma::mat rel_value_cov_difference_analytical_vs_mc(i_max,j_max);
 
 
-
+	// Construct the grid (constant, uniform step size in both directions of space)
 	for (int i = 0; i < i_max; ++i){
 		for (int j = 0; j < j_max; ++j){
 
@@ -178,148 +182,105 @@ int main(){
 		}
 	}
 	std::cout << "- Grid size: " << grid.size() << std::endl;
-
+	
+	// Saving the grid to a file
 	arma::mat grid_arma(3,grid.size());
-	for (int p = 0; p < grid.size(); ++p){
+	for (unsigned int p = 0; p < grid.size(); ++p){
 		grid_arma.col(p) = grid[p];
 	}
 	grid_arma.save(OUTPUT_DIR + "grid.txt",arma::raw_ascii);
 
-	std::cout << "- Sampling grid ...\n";
-
+	std::cout << "- Evaluating analytical uncertainties over grid ...\n";
 
 	auto start = std::chrono::system_clock::now();
 	boost::progress_display progress(grid.size());
+	
+	// For every point in the grid, evaluate the analytical acceleration covariance and 
+	// run a monte carlo to get a statistical covariance to compare against
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 
 		int i = indices[p][0];
 		int j = indices[p][1];
 
-		trace_sqrt_cov_vector(i,j) = std::sqrt(arma::trace(pgm_uq.GetCovarianceAcceleration(grid[p])));
-		reference_acceleration(i,j) = arma::norm(pgm_filter -> GetAcceleration(grid[p]));
+		const arma::vec::fixed<3> & grid_point = grid[p];
+
+		arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
+		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point);
 		
-		++progress;
-	}
+		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
+		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) / reference_acceleration(i,j) * 100;
 
-	uncertainty_over_reference_acc_percentage = trace_sqrt_cov_vector / reference_acceleration * 100;
+		
+		std::vector<arma::vec::fixed<3> > accelerations;
+		std::vector<double> potentials;
+		std::vector<arma::vec> deviations;
 
-	auto end = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed_seconds = end-start;
-	std::cout << "\n-- Done sampling grid " << elapsed_seconds.count() << " s\n";
+		if (p == 0){
+			SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,
+				DENSITY,
+				UNIT_IN_METERS,
+				C_CC,
+				N_MONTE_CARLO, 
+				grid_point,
+				OUTPUT_DIR,
+				std::min(30,N_MONTE_CARLO),
+				deviations,
+				accelerations,
+				potentials);
+		}
 
-
-
-	// Running a Monte Carlo on a subset of the grid
-	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
-	std::vector<std::vector<double > > all_potentials;
-	std::vector<arma::vec> deviations;
-
-	arma::vec::fixed<3> e0 = {1,0,0};
-	arma::vec::fixed<3> e1 = {0,1,0};
-	arma::vec::fixed<3> e2 = {0,0,1};
-	arma::vec::fixed<3> e3 = arma::normalise(arma::vec({1,1,0}));
-	arma::vec::fixed<3> e4 = arma::normalise(arma::vec({0,1,1}));
-	arma::vec::fixed<3> e5 = arma::normalise(arma::vec({1,0,1}));
-	arma::vec::fixed<3> e6 = arma::normalise(arma::vec({-1,1,0}));
-	arma::vec::fixed<3> e7 = arma::normalise(arma::vec({0,-1,1}));
-	arma::vec::fixed<3> e8 = arma::normalise(arma::vec({1,0,-1}));
-
-
-	std::vector<arma::vec::fixed<3> > all_positions;
-	std::vector<double> distances = {200,300,400,500,600};
-	for (auto dist : distances){
-		all_positions.push_back(dist * e0);
-		all_positions.push_back(dist * e1);
-		all_positions.push_back(dist * e2);
-		all_positions.push_back(dist * e3);
-		all_positions.push_back(dist * e4);
-		all_positions.push_back(dist * e5);
-		all_positions.push_back(dist * e6);
-		all_positions.push_back(dist * e7);
-		all_positions.push_back(dist * e8);
-		all_positions.push_back(- dist * e0);
-		all_positions.push_back(- dist * e1);
-		all_positions.push_back(- dist * e2);
-		all_positions.push_back(- dist * e3);
-		all_positions.push_back(- dist * e4);
-		all_positions.push_back(- dist * e5);
-		all_positions.push_back(- dist * e6);
-		all_positions.push_back(- dist * e7);
-		all_positions.push_back(- dist * e8);
-	}
+		else{
+			SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,
+				DENSITY,
+				UNIT_IN_METERS,
+				C_CC,
+				N_MONTE_CARLO, 
+				grid_point,
+				OUTPUT_DIR,
+				0,
+				deviations,
+				accelerations,
+				potentials);
+		}
 
 
-
-
-
-	std::cout << "Running MC ... ";
-
-	start = std::chrono::system_clock::now();
-	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
-		UNIT_IN_METERS,
-		pgm_uq.GetCovarianceSquareRoot(),
-		N_MONTE_CARLO, 
-		all_positions,
-		OUTPUT_DIR,
-		std::min(30,N_MONTE_CARLO),
-		deviations,
-		all_accelerations,
-		all_potentials);
-
-	end = std::chrono::system_clock::now();
-
-	elapsed_seconds = end-start;
-
-	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
-
-// Computing MC Dispersions
-	arma::vec KL_divergence_analytical_vs_mc(all_positions.size());
-	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
-	arma::vec rel_value_cov_difference_analytical_vs_mc(all_positions.size());
-	arma::mat all_positions_arma(3,all_positions.size());
-
-#pragma omp parallel for
-	for (int e = 0; e < all_positions.size(); ++e){
 
 		arma::mat accelerations_mc(3,N_MONTE_CARLO);
 
-		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
-			accelerations_mc.col(sample) = all_accelerations[sample][e];
+		for (unsigned int sample = 0; sample < N_MONTE_CARLO; ++sample){
+			accelerations_mc.col(sample) = accelerations[sample];
 		}
 
 		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
 
 		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
-		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
 
-		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
-		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
+		KL_divergence_analytical_vs_mc(i,j) = SBGATFilterUQ::KLDivergence(reference_acceleration_vector,
 			mc_mean_acc,
-			cov_analytical,
+			covariance_acceleration_analytical,
 			mc_covariances_acc);
 
-		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(e) = std::sqrt(arma::norm(cov_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
-		all_positions_arma.col(e) = all_positions[e];
+		abs_value_cov_difference_analytical_vs_mc(i,j) = arma::abs(arma::vectorise(covariance_acceleration_analytical - mc_covariances_acc)).max();
+		rel_value_cov_difference_analytical_vs_mc(i,j) = std::sqrt(arma::norm(covariance_acceleration_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
+
+		++progress;
 	}
 
-	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
+
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end-start;
+	std::cout << "\n-- Done evaluating over grid in " << elapsed_seconds.count() << " s\n";
+
+
+	trace_sqrt_cov.save(OUTPUT_DIR + "trace_sqrt_cov.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
 	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
 
-
-	all_positions_arma.save(OUTPUT_DIR + "all_positions_arma.txt",arma::raw_ascii);
 	abs_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "abs_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	rel_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "rel_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	KL_divergence_analytical_vs_mc.save(OUTPUT_DIR + "KL_divergence_analytical_vs_mc.txt",arma::raw_ascii);
-	
-
-
-
-
-
 
 
 

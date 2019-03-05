@@ -113,9 +113,7 @@ int main(){
 		all_facets.push_back(f);
 	}
 
-
 	// Analytical UQ
-
 	std::vector<double> analytical_variances_slopes;
 
 	std::cout << "Computing analytical uncertainties ... ";
