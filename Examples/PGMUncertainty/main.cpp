@@ -219,9 +219,14 @@ int main(){
 	arma::vec::fixed<3> e0 = {1,0,0};
 	arma::vec::fixed<3> e1 = {0,1,0};
 	arma::vec::fixed<3> e2 = {0,0,1};
-	arma::vec::fixed<3> e3 = arma::normalise({1,1,0});
-	arma::vec::fixed<3> e4 = arma::normalise({0,1,1});
-	arma::vec::fixed<3> e5 = arma::normalise({1,0,1});
+	arma::vec::fixed<3> e3 = arma::normalise(arma::vec({1,1,0}));
+	arma::vec::fixed<3> e4 = arma::normalise(arma::vec({0,1,1}));
+	arma::vec::fixed<3> e5 = arma::normalise(arma::vec({1,0,1}));
+	arma::vec::fixed<3> e6 = arma::normalise(arma::vec({-1,1,0}));
+	arma::vec::fixed<3> e7 = arma::normalise(arma::vec({0,-1,1}));
+	arma::vec::fixed<3> e8 = arma::normalise(arma::vec({1,0,-1}));
+
+
 	std::vector<arma::vec::fixed<3> > all_positions;
 	std::vector<double> distances = {200,300,400,500};
 	for (auto dist : distances){
@@ -231,6 +236,10 @@ int main(){
 		all_positions.push_back(dist * e3);
 		all_positions.push_back(dist * e4);
 		all_positions.push_back(dist * e5);
+		all_positions.push_back(dist * e6);
+		all_positions.push_back(dist * e7);
+		all_positions.push_back(dist * e8);
+
 
 		all_positions.push_back(- dist * e0);
 		all_positions.push_back(- dist * e1);
@@ -238,6 +247,11 @@ int main(){
 		all_positions.push_back(- dist * e3);
 		all_positions.push_back(- dist * e4);
 		all_positions.push_back(- dist * e5);
+		all_positions.push_back(- dist * e6);
+		all_positions.push_back(- dist * e7);
+		all_positions.push_back(- dist * e8);
+
+
 
 	}
 
