@@ -30,7 +30,7 @@ def plot_uncertainty_grid(path):
     if data["PROJECTION_AXIS"] == 0:
 
 
-        plt.imshow(uncertainty_percentage,interpolation = "bicubic",origin = "lower")
+        plt.imshow(uncertainty_percentage,interpolation = "nearest",origin = "lower")
         plt.colorbar()
 
         cont = plt.contour(uncertainty_percentage,origin = "lower", levels = levels,
@@ -43,7 +43,6 @@ def plot_uncertainty_grid(path):
         plt.show()
 
      
-
     elif data["PROJECTION_AXIS"] == 1:
 
 

@@ -17,6 +17,8 @@ int main(){
 	nlohmann::json input_data;
 	i >> input_data;
 
+	arma::arma_rng::set_seed(0);
+
 	std::string PATH_SHAPE = input_data["PATH_SHAPE"];
 	double CORRELATION_DISTANCE =  input_data["CORRELATION_DISTANCE"];
 
@@ -107,11 +109,8 @@ int main(){
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 
 	
-	std::vector<int > all_facets;
+	std::vector<int > all_facets = {1266,1268};
 
-	for (int f = 0; f < pgm_filter -> GetN_facets(); ++f){
-		all_facets.push_back(f);
-	}
 
 	// Analytical UQ
 	std::vector<double> analytical_variances_slopes;
@@ -132,10 +131,8 @@ int main(){
 
 	std::vector < std::vector<double> > all_slopes;
 
-
 	std::cout << "Running MC ... ";
 
-	
 	start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(PATH_SHAPE,
 		DENSITY,

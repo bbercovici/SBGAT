@@ -76,6 +76,8 @@ def draw_slice(axis,slices,delay_plot = False,output_dir = "",prefix = ""):
 	plt.ylim(1.5 * y_min, 1.5 * y_max)
 
 	plt.axis("equal")
+	plt.tight_layout()
+
 	if (delay_plot):
 		return
 	if (len(output_dir) > 0):
@@ -87,3 +89,7 @@ def draw_slice(axis,slices,delay_plot = False,output_dir = "",prefix = ""):
 	plt.clf()
 
 # draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_0")
+# draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_1")
+draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_2")
+
+

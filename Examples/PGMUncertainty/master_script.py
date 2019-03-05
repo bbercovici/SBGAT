@@ -41,7 +41,7 @@ base_dictionnary = {
 "ERROR_STANDARD_DEV" : 10,
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
-"STEP_SIZE" : 30.,
+"STEP_SIZE" : 10.,
 "N_MONTE_CARLO" : 1000,
 "PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
 }
