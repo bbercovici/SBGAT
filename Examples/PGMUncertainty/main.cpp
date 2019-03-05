@@ -292,7 +292,7 @@ int main(){
 			mc_covariances_acc);
 
 		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc);
+		rel_value_cov_difference_analytical_vs_mc(e) = std::sqrt(std::abs(arma::trace(cov_analytical - mc_covariances_acc)))/arma::norm(mc_mean_acc);
 		all_positions_arma.col(e) = all_positions[e];
 	}
 
