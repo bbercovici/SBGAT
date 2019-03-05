@@ -37,7 +37,6 @@ SIM_PREFIX = "PGMUncertainty"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"CORRELATION_DISTANCE" : 200,
 "ERROR_STANDARD_DEV" : 10,
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
