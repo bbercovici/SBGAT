@@ -627,7 +627,7 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 				if(d_j_center < 3 * correl_distance){
 
 					arma::vec::fixed<3> nj = arma::normalise(arma::vec({Cj[0],Cj[1],Cj[2]}));
-						
+
 					double d_ij = this -> model -> GetScaleFactor() * std::sqrt(vtkMath::Distance2BetweenPoints(Cj,Ci));
 
 					if ( d_ij < 3 * correl_distance){
@@ -645,6 +645,24 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 		}
 
 	}
+
+}
+
+
+double SBGATFilterUQ::KLDivergence(const arma::vec & m0,const arma::mat & m1,const arma::mat & P0,const & arma::mat P1){
+
+	assert(m0.n_rows = m1.n_rows);
+	assert(P0.n_rows = P1.n_rows);
+	assert(P0.n_cols = P1.n_cols);
+	assert(P0.n_cols = m0.n_rows);
+	assert(P1.n_cols = m1.n_rows);
+
+	arma::mat P1_inv = arma::inv(P1);
+
+	return 0.5 * (arma::trace(P1_inv * P0) 
+		+ arma::dot(m1 - m0,P1_inv * (m1 - m0)) 
+		- m0.n_rows 
+		+ std::log(arma::det(P1) / arma::det(P0)) );
 
 }
 

@@ -178,6 +178,18 @@ Sets the vertices covariance to the provided one
   */
   static arma::mat GetCovarianceSquareRoot(arma::mat P_CC,std::string method);
 
+
+  /**
+
+  Returns the Kullback-Leibler divergence of the two gaussians N0 and N1, D_KL(N0 || N1)
+  @param m0 mean of first gaussian
+  @param m1 mean of second gaussian
+  @param P0 covariance of second gaussian
+  @param P1 covariance of second gaussian
+  @return KL divergence 
+  */
+  static  double KLDivergence(const arma::vec & m0,const arma::mat & m1,const arma::mat & P0,const & arma::mat P1);
+
 protected:
 
 

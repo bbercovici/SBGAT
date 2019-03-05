@@ -130,6 +130,8 @@ int main(){
 	arma::mat reference_acceleration(i_max,j_max);
 	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
 	arma::mat inside_outside(i_max,j_max);
+	arma::mat mc_vs_analytical(i_max,j_max);
+	mc_vs_analytical.fill(arma::datum::nan);
 
 
 
@@ -193,9 +195,6 @@ int main(){
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 
-
-
-
 		int i = indices[p][0];
 		int j = indices[p][1];
 
@@ -220,13 +219,11 @@ int main(){
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 
-	all_positions.push_back(grid[0]);
-	all_positions.push_back(grid[100]);
-	all_positions.push_back(grid[200]);
-	all_positions.push_back(grid[300]);
-	all_positions.push_back(grid[400]);
-	all_positions.push_back(grid[500]);
-	all_positions.push_back(grid[600]);
+	std::vector<int> mc_grid_indices = {0,100,200,300,400,500,600,700};
+
+	for (auto index : mc_grid_indices){
+		all_positions.push_back(grid[index]);
+	}
 
 	std::cout << "Running MC ... ";
 
@@ -249,48 +246,37 @@ int main(){
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
 // Computing MC Dispersions
-	std::vector<double> mc_variances_pot(all_positions.size());
 	std::vector<arma::mat::fixed<3,3> > mc_covariances_acc(all_positions.size());
 
 #pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
 
-		arma::vec potentials_mc(N_MONTE_CARLO);
 		arma::mat accelerations_mc(3,N_MONTE_CARLO);
 
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
-			potentials_mc(sample) = all_potentials[sample][e];
 			accelerations_mc.col(sample) = all_accelerations[sample][e];
 		}
 
-		mc_variances_pot[e] = arma::var(potentials_mc);
 		mc_covariances_acc[e] = arma::cov(accelerations_mc.t());
 
-	}
+		arma::vec mc_mean_acc = arma::mean(accelerations_mc.t());
+		arma::vec reference_acc = pgm_filter -> GetAcceleration(grid[mc_grid_indices[e]]);
 
-	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
+		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(grid[mc_grid_indices[e]]);
+		mc_vs_analytical(indices[mc_grid_indices[e]][0],
+			indices[mc_grid_indices[e]][1]) = SBGATFilterUQ::KLDivergence(reference_acc,
+			mc_mean_acc,
+			cov_analytical,
+			mc_covariances_acc[e]);
 
-	for (int e = 0; e < all_positions.size(); ++e){
-
-		arma::mat analytical_covariance_acc = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
-		double analytical_variance_pot = pgm_uq.GetVariancePotential(all_positions[e]);
-
-		all_positions[e].t().print("\t At: ");
-		std::cout << "\t\tMC variance in potential: " << mc_variances_pot[e] << std::endl;
-		std::cout << "\t\tAnalytical variance in potential: " << analytical_variance_pot << std::endl;
-
-		std::cout << "\t\tError (%): " << (mc_variances_pot[e] - analytical_variance_pot)/mc_variances_pot[e] * 100 << std::endl;
-
-		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
-		std::cout << "\t\tAnalytical covariance in acceleration: \n" << analytical_covariance_acc << std::endl;
-		
-		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariance_acc)/arma::norm(mc_covariances_acc[e]) * 100 << std::endl;
 	}
 
 	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
 	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
+
+
 
 	return 0;
 }
