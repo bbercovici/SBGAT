@@ -10,6 +10,7 @@ def plot_uncertainty_grid(path):
     grid = np.loadtxt(path + "/grid.txt")
     uncertainty_percentage = np.loadtxt(path + "/uncertainty_over_reference_acc_percentage.txt")
     inside_outside = np.loadtxt(path + "/inside_outside.txt")
+    
     data = {}
     with open(path + "/input_file.json") as f:
         data = json.load(f)
@@ -24,6 +25,7 @@ def plot_uncertainty_grid(path):
     min_uncertainty = np.min(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
     max_uncertainty = np.max(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
 
+
     levels = np.array([min_uncertainty,12.5,13,14,15])
 
     if data["PROJECTION_AXIS"] == 0:
@@ -37,7 +39,7 @@ def plot_uncertainty_grid(path):
         plt.gca().clabel(cont,cont.levels)
         plt.xlabel("Y")
         plt.ylabel("Z")
-        plt.title(r"Acceleration error $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
+        plt.title(r"Relative Acceleration Uncertainty $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
         plt.tight_layout()
         plt.show()
 
@@ -54,7 +56,7 @@ def plot_uncertainty_grid(path):
         plt.gca().clabel(cont,cont.levels)
         plt.xlabel("X")
         plt.ylabel("Z")
-        plt.title(r"Acceleration error $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
+        plt.title(r"Relative Acceleration Uncertainty $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
         plt.tight_layout()
         plt.show()
 
@@ -69,7 +71,7 @@ def plot_uncertainty_grid(path):
         plt.gca().clabel(cont,cont.levels)
         plt.xlabel("X")
         plt.ylabel("Y")
-        plt.title(r"Acceleration error $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
+        plt.title(r"Relative Acceleration Uncertainty $\left(\frac{\sqrt{\mathrm{trace}\left(P_{\mathbf{a}}\right)}}{\Vert \mathbf{a} \Vert }\cdot 100\ \%\right)$")
         plt.tight_layout()
         plt.show()
 
