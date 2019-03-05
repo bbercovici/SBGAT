@@ -3140,6 +3140,42 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 }
 
 
+void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path_to_shape,
+	const double & density,
+	const bool & shape_in_meters,
+	const arma::mat & C_CC,
+	const unsigned int & N_samples,
+	const arma::vec::fixed<3> & position,
+	std::string output_dir,
+	int N_saved_shapes,
+	std::vector<arma::vec> & deviations,
+	std::vector<arma::vec::fixed<3> > & accelerations){
+
+	std::vector< std::vector < arma::vec::fixed<3> > > all_accelerations(N_samples);
+	std::vector< arma::vec::fixed<3> > all_positions = {position};
+	
+	accelerations = std::vector<arma::vec::fixed<3> >(N_samples);
+	deviations = std::vector<arma::vec>(N_samples);
+
+
+	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(path_to_shape,
+		density,
+		shape_in_meters,
+		C_CC,
+		N_samples,
+		all_positions,
+		output_dir,
+		N_saved_shapes,
+		deviations,
+		all_accelerations);
+
+	for (int i = 0; i < N_samples; ++i){
+		accelerations[i] = all_accelerations[i][0];
+	}
+
+}
+
+
 
 void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	const double & density,
@@ -3265,6 +3301,92 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 			all_accelerations[i].push_back(acc);
 			all_potentials[i].push_back(pot);
 
+		}
+
+
+		if (i < N_saved_shapes){
+			shape_uq_mc.TakeAndSaveSlice(0,output_dir + "slice_x_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc.TakeAndSaveSlice(1,output_dir + "slice_y_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc.TakeAndSaveSlice(2,output_dir + "slice_z_" + std::to_string(i) + ".txt",0);
+			vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+
+			writer -> SetInputData(pgm_filter_mc -> GetInput());
+
+			writer -> SetFileName(std::string({output_dir + "mc_shape_" + std::to_string(i) + ".obj"}).c_str());
+			writer -> Update();	
+
+
+		}
+	}
+
+
+}
+
+
+void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path_to_shape,
+	const double & density,
+	const bool & shape_in_meters,
+	const arma::mat & C_CC,
+	const unsigned int & N_samples,
+	const std::vector<arma::vec::fixed<3> > & all_positions,
+	std::string output_dir,
+	int N_saved_shapes,
+	std::vector<arma::vec> & deviations,
+	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations){
+
+	if (all_accelerations.size() == 0)
+		all_accelerations = std::vector< std::vector < arma::vec::fixed<3> > >(N_samples);
+	
+	if (deviations.size() == 0)
+		deviations = std::vector<arma::vec>(N_samples);
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
+	reader_mc -> SetFileName(path_to_shape.c_str());
+	reader_mc -> Update(); 
+
+		// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+	cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+	cleaner_mc -> Update();
+
+	for (int i = 0; i < N_samples ; ++i){
+		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
+	}
+
+
+	#pragma omp parallel for
+	for (int i = 0; i < N_samples ; ++i){
+
+		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
+		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
+
+		// Creating the PGM dyads
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter_mc = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+		pgm_filter_mc -> SetInputData(shape_copy);
+		pgm_filter_mc -> SetDensity(density); 
+		
+		if (shape_in_meters){
+			pgm_filter_mc -> SetScaleMeters();
+		}
+		else{
+			pgm_filter_mc -> SetScaleKiloMeters();
+		}
+		
+		// pgm_filter_mc -> Update();
+		SBGATPolyhedronGravityModelUQ shape_uq_mc;
+		
+		shape_uq_mc.SetModel(pgm_filter_mc);
+
+		shape_uq_mc.ApplyDeviation(deviations[i]);
+
+		for (auto pos : all_positions){
+
+			
+
+			all_accelerations[i].push_back(pgm_filter_mc -> GetAcceleration(pos));
 		}
 
 

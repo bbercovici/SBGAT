@@ -213,11 +213,10 @@ int main(){
 
 		
 		std::vector<arma::vec::fixed<3> > accelerations;
-		std::vector<double> potentials;
 		std::vector<arma::vec> deviations;
 
 		if (p == 0){
-			SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,
+			SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
 				DENSITY,
 				UNIT_IN_METERS,
 				C_CC,
@@ -226,12 +225,11 @@ int main(){
 				OUTPUT_DIR,
 				std::min(30,N_MONTE_CARLO),
 				deviations,
-				accelerations,
-				potentials);
+				accelerations);
 		}
 
 		else{
-			SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,
+			SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
 				DENSITY,
 				UNIT_IN_METERS,
 				C_CC,
@@ -240,8 +238,7 @@ int main(){
 				OUTPUT_DIR,
 				0,
 				deviations,
-				accelerations,
-				potentials);
+				accelerations);
 		}
 
 
