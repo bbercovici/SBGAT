@@ -282,12 +282,13 @@ int main(){
 	std::cout << "- Evaluating analytical uncertainties over grid ...\n";
 
 	start = std::chrono::system_clock::now();
-	boost::progress_display progress(grid.size());
 
 
 	
 	// For every point in the grid, evaluate the analytical acceleration covariance and 
 	// run a monte carlo to get a statistical covariance to compare against
+	boost::progress_display progress(grid.size());
+
 	#pragma omp parallel for
 	for (int p = 0; p < grid.size(); ++p){
 
@@ -301,7 +302,7 @@ int main(){
 		
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
 		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
-		uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100
+		uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100;
 
 		++progress;
 	}
