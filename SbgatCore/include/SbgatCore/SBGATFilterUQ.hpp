@@ -188,7 +188,7 @@ Sets the vertices covariance to the provided one
   @param P1 covariance of second gaussian
   @return KL divergence 
   */
-  static  double KLDivergence(const arma::vec & m0,const arma::mat & m1,const arma::mat & P0,const & arma::mat P1);
+  static  double KLDivergence(const arma::vec & m0,const arma::mat & m1,const arma::mat & P0,const arma::mat & P1);
 
 protected:
 
