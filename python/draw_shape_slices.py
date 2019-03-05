@@ -89,3 +89,5 @@ def draw_slice(axis,slices,output_dir = "",prefix = ""):
 
 	plt.cla()
 	plt.clf()
+
+draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_0")
