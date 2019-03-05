@@ -66,8 +66,8 @@ int main(){
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
+	
 	std::cout << "Saving shape covariance ...\n";
-	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
 	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 
 	// Saving baseline slices
@@ -129,9 +129,7 @@ int main(){
 	arma::mat reference_acceleration(i_max,j_max);
 	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
 	arma::mat inside_outside(i_max,j_max);
-	arma::mat KL_divergence_analytical_vs_mc(i_max,j_max);
-	arma::mat abs_value_cov_difference_analytical_vs_mc(i_max,j_max);
-	arma::mat rel_value_cov_difference_analytical_vs_mc(i_max,j_max);
+	
 
 
 	// Construct the grid (constant, uniform step size in both directions of space)
@@ -188,10 +186,105 @@ int main(){
 	}
 	grid_arma.save(OUTPUT_DIR + "grid.txt",arma::raw_ascii);
 
-	std::cout << "- Evaluating analytical uncertainties over grid ...\n";
+	// Running a Monte Carlo on a subset of the grid
+	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
+	std::vector<std::vector<double > > all_potentials;
+	std::vector<arma::vec> deviations;
+
+	arma::vec::fixed<3> e0 = {1,0,0};
+	arma::vec::fixed<3> e1 = {0,1,0};
+	arma::vec::fixed<3> e2 = {0,0,1};
+	arma::vec::fixed<3> e3 = arma::normalise(arma::vec({1,1,0}));
+	arma::vec::fixed<3> e4 = arma::normalise(arma::vec({0,1,1}));
+	arma::vec::fixed<3> e5 = arma::normalise(arma::vec({1,0,1}));
+	arma::vec::fixed<3> e6 = arma::normalise(arma::vec({-1,1,0}));
+	arma::vec::fixed<3> e7 = arma::normalise(arma::vec({0,-1,1}));
+	arma::vec::fixed<3> e8 = arma::normalise(arma::vec({1,0,-1}));
+
+
+	std::vector<arma::vec::fixed<3> > all_positions;
+	std::vector<double> distances = {200,300,400,500,600};
+	for (auto dist : distances){
+		all_positions.push_back(dist * e0);
+		all_positions.push_back(dist * e1);
+		all_positions.push_back(dist * e2);
+		all_positions.push_back(dist * e3);
+		all_positions.push_back(dist * e4);
+		all_positions.push_back(dist * e5);
+		all_positions.push_back(dist * e6);
+		all_positions.push_back(dist * e7);
+		all_positions.push_back(dist * e8);
+		all_positions.push_back(- dist * e0);
+		all_positions.push_back(- dist * e1);
+		all_positions.push_back(- dist * e2);
+		all_positions.push_back(- dist * e3);
+		all_positions.push_back(- dist * e4);
+		all_positions.push_back(- dist * e5);
+		all_positions.push_back(- dist * e6);
+		all_positions.push_back(- dist * e7);
+		all_positions.push_back(- dist * e8);
+	}
+
+
+
+	std::cout << "Running MC ... ";
 
 	auto start = std::chrono::system_clock::now();
+	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,DENSITY,
+		UNIT_IN_METERS,
+		C_CC,
+		N_MONTE_CARLO, 
+		all_positions,
+		OUTPUT_DIR,
+		std::min(30,N_MONTE_CARLO),
+		deviations,
+		all_accelerations);
+	auto end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+
+	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
+
+// Computing MC Dispersions
+	arma::vec KL_divergence_analytical_vs_mc(all_positions.size());
+	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
+	arma::vec rel_value_cov_difference_analytical_vs_mc(all_positions.size());
+	arma::mat all_positions_arma(3,all_positions.size());
+
+#pragma omp parallel for
+	for (int e = 0; e < all_positions.size(); ++e){
+
+		arma::mat accelerations_mc(3,N_MONTE_CARLO);
+
+		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
+			accelerations_mc.col(sample) = all_accelerations[sample][e];
+		}
+
+		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
+
+		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
+		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
+
+		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
+		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
+			mc_mean_acc,
+			cov_analytical,
+			mc_covariances_acc);
+
+		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
+		rel_value_cov_difference_analytical_vs_mc(e) = std::sqrt(arma::norm(cov_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
+		all_positions_arma.col(e) = all_positions[e];
+	}
+
+	
+
+
+	std::cout << "- Evaluating analytical uncertainties over grid ...\n";
+
+	start = std::chrono::system_clock::now();
 	boost::progress_display progress(grid.size());
+
+
 	
 	// For every point in the grid, evaluate the analytical acceleration covariance and 
 	// run a monte carlo to get a statistical covariance to compare against
@@ -209,61 +302,12 @@ int main(){
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
 		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) / reference_acceleration(i,j) * 100;
 
-		std::vector<arma::vec::fixed<3> > accelerations;
-		std::vector<arma::vec> deviations;
-
-		// if (p == 0){
-		// 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
-		// 		DENSITY,
-		// 		UNIT_IN_METERS,
-		// 		C_CC,
-		// 		N_MONTE_CARLO, 
-		// 		grid_point,
-		// 		OUTPUT_DIR,
-		// 		std::min(30,N_MONTE_CARLO),
-		// 		deviations,
-		// 		accelerations);
-		// }
-
-		// else{
-		// 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
-		// 		DENSITY,
-		// 		UNIT_IN_METERS,
-		// 		C_CC,
-		// 		N_MONTE_CARLO, 
-		// 		grid_point,
-		// 		OUTPUT_DIR,
-		// 		0,
-		// 		deviations,
-		// 		accelerations);
-		// }
-
-
-
-		// arma::mat accelerations_mc(3,N_MONTE_CARLO);
-
-		// for (unsigned int sample = 0; sample < N_MONTE_CARLO; ++sample){
-		// 	accelerations_mc.col(sample) = accelerations[sample];
-		// }
-
-		// arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
-
-		// arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
-
-		// KL_divergence_analytical_vs_mc(i,j) = SBGATFilterUQ::KLDivergence(reference_acceleration_vector,
-		// 	mc_mean_acc,
-		// 	covariance_acceleration_analytical,
-		// 	mc_covariances_acc);
-
-		// abs_value_cov_difference_analytical_vs_mc(i,j) = arma::abs(arma::vectorise(covariance_acceleration_analytical - mc_covariances_acc)).max();
-		// rel_value_cov_difference_analytical_vs_mc(i,j) = std::sqrt(arma::norm(covariance_acceleration_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
-
 		++progress;
 	}
 
 
-	auto end = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed_seconds = end-start;
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
 	std::cout << "\n-- Done evaluating over grid in " << elapsed_seconds.count() << " s\n";
 
 
@@ -275,7 +319,7 @@ int main(){
 	abs_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "abs_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	rel_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "rel_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	KL_divergence_analytical_vs_mc.save(OUTPUT_DIR + "KL_divergence_analytical_vs_mc.txt",arma::raw_ascii);
-
+	all_positions_arma.save(OUTPUT_DIR + "all_positions_arma.txt",arma::raw_ascii);
 
 
 	return 0;
