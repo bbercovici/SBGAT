@@ -159,6 +159,35 @@ public:
 
 
 
+/**
+  Runs a Monte Carlo on the shape and samples accelerations at the provided positions
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
+  */
+
+static void RunMCUQAccelerationInertial(std::string path_to_shape,
+  const double & density,
+  const bool & shape_in_meters,
+  const arma::mat & C_CC,
+  const unsigned int & N_samples,
+  const std::vector<arma::vec::fixed<3> > & all_positions,
+  std::string output_dir,
+  int N_saved_shapes,
+  std::vector<arma::vec> & deviations,
+  std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations);
+
+
 
   /**
   Runs a Monte Carlo on the shape and samples the slopes at the provided facets
@@ -259,6 +288,36 @@ public:
     std::vector<arma::vec> & deviations,
     std::vector<arma::vec::fixed<3> > & accelerations,
     std::vector<double> & potentials);
+
+
+/**
+  Runs a Monte Carlo on the shape and samples inertial accelerations at the provided position
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] position the position where acceleration & potential must be sampled
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] accelerations holds N_samples accelerations evaluated at the specified point
+  */
+void RunMCUQAccelerationInertial(std::string path_to_shape,
+  const double & density,
+  const bool & shape_in_meters,
+  const arma::mat & C_CC,
+  const unsigned int & N_samples,
+  const arma::vec::fixed<3> & position,
+  std::string output_dir,
+  int N_saved_shapes,
+  std::vector<arma::vec> & deviations,
+  std::vector<arma::vec::fixed<3> > & accelerations);
+
+
 
 
   /**
