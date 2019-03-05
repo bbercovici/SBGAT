@@ -19,7 +19,7 @@ def plot_uq_accuracy(path):
     if data["PROJECTION_AXIS"] == 0:
 
         slice_counter = len(glob.glob1(path,"slice_x_*"))
-        draw_slice(0, [path + "/baseline_slice_x.txt"] + [path + "/slice_x_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(0, [path + "/baseline_slice_x.txt"] ,delay_plot = True)
     
         plotted_points = [ np.abs(all_positions[0,i]) == 0 for i in range(all_positions.shape[1]) ]
         plt.scatter(all_positions[1,plotted_points],all_positions[2,plotted_points],c = np.log10(abs_value_cov_difference_analytical_vs_mc[plotted_points]))
@@ -29,7 +29,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\mathrm{log}\left(\max \vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert\right)$")
         plt.show()
 
-        draw_slice(0, [path + "/baseline_slice_x.txt"] + [path + "/slice_x_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(0, [path + "/baseline_slice_x.txt"] ,delay_plot = True)
         
 
         plt.scatter(all_positions[1,plotted_points],all_positions[2,plotted_points],c = rel_value_cov_difference_analytical_vs_mc[plotted_points])
@@ -39,7 +39,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\max \frac{\vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert}{P_{\mathbf{a},mc}}$")
 
         plt.show()
-        draw_slice(0, [path + "/baseline_slice_x.txt"] + [path + "/slice_x_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(0, [path + "/baseline_slice_x.txt"] ,delay_plot = True)
         
         plt.scatter(all_positions[1,plotted_points],all_positions[2,plotted_points],c = KL_divergence_analytical_vs_mc[plotted_points])
         plt.colorbar()
@@ -54,7 +54,7 @@ def plot_uq_accuracy(path):
     elif data["PROJECTION_AXIS"] == 1:
 
         slice_counter = len(glob.glob1(path,"slice_x_*"))
-        draw_slice(1, [path + "/baseline_slice_y.txt"] + [path + "/slice_y_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(1, [path + "/baseline_slice_y.txt"] ,delay_plot = True)
     
         plotted_points = [ np.abs(all_positions[1,i]) == 0 for i in range(all_positions.shape[1]) ]
         plt.scatter(all_positions[0,plotted_points],all_positions[2,plotted_points],c = np.log10(abs_value_cov_difference_analytical_vs_mc[plotted_points]))
@@ -64,7 +64,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\mathrm{log}\left(\max \vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert\right)$")
         plt.show()
 
-        draw_slice(1, [path + "/baseline_slice_y.txt"] + [path + "/slice_y_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(1, [path + "/baseline_slice_y.txt"] ,delay_plot = True)
         
 
         plt.scatter(all_positions[0,plotted_points],all_positions[2,plotted_points],c = rel_value_cov_difference_analytical_vs_mc[plotted_points])
@@ -74,7 +74,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\max \frac{\vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert}{P_{\mathbf{a},mc}}$")
 
         plt.show()
-        draw_slice(1, [path + "/baseline_slice_y.txt"] + [path + "/slice_y_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(1, [path + "/baseline_slice_y.txt"] ,delay_plot = True)
         
         plt.scatter(all_positions[0,plotted_points],all_positions[2,plotted_points],c = KL_divergence_analytical_vs_mc[plotted_points])
         plt.colorbar()
@@ -89,7 +89,7 @@ def plot_uq_accuracy(path):
      
     elif data["PROJECTION_AXIS"] == 2:
         slice_counter = len(glob.glob1(path,"slice_x_*"))
-        draw_slice(2, [path + "/baseline_slice_z.txt"] + [path + "/slice_z_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(2, [path + "/baseline_slice_z.txt"] ,delay_plot = True)
     
         plotted_points = [ np.abs(all_positions[2,i]) == 0 for i in range(all_positions.shape[1]) ]
         plt.scatter(all_positions[0,plotted_points],all_positions[1,plotted_points],c = np.log10(abs_value_cov_difference_analytical_vs_mc[plotted_points]))
@@ -99,7 +99,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\mathrm{log}\left(\max \vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert\right)$")
         plt.show()
 
-        draw_slice(2, [path + "/baseline_slice_z.txt"] + [path + "/slice_z_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(2, [path + "/baseline_slice_z.txt"] ,delay_plot = True)
         
 
         plt.scatter(all_positions[0,plotted_points],all_positions[1,plotted_points],c = rel_value_cov_difference_analytical_vs_mc[plotted_points])
@@ -109,7 +109,7 @@ def plot_uq_accuracy(path):
         plt.title(r"$\max \frac{\vert P_{\mathbf{a},mc} - P_{\mathbf{a}} \vert}{P_{\mathbf{a},mc}}$")
 
         plt.show()
-        draw_slice(2, [path + "/baseline_slice_z.txt"] + [path + "/slice_z_"+str(i)+ ".txt" for i in range(slice_counter)],delay_plot = True)
+        draw_slice(2, [path + "/baseline_slice_z.txt"] ,delay_plot = True)
         
         plt.scatter(all_positions[0,plotted_points],all_positions[1,plotted_points],c = KL_divergence_analytical_vs_mc[plotted_points])
         plt.colorbar()

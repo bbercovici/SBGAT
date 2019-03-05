@@ -216,32 +216,33 @@ int main(){
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 
-	std::vector<arma::vec::fixed<3> > all_positions = {
-		arma::vec::fixed<3>({200,0,0}),
-		arma::vec::fixed<3>({300,0,0}),
-		arma::vec::fixed<3>({400,0,0}),
-		arma::vec::fixed<3>({500,0,0}),
-		arma::vec::fixed<3>({-200,0,0}),
-		arma::vec::fixed<3>({-300,0,0}),
-		arma::vec::fixed<3>({-400,0,0}),
-		arma::vec::fixed<3>({-500,0,0}),
-		arma::vec::fixed<3>({0,200,0}),
-		arma::vec::fixed<3>({0,300,0}),
-		arma::vec::fixed<3>({0,400,0}),
-		arma::vec::fixed<3>({0,500,0}),
-		arma::vec::fixed<3>({0,-200,0}),
-		arma::vec::fixed<3>({0,-300,0}),
-		arma::vec::fixed<3>({0,-400,0}),
-		arma::vec::fixed<3>({0,-500,0}),
-		arma::vec::fixed<3>({0,0,200}),
-		arma::vec::fixed<3>({0,0,300}),
-		arma::vec::fixed<3>({0,0,400}),
-		arma::vec::fixed<3>({0,0,500}),
-		arma::vec::fixed<3>({0,0,-200}),
-		arma::vec::fixed<3>({0,0,-300}),
-		arma::vec::fixed<3>({0,0,-400}),
-		arma::vec::fixed<3>({0,0,-500}),
-	};
+	arma::vec::fixed<3> e0 = {1,0,0};
+	arma::vec::fixed<3> e1 = {0,1,0};
+	arma::vec::fixed<3> e2 = {0,0,1};
+	arma::vec::fixed<3> e3 = arma::normalise({1,1,0});
+	arma::vec::fixed<3> e4 = arma::normalise({0,1,1});
+	arma::vec::fixed<3> e5 = arma::normalise({1,0,1});
+	std::vector<arma::vec::fixed<3> > all_positions;
+	std::vector<double> distances = {200,300,400,500};
+	for (auto dist : distances){
+		all_positions.push_back(dist * e0);
+		all_positions.push_back(dist * e1);
+		all_positions.push_back(dist * e2);
+		all_positions.push_back(dist * e3);
+		all_positions.push_back(dist * e4);
+		all_positions.push_back(dist * e5);
+
+		all_positions.push_back(- dist * e0);
+		all_positions.push_back(- dist * e1);
+		all_positions.push_back(- dist * e2);
+		all_positions.push_back(- dist * e3);
+		all_positions.push_back(- dist * e4);
+		all_positions.push_back(- dist * e5);
+
+	}
+
+
+
 
 
 	std::cout << "Running MC ... ";
@@ -291,7 +292,7 @@ int main(){
 			mc_covariances_acc);
 
 		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)/arma::vectorise(cov_analytical)).max();
+		rel_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc);
 		all_positions_arma.col(e) = all_positions[e];
 	}
 
