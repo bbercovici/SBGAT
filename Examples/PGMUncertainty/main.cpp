@@ -219,7 +219,14 @@ int main(){
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 
-	std::vector<int> mc_grid_indices = {0,100,200,300,400,500,600,700};
+	std::vector<int> mc_grid_indices = {0,
+		100,
+		200,
+		300,
+		400,
+		500,
+		600,
+		700};
 
 	for (auto index : mc_grid_indices){
 		all_positions.push_back(grid[index]);
@@ -259,7 +266,7 @@ int main(){
 
 		mc_covariances_acc[e] = arma::cov(accelerations_mc.t());
 
-		arma::vec mc_mean_acc = arma::mean(accelerations_mc.t());
+		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
 		arma::vec reference_acc = pgm_filter -> GetAcceleration(grid[mc_grid_indices[e]]);
 
 		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(grid[mc_grid_indices[e]]);
