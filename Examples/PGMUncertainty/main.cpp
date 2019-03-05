@@ -283,7 +283,7 @@ int main(){
 		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
 
 		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
-		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]]);
+		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
 
 		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]]);
 		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
