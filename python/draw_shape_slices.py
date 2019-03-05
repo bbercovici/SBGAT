@@ -89,7 +89,7 @@ def draw_slice(axis,slices,delay_plot = False,output_dir = "",prefix = ""):
 	plt.clf()
 
 # draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_0")
-# draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_1")
-draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_2")
+draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_1")
+# draw_slices_in_dir("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertaintyMCSlopes/output/PGMUncertaintyMCSlopes_2")
 
 
