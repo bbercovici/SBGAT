@@ -24,7 +24,6 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
     return all_cases_dictionnary_list
 
-
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (platform.system() == 'Linux'):
@@ -35,7 +34,6 @@ else:
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
 SIM_PREFIX = "PGMUncertainty"
-
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
@@ -58,7 +56,9 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"PROJECTION_AXIS" : [0,1,2]
+"PROJECTION_AXIS" : [0,1,2],
+"CORRELATION_DISTANCE" : [100,200],
+"N_MONTE_CARLO" : [100,1000,1000]
 }
 
 # There shouldn't be any reason to modify the following
@@ -86,4 +86,3 @@ for data in all_data:
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
     os.system("./PGMUncertainty 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
-
