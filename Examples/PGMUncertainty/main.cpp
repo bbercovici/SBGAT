@@ -212,7 +212,6 @@ int main(){
 
 	// Running a Monte Carlo on a subset of the grid
 
-	std::vector<arma::vec::fixed<3> > all_positions;
 	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
@@ -285,7 +284,7 @@ int main(){
 		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
 		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
 
-		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]]);
+		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
 		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
 			mc_mean_acc,
 			cov_analytical,
