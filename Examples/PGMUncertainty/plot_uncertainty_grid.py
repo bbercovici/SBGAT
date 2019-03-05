@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import scipy
 from scipy.interpolate import griddata
+from matplotlib.colors import LogNorm
 
 def plot_uncertainty_grid(path):
 
@@ -18,7 +19,12 @@ def plot_uncertainty_grid(path):
                 if inside_outside[i,j] != 0:
                     uncertainty_percentage[i,j] = np.nan
     uncertainty_percentage = uncertainty_percentage.T
-    levels = np.array([13,14,15,16])
+    
+
+    min_uncertainty = np.min(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
+    max_uncertainty = np.max(uncertainty_percentage[np.logical_not(np.isnan(uncertainty_percentage))])
+
+    levels = np.array([min_uncertainty,12.5,13,14,15])
 
     if data["PROJECTION_AXIS"] == 0:
 
@@ -26,7 +32,8 @@ def plot_uncertainty_grid(path):
         plt.imshow(uncertainty_percentage,interpolation = "bicubic",origin = "lower")
         plt.colorbar()
 
-        cont = plt.contour(uncertainty_percentage,origin = "lower", levels = levels,cmap = plt.get_cmap("rainbow"))
+        cont = plt.contour(uncertainty_percentage,origin = "lower", levels = levels,
+        	cmap = plt.get_cmap("Set1"))
         plt.gca().clabel(cont,cont.levels)
         plt.xlabel("Y")
         plt.ylabel("Z")
