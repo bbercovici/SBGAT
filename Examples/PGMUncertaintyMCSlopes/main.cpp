@@ -82,12 +82,12 @@ int main(){
 	// Populate the shape vertices covariance
 	
 	if (UNCERTAINTY_TYPE == "radial"){
-		pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		// pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 		pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 
 	else if (UNCERTAINTY_TYPE == "normal"){
-		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		// pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 	else if (UNCERTAINTY_TYPE == "global"){
@@ -107,7 +107,7 @@ int main(){
 
 	// Save the covariance
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
-
+	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 	
 	std::vector<int > all_facets = {1266,1268};
 

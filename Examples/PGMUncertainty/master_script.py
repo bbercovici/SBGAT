@@ -42,7 +42,6 @@ base_dictionnary = {
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
 "STEP_SIZE" : 10.,
-"N_MONTE_CARLO" : 1000,
 "PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
 }
 
@@ -58,7 +57,7 @@ base_dictionnary = {
 all_cases_dictionnary = {
 "PROJECTION_AXIS" : [0,1,2],
 "CORRELATION_DISTANCE" : [100,200],
-"N_MONTE_CARLO" : [100,1000,10000]
+"N_MONTE_CARLO" : [300,1000,3000]
 }
 
 # There shouldn't be any reason to modify the following
