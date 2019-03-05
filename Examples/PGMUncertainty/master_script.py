@@ -56,7 +56,9 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"PROJECTION_AXIS" : [0,1,2]
+"PROJECTION_AXIS" : [0,1,2],
+"CORRELATION_DISTANCE" : [100,200],
+"N_MONTE_CARLO" : [100,1000,1000]
 }
 
 # There shouldn't be any reason to modify the following

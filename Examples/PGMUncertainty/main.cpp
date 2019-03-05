@@ -211,7 +211,6 @@ int main(){
 
 
 	// Running a Monte Carlo on a subset of the grid
-
 	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
@@ -228,7 +227,7 @@ int main(){
 
 
 	std::vector<arma::vec::fixed<3> > all_positions;
-	std::vector<double> distances = {200,300,400,500};
+	std::vector<double> distances = {200,300,400,500,600};
 	for (auto dist : distances){
 		all_positions.push_back(dist * e0);
 		all_positions.push_back(dist * e1);
@@ -239,8 +238,6 @@ int main(){
 		all_positions.push_back(dist * e6);
 		all_positions.push_back(dist * e7);
 		all_positions.push_back(dist * e8);
-
-
 		all_positions.push_back(- dist * e0);
 		all_positions.push_back(- dist * e1);
 		all_positions.push_back(- dist * e2);
@@ -250,9 +247,6 @@ int main(){
 		all_positions.push_back(- dist * e6);
 		all_positions.push_back(- dist * e7);
 		all_positions.push_back(- dist * e8);
-
-
-
 	}
 
 
