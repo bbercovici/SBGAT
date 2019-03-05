@@ -64,9 +64,7 @@ int main(){
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
-
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
-
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
 	std::cout << "Saving shape covariance ...\n";
 	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
@@ -211,55 +209,54 @@ int main(){
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
 		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) / reference_acceleration(i,j) * 100;
 
-		
 		std::vector<arma::vec::fixed<3> > accelerations;
 		std::vector<arma::vec> deviations;
 
-		if (p == 0){
-			SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
-				DENSITY,
-				UNIT_IN_METERS,
-				C_CC,
-				N_MONTE_CARLO, 
-				grid_point,
-				OUTPUT_DIR,
-				std::min(30,N_MONTE_CARLO),
-				deviations,
-				accelerations);
-		}
+		// if (p == 0){
+		// 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
+		// 		DENSITY,
+		// 		UNIT_IN_METERS,
+		// 		C_CC,
+		// 		N_MONTE_CARLO, 
+		// 		grid_point,
+		// 		OUTPUT_DIR,
+		// 		std::min(30,N_MONTE_CARLO),
+		// 		deviations,
+		// 		accelerations);
+		// }
 
-		else{
-			SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
-				DENSITY,
-				UNIT_IN_METERS,
-				C_CC,
-				N_MONTE_CARLO, 
-				grid_point,
-				OUTPUT_DIR,
-				0,
-				deviations,
-				accelerations);
-		}
+		// else{
+		// 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,
+		// 		DENSITY,
+		// 		UNIT_IN_METERS,
+		// 		C_CC,
+		// 		N_MONTE_CARLO, 
+		// 		grid_point,
+		// 		OUTPUT_DIR,
+		// 		0,
+		// 		deviations,
+		// 		accelerations);
+		// }
 
 
 
-		arma::mat accelerations_mc(3,N_MONTE_CARLO);
+		// arma::mat accelerations_mc(3,N_MONTE_CARLO);
 
-		for (unsigned int sample = 0; sample < N_MONTE_CARLO; ++sample){
-			accelerations_mc.col(sample) = accelerations[sample];
-		}
+		// for (unsigned int sample = 0; sample < N_MONTE_CARLO; ++sample){
+		// 	accelerations_mc.col(sample) = accelerations[sample];
+		// }
 
-		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
+		// arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
 
-		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
+		// arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
 
-		KL_divergence_analytical_vs_mc(i,j) = SBGATFilterUQ::KLDivergence(reference_acceleration_vector,
-			mc_mean_acc,
-			covariance_acceleration_analytical,
-			mc_covariances_acc);
+		// KL_divergence_analytical_vs_mc(i,j) = SBGATFilterUQ::KLDivergence(reference_acceleration_vector,
+		// 	mc_mean_acc,
+		// 	covariance_acceleration_analytical,
+		// 	mc_covariances_acc);
 
-		abs_value_cov_difference_analytical_vs_mc(i,j) = arma::abs(arma::vectorise(covariance_acceleration_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(i,j) = std::sqrt(arma::norm(covariance_acceleration_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
+		// abs_value_cov_difference_analytical_vs_mc(i,j) = arma::abs(arma::vectorise(covariance_acceleration_analytical - mc_covariances_acc)).max();
+		// rel_value_cov_difference_analytical_vs_mc(i,j) = std::sqrt(arma::norm(covariance_acceleration_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
 
 		++progress;
 	}
