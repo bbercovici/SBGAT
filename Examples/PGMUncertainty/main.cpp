@@ -282,7 +282,7 @@ int main(){
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
 	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
-	mc_vs_analytical.save(OUTPUT_DIR + "mc_vs_analytical.txt",arma::raw_ascii)
+	mc_vs_analytical.save(OUTPUT_DIR + "mc_vs_analytical.txt",arma::raw_ascii);
 
 
 	return 0;
