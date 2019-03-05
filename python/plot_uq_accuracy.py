@@ -119,16 +119,12 @@ def plot_uq_accuracy(path):
         plt.show()
 
         
-
     else:
         raise(TypeError("Unrecognized case"))
 
 
 
 
-
-
-
 plot_uq_accuracy("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_0")
-plot_uq_accuracy("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_1")
-plot_uq_accuracy("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_2")
+# plot_uq_accuracy("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_1")
+# plot_uq_accuracy("/Users/bbercovici/GDrive/CUBoulder/Research/code/SBGAT/Examples/PGMUncertainty/output/PGMUncertainty_2")

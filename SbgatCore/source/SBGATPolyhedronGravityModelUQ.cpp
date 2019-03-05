@@ -3362,12 +3362,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 			pgm_filter_mc -> SetScaleKiloMeters();
 		}
 
-		// That's a test
-		// pgm_filter_mc -> Update();
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
-		
 		shape_uq_mc.SetModel(pgm_filter_mc);
-
 		shape_uq_mc.ApplyDeviation(deviations[i]);
 
 
@@ -3377,10 +3373,10 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 
 
 		for (auto facet : all_facets){
-
 			all_slopes[i].push_back(pgm_filter_mc -> GetSlope(facet));
-
 		}
+
+
 
 		if (i < N_saved_shapes){
 			shape_uq_mc.TakeAndSaveSlice(0,output_dir + "slice_x_" + std::to_string(i) + ".txt",0);
