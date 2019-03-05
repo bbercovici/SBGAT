@@ -130,8 +130,6 @@ int main(){
 	arma::mat reference_acceleration(i_max,j_max);
 	arma::mat uncertainty_over_reference_acc_percentage(i_max,j_max);
 	arma::mat inside_outside(i_max,j_max);
-	arma::mat mc_vs_analytical(i_max,j_max);
-	mc_vs_analytical.fill(arma::datum::nan);
 
 
 
@@ -219,18 +217,33 @@ int main(){
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 
-	std::vector<int> mc_grid_indices = {0,
-		100,
-		200,
-		300,
-		400,
-		500,
-		600,
-		700};
+	std::vector<arma::vec::fixed<3> > all_positions = {
+		arma::vec::fixed<3>({200,0,0}),
+		arma::vec::fixed<3>({300,0,0}),
+		arma::vec::fixed<3>({400,0,0}),
+		arma::vec::fixed<3>({500,0,0}),
+		arma::vec::fixed<3>({-200,0,0}),
+		arma::vec::fixed<3>({-300,0,0}),
+		arma::vec::fixed<3>({-400,0,0}),
+		arma::vec::fixed<3>({-500,0,0}),
+		arma::vec::fixed<3>({0,200,0}),
+		arma::vec::fixed<3>({0,300,0}),
+		arma::vec::fixed<3>({0,400,0}),
+		arma::vec::fixed<3>({0,500,0}),
+		arma::vec::fixed<3>({0,-200,0}),
+		arma::vec::fixed<3>({0,-300,0}),
+		arma::vec::fixed<3>({0,-400,0}),
+		arma::vec::fixed<3>({0,-500,0}),
+		arma::vec::fixed<3>({0,0,200}),
+		arma::vec::fixed<3>({0,0,300}),
+		arma::vec::fixed<3>({0,0,400}),
+		arma::vec::fixed<3>({0,0,500}),
+		arma::vec::fixed<3>({0,0,-200}),
+		arma::vec::fixed<3>({0,0,-300}),
+		arma::vec::fixed<3>({0,0,-400}),
+		arma::vec::fixed<3>({0,0,-500}),
+	};
 
-	for (auto index : mc_grid_indices){
-		all_positions.push_back(grid[index]);
-	}
 
 	std::cout << "Running MC ... ";
 
@@ -253,7 +266,10 @@ int main(){
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
 // Computing MC Dispersions
-	std::vector<arma::mat::fixed<3,3> > mc_covariances_acc(all_positions.size());
+	arma::vec KL_divergence_analytical_vs_mc(all_positions.size());
+	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
+	arma::vec rel_value_cov_difference_analytical_vs_mc(all_positions.size());
+	arma::mat all_positions_arma(3,all_positions.size());
 
 #pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
@@ -264,25 +280,39 @@ int main(){
 			accelerations_mc.col(sample) = all_accelerations[sample][e];
 		}
 
-		mc_covariances_acc[e] = arma::cov(accelerations_mc.t());
+		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
 
 		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
-		arma::vec reference_acc = pgm_filter -> GetAcceleration(grid[mc_grid_indices[e]]);
+		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]]);
 
-		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(grid[mc_grid_indices[e]]);
-		mc_vs_analytical(indices[mc_grid_indices[e]][0],
-			indices[mc_grid_indices[e]][1]) = SBGATFilterUQ::KLDivergence(reference_acc,
+		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]]);
+		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
 			mc_mean_acc,
 			cov_analytical,
-			mc_covariances_acc[e]);
+			mc_covariances_acc);
 
+		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
+		rel_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)/arma::vectorise(cov_analytical)).max();
+		all_positions_arma.col(e) = all_positions[e];
 	}
 
 	trace_sqrt_cov_vector.save(OUTPUT_DIR + "trace_sqrt_cov_vector.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
 	inside_outside.save(OUTPUT_DIR + "inside_outside.txt",arma::raw_ascii);
 	uncertainty_over_reference_acc_percentage.save(OUTPUT_DIR + "uncertainty_over_reference_acc_percentage.txt",arma::raw_ascii);
-	mc_vs_analytical.save(OUTPUT_DIR + "mc_vs_analytical.txt",arma::raw_ascii);
+
+
+	all_positions_arma.save(OUTPUT_DIR + "all_positions_arma.txt",arma::raw_ascii);
+	abs_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "abs_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
+	rel_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "rel_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
+	KL_divergence_analytical_vs_mc.save(OUTPUT_DIR + "KL_divergence_analytical_vs_mc.txt",arma::raw_ascii);
+	
+
+
+
+
+
+
 
 
 	return 0;
