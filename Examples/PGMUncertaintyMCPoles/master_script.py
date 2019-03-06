@@ -40,9 +40,9 @@ SIM_PREFIX = "PGMUncertaintyMCPoles"
 base_dictionnary = {
 "DENSITY" : 4500,
 "UNIT_IN_METERS" : False,
-"STEP_SIZE" : 7e3,
+"STEP_SIZE" : 10e3,
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
-"N_MONTE_CARLO" : 1000
+"PROJECTION_AXIS" : 0
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -56,8 +56,7 @@ base_dictionnary = {
 
 all_cases_dictionnary = {
 "UNCERTAINTY_TYPE" : ["global","normal"],
-"PROJECTION_AXIS" : [0,1,2],
-"N_MONTE_CARLO" : [300,1000,3000,5000],
+"N_MONTE_CARLO" : [1000,5000],
 "CORRELATION_DISTANCE" : [25e3,50e3,75e3],
 "ERROR_STANDARD_DEV" : [5e3,10e3,15e3],
 }
