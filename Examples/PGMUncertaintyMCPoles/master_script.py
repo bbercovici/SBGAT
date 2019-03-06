@@ -28,7 +28,7 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (socket.gethostname() == "fortuna"):
-    base_location = "/orc_raid/bebe0705/PGMUncertaintyPoles/"
+    base_location = "/orc_raid/bebe0705/PGMUncertaintyMCPoles/"
 else:
     base_location = "../"
 
