@@ -32,7 +32,6 @@ if (socket.gethostname() == "fortuna"):
 else:
     base_location = "../"
 
-
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
 SIM_PREFIX = "PGMUncertaintyMCPoles"
 
