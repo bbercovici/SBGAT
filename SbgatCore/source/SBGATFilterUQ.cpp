@@ -601,7 +601,6 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 
 	for (unsigned int i = 0; i < N_C; ++i){
 
-		double ni_[3];
 		double Ci[3];
 		input -> GetPoint(i,Ci);
 		arma::vec::fixed<3> ni = arma::normalise(arma::vec({Ci[0],Ci[1],Ci[2]}));
@@ -666,5 +665,21 @@ double SBGATFilterUQ::KLDivergence(const arma::vec & m0,const arma::mat & m1,con
 
 }
 
+int SBGATFilterUQ::RegularizeCovariance(){
 
+	int modified = 0;
+	arma::vec eigenvalues;
+	arma::mat eigenvector;
+	arma::eig_sym(eigenvalues,eigenvector,this -> P_CC,"std");
+	for (int e = 0; e < eigenvalues.size(); ++e){
+		if(eigenvalues(e) < 0){
+			eigenvalues(e) = 0;
+			++modified;
+		}
+	}
+
+	this -> P_CC = eigenvector * arma::diagmat(eigenvalues) * eigenvector.t();
+
+	return modified;
+}
 

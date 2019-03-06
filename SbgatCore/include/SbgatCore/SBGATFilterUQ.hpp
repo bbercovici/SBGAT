@@ -68,6 +68,15 @@ public:
   */
   void AddRadialUncertaintyRegionToCovariance(int regioN_verticesenter_index,const double & standard_dev,const double & correl_distance);
 
+  /**
+  Will 'regularize' the shape covariance by computing a spectral 
+  decomposition P_CC = H D H^T and clamp any negative eigenvalue in D to zero. 
+  After calling this method, the covariance thus becomes
+  P_CC = H clamped(D) H^T
+  @param return 0 if no eigenvalue was clamped, 1 otherwise
+  */
+  int RegularizeCovariance();
+
 
   /**
   Adds to the shape vertices covariance the contribution from an uncertainty region centered at vertex $regioN_verticesenter_index.
