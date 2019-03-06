@@ -40,7 +40,7 @@ SIM_PREFIX = "PGMUncertaintyMCSlopes"
 base_dictionnary = {
 "CORRELATION_DISTANCE" : 50e3,
 "ERROR_STANDARD_DEV" : 10e3,
-"DENSITY" : 3700,
+"DENSITY" : 4500,
 "UNIT_IN_METERS" : False,
 "PERIOD" : 4.195948 * 3600,
 "PERIOD_SD" : 1e-5 * 4.195948 * 3600,
