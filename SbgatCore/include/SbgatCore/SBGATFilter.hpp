@@ -82,6 +82,7 @@ public:
     return this -> density ;
   }
 
+ 
 
   /**
   Return coordinates of the three vertices forming a facet

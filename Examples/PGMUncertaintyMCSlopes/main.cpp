@@ -26,7 +26,7 @@ int main(){
 	double DENSITY  = input_data["DENSITY"];
 	double PERIOD_SD  = input_data["PERIOD_SD"];
 	double PERIOD  = input_data["PERIOD"];
-
+	
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
 
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
@@ -41,8 +41,7 @@ int main(){
 	std::cout << "- Standard deviation on rotation period (s) : " << PERIOD_SD << std::endl;
 	std::cout << "- Density (kg/m^3) : " << DENSITY << std::endl;
 	std::cout << "- Rotation period (s) : " << PERIOD << std::endl;
-	std::cout << "- Monte Carlo Draws : " << N_MONTE_CARLO << std::endl;
-
+	
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -82,12 +81,12 @@ int main(){
 	// Populate the shape vertices covariance
 	
 	if (UNCERTAINTY_TYPE == "radial"){
-		// pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 		pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 
 	else if (UNCERTAINTY_TYPE == "normal"){
-		// pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	}
 	else if (UNCERTAINTY_TYPE == "global"){
@@ -97,17 +96,29 @@ int main(){
 		throw(std::runtime_error("Got unknown uncertainty direction type: " + UNCERTAINTY_TYPE));
 	}
 
-	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
-	// P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
+	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
+	
+	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
+	C_CC.save(OUTPUT_DIR + "full_covariance_sqrt.txt",arma::raw_ascii);
+
+	// Regularizing the covariance
+	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+
+	std::cout << regularized_eigen_values << " eigenvalues were regularized\n";
+	C_CC = pgm_uq.GetCovarianceSquareRoot();
+	
+	P_CC = pgm_uq.GetVerticesCovariance();
+	P_CC.save(OUTPUT_DIR + "full_covariance_regularized.txt",arma::raw_ascii);
+	C_CC.save(OUTPUT_DIR + "full_covariance_sqrt_regularized.txt",arma::raw_ascii);
+
+	regularized_eigen_values = pgm_uq.RegularizeCovariance();
+
+	std::cout << regularized_eigen_values << " eigenvalues were regularized\n";
 
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
 
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
-
-	// Save the covariance
-	pgm_uq.SaveNonZeroVerticesCovariance(OUTPUT_DIR + "shape_covariance.json");
-	P_CC.save(OUTPUT_DIR + "full_covariance.txt",arma::raw_ascii);
 	
 	std::vector<int > all_facets = {1266,1268};
 
