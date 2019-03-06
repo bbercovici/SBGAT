@@ -7,7 +7,7 @@ import platform
 import sys
 import itertools
 import time
-
+import socket 
 
 def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,base_location,sim_name):
 
@@ -27,8 +27,8 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
-if (platform.system() == 'Linux'):
-    base_location = "../"
+if (socket.gethostname() == "fortuna"):
+    base_location = "/orc_raid/bebe0705/PGMUncertaintyPoles/"
 else:
     base_location = "../"
 
