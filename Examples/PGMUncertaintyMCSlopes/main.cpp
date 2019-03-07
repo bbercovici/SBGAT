@@ -30,9 +30,13 @@ int main(){
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
 
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
+	std::vector<int> COV_REGION_CENTERS = input_data["COV_REGION_CENTERS"];
 
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
+
+	std::vector<int > FACETS_TO_INVESTIGATE = input_data["FACETS_TO_INVESTIGATE"];
+
 
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Uncertainty type: " << UNCERTAINTY_TYPE << std::endl;
@@ -41,7 +45,14 @@ int main(){
 	std::cout << "- Standard deviation on rotation period (s) : " << PERIOD_SD << std::endl;
 	std::cout << "- Density (kg/m^3) : " << DENSITY << std::endl;
 	std::cout << "- Rotation period (s) : " << PERIOD << std::endl;
-	
+	std::cout << "- Covariance region centers:\n" ;
+	for(auto center : COV_REGION_CENTERS){
+		std::cout << "\t" << center << std::endl;
+	}
+	std::cout << "- Facets to investigate:\n" ;
+	for(auto facet : FACETS_TO_INVESTIGATE){
+		std::cout << "\t" << facet << std::endl;
+	}
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -81,13 +92,17 @@ int main(){
 	// Populate the shape vertices covariance
 	
 	if (UNCERTAINTY_TYPE == "radial"){
-		pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-		pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-	}
+		for (auto region_center : COV_REGION_CENTERS){
+			pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 
+		}
+	}
 	else if (UNCERTAINTY_TYPE == "normal"){
-		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		for (auto region_center : COV_REGION_CENTERS){
+
+			pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+
+		}
 	}
 	else if (UNCERTAINTY_TYPE == "global"){
 		pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
@@ -95,6 +110,7 @@ int main(){
 	else{
 		throw(std::runtime_error("Got unknown uncertainty direction type: " + UNCERTAINTY_TYPE));
 	}
+
 
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
@@ -120,7 +136,6 @@ int main(){
 
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
 	
-	std::vector<int > all_facets = {1266,1268};
 
 
 	// Analytical UQ
@@ -129,7 +144,7 @@ int main(){
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
 
-	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,all_facets);
+	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,FACETS_TO_INVESTIGATE);
 
 	auto end = std::chrono::system_clock::now();
 
@@ -152,7 +167,7 @@ int main(){
 		C_CC,
 		PERIOD_SD,
 		N_MONTE_CARLO, 
-		all_facets,
+		FACETS_TO_INVESTIGATE,
 		OUTPUT_DIR,
 		std::min(30,N_MONTE_CARLO),
 		deviations,
@@ -167,7 +182,7 @@ int main(){
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
 
 	
-	std::vector<double> mc_variances_slopes(all_facets.size());
+	std::vector<double> mc_variances_slopes(FACETS_TO_INVESTIGATE.size());
 
 	std::cout << "Computing MC dispersions...\n";
 	
@@ -178,14 +193,14 @@ int main(){
 		}
 		mc_variances_slopes[e] = arma::var(slopes_mc);
 
-		slopes_mc.save(OUTPUT_DIR + "/slope_distribution_facet_" + std::to_string(all_facets[e]) + ".txt",arma::raw_ascii);
+		slopes_mc.save(OUTPUT_DIR + "/slope_distribution_facet_" + std::to_string(FACETS_TO_INVESTIGATE[e]) + ".txt",arma::raw_ascii);
 	}
 
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
 
-	for (int e = 0; e < all_facets.size(); ++e){
-		std::cout << "\tAt facet " << all_facets[e] << "\n";
-		std::cout << "\t\tSlope (rad): " << pgm_filter -> GetSlope(all_facets[e]) << std::endl;
+	for (int e = 0; e < FACETS_TO_INVESTIGATE.size(); ++e){
+		std::cout << "\tAt facet " << FACETS_TO_INVESTIGATE[e] << "\n";
+		std::cout << "\t\tSlope (rad): " << pgm_filter -> GetSlope(FACETS_TO_INVESTIGATE[e]) << std::endl;
 		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
 		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
 		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
