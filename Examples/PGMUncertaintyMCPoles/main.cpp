@@ -27,6 +27,7 @@ int main(){
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 	double STEP_SIZE  = input_data["STEP_SIZE"];
 
+	std::vector<int> COV_REGION_CENTERS = input_data["COV_REGION_CENTERS"];
 	
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;
@@ -36,7 +37,10 @@ int main(){
 	std::cout << "- Uncertainty type: " << UNCERTAINTY_TYPE << std::endl;
 	std::cout << "- Step size: " << STEP_SIZE << std::endl;
 	std::cout << "- Projection axis : " << PROJECTION_AXIS << std::endl;
-
+	std::cout << "- Covariance region centers:\n" ;
+	for(auto center : COV_REGION_CENTERS){
+		std::cout << "\t" << center << std::endl;
+	}
 
 
 	// Reading
@@ -66,13 +70,17 @@ int main(){
 	// Populate the shape vertices covariance
 	
 	if (UNCERTAINTY_TYPE == "radial"){
-		pgm_uq.AddRadialUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-		pgm_uq.AddRadialUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		for (auto region_center : COV_REGION_CENTERS){
+		pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		
+		}
 	}
-
 	else if (UNCERTAINTY_TYPE == "normal"){
-		pgm_uq.AddNormalUncertaintyRegionToCovariance(0,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
-		pgm_uq.AddNormalUncertaintyRegionToCovariance(1147,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		for (auto region_center : COV_REGION_CENTERS){
+
+		pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+		
+		}
 	}
 	else if (UNCERTAINTY_TYPE == "global"){
 		pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
