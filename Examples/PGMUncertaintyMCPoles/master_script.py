@@ -56,8 +56,9 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"CORRELATION_DISTANCE" : [100e3,125e3],
-"ERROR_STANDARD_DEV" : [10e3,15e3]
+"CORRELATION_DISTANCE" : [25e3,50e3,75e3],
+"ERROR_STANDARD_DEV" : [10e3],
+"COV_REGION_CENTERS" : [[0],[1147],[0,1147]]
 }
 
 # There shouldn't be any reason to modify the following
