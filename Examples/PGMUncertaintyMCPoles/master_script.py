@@ -33,7 +33,7 @@ else:
     base_location = "../"
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertaintyMCPoles"
+SIM_PREFIX = "PGMUncertaintyMCPolesFixedRegion"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
@@ -41,7 +41,9 @@ base_dictionnary = {
 "UNIT_IN_METERS" : False,
 "STEP_SIZE" : 10e3,
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
-"PROJECTION_AXIS" : 0
+"PROJECTION_AXIS" : 0,
+"UNCERTAINTY_TYPE" : "normal",
+"N_MONTE_CARLO" : 5000
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -54,10 +56,8 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"UNCERTAINTY_TYPE" : ["global","normal"],
-"N_MONTE_CARLO" : [1000,5000],
-"CORRELATION_DISTANCE" : [25e3,50e3,75e3],
-"ERROR_STANDARD_DEV" : [5e3,10e3,15e3],
+"CORRELATION_DISTANCE" : [50e3,75e3],
+"ERROR_STANDARD_DEV" : [10e3,15e3]
 }
 
 # There shouldn't be any reason to modify the following
