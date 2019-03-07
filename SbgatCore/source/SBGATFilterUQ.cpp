@@ -566,7 +566,7 @@ void SBGATFilterUQ::AddNormalUncertaintyRegionToCovariance(int region_center_ind
 					if ( d_ij < 3 * correl_distance){
 						double decay_ij = std::exp(- std::pow(d_ij / ( correl_distance),2)) ;
 
-						arma::mat::fixed<3,3> P_correlation = std::sqrt(decay_j_center * decay_i_center) * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
+						arma::mat::fixed<3,3> P_correlation = std::max(decay_j_center , decay_i_center) * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
 
 						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) += P_correlation;
 
@@ -634,7 +634,7 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 					if ( d_ij < 3 * correl_distance){
 						double decay_ij = std::exp(- std::pow(d_ij / ( correl_distance),2)) ;
 
-						arma::mat::fixed<3,3> P_correlation = std::sqrt(decay_j_center * decay_i_center) * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
+						arma::mat::fixed<3,3> P_correlation = std::max(decay_j_center , decay_i_center) * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
 
 						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) += P_correlation;
 
