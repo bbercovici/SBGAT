@@ -1,1 +1,12 @@
-{"N_MONTE_CARLO": 1000, "UNCERTAINTY_TYPE": "normal", "CORRELATION_DISTANCE": 50000.0, "ERROR_STANDARD_DEV": 10000.0, "DENSITY": 3700, "UNIT_IN_METERS": false, "PATH_SHAPE": "../../../resources/shape_models/psyche.obj", "INPUT_DIR": "../input/PGMUncertaintyMCPoles_0/", "OUTPUT_DIR": "../output/PGMUncertaintyMCPoles_0/"}
+{
+  "N_MONTE_CARLO": 1000,
+  "UNCERTAINTY_TYPE": "normal",
+  "CORRELATION_DISTANCE": 50000.0,
+  "ERROR_STANDARD_DEV": 10000.0,
+  "DENSITY": 3700,
+  "UNIT_IN_METERS": false,
+  "PROJECTION_AXIS" : 0,
+  "PATH_SHAPE": "../../../resources/shape_models/psyche.obj",
+  "INPUT_DIR": "../input/PGMUncertaintyMCPoles_0/",
+  "OUTPUT_DIR": "../output/PGMUncertaintyMCPoles_0/"
+}

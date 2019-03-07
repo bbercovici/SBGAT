@@ -545,7 +545,7 @@ void SBGATFilterUQ::AddNormalUncertaintyRegionToCovariance(int region_center_ind
 
 			arma::mat::fixed<3,3> P_ii = decay_i_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
-			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P_ii;
+			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) += P_ii;
 
 			for (unsigned int j = 0; j < N_C; ++j){
 				double Cj[3];
@@ -567,8 +567,8 @@ void SBGATFilterUQ::AddNormalUncertaintyRegionToCovariance(int region_center_ind
 
 						arma::mat::fixed<3,3> P_correlation = decay_i_center * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
 
-						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
-						this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) += P_correlation;
+						this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) += P_correlation.t();
 
 					}
 				}
@@ -615,7 +615,7 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 
 			arma::mat::fixed<3,3> P_ii = decay_i_center * std::pow(standard_dev,2) * (ni * ni.t() + epsilon * (u_1 * u_1.t() + u_2 * u_2.t()));
 
-			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) = P_ii;
+			this -> P_CC.submat(3 * i, 3 * i, 3 * i + 2, 3 * i + 2) += P_ii;
 
 			for (unsigned int j = 0; j < N_C; ++j){
 				double Cj[3];
@@ -634,8 +634,8 @@ void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_ind
 
 						arma::mat::fixed<3,3> P_correlation = decay_i_center * std::pow(standard_dev,2) * decay_ij * ni * nj.t();
 
-						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) = P_correlation;
-						this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) = P_correlation.t();
+						this -> P_CC.submat(3 * i, 3 * j, 3 * i + 2, 3 * j + 2) += P_correlation;
+						this -> P_CC.submat(3 * j, 3 * i, 3 * j + 2, 3 * i + 2) += P_correlation.t();
 
 					}
 				}

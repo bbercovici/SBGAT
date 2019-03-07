@@ -18,18 +18,15 @@ int main(){
 
 	std::string PATH_SHAPE = input_data["PATH_SHAPE"];
 	double CORRELATION_DISTANCE =  input_data["CORRELATION_DISTANCE"];
-
 	double ERROR_STANDARD_DEV  = input_data["ERROR_STANDARD_DEV"];
 	double DENSITY  = input_data["DENSITY"];
-
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
-
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 	int PROJECTION_AXIS = input_data["PROJECTION_AXIS"];
-
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 	double STEP_SIZE  = input_data["STEP_SIZE"];
+
 	
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
 	std::cout << "- Standard deviation on point coordinates (m) : " << ERROR_STANDARD_DEV << std::endl;

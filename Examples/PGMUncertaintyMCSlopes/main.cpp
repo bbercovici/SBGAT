@@ -171,22 +171,25 @@ int main(){
 
 	std::cout << "Computing MC dispersions...\n";
 	
-	#pragma omp parallel for
 	for (int e = 0; e < mc_variances_slopes.size(); ++e){
 		arma::vec slopes_mc(N_MONTE_CARLO);
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
 			slopes_mc(sample) = all_slopes[sample][e];
 		}
 		mc_variances_slopes[e] = arma::var(slopes_mc);
+
+		slopes_mc.save(OUTPUT_DIR + "/slope_distribution_facet_" + std::to_string(all_facets[e]) + ".txt",arma::raw_ascii);
 	}
 
 	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
 
 	for (int e = 0; e < all_facets.size(); ++e){
 		std::cout << "\tAt facet " << all_facets[e] << "\n";
+		std::cout << "\t\tSlope (rad): " << pgm_filter -> GetSlope(all_facets[e]) << std::endl;
 		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
 		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
 		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
+		
 	}
 
 
