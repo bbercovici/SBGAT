@@ -85,23 +85,6 @@ void SBGATMassPropertiesUQ::TestPartialDeltaVfPartialTf(std::string input,double
 	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
 	cleaner -> Update();
 
-
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
-	mass_prop -> SetDensity(1970); 
-	if (shape_in_meters) 
-		mass_prop -> SetScaleMeters();
-	else
-		mass_prop -> SetScaleKiloMeters();
-
-	mass_prop -> Update();
-
-	SBGATMassPropertiesUQ shape_uq;
-	shape_uq.SetModel(mass_prop);
-
-
-
 	#pragma omp parallel for reduction(+:successes)
 	
 	for (int i = 0; i < N ; ++i){
@@ -123,6 +106,8 @@ void SBGATMassPropertiesUQ::TestPartialDeltaVfPartialTf(std::string input,double
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
+
 
 		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
 		
@@ -200,6 +185,8 @@ void SBGATMassPropertiesUQ::TestGetPartialVolumePartialC(std::string input,doubl
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
+
 
 	// Nominal Volume
 		double volume = mass_prop -> GetVolume();
@@ -270,6 +257,7 @@ void SBGATMassPropertiesUQ::TestGetPartialComPartialC(std::string input,double t
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 	// Nominal Volume
 		arma::vec::fixed<3> com = mass_prop -> GetCenterOfMass();
@@ -379,6 +367,7 @@ void SBGATMassPropertiesUQ::TestGetPartialIPartialC(std::string input,double tol
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 	// Nominal 
 		arma::mat deltaI_mat = mass_prop -> GetUnitDensityInertiaTensor() ;
@@ -448,6 +437,7 @@ void SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(std::string input,double
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 	// Nominal 
 		arma::vec::fixed<3> sigma = RBK::dcm_to_mrp(mass_prop -> GetPrincipalAxes()) ;
@@ -516,6 +506,7 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 	// Nominal 
 		double V = mass_prop -> GetVolume();
@@ -612,6 +603,7 @@ void SBGATMassPropertiesUQ::TestPartialDeltaIfPartialTf(std::string input,double
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
@@ -773,21 +765,6 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 	cleaner -> Update();
 
 
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
-	mass_prop -> SetDensity(1970); 
-	if (shape_in_meters) 
-		mass_prop -> SetScaleMeters();
-	else
-		mass_prop -> SetScaleKiloMeters();
-
-	mass_prop -> Update();
-
-	SBGATMassPropertiesUQ shape_uq;
-	shape_uq.SetModel(mass_prop);
-
-
 
 	#pragma omp parallel for reduction(+:successes)
 	
@@ -810,6 +787,7 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 
 		SBGATMassPropertiesUQ shape_uq;
 		shape_uq.SetModel(mass_prop);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		int N_facets = vtkPolyData::SafeDownCast(mass_prop -> GetInput()) -> GetNumberOfCells();
 		
@@ -928,8 +906,6 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::PartialSigmaPartialI() const{
 	W3(1,5) = 1;
 	W3(2,2) = 1;
 
-	arma::mat::fixed<3,6> dMdI = this -> PartialUnitDensityMomentsPartialI();
-
 
 	arma::mat::fixed<9,3> H = arma::zeros<arma::mat>(9,3);
 	arma::mat::fixed<9,6> V = arma::zeros<arma::mat>(9,6);
@@ -971,7 +947,7 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::PartialSigmaPartialI() const{
 			arma::rowvec::fixed<6> J_rq = f_r.t() * Fq;
 
 			H.row(index) = e_r.t() * ( D * RBK::tilde(e_q) - RBK::tilde(D * e_q));
-			V.row(index) = (J_rq - delta_rq * e_r.t() * dMdI)/4;
+			V.row(index) = (J_rq - delta_rq * e_r.t() * this -> precomputed_partialUnitDensityMomentsPartialI)/4;
 			++index;
 
 		}
@@ -1042,7 +1018,7 @@ arma::mat::fixed<3,6>  SBGATMassPropertiesUQ::PartialUnitDensityMomentsPartialI(
   Evaluates the partial of the volume, center of mass and mrp orienting the principal axes
   relative to the vertices coordinates and stores the computed partials in designated containers
   */
-void SBGATMassPropertiesUQ::PrecomputePartials(){
+void SBGATMassPropertiesUQ::PrecomputeMassPropertiesPartials(){
 
 
 	arma::rowvec dVdC = arma::zeros<arma::rowvec>(3 * this -> model -> GetN_vertices());

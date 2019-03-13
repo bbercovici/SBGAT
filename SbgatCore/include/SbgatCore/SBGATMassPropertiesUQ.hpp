@@ -27,8 +27,9 @@ public:
   Sets the model associated to this uncertainty quantification container
   and updates the partials of the mass properties relative to the shape
   @param[in] pgm pointer to valid SBGATFilter
+  @param[in] 
   */
-  virtual void SetModel(vtkSmartPointer<SBGATFilter> model){this -> model = model; this -> PrecomputePartials();}
+  virtual void SetModel(vtkSmartPointer<SBGATFilter> model){this -> model = model;}
 
   /**
   Runs a finite-differencing based test of the implemented PGM partials
@@ -81,7 +82,7 @@ Return the partial derivative of the shape's center of mass with respect to the 
   Evaluates the partial of the volume, center of mass and mrp orienting the principal axes
   relative to the vertices coordinates and stores the computed partials in designated containers
   */
-  void PrecomputePartials();
+  void PrecomputeMassPropertiesPartials();
 
   /**
   Return the partial derivative of the unit density moments relative to a change in the inertia tensor parametrization

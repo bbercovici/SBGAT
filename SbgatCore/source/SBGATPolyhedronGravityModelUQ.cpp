@@ -507,6 +507,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUfPartialTf(std::string filename,
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		int N_facets = pgm_filter -> GetN_facets();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
@@ -617,6 +618,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialBe(std::string filename,
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
+
 
 		int N_edges = pgm_filter -> GetN_edges();
 		arma::ivec e_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_edges - 1));
@@ -2714,6 +2716,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialUPartialCConstantMass(std::str
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		double U = pgm_filter -> GetPotential(pos);
 		arma::rowvec dUdC = shape_uq.GetPartialUPartialC(pos,true);
@@ -2848,7 +2851,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialAPartialCConstantMass(std::str
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 
 		arma::vec::fixed<3> A = pgm_filter -> GetAcceleration(pos);
@@ -3621,7 +3624,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 		// pgm_filter_mc -> Update();
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		
-		shape_uq_mc.SetModel(pgm_filter_mc);
+		shape_uq_mc.SetModel(pgm_filter_mc,false);
 
 		shape_uq_mc.ApplyDeviation(deviations[i]);
 
@@ -3861,7 +3864,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialSlopePartialwPartialC(std::str
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 		
 		int N_facets = pgm_filter -> GetN_facets();
 		int N_C = pgm_filter -> GetN_vertices();;
@@ -3947,7 +3950,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialC(st
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 		
 
 		int N_facets = pgm_filter -> GetN_facets();
@@ -4057,7 +4060,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialBodyFixedAccelerationfPartialwC(s
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 		
 		int N_facets = pgm_filter -> GetN_facets();
 		int N_C = pgm_filter -> GetN_vertices();
@@ -4145,7 +4148,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialOmegaPartialwC(std::string input 
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		int N_C = pgm_filter -> GetN_vertices();
 
@@ -4229,7 +4232,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 		SBGATPolyhedronGravityModelUQ shape_uq;
 		shape_uq.SetModel(pgm_filter);
-
+		shape_uq.PrecomputeMassPropertiesPartials();
 
 		int N_facets = pgm_filter -> GetN_facets();
 		arma::ivec f_vec = arma::randi<arma::ivec>(1,arma::distr_param(0,N_facets - 1));
