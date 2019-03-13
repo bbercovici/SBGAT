@@ -741,9 +741,7 @@ to the shape coordinates
 
   double period_standard_deviation;
 
-  arma::mat precomputed_partialGpartialC;
-  arma::mat precomputed_partialSigmapartialC;
-
+ 
 
 
 

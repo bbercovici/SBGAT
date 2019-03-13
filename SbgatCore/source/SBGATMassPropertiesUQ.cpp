@@ -58,62 +58,12 @@ void SBGATMassPropertiesUQ::TestPartials(std::string input,double tol,bool shape
 	SBGATMassPropertiesUQ::TestGetPartialIPartialC(input,tol,shape_in_meters);
 
 	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(input,tol,shape_in_meters);
-	SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(input,tol,shape_in_meters);
 
 	SBGATMassPropertiesUQ::TestGetPartialSigmaPartialC(input,tol,shape_in_meters);
 
 }
 
 
-
-void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters){
-	std::cout << "\t In TestGetPartialAllInertiaPartialCVSStandalone ... ";
-
-
-	// Reading
-	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
-	reader -> SetFileName(input.c_str());
-	reader -> Update(); 
-
-	// Cleaning
-	vtkSmartPointer<vtkCleanPolyData> cleaner =
-	vtkSmartPointer<vtkCleanPolyData>::New();
-	cleaner -> SetInputConnection (reader -> GetOutputPort());
-	cleaner -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
-	cleaner -> Update();
-
-
-	// Creating the PGM dyads
-	vtkSmartPointer<SBGATMassProperties> mass_prop = vtkSmartPointer<SBGATMassProperties>::New();
-	mass_prop -> SetInputConnection(cleaner -> GetOutputPort());
-	mass_prop -> SetDensity(1970); 
-	mass_prop -> SetScaleMeters();
-	mass_prop -> Update();
-
-	SBGATMassPropertiesUQ shape_uq;
-	shape_uq.SetModel(mass_prop);
-
-	
-	arma::rowvec dVdC_standalone = shape_uq.GetPartialVolumePartialC();
-	arma::mat dComdC_standalone = shape_uq.GetPartialComPartialC();
-	arma::mat dIdC_standalone = shape_uq.GetPartialIPartialC();
-
-
-
-	arma::rowvec dVdC ;
-	arma::mat dComdC;
-	arma::mat dIdC;
-
-	shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
-
-	assert(arma::norm(dVdC_standalone - dVdC) / arma::norm(dVdC) < 1e-10);
-	assert(arma::norm(dComdC_standalone - dComdC) / arma::norm(dComdC) < 1e-10);
-	assert(arma::norm(dIdC_standalone - dIdC) / arma::norm(dIdC) < 1e-10);
-
-
-	std::cout << "\t Done running TestGetPartialAllInertiaPartialCVSStandalone ... \n";
-
-}
 
 void SBGATMassPropertiesUQ::TestPartialDeltaVfPartialTf(std::string input,double tol,bool shape_in_meters){
 
@@ -579,16 +529,9 @@ void SBGATMassPropertiesUQ::TestGetPartialAllInertiaPartialC(std::string input,d
 
 	// Linear 
 
-		arma::rowvec dVdC;
-
-		arma::mat dIdC,dComdC;
-
-		shape_uq.GetPartialAllInertiaPartialC(dVdC,dComdC,dIdC);
-
-
-		double dV_lin = arma::dot(dVdC,mass_prop -> GetScaleFactor() * delta_C);
-		arma::vec::fixed<3> dcom_lin = dComdC * mass_prop -> GetScaleFactor() * delta_C;
-		arma::vec::fixed<6> ddeltaI_lin = mass_prop -> GetScaleFactor() * dIdC * delta_C;
+		double dV_lin = arma::dot(shape_uq.GetPartialVolumePartialC(),mass_prop -> GetScaleFactor() * delta_C);
+		arma::vec::fixed<3> dcom_lin = shape_uq.GetPartialComPartialC() * mass_prop -> GetScaleFactor() * delta_C;
+		arma::vec::fixed<6> ddeltaI_lin = mass_prop -> GetScaleFactor() * shape_uq.GetPartialIPartialC() * delta_C;
 
 	// Apply deviation
 		shape_uq. ApplyDeviation(delta_C);
@@ -703,59 +646,6 @@ void SBGATMassPropertiesUQ::TestPartialDeltaIfPartialTf(std::string input,double
 
 }
 
-arma::mat SBGATMassPropertiesUQ::GetPartialComPartialC() const{
-
-	arma::mat partial = arma::zeros<arma::mat>(3,3 * this -> model -> GetN_vertices());
-
-
-	#pragma omp parallel for reduction(+:partial)
-	for (int f = 0; f < this -> model -> GetN_facets(); ++f){
-
-		partial += this -> PartialDeltaComPartialTf(f) * this -> PartialTfPartialC(f);
-
-	}
-
-	return partial ;
-
-}
-
-
-void SBGATMassPropertiesUQ::GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arma::mat & dCOMdC,
-	arma::mat & dIdC) const{
-
-	dVdC = arma::zeros<arma::rowvec>(3 * this -> model -> GetN_vertices());
-	dCOMdC = arma::zeros<arma::mat>(3,3 * this -> model -> GetN_vertices());
-	dIdC = arma::zeros<arma::mat>(6,3 * this -> model -> GetN_vertices());
-
-	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
-	for (int f = 0; f < this -> model -> GetN_facets(); ++f){
-
-		arma::sp_mat connect_table = this -> PartialTfPartialC(f);
-
-		dVdC += this -> PartialDeltaVfPartialTf(f) * connect_table;
-		dCOMdC += this -> PartialDeltaComPartialTf(f) * connect_table;
-		dIdC += this -> PartialDeltaIfPartialTf(f) * connect_table;
-
-	}
-
-}
-
-
-arma::rowvec SBGATMassPropertiesUQ::GetPartialVolumePartialC() const{
-	
-	arma::rowvec partial = arma::zeros<arma::rowvec>(3 * this -> model -> GetN_vertices());
-
-
-	#pragma omp parallel for reduction(+:partial) 
-	for (int f = 0; f < this -> model -> GetN_facets(); ++f){
-
-		partial += this -> PartialDeltaVfPartialTf(f) * this -> PartialTfPartialC(f);
-
-	}
-
-	return partial;
-
-}
 
 
 arma::mat::fixed<3,9> SBGATMassPropertiesUQ::PartialDeltaComPartialTf(const int & f) const{
@@ -975,21 +865,6 @@ void SBGATMassPropertiesUQ::TestPartialEqDeltaIfErPartialTf(std::string input,do
 
 }
 
-arma::mat SBGATMassPropertiesUQ::GetPartialIPartialC() const{
-
-
-	arma::mat partial = arma::zeros<arma::mat>(6,3 * this -> model -> GetN_vertices());
-
-	#pragma omp parallel for reduction(+:partial)
-	for (int f = 0; f < this -> model -> GetN_facets(); ++f){
-
-		partial += this -> PartialDeltaIfPartialTf(f) * this -> PartialTfPartialC(f);
-
-	}
-
-	return partial ;
-
-}
 
 
 
@@ -1023,7 +898,7 @@ void SBGATMassPropertiesUQ::ApplyDeviation(const arma::vec & delta_C){
 }
 
 
-arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
+arma::mat::fixed<3,6> SBGATMassPropertiesUQ::PartialSigmaPartialI() const{
 	SBGATMassProperties * mass_model = nullptr;
 
 	mass_model = SBGATMassProperties::SafeDownCast(this -> model);
@@ -1053,7 +928,7 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 	W3(1,5) = 1;
 	W3(2,2) = 1;
 
-	arma::mat::fixed<3,6> dMdI = this -> GetPartialUnitDensityMomentsPartialI();
+	arma::mat::fixed<3,6> dMdI = this -> PartialUnitDensityMomentsPartialI();
 
 
 	arma::mat::fixed<9,3> H = arma::zeros<arma::mat>(9,3);
@@ -1108,16 +983,9 @@ arma::mat::fixed<3,6> SBGATMassPropertiesUQ::GetPartialSigmaPartialI() const{
 }
 
 
-arma::mat SBGATMassPropertiesUQ::GetPartialSigmaPartialC() const{
 
 
-	return this -> GetPartialSigmaPartialI() * this -> GetPartialIPartialC();
-
-}
-
-
-
-arma::mat  SBGATMassPropertiesUQ::GetPartialUnitDensityMomentsPartialI() const{
+arma::mat::fixed<3,6>  SBGATMassPropertiesUQ::PartialUnitDensityMomentsPartialI() const{
 	
 
 	SBGATMassProperties * mass_model = nullptr;
@@ -1170,7 +1038,47 @@ arma::mat  SBGATMassPropertiesUQ::GetPartialUnitDensityMomentsPartialI() const{
 }
 
 
+ /**
+  Evaluates the partial of the volume, center of mass and mrp orienting the principal axes
+  relative to the vertices coordinates and stores the computed partials in designated containers
+  */
+void SBGATMassPropertiesUQ::PrecomputePartials(){
 
+
+	arma::rowvec dVdC = arma::zeros<arma::rowvec>(3 * this -> model -> GetN_vertices());
+	arma::mat dCOMdC = arma::zeros<arma::mat>(3,3 * this -> model -> GetN_vertices());
+	arma::mat dIdC = arma::zeros<arma::mat>(6,3 * this -> model -> GetN_vertices());
+
+
+
+	#pragma omp parallel for reduction(+:dVdC) reduction(+:dCOMdC,dIdC)
+	for (int f = 0; f < this -> model -> GetN_facets(); ++f){
+
+		arma::sp_mat connect_table = this -> PartialTfPartialC(f);
+
+		dVdC += this -> PartialDeltaVfPartialTf(f) * connect_table;
+		dCOMdC += this -> PartialDeltaComPartialTf(f) * connect_table;
+		dIdC += this -> PartialDeltaIfPartialTf(f) * connect_table;
+
+	}
+
+	this -> precomputed_partialVpartialC.clear();
+	this -> precomputed_partialGpartialC.clear();
+	this -> precomputed_partialSigmapartialC.clear();
+	this -> precomputed_partialIpartialC.clear();
+
+	this -> precomputed_partialVpartialC = dVdC;
+	this -> precomputed_partialGpartialC = dCOMdC;
+	this -> precomputed_partialIpartialC = dIdC;
+	this -> precomputed_partialUnitDensityMomentsPartialI = this -> PartialUnitDensityMomentsPartialI();
+	this -> precomputed_partialSigmapartialI = this -> PartialSigmaPartialI();
+	this -> precomputed_partialSigmapartialC = this -> precomputed_partialSigmapartialI * precomputed_partialIpartialC;
+
+
+
+
+
+}
 
 
 

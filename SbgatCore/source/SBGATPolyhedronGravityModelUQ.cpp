@@ -1716,7 +1716,7 @@ void SBGATPolyhedronGravityModelUQ::ApplyDeviation(const arma::vec & delta_C){
 
 	vtkPolyData * polydata = vtkPolyData::SafeDownCast(this -> model -> GetInput());
 	int N_C = polydata -> GetNumberOfPoints();
-	assert(3 * N_C == delta_C.n_rows);
+	assert((int)(3 * N_C) == (int)(delta_C.n_rows));
 
 	double r[3];
 
@@ -2627,7 +2627,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialUPartialC(std::string filename
 
 		double U = pgm_filter -> GetPotential(pos);
 		arma::rowvec dUdC = shape_uq.GetPartialUPartialC(pos);
-		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(3 * pgm_filter -> GetN_vertices()) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(3 * pgm_filter -> GetN_vertices()) / pgm_filter -> GetScaleFactor();
 
 		shape_uq.ApplyDeviation(deviation);
 
@@ -2717,7 +2717,7 @@ void SBGATPolyhedronGravityModelUQ::TestGetPartialUPartialCConstantMass(std::str
 
 		double U = pgm_filter -> GetPotential(pos);
 		arma::rowvec dUdC = shape_uq.GetPartialUPartialC(pos,true);
-		arma::vec deviation = 1e-2 * arma::randn<arma::vec>(3 * pgm_filter -> GetN_vertices()) / pgm_filter -> GetScaleFactor();
+		arma::vec deviation = 1e-1 * arma::randn<arma::vec>(3 * pgm_filter -> GetN_vertices()) / pgm_filter -> GetScaleFactor();
 
 
 		double ref_volume = pgm_filter -> GetVolume();
@@ -3330,7 +3330,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 		all_accelerations,
 		all_potentials);
 
-	for (int i = 0; i < N_samples; ++i){
+	for (unsigned int i = 0; i < N_samples; ++i){
 		accelerations[i] = all_accelerations[i][0];
 		potentials[i] = all_potentials[i][0];
 	}
@@ -3369,7 +3369,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 		deviations,
 		all_accelerations);
 
-	for (int i = 0; i < N_samples; ++i){
+	for (unsigned int i = 0; i < N_samples; ++i){
 		accelerations[i] = all_accelerations[i][0];
 	}
 
@@ -3415,7 +3415,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		period_errors,
 		all_slopes);
 
-	for (int i = 0; i < N_samples; ++i){
+	for (unsigned int i = 0; i < N_samples; ++i){
 		slopes[i] = all_slopes[i][0];
 	}
 
@@ -4246,10 +4246,10 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 }
 
 
-double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold_mass_constant){
 
-	this -> precomputed_partialGpartialC = this -> GetPartialComPartialC();
-	this -> precomputed_partialSigmapartialC = this -> GetPartialSigmaPartialC();
+
+
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold_mass_constant){
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
@@ -4264,8 +4264,7 @@ double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold
 
 void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant){
 
-	this -> precomputed_partialGpartialC = this -> GetPartialComPartialC();
-	this -> precomputed_partialSigmapartialC = this -> GetPartialSigmaPartialC();
+	
 	slope_variances = std::vector<double>(facets.size());
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
