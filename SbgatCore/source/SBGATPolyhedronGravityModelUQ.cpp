@@ -3603,7 +3603,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	pgm_filter -> Update();
 
 
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
 
 		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();

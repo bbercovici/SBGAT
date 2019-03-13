@@ -38,6 +38,8 @@ int main(){
 	std::cout << "- Uncertainty type: " << UNCERTAINTY_TYPE << std::endl;
 	std::cout << "- Step size: " << STEP_SIZE << std::endl;
 	std::cout << "- Projection axis : " << PROJECTION_AXIS << std::endl;
+	std::cout << "- Hold Mass constant : " << HOLD_MASS_CONSTANT << std::endl;
+
 	std::cout << "- Covariance region centers:\n" ;
 	for(auto center : COV_REGION_CENTERS){
 		std::cout << "\t" << center << std::endl;
