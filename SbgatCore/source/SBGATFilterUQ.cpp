@@ -107,7 +107,7 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 
 void SBGATFilterUQ::SetCovarianceComponent(const arma::mat::fixed<3,3> & P,const int & v0, const int & v1){
 
-	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+	if ((int)(this -> P_CC.n_rows) != 3 * this -> model -> GetN_vertices()){
 		this -> P_CC.clear();
 		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
 	}
@@ -291,7 +291,7 @@ arma::mat::fixed<3,9> SBGATFilterUQ::PartialNfPartialTf(const int & f) const{
 void SBGATFilterUQ::ComputeVerticesCovarianceGlobal(const double & standard_dev,const double & correl_distance){
 
 
-	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+	if ((int)(this -> P_CC.n_rows) != 3 * this -> model -> GetN_vertices()){
 		this -> P_CC.clear();
 		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
 	}
@@ -499,7 +499,7 @@ void SBGATFilterUQ::TakeSlice(int axis,
 void SBGATFilterUQ::AddNormalUncertaintyRegionToCovariance(int region_center_index,const double & standard_dev,const double & correl_distance){
 
 
-	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+	if ((int)(this -> P_CC.n_rows) != 3 * this -> model -> GetN_vertices()){
 		this -> P_CC.clear();
 		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
 	}
@@ -587,7 +587,7 @@ void SBGATFilterUQ::AddNormalUncertaintyRegionToCovariance(int region_center_ind
 void SBGATFilterUQ::AddRadialUncertaintyRegionToCovariance(int region_center_index,const double & standard_dev,const double & correl_distance){
 
 
-	if (this -> P_CC.n_rows != 3 * this -> model -> GetN_vertices()){
+	if ((int)(this -> P_CC.n_rows) != 3 * this -> model -> GetN_vertices()){
 		this -> P_CC.clear();
 		this -> P_CC = arma::zeros<arma::mat>(3 * this -> model -> GetN_vertices(),3 * this -> model -> GetN_vertices());
 	}
