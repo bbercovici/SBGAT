@@ -961,7 +961,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
-
+	shape_uq.PrecomputeMassPropertiesPartials();
+	
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 
@@ -1156,6 +1157,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
+	shape_uq.PrecomputeMassPropertiesPartials();
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
@@ -1345,7 +1347,8 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
-
+	shape_uq.PrecomputeMassPropertiesPartials();
+	
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
 	
