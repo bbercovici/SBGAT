@@ -965,7 +965,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 
-	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+	int regularized_eigen_values = shape_uq.RegularizeCovariance();
 	std::cout << regularized_eigen_values << " negative covariance eigenvalues were clamped to zero\n";
 	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
@@ -1160,7 +1160,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 	
-	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+	int regularized_eigen_values = shape_uq.RegularizeCovariance();
 	std::cout << regularized_eigen_values << " negative covariance eigenvalues were clamped to zero\n";
 	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
@@ -1349,27 +1349,10 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
 	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
-	arma::mat C_CC;
+	int regularized_eigen_values = shape_uq.RegularizeCovariance();
+	std::cout << regularized_eigen_values << " negative covariance eigenvalues were clamped to zero\n";
+	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
-
-	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
-	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral).max();
-
-	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
-	std::cout << "\tCholesky: " << error_cholesky << std::endl;
-	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
-
-	if (error_cholesky < error_spectral){
-		std::cout << "Using cholesky square root\n";
-		C_CC = C_CC_cholesky;
-	}
-	else{
-		std::cout << "Using spectral decomposition square root\n";
-		C_CC = C_CC_spectral;
-	}
-
 
 	auto start = std::chrono::system_clock::now();	
 	double variance_U_analytical = shape_uq.GetVariancePotential(pos);
