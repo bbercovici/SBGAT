@@ -39,6 +39,8 @@ int main(){
 	std::cout << "- Step size: " << STEP_SIZE << std::endl;
 	std::cout << "- Projection axis : " << PROJECTION_AXIS << std::endl;
 	std::cout << "- Hold Mass constant : " << HOLD_MASS_CONSTANT << std::endl;
+	std::cout << "- Units in meters : " << UNIT_IN_METERS << std::endl;
+
 
 	std::cout << "- Covariance region centers:\n" ;
 	for(auto center : COV_REGION_CENTERS){

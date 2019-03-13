@@ -3493,6 +3493,13 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	pgm_filter -> Update();
 
 
+	if (shape_in_meters){
+		pgm_filter -> SetScaleMeters();
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+	}
+
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
 
@@ -3603,6 +3610,13 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	pgm_filter -> Update();
 
 
+	if (shape_in_meters){
+		pgm_filter -> SetScaleMeters();
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+	}
+
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
 
@@ -3712,6 +3726,13 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	pgm_filter -> SetInputConnection(cleaner_mc -> GetOutputPort());
 	pgm_filter -> SetDensity(density); 
 
+	if (shape_in_meters){
+		pgm_filter -> SetScaleMeters();
+	}
+	else{
+		pgm_filter -> SetScaleKiloMeters();
+	}
+
 	pgm_filter -> Update();
 
 	arma::vec::fixed<3> e = pgm_filter -> GetPrincipalAxes() * arma::normalise(Omega);
@@ -3746,8 +3767,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		shape_uq_mc.ApplyDeviation(deviations[i]);
 
 		if (hold_mass_constant){
-			double new_volume = pgm_filter_mc -> GetVolume();
-			pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
+			pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / pgm_filter_mc -> GetVolume());
 		}
 
 		densities[i] = pgm_filter_mc -> GetDensity();
