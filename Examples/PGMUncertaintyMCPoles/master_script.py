@@ -43,7 +43,8 @@ base_dictionnary = {
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
 "PROJECTION_AXIS" : 0,
 "UNCERTAINTY_TYPE" : "normal",
-"N_MONTE_CARLO" : 5000
+"N_MONTE_CARLO" : 5000,
+"HOLD_MASS_CONSTANT" : False
 }
 
 # Dictionnary storing simulation inputs to be looped over

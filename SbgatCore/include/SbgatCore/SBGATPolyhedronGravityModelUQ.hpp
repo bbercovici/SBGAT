@@ -154,6 +154,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
   @param[out] all_potentials holds N_samples vectors, each storing the potential evaluated at the specified points
   */
@@ -168,6 +170,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
     std::vector < std::vector<double> > & all_potentials );
 
@@ -188,6 +191,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
   */
 
@@ -201,6 +206,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations);
 
 
@@ -222,6 +228,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] period_errors holds N_samples of the error on the rotation period
 
   @param[out] all_slopes holds N_samples vectors, each storing the slopes evaluated at the specified facets
@@ -239,6 +247,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<double> & period_errors,
     std::vector < std::vector<double> > & all_slopes );
 
@@ -294,6 +303,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   @param[out] potentials holds N_samples potential evaluated at the specified point
   */
@@ -307,6 +318,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<arma::vec::fixed<3> > & accelerations,
     std::vector<double> & potentials);
 
@@ -326,6 +338,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   */
   static void RunMCUQAccelerationInertial(std::string path_to_shape,
@@ -338,6 +352,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<arma::vec::fixed<3> > & accelerations);
 
 
@@ -358,6 +373,8 @@ public:
   @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
   @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
   reference shape at every sample
+  @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
+  will vary accordingly to the constant mass constraint
   @param[out] period_errors holds N_samples of the error on the rotation period
   @param[out] slopes holds N_samples slopes evaluated at the specified facet
   */
@@ -373,6 +390,7 @@ public:
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
+    std::vector<double> & densities,
     std::vector<double> & period_errors,
     std::vector<double> & slopes);
 

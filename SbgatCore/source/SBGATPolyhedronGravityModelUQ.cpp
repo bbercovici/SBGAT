@@ -3305,6 +3305,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
+
 	std::vector<arma::vec::fixed<3> > & accelerations,
 	std::vector<double> & potentials){
 
@@ -3315,6 +3317,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	accelerations = std::vector<arma::vec::fixed<3> >(N_samples);
 	potentials = std::vector<double>(N_samples);
 	deviations = std::vector<arma::vec>(N_samples);
+	densities = std::vector<double>(N_samples);
 
 
 	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(path_to_shape,
@@ -3327,6 +3330,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 		output_dir,
 		N_saved_shapes,
 		deviations,
+		densities,
 		all_accelerations,
 		all_potentials);
 
@@ -3348,13 +3352,14 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
 	std::vector<arma::vec::fixed<3> > & accelerations){
-
 	std::vector< std::vector < arma::vec::fixed<3> > > all_accelerations(N_samples);
 	std::vector< arma::vec::fixed<3> > all_positions = {position};
-	
 	accelerations = std::vector<arma::vec::fixed<3> >(N_samples);
 	deviations = std::vector<arma::vec>(N_samples);
+	densities = std::vector<double>(N_samples);
+
 
 
 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(path_to_shape,
@@ -3367,6 +3372,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 		output_dir,
 		N_saved_shapes,
 		deviations,
+		densities,
 		all_accelerations);
 
 	for (unsigned int i = 0; i < N_samples; ++i){
@@ -3389,6 +3395,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
 	std::vector<double> & period_errors,
 	std::vector<double> & slopes){
 
@@ -3398,6 +3405,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	slopes = std::vector<double>(N_samples);
 	period_errors = std::vector<double>(N_samples);
 	deviations = std::vector<arma::vec>(N_samples);
+	densities = std::vector<double>(N_samples);
+
 
 
 	SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(path_to_shape,
@@ -3412,6 +3421,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		output_dir,
 		N_saved_shapes,
 		deviations,
+		densities,
 		period_errors,
 		all_slopes);
 
@@ -3442,6 +3452,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
 	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
 	std::vector<std::vector<double > > & all_potentials){
 
@@ -3451,6 +3462,9 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 		all_potentials = std::vector< std::vector < double > > (N_samples);
 	if (deviations.size() == 0)
 		deviations = std::vector<arma::vec>(N_samples);
+	if (densities.size() == 0){
+		densities = std::vector<double>(N_samples);
+	}
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
@@ -3500,19 +3514,19 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 		shape_uq_mc.SetModel(pgm_filter_mc);
 
 		shape_uq_mc.ApplyDeviation(deviations[i]);
+		if (hold_mass_constant){
+			double new_volume = pgm_filter_mc -> GetVolume();
+			pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
+		}
+
+		densities[i] = pgm_filter_mc -> GetDensity();
 
 		for (auto pos : all_positions){
 
 			arma::vec::fixed<3> acc;
 			double pot;
 
-			if (hold_mass_constant){
-				double new_volume = pgm_filter_mc -> GetVolume();
-				pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
-			}
-
 			pgm_filter_mc -> GetPotentialAcceleration(pos,pot,acc);
-
 
 			all_accelerations[i].push_back(acc);
 			all_potentials[i].push_back(pot);
@@ -3549,6 +3563,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
 	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations){
 
 	if (all_accelerations.size() == 0)
@@ -3556,6 +3571,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	
 	if (deviations.size() == 0)
 		deviations = std::vector<arma::vec>(N_samples);
+	if (densities.size() == 0)
+		densities = std::vector<double>(N_samples);
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
@@ -3614,6 +3631,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 			pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
 		}
 
+		densities[i] = pgm_filter_mc -> GetDensity();
 
 		for (auto pos : all_positions){
 			all_accelerations[i].push_back(pgm_filter_mc -> GetAcceleration(pos));
@@ -3655,6 +3673,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
+	std::vector<double> & densities,
 	std::vector<double> & period_errors,
 	std::vector<std::vector<double > > & all_slopes){
 
@@ -3664,6 +3683,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 		deviations = std::vector<arma::vec>(N_samples);
 	if (period_errors.size() == 0)
 		period_errors = std::vector< double > (N_samples);
+	if (densities.size() == 0)
+		densities = std::vector< double > (N_samples);
 
 
 	// Reading
@@ -3725,6 +3746,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 			double new_volume = pgm_filter_mc -> GetVolume();
 			pgm_filter_mc -> SetDensity(pgm_filter_mc -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
 		}
+
+		densities[i] = pgm_filter_mc -> GetDensity();
 
 		arma::vec::fixed<3> Omega_p = (2 * arma::datum::pi / (period + period_errors[i])) * pgm_filter_mc -> GetPrincipalAxes().t() * e;
 

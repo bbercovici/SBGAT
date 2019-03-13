@@ -28,6 +28,8 @@ int main(){
 	double PERIOD  = input_data["PERIOD"];
 	
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
+	bool HOLD_MASS_CONSTANT  = input_data["HOLD_MASS_CONSTANT"];
+
 
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 	std::vector<int> COV_REGION_CENTERS = input_data["COV_REGION_CENTERS"];
@@ -144,7 +146,7 @@ int main(){
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
 
-	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,FACETS_TO_INVESTIGATE);
+	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,FACETS_TO_INVESTIGATE,HOLD_MASS_CONSTANT);
 
 	auto end = std::chrono::system_clock::now();
 
@@ -154,6 +156,7 @@ int main(){
 	// Running a Monte Carlo to compare against
 	std::vector<arma::vec> deviations;
 	std::vector<double> period_errors;
+	std::vector<double> densities;
 
 	std::vector < std::vector<double> > all_slopes;
 
@@ -164,6 +167,7 @@ int main(){
 		DENSITY,
 		pgm_filter -> GetOmega() ,
 		UNIT_IN_METERS,
+		HOLD_MASS_CONSTANT,
 		C_CC,
 		PERIOD_SD,
 		N_MONTE_CARLO, 
@@ -171,6 +175,7 @@ int main(){
 		OUTPUT_DIR,
 		std::min(30,N_MONTE_CARLO),
 		deviations,
+		densities,
 		period_errors,
 		all_slopes);
 
