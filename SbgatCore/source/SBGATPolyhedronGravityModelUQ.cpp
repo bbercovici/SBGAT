@@ -720,7 +720,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialUePartialXe(std::string filename,
 		double Ue = pgm_filter -> GetUe(Xe);
 
   	// Perturbation to Xe 
-		arma::vec::fixed<10> dXe = 1e-3 * arma::randn<arma::vec>(10);
+		arma::vec::fixed<10> dXe = 1e-2 * arma::randn<arma::vec>(10);
 
   	// Xe after
 		arma::vec::fixed<10> Xe_p = Xe + dXe;
@@ -1094,7 +1094,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialFfPartialTf(std::string filename,
 		arma::vec::fixed<6> Ff = pgm_filter -> GetFfParam(f);
 
 	// Deviation
-		arma::vec::fixed<9> delta_Tf = 1e-3 * arma::randn<arma::vec>(9)/ pgm_filter -> GetScaleFactor();
+		arma::vec::fixed<9> delta_Tf = 1e-2 * arma::randn<arma::vec>(9)/ pgm_filter -> GetScaleFactor();
 
 	// Linear difference
 		arma::vec::fixed<6> dFf_lin = shape_uq.PartialFfPartialTf(f) * pgm_filter -> GetScaleFactor() * delta_Tf;
@@ -1911,7 +1911,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialAtan2PartialZf(std::string filena
 		double at2 = 2 * std::atan(arma::dot(Zf,e2) / (arma::norm(Zf) + arma::dot(Zf,e1)));
 
 
-		arma::vec::fixed<2> dZf = 1e-3 * arma::randn<arma::vec>(2);
+		arma::vec::fixed<2> dZf = 1e-2 * arma::randn<arma::vec>(2);
 
 		double at2_p = 2 * std::atan(arma::dot(Zf + dZf,e2) / (arma::norm(Zf + dZf) + arma::dot(Zf + dZf,e1)));
 
@@ -3464,7 +3464,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 
 	cleaner_mc -> Update();
 
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
 	}
 
@@ -3477,7 +3477,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 
 
 	#pragma omp parallel for
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 
 		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
 		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
@@ -3569,7 +3569,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 
 	cleaner_mc -> Update();
 
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
 	}
 
@@ -3584,7 +3584,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 
 
 	#pragma omp parallel for
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 
 		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
 		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
@@ -3678,7 +3678,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 
 	cleaner_mc -> Update();
 
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 		deviations[i] = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
 		period_errors[i] = arma::sum(arma::randn<arma::vec>(1)) * period_standard_deviation;
 	}
@@ -3699,7 +3699,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 
 
 	#pragma omp parallel for
-	for (int i = 0; i < N_samples ; ++i){
+	for (unsigned int i = 0; i < N_samples ; ++i){
 
 		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
 		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
@@ -4276,14 +4276,14 @@ void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slop
 	augmented_P_CC.submat(1,1,augmented_P_CC.n_rows -1,augmented_P_CC.n_rows -1) = this -> P_CC;
 
 	#pragma omp parallel for
-	for (int f_index = 0; f_index < facets.size(); ++f_index){
+	for (unsigned int f_index = 0; f_index < facets.size(); ++f_index){
 		all_partials.row(f_index) = this -> GetPartialSlopePartialwPartialC(facets[f_index],hold_mass_constant);
 	}
 
 	arma::vec variances = arma::diagvec(all_partials * augmented_P_CC * all_partials.t());
 
 	#pragma omp parallel for
-	for (int f_index = 0; f_index < facets.size(); ++f_index){
+	for (unsigned int f_index = 0; f_index < facets.size(); ++f_index){
 		slope_variances[f_index] = variances(f_index);
 	}
 

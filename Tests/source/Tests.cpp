@@ -964,27 +964,15 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
-	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
-	arma::mat C_CC;
+
+	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+	std::cout << regularized_eigen_values << " negative covariance eigenvalues were clamped to zero\n";
+	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
 
-	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
-	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral).max();
 
-	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
-	std::cout << "\tCholesky: " << error_cholesky << std::endl;
-	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
 
-	if (error_cholesky < error_spectral){
-		std::cout << "Using cholesky square root\n";
-		C_CC = C_CC_cholesky;
-	}
-	else{
-		std::cout << "Using spectral decomposition square root\n";
-		C_CC = C_CC_spectral;
-	}
+
 
 
 	auto start = std::chrono::system_clock::now();	
@@ -1081,13 +1069,13 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		std::cout << "\t\tError (%): " << (arma::mean(slopes_mc.subvec(0,step - 1)) - nom_slope)/nom_slope * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/arma::var(slopes_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
@@ -1172,26 +1160,10 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 	
-	arma::mat C_CC_cholesky = shape_uq.GetCovarianceSquareRoot("chol");
-	arma::mat C_CC_spectral = shape_uq.GetCovarianceSquareRoot("eigen");
-	arma::mat C_CC;
+	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+	std::cout << regularized_eigen_values << " negative covariance eigenvalues were clamped to zero\n";
+	arma::mat C_CC = shape_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = shape_uq.GetVerticesCovariance();
-
-	double error_cholesky = arma::abs(P_CC - C_CC_cholesky * C_CC_cholesky.t()).max();
-	double error_spectral = arma::abs(P_CC - C_CC_spectral * C_CC_spectral).max();
-
-	std::cout << "Absolute Error of covariance matrix square root extraction: \n";
-	std::cout << "\tCholesky: " << error_cholesky << std::endl;
-	std::cout << "\tSpectral decomposition: " << error_spectral << std::endl;
-
-	if (error_cholesky < error_spectral){
-		std::cout << "Using cholesky square root\n";
-		C_CC = C_CC_cholesky;
-	}
-	else{
-		std::cout << "Using spectral decomposition square root\n";
-		C_CC = C_CC_spectral;
-	}
 
 
 	auto start = std::chrono::system_clock::now();	
@@ -1285,13 +1257,13 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		std::cout << "\t\tError (%): " << (arma::mean(slopes_mc.subvec(0,step - 1)) - nom_slope)/nom_slope * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/arma::var(slopes_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
@@ -1491,13 +1463,13 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		std::cout << "\t\tError (%): " << (arma::mean(slopes_mc.subvec(0,step - 1)) - nom_slope)/nom_slope * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in slope: " << arma::var(slopes_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/variance_slope_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(slopes_mc.subvec(0,step - 1)) - variance_slope_analytical)/arma::var(slopes_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC variance in potential: " << arma::var(U_mc.subvec(0,step - 1)) << std::endl;
-		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/variance_U_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/covariance_A_analytical * 100 << std::endl;
+		std::cout << "\t\tError (%): \n" << (arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
