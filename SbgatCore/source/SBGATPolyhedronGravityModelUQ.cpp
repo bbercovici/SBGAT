@@ -3624,7 +3624,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 		// pgm_filter_mc -> Update();
 		SBGATPolyhedronGravityModelUQ shape_uq_mc;
 		
-		shape_uq_mc.SetModel(pgm_filter_mc,false);
+		shape_uq_mc.SetModel(pgm_filter_mc);
 
 		shape_uq_mc.ApplyDeviation(deviations[i]);
 
