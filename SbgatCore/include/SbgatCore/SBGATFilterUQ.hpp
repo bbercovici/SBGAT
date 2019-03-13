@@ -23,16 +23,13 @@ public:
   Sets the model associated to this uncertainty quantification container
   @param[in] pgm pointer to valid SBGATFilter
   */
-  void SetModel(vtkSmartPointer<SBGATFilter> model){this -> model = model;}
+  virtual void SetModel(vtkSmartPointer<SBGATFilter> model) = 0;
 
   /**
   Get the associated to this uncertainty quantification container
   @returnpointer to valid SBGATFilter model
   */
   vtkSmartPointer<SBGATFilter> GetModel(){return this -> model ;}
-
-
-
 
   /**
   Return a square root of the covariance matrix.

@@ -24,6 +24,13 @@ public:
 
 
   /**
+  Sets the model associated to this uncertainty quantification container
+  and updates the partials of the mass properties relative to the shape
+  @param[in] pgm pointer to valid SBGATFilter
+  */
+  virtual void SetModel(vtkSmartPointer<SBGATFilter> model){this -> model = model; this -> PrecomputePartials();}
+
+  /**
   Runs a finite-differencing based test of the implemented PGM partials
   @param input path to obj file used to test the partials
   @param tol relative tolerance
@@ -36,7 +43,7 @@ public:
 Return the partial derivative of the shape's center of mass with respect to the shape's vertices coordinates
 @return partial derivative of the shape's center of mass with respect to the shape's vertices
 */
-  arma::mat GetPartialComPartialC() const;
+  const arma::mat & GetPartialComPartialC() const {return this -> precomputed_partialGpartialC;}
 
 
   /**
@@ -44,7 +51,7 @@ Return the partial derivative of the shape's center of mass with respect to the 
   with respect to the shape coordinates
   @return partial derivative
   */
-  arma::mat GetPartialIPartialC() const;
+  const arma::mat & GetPartialIPartialC() const {return this -> precomputed_partialIpartialC;}
 
 
   /**
@@ -52,7 +59,7 @@ Return the partial derivative of the shape's center of mass with respect to the 
   with respect to the shape vertices coordinates
   @return partial derivative
   */
-  arma::mat GetPartialSigmaPartialC() const;
+  const arma::mat & GetPartialSigmaPartialC() const { return this -> precomputed_partialSigmapartialC;}
 
 
   /**
@@ -60,18 +67,7 @@ Return the partial derivative of the shape's center of mass with respect to the 
   with respect to the shape coordinates
   @return partial derivative
   */
-  arma::rowvec GetPartialVolumePartialC() const;
-
-
-
-/**
-Get partial derivatives of volume, center of mass and inertia parametrization relative to 
-the shape's vertices coordinates
-@param[out] dVdC partial derivative of volume relative to vertices coordinates
-@param[out] dCOMdC partial derivative of center-of-mass relative to vertices coordinates
-@param[out] dIdC partial derivative of inertia tensor parametrization relative to vertices coordinates
-*/
-  void GetPartialAllInertiaPartialC(arma::rowvec & dVdC,arma::mat & dCOMdC, arma::mat & dIdC) const;
+  const arma::rowvec & GetPartialVolumePartialC() const {return this -> precomputed_partialVpartialC;}
 
 
   /**
@@ -80,17 +76,18 @@ the shape's vertices coordinates
   */  
   virtual void ApplyDeviation(const arma::vec & delta_C);
 
-protected:
 
-/**
+  /**
+  Evaluates the partial of the volume, center of mass and mrp orienting the principal axes
+  relative to the vertices coordinates and stores the computed partials in designated containers
+  */
+  void PrecomputePartials();
+
+  /**
   Return the partial derivative of the unit density moments relative to a change in the inertia tensor parametrization
   @return  partial derivative of the unit density moments relative to a change in the inertia tensor parametrization
   */
-  arma::mat GetPartialUnitDensityMomentsPartialI() const;
-
-
-
- 
+  const arma::mat & GetPartialUnitDensityMomentsPartialI() const{return this -> precomputed_partialUnitDensityMomentsPartialI;}
 
 
   /**
@@ -98,7 +95,25 @@ protected:
   with respect to the inertia tensor parametrization
   @return partial derivative
   */
-  arma::mat::fixed<3,6> GetPartialSigmaPartialI() const;
+  const arma::mat::fixed<3,6> & GetPartialSigmaPartialI() const {return this -> precomputed_partialSigmapartialI;}
+
+protected:
+
+
+  /**
+  Returns the partial derivative of the MRP orienting the principal axes with respect to the parametrization 
+  of the unit-density inertia tensor 
+  @return partial derivative
+  */
+  arma::mat::fixed<3,6> PartialSigmaPartialI() const;
+
+
+/**
+Returns partial derivative of unit-density inertia moments relative to the parametrization
+of the unit-density inertia tensor
+*/
+  arma::mat::fixed<3,6>  PartialUnitDensityMomentsPartialI() const;
+
 
 
 /**
@@ -184,7 +199,6 @@ to the shape's inertia tensor
   static void TestPartialDeltaVfPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaIOverDeltaVPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaIfPartialTf(std::string input,double tol,bool shape_in_meters);
-  static void TestGetPartialAllInertiaPartialCVSStandalone(std::string input,double tol,bool shape_in_meters);
   static void TestPartialDeltaVPartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialVolumePartialC(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialComPartialC(std::string input,double tol,bool shape_in_meters);
@@ -193,7 +207,15 @@ to the shape's inertia tensor
   static void TestPartialEqDeltaIfErPartialTf(std::string input,double tol,bool shape_in_meters);
   static void TestGetPartialSigmaPartialC(std::string input,double tol,bool shape_in_meters);
 
-  
+  arma::rowvec precomputed_partialVpartialC;
+  arma::mat precomputed_partialGpartialC;
+  arma::mat precomputed_partialSigmapartialC;
+  arma::mat precomputed_partialIpartialC;
+  arma::mat::fixed<3,6> precomputed_partialUnitDensityMomentsPartialI;
+  arma::mat::fixed<3,6> precomputed_partialSigmapartialI;
+
+
+
 
 };
 
