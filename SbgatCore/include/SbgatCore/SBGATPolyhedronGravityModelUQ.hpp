@@ -31,18 +31,20 @@ public:
   a constant density
   @param point pointer to coordinates of queried point, expressed in the same frame as
   the polydata
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return PGM potential variance evaluated at the queried point (m ^ 4/ s ^4)
   */
-  double GetVariancePotential(double const * point) const;
+  double GetVariancePotential(double const * point,bool hold_mass_constant = false) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance at the specified point assuming 
   a constant density
   @param point coordinates of queried point, expressed in the same frame as
   the polydata
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
   */
-  double GetVariancePotential(const arma::vec::fixed<3> & point) const;
+  double GetVariancePotential(const arma::vec::fixed<3> & point,bool hold_mass_constant = false) const;
 
   /**
   Evaluates the Polyhedron Gravity Model potential variance and acceleration covariance at the specified point assuming 
@@ -51,27 +53,30 @@ public:
   the polydata used to construct the PGM
   @param[out] potential_var PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
   @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (m^2 / s ^4)
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   */
   void GetVariancePotentialAccelerationCovariance(double const * point,double & potential_var, 
-    arma::mat::fixed<3,3> & acc_cov) const;
+    arma::mat::fixed<3,3> & acc_cov,bool hold_mass_constant = false) const;
 
 
 
   /**
   Return the variance of the slope evaluated at the center of the designated facet. This method is NOT thread safe
-  @param f facet index
+  @param[in] f facet index
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return variance in slope (rad^2)
   */
-  double GetVarianceSlope(const int & f );
+  double GetVarianceSlope(const int & f , bool hold_mass_constant = false);
 
 
 
   /**
   Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe
   @param[out] slope_variances
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @param[in] facets indices of facets where to evaluate the slope variance
   */
-  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets);
+  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant = false);
 
 
   /**
@@ -81,9 +86,10 @@ public:
   the polydata used to construct the PGM
   @param[out] potential_var PGM potential variance evaluated at the queried point (m ^ 4 / s ^4)
   @param[out] acc_cov PGM acceleration covariance evaluated at the queried point (m^2 / s ^4)
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   */
   void GetVariancePotentialAccelerationCovariance(const arma::vec::fixed<3> & point,double & potential_var, 
-    arma::mat::fixed<3,3> & acc_cov) const;
+    arma::mat::fixed<3,3> & acc_cov,bool hold_mass_constant = false) const;
 
 
   /**
@@ -96,35 +102,41 @@ public:
   /**
   Obtain the partial derivative of the potential at the prescribed location
   due to a infinitesimal variation in the shape's control points
-  @param pos position where to evaluate the partial derivative
+  @param[in] pos position where to evaluate the partial derivative
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return partial derivative of the potential with respect to the variation in the shape's control points
   */
 
-  arma::rowvec GetPartialUPartialC(const arma::vec::fixed<3> & pos) const;
+  arma::rowvec GetPartialUPartialC(const arma::vec::fixed<3> & pos,bool hold_mass_constant = false) const;
 
   /**
   Obtain the partial derivative of the acceleration at the prescribed location
   due to a infinitesimal variation in the shape's control points
-  @param pos position where to evaluate the partial derivative
+  @param[in] pos position where to evaluate the partial derivative
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
+ 
   @return partial derivative of the acceleration with respect to the variation in the shape's control points
   */
-  arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos) const;
+  arma::mat GetPartialAPartialC(const arma::vec::fixed<3> & pos,bool hold_mass_constant = false) const;
 
 
 
   /**
   Get covariance in acceleration arising from the uncertain shape
-  @param point coordinates where to evaluate the covariance
+  @param[in] point coordinates where to evaluate the covariance
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return covariance of acceleration
   */
-  arma::mat::fixed<3,3> GetCovarianceAcceleration(double const * point) const;
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(double const * point,bool hold_mass_constant = false) const;
 
    /**
   Get covariance in acceleration arising from the uncertain shape
-  @param point coordinates where to evaluate the covariance
+  @param[in] point coordinates where to evaluate the covariance
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
+
   @return covariance of acceleration
   */
-  arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point) const;
+  arma::mat::fixed<3,3> GetCovarianceAcceleration(const arma::vec::fixed<3> & point,bool hold_mass_constant = false) const;
 
 
   /**
@@ -132,7 +144,8 @@ public:
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
-  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
@@ -148,6 +161,7 @@ public:
   static void RunMCUQPotentialAccelerationInertial(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
+    const bool & hold_mass_constant,
     const arma::mat & C_CC,
     const unsigned int & N_samples,
     const std::vector<arma::vec::fixed<3> > & all_positions,
@@ -164,7 +178,8 @@ public:
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
-  @param[in] P_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
   @param[in] all_positions vector storing all the position where acceleration & potential must be sampled
@@ -176,16 +191,17 @@ public:
   @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
   */
 
-static void RunMCUQAccelerationInertial(std::string path_to_shape,
-  const double & density,
-  const bool & shape_in_meters,
-  const arma::mat & C_CC,
-  const unsigned int & N_samples,
-  const std::vector<arma::vec::fixed<3> > & all_positions,
-  std::string output_dir,
-  int N_saved_shapes,
-  std::vector<arma::vec> & deviations,
-  std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations);
+  static void RunMCUQAccelerationInertial(std::string path_to_shape,
+    const double & density,
+    const bool & shape_in_meters,
+    const bool & hold_mass_constant,
+    const arma::mat & C_CC,
+    const unsigned int & N_samples,
+    const std::vector<arma::vec::fixed<3> > & all_positions,
+    std::string output_dir,
+    int N_saved_shapes,
+    std::vector<arma::vec> & deviations,
+    std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations);
 
 
 
@@ -195,6 +211,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   @param[in] density small body density in kg/m^3
   @param[in] Omega angular velocity of small body in kg/m^3, expressed in the small body frame
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
   @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] period_standard_deviation standard deviation of the rotation period in seconds
@@ -214,6 +231,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
     const double & density,
     const arma::vec::fixed<3> & Omega,
     const bool & shape_in_meters,
+    const bool & hold_mass_constant,
     const arma::mat & C_CC,
     const double & period_standard_deviation,
     const unsigned int & N_samples,
@@ -239,10 +257,11 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   /**
   Return the partial derivative of the slope at the center of facet f relative to 
   the angular velocity magnitude and shape vertices coordinates
-  @param f facet index
+  @param[in] f facet index
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant
   @return partials
   */
-  arma::rowvec GetPartialSlopePartialwPartialC(const int & f) const;
+  arma::rowvec GetPartialSlopePartialwPartialC(const int & f,bool hold_mass_constant = false) const;
 
   
   /**
@@ -254,7 +273,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   /**
   Return the partial derivative of the gravitation slope at the center of face tf relative to 
   the shape vertices coordinates
-  @param f facet index
+  @param[in] f facet index
   @return partial derivative of the slope at the center of facet f relative to the shape vertices coordinates
   */
 
@@ -265,6 +284,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
   @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
@@ -280,6 +300,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   static void RunMCUQPotentialAccelerationInertial(std::string path_to_shape,
     const double & density,
     const bool & shape_in_meters,
+    const bool & hold_mass_constant,
     const arma::mat & C_CC,
     const unsigned int & N_samples,
     const arma::vec::fixed<3> & position,
@@ -295,6 +316,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   @param[in] path_to_shape path to reference shape
   @param[in] density small body density in kg/m^3
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
   @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] N_samples number of shape outcomes to draw
@@ -306,18 +328,17 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   reference shape at every sample
   @param[out] accelerations holds N_samples accelerations evaluated at the specified point
   */
-static void RunMCUQAccelerationInertial(std::string path_to_shape,
-  const double & density,
-  const bool & shape_in_meters,
-  const arma::mat & C_CC,
-  const unsigned int & N_samples,
-  const arma::vec::fixed<3> & position,
-  std::string output_dir,
-  int N_saved_shapes,
-  std::vector<arma::vec> & deviations,
-  std::vector<arma::vec::fixed<3> > & accelerations);
-
-
+  static void RunMCUQAccelerationInertial(std::string path_to_shape,
+    const double & density,
+    const bool & shape_in_meters,
+    const bool & hold_mass_constant,
+    const arma::mat & C_CC,
+    const unsigned int & N_samples,
+    const arma::vec::fixed<3> & position,
+    std::string output_dir,
+    int N_saved_shapes,
+    std::vector<arma::vec> & deviations,
+    std::vector<arma::vec::fixed<3> > & accelerations);
 
 
   /**
@@ -326,6 +347,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
   @param[in] density small body density in kg/m^3
   @param[in] Omega angular velocity of small body in kg/m^3, expressed in the small body frame
   @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] hold_mass_constant true if shape mass must be held constant by making density vary (mass = rho * V), false otherwise
   @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
   number of vertices in the reference shape
   @param[in] period_standard_deviation standard deviation of the rotation period in seconds
@@ -343,6 +365,7 @@ static void RunMCUQAccelerationInertial(std::string path_to_shape,
     const double & density,
     const arma::vec::fixed<3> & Omega,
     const bool & shape_in_meters,
+    const bool & hold_mass_constant,
     const arma::mat & C_CC,
     const double & period_standard_deviation,
     const unsigned int & N_samples,
@@ -382,20 +405,22 @@ protected:
 /**
 Return the partial derivative of the body-fixed acceleration at the center of facet f relative
 to the shape coordinates
-@param f facet index
+@param[in] f facet index
+@param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
 @return partial derivative
 */
-  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f) const;
+  arma::mat PartialBodyFixedAccelerationfPartialC(const int & f,bool hold_mass_constant = false) const;
 
 
 
   /**
   Return the partial derivative of the body-fixed acceleration at the center of facet f with respect to 
   the angular velocity and vertices coordinates
-  @param f facet index
+  @param[in] f facet index
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return partial derivative
   */
-  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f) const;
+  arma::mat PartialBodyFixedAccelerationfPartialOmegaC(const int & f,bool hold_mass_constant = false) const;
 
 
 
@@ -448,7 +473,7 @@ to the shape coordinates
   Applies deviation to the coordinates of the vertices in the prescribed facet
   and updates the pgm
   @param delta_Tf deviation
-  @param f facet index
+  @param[in] f facet index
   */
   void ApplyTfDeviation(arma::vec::fixed<9> delta_Tf,const int & f);
 
@@ -456,7 +481,7 @@ to the shape coordinates
   /**
   Return the partial derivative of an individual edge contribution to the potential (Ue) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
-  @param pos position where to evaluate the partial
+  @param[in] pos position where to evaluate the partial
   @param e edge index
   @return PartialUePartialXe (1x10)
   */
@@ -466,8 +491,8 @@ to the shape coordinates
   /**
   Return the partial derivative of an individual facet contribution to the potential (Uf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
-  @param pos position where to evaluate the partial
-  @param f facet index
+  @param[in] pos position where to evaluate the partial
+  @param[in] f facet index
   @return PartialUfPartialXf (1x10)
 
   */
@@ -480,7 +505,7 @@ to the shape coordinates
   /**
   Return the partial derivative of an individual edge contribution to the acceleration (Acce) 
   with respect to the Xe^E vector holding the e-th edge dyadic factors
-  @param pos position where to evaluate the partial
+  @param[in] pos position where to evaluate the partial
   @param e edge index
   @return PartialAccePartialXe (3x10)
   */
@@ -490,8 +515,8 @@ to the shape coordinates
   /**
   Return the partial derivative of an individual facet contribution to the acceleration (Accf) 
   with respect to the Xf^F vector holding the f-th facet dyadic factors
-  @param pos position where to evaluate the partial
-  @param f facet index
+  @param[in] pos position where to evaluate the partial
+  @param[in] f facet index
   @return PartialAccfPartialXf (3x10)
   */
   arma::mat::fixed<3,10> PartialAccfPartialXf(const arma::vec::fixed<3> & pos,const int & f) const;
@@ -501,8 +526,8 @@ to the shape coordinates
   /**
   Return the partial derivative of Xf^F, the vector holding the f-th facet dyadic factors, 
   with respect to the vertices coordiantes constitutive of the f-th triangle (Tf) 
-  @param pos position where to evaluate the partial
-  @param f facet index
+  @param[in] pos position where to evaluate the partial
+  @param[in] f facet index
   @return PartialXfPartialTf (10x9)
   */
   arma::mat::fixed<10,9> PartialXfPartialTf(const arma::vec::fixed<3> & pos, const int & f) const;
@@ -511,8 +536,8 @@ to the shape coordinates
   /**
   Return the partial derivative of the performance factor omega_f
   with respect to the vertices coordiantes constitutive of the f-th triangle (Tf) 
-  @param pos position where to evaluate the partial
-  @param f facet index
+  @param[in] pos position where to evaluate the partial
+  @param[in] f facet index
   @return PartialOmegafPartialTf (1x9)
   */
   arma::rowvec::fixed<9> PartialOmegafPartialTf(const arma::vec::fixed<3> & pos,const int & f) const;
@@ -548,7 +573,7 @@ to the shape coordinates
   /**
   Return the partial derivative of the facet dyad parametrization (Ff)
   with respect to the vertices coordinates constitutive of the f-th triangle (Tf) 
-  @param f facet index
+  @param[in] f facet index
   @return PartialFfPartialTf (6x9)
   */
   arma::mat::fixed<6,9> PartialFfPartialTf(const int & f) const;
@@ -579,7 +604,7 @@ to the shape coordinates
   /**
   Return the partial derivative of the wire potential Le 
   with respect to the coordinates of the two vertices forming the edge (stacked in Ae)
-  @param pos position where to evaluate the partial
+  @param[in] pos position where to evaluate the partial
   @param e edge index
   @return PartialLePartialAe (1x6)
   */
@@ -605,7 +630,7 @@ to the shape coordinates
   /**
   Return the partial derivative of the parametrization of the Xe dyadic vector
   with respect to the coordinates of the edges points and adjacent facets points
-  @param pos position where to evaluate the partial
+  @param[in] pos position where to evaluate the partial
   @param e edge index
   @return PartialXePartialBe (10x24)
   */
@@ -633,12 +658,13 @@ to the shape coordinates
   /**
   Return the partial derivative of the f-th facet slope argument (u as in slope = arcos(-u))
   with respect to the angular velocity and the shape coordinates
-  @param f facet index
+  @param[in] f facet index
   @param body_fixed_acc body-fixed acceleration at the center of facet f
+  @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return partial derivative
   */
   arma::rowvec PartialSlopeArgumentPartialOmegaC(const int & f,
-    const arma::vec::fixed<3> & body_fixed_acc) const;
+    const arma::vec::fixed<3> & body_fixed_acc,bool hold_mass_constant = false) const;
 
 
   /**
@@ -695,8 +721,11 @@ to the shape coordinates
   static void TestPartialEPartialBe(std::string input , double tol, bool shape_in_meters) ;
   static void TestPartialUfPartialTf(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUePartialBe(std::string input , double tol, bool shape_in_meters);
-  static void TestPartialUPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestGetPartialUPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestGetPartialAPartialC(std::string input , double tol, bool shape_in_meters);
+  static void TestGetPartialAPartialCConstantMass(std::string input , double tol, bool shape_in_meters);
+  static void TestGetPartialUPartialCConstantMass(std::string input , double tol, bool shape_in_meters);
+  
   static void TestPartialUfPartialC(std::string input , double tol, bool shape_in_meters);
   static void TestPartialUePartialC(std::string input , double tol, bool shape_in_meters);
   static void TestAddPartialSumUePartialC(std::string input , double tol, bool shape_in_meters);
