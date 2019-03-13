@@ -961,7 +961,8 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
-
+	shape_uq.PrecomputeMassPropertiesPartials();
+	
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
 
@@ -1075,7 +1076,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_m(){
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
+		std::cout << "\t\tError (%): " << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
@@ -1156,6 +1157,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
+	shape_uq.PrecomputeMassPropertiesPartials();
 
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(10,100);
@@ -1263,7 +1265,7 @@ void TestsSBCore::test_PGM_UQ_itokawa_km(){
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
+		std::cout << "\t\tError (%): " << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
@@ -1345,7 +1347,8 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 
 	SBGATPolyhedronGravityModelUQ shape_uq;
 	shape_uq.SetModel(pgm_filter);
-
+	shape_uq.PrecomputeMassPropertiesPartials();
+	
 	shape_uq.SetPeriodErrorStandardDeviation(period_standard_deviation);
 	shape_uq.ComputeVerticesCovarianceGlobal(30,300);
 	
@@ -1452,7 +1455,7 @@ void TestsSBCore::test_PGM_UQ_skewed_km(){
 		std::cout << "\t\tError (%): " << (arma::var(U_mc.subvec(0,step - 1)) - variance_U_analytical)/arma::var(U_mc.subvec(0,step - 1)) * 100 << std::endl;
 
 		std::cout << "\t\tMC Covariance in acceleration: \n" << arma::cov(A_mc.cols(0,step - 1).t()) << std::endl;
-		std::cout << "\t\tError (%): \n" << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
+		std::cout << "\t\tError (%): " << arma::norm(arma::cov(A_mc.cols(0,step - 1).t()) - covariance_A_analytical)/arma::trace(arma::cov(A_mc.cols(0,step - 1).t())) * 100 << std::endl;
 
 	}
 	
