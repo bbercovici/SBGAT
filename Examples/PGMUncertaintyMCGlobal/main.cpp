@@ -23,6 +23,8 @@ int main(){
 	double DENSITY  = input_data["DENSITY"];
 
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
+	bool HOLD_MASS_CONSTANT  = input_data["HOLD_MASS_CONSTANT"];
+
 
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 
@@ -109,8 +111,8 @@ int main(){
 	auto start = std::chrono::system_clock::now();
 	#pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
-		analytical_variances_pot[e] = pgm_uq.GetVariancePotential(all_positions[e]);
-		analytical_covariances_acc[e] = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
+		analytical_variances_pot[e] = pgm_uq.GetVariancePotential(all_positions[e],HOLD_MASS_CONSTANT);
+		analytical_covariances_acc[e] = pgm_uq.GetCovarianceAcceleration(all_positions[e],HOLD_MASS_CONSTANT);
 	}
 	auto end = std::chrono::system_clock::now();
 
@@ -119,6 +121,7 @@ int main(){
 
 	// Running a Monte Carlo to compare againnst
 	std::vector<arma::vec> deviations;
+	std::vector<double> densities;
 	std::vector<std::vector<arma::vec::fixed<3> > >  all_accelerations;
 	std::vector < std::vector<double> > all_potentials;
 	std::vector<vtkSmartPointer<vtkPolyData > > saved_shapes(10);
@@ -129,12 +132,14 @@ int main(){
 	start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
+		HOLD_MASS_CONSTANT,
 		pgm_uq.GetCovarianceSquareRoot(),
 		N_MONTE_CARLO, 
 		all_positions,
 		OUTPUT_DIR,
 		std::min(30,N_MONTE_CARLO),
 		deviations,
+		densities,
 		all_accelerations,
 		all_potentials);
 
@@ -179,7 +184,7 @@ int main(){
 		std::cout << "\t\tMC Covariance in acceleration: \n" << mc_covariances_acc[e] << std::endl;
 		std::cout << "\t\tAnalytical covariance in acceleration: \n" << analytical_covariances_acc[e] << std::endl;
 		
-		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariances_acc[e])/arma::norm(analytical_covariances_acc[e],"fro") * 100 << std::endl;
+		std::cout << "\t\tError (%): " << arma::norm(mc_covariances_acc[e] - analytical_covariances_acc[e])/arma::trace(mc_covariances_acc[e]) * 100 << std::endl;
 	}
 
 

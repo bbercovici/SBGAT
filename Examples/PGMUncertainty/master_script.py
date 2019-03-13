@@ -56,7 +56,8 @@ base_dictionnary = {
 all_cases_dictionnary = {
 "PROJECTION_AXIS" : [0,1,2],
 "CORRELATION_DISTANCE" : [100,200],
-"N_MONTE_CARLO" : [300,1000,3000]
+"N_MONTE_CARLO" : [300,1000,3000],
+"HOLD_MASS_CONSTANT" : [True,False]
 }
 
 # There shouldn't be any reason to modify the following

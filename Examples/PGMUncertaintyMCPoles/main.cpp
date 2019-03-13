@@ -21,6 +21,7 @@ int main(){
 	double ERROR_STANDARD_DEV  = input_data["ERROR_STANDARD_DEV"];
 	double DENSITY  = input_data["DENSITY"];
 	bool UNIT_IN_METERS  = input_data["UNIT_IN_METERS"];
+	bool HOLD_MASS_CONSTANT  = input_data["HOLD_MASS_CONSTANT"];
 	int N_MONTE_CARLO = input_data["N_MONTE_CARLO"];
 	int PROJECTION_AXIS = input_data["PROJECTION_AXIS"];
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
@@ -230,6 +231,7 @@ int main(){
 	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
+	std::vector<double> densities;
 
 	arma::vec::fixed<3> e0 = {1,0,0};
 	arma::vec::fixed<3> e1 = {0,1,0};
@@ -272,12 +274,14 @@ int main(){
 	auto start = std::chrono::system_clock::now();
 	SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(PATH_SHAPE,DENSITY,
 		UNIT_IN_METERS,
+		HOLD_MASS_CONSTANT,
 		C_CC,
 		N_MONTE_CARLO, 
 		all_positions,
 		OUTPUT_DIR,
 		std::min(60,N_MONTE_CARLO),
 		deviations,
+		densities,
 		all_accelerations);
 	auto end = std::chrono::system_clock::now();
 
@@ -305,14 +309,14 @@ int main(){
 		arma::vec mc_mean_acc = arma::mean(accelerations_mc,1);
 		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
 
-		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e]);
+		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e],HOLD_MASS_CONSTANT);
 		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,
 			mc_mean_acc,
 			cov_analytical,
 			mc_covariances_acc);
 
 		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(e) = std::sqrt(arma::norm(cov_analytical - mc_covariances_acc))/arma::norm(mc_mean_acc) * 100;
+		rel_value_cov_difference_analytical_vs_mc(e) = arma::norm(cov_analytical - mc_covariances_acc)/arma::trace(mc_mean_acc) * 100;
 		all_positions_arma.col(e) = all_positions[e];
 	}
 

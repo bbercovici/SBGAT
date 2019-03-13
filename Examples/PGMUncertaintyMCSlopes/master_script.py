@@ -48,7 +48,8 @@ base_dictionnary = {
 "CORRELATION_DISTANCE" : 75e3,
 "ERROR_STANDARD_DEV" : 10e3,
 "COV_REGION_CENTERS" : [0,1147],
-"UNCERTAINTY_TYPE" : "normal"
+"UNCERTAINTY_TYPE" : "normal",
+"HOLD_MASS_CONSTANT" : False,
 }
 
 # Dictionnary storing simulation inputs to be looped over
