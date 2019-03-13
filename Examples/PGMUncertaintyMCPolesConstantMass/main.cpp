@@ -298,8 +298,8 @@ int main(){
 	arma::vec densities_arma(N_MONTE_CARLO);
 
 
-	for (int p = 0; p < N_MONTE_CARLO; ++p){
-		densities_arma(p) = densities[p];
+	for (int s = 0; s < N_MONTE_CARLO; ++s){
+		densities_arma(s) = densities[s];
 	}
 
 
