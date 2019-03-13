@@ -41,7 +41,7 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(arma::mat P_CC,std::string meth
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
 			arma::eig_sym(eigenvalues,eigenvector,P_CC,"std");
-			for (int e = 0; e < eigenvalues.size(); ++e){
+			for (unsigned int e = 0; e < eigenvalues.size(); ++e){
 				if(eigenvalues(e) < 0){
 					eigenvalues(e) = 0;
 				}
@@ -81,7 +81,7 @@ arma::mat SBGATFilterUQ::GetCovarianceSquareRoot(std::string method) const{
 			arma::vec eigenvalues;
 			arma::mat eigenvector;
 			arma::eig_sym(eigenvalues,eigenvector,this -> P_CC,"std");
-			for (int e = 0; e < eigenvalues.size(); ++e){
+			for (unsigned int e = 0; e < eigenvalues.size(); ++e){
 				if(eigenvalues(e) < 0){
 					eigenvalues(e) = 0;
 				}
@@ -676,7 +676,7 @@ int SBGATFilterUQ::RegularizeCovariance(){
 	arma::vec eigenvalues;
 	arma::mat eigenvector;
 	arma::eig_sym(eigenvalues,eigenvector,this -> P_CC,"std");
-	for (int e = 0; e < eigenvalues.size(); ++e){
+	for (unsigned int e = 0; e < eigenvalues.size(); ++e){
 		if(eigenvalues(e) < 0){
 			eigenvalues(e) = 0;
 			++modified;
