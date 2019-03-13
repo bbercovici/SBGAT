@@ -3603,7 +3603,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	pgm_filter -> Update();
 
 
-	// #pragma omp parallel for
+	#pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
 
 		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
@@ -3631,14 +3631,10 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 
 		if (hold_mass_constant){
 			double new_volume = pgm_filter_mc -> GetVolume();
-
-			std::cout << new_volume << " " << pgm_filter -> GetVolume() << std::endl;
 			pgm_filter_mc -> SetDensity(pgm_filter -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
 		}
 
 		densities[i] = pgm_filter_mc -> GetDensity();
-
-		std::cout << i << " " << densities[i] << std::endl;
 
 		for (auto pos : all_positions){
 			all_accelerations[i].push_back(pgm_filter_mc -> GetAcceleration(pos));
