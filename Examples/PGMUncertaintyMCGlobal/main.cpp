@@ -69,6 +69,10 @@ int main(){
 
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	// Regularizing the covariance
+	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+
+	std::cout << regularized_eigen_values << " eigenvalues were regularized\n";
 
 	std::cout << "Saving non-zero partition of shape covariance ...\n";
 

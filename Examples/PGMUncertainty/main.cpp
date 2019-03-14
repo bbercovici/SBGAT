@@ -66,6 +66,11 @@ int main(){
 	
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
+	// Regularizing the covariance
+	int regularized_eigen_values = pgm_uq.RegularizeCovariance();
+
+	std::cout << regularized_eigen_values << " eigenvalues were regularized\n";
+	
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
 	arma::mat P_CC = pgm_uq.GetVerticesCovariance();
 	std::cout << "Maximum absolute error in covariance square root: " << arma::abs(P_CC - C_CC * C_CC.t()).max() << std::endl;
