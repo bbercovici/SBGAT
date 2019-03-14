@@ -3490,8 +3490,6 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader_mc -> GetOutputPort());
 	pgm_filter -> SetDensity(density); 
-	pgm_filter -> Update();
-
 
 	if (shape_in_meters){
 		pgm_filter -> SetScaleMeters();
@@ -3499,6 +3497,9 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQPotentialAccelerationInertial(std::st
 	else{
 		pgm_filter -> SetScaleKiloMeters();
 	}
+
+	pgm_filter -> Update();
+
 
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
@@ -3601,14 +3602,10 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	}
 
 
-
-
 	// Reference PGM
 	vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
 	pgm_filter -> SetInputConnection(reader_mc -> GetOutputPort());
 	pgm_filter -> SetDensity(density); 
-	pgm_filter -> Update();
-
 
 	if (shape_in_meters){
 		pgm_filter -> SetScaleMeters();
@@ -3616,6 +3613,9 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	else{
 		pgm_filter -> SetScaleKiloMeters();
 	}
+
+	pgm_filter -> Update();
+
 
 	#pragma omp parallel for
 	for (unsigned int i = 0; i < N_samples ; ++i){
@@ -3644,8 +3644,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 
 
 		if (hold_mass_constant){
-			double new_volume = pgm_filter_mc -> GetVolume();
-			pgm_filter_mc -> SetDensity(pgm_filter -> GetDensity() * pgm_filter -> GetVolume() / new_volume);
+			pgm_filter_mc -> SetDensity(pgm_filter -> GetDensity() * pgm_filter -> GetVolume() /  pgm_filter_mc -> GetVolume());
 		}
 
 		densities[i] = pgm_filter_mc -> GetDensity();
