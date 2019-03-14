@@ -62,7 +62,8 @@ int main(){
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
-
+	pgm_uq.PrecomputeMassPropertiesPartials();
+	
 	// Populate the shape vertices covariance
 	pgm_uq.ComputeVerticesCovarianceGlobal(ERROR_STANDARD_DEV,CORRELATION_DISTANCE);
 	arma::mat C_CC = pgm_uq.GetCovarianceSquareRoot();
@@ -301,7 +302,7 @@ int main(){
 		const arma::vec::fixed<3> & grid_point = grid[p];
 
 		arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
-		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point);
+		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
 		
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
 		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
