@@ -326,7 +326,7 @@ int main(){
 		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,mc_mean_acc,cov_analytical,mc_covariances_acc);
 
 		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
-		rel_value_cov_difference_analytical_vs_mc(e) = arma::norm(cov_analytical - mc_covariances_acc)/arma::trace(mc_mean_acc) * 100;
+		rel_value_cov_difference_analytical_vs_mc(e) = arma::norm(cov_analytical - mc_covariances_acc)/arma::trace(mc_covariances_acc) * 100;
 		all_positions_arma.col(e) = all_positions[e];
 	}
 
