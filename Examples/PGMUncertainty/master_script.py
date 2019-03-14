@@ -41,7 +41,8 @@ base_dictionnary = {
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
 "STEP_SIZE" : 10.,
-"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj"
+"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj",
+"HOLD_MASS_CONSTANT" : False
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -57,7 +58,6 @@ all_cases_dictionnary = {
 "PROJECTION_AXIS" : [0,1,2],
 "CORRELATION_DISTANCE" : [100,200],
 "N_MONTE_CARLO" : [300,1000,3000],
-"HOLD_MASS_CONSTANT" : [True,False]
 }
 
 # There shouldn't be any reason to modify the following
