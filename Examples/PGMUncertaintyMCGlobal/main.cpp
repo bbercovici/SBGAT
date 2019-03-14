@@ -64,7 +64,7 @@ int main(){
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
-
+	pgm_uq.PrecomputeMassPropertiesPartials();
 	std::cout << "Populating shape covariance ...\n";
 
 	// Populate the shape vertices covariance
