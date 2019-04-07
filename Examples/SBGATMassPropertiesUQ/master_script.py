@@ -33,7 +33,7 @@ else:
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "InertiaUncertainty"
+SIM_PREFIX = "SBGATMassPropertiesUQ"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {

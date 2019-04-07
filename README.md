@@ -56,6 +56,13 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
+### [SBGAT 2.04.2](https://github.com/bbercovici/SBGAT/releases/tag/2.04.2)
+
+#### Bug fixes:
+- `SBGATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX
+
+
+
 ### [SBGAT 2.04.1](https://github.com/bbercovici/SBGAT/releases/tag/2.04.1)
 
 #### New
