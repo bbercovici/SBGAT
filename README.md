@@ -56,15 +56,16 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
-### [SBGAT 2.03.1](https://github.com/bbercovici/SBGAT/releases/tag/2.03.1)
+### [SBGAT 2.04.1](https://github.com/bbercovici/SBGAT/releases/tag/2.04.1)
 
 #### New
-- Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`
+- Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`, the latter being tailored for uncertainty quantification in the considered geophysical properties
 - A Python script producing shape "slices" has been added
 
 ### Improvement
+- `SBGATMassPropertiesUQ` now inherits from `SBGATFilter`
 - `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`
-- Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.
+- Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.- Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
 
 
 

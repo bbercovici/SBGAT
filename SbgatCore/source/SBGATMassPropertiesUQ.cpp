@@ -3,6 +3,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkOBJReader.h>
 #include <SBGATPolyhedronGravityModel.hpp>
+#include <SBGATObjWriter.hpp>
 
 #pragma omp declare reduction( + : arma::mat : omp_out += omp_in ) \
 initializer( omp_priv = arma::zeros<arma::mat>(omp_orig.n_rows,omp_orig.n_cols))
@@ -1051,11 +1052,117 @@ void SBGATMassPropertiesUQ::PrecomputeMassPropertiesPartials(){
 	this -> precomputed_partialSigmapartialC = this -> precomputed_partialSigmapartialI * precomputed_partialIpartialC;
 
 
+}
+
+
+void SBGATMassPropertiesUQ::RunMCUQVolumeCOMInertia(std::string path_to_shape,
+	const double & density,
+	const bool & shape_in_meters,
+	const arma::mat & C_CC,
+	const unsigned int & N_samples,
+	std::string output_dir,
+	int N_saved_shapes,
+	arma::mat & deviations,
+	arma::vec & all_volumes,
+	arma::mat &  all_com,
+	arma::mat & all_inertia){
+
+
+
+	// Reading
+	vtkSmartPointer<vtkOBJReader> reader_mc = vtkSmartPointer<vtkOBJReader>::New();
+	reader_mc -> SetFileName(path_to_shape.c_str());
+	reader_mc -> Update(); 
+
+		// Cleaning
+	vtkSmartPointer<vtkCleanPolyData> cleaner_mc = vtkSmartPointer<vtkCleanPolyData>::New();
+	cleaner_mc -> SetInputConnection (reader_mc -> GetOutputPort());
+	cleaner_mc -> SetOutputPointsPrecision ( vtkAlgorithm::DesiredOutputPrecision::DOUBLE_PRECISION );
+
+	cleaner_mc -> Update();
+
+
+
+
+	if (all_volumes.size() != N_samples){
+		all_volumes.clear();
+		all_volumes = arma::vec (N_samples);
+	}
+	if (deviations.size() != N_samples){
+		deviations.clear();
+		deviations = arma::mat(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints(), N_samples);
+	}
+	if (all_com.size() != N_samples){
+		all_com.clear();
+		all_com = arma::mat(3,N_samples);
+	}
+	if (all_inertia.size() != N_samples){
+		all_inertia.clear();
+		all_inertia = arma::mat(6,N_samples);
+	}
+	
+
+
+	for (unsigned int i = 0; i < N_samples ; ++i){
+		deviations.col(i) = C_CC * arma::randn<arma::vec>(3 * cleaner_mc -> GetOutput() -> GetNumberOfPoints());
+	}
+
+
+	#pragma omp parallel for
+	for (unsigned int i = 0; i < N_samples ; ++i){
+
+		vtkSmartPointer<vtkPolyData> shape_copy = vtkSmartPointer<vtkPolyData>::New();
+		shape_copy -> DeepCopy(cleaner_mc -> GetOutput());
+
+		// Creating the PGM dyads
+		vtkSmartPointer<SBGATMassProperties> mass_filter_mc = vtkSmartPointer<SBGATMassProperties>::New();
+		mass_filter_mc -> SetInputData(shape_copy);
+		mass_filter_mc -> SetDensity(density); 
+		
+		if (shape_in_meters){
+			mass_filter_mc -> SetScaleMeters();
+		}
+		else{
+			mass_filter_mc -> SetScaleKiloMeters();
+		}
+
+		SBGATMassPropertiesUQ shape_uq_mc;
+		shape_uq_mc. SetModel(mass_filter_mc);
+		shape_uq_mc. ApplyDeviation(deviations.col(i));
+
+
+		all_volumes(i) = mass_filter_mc -> GetVolume();
+		all_com.col(i) = mass_filter_mc -> GetCenterOfMass();
+
+		arma::mat I = mass_filter_mc -> GetUnitDensityInertiaTensor() ;
+		arma::vec::fixed<6> I_param = {I(0,0),I(1,1),I(2,2),I(0,1),I(0,2),I(1,2)};
+		all_inertia.col(i) = I_param;
+
+
+		if (i < N_saved_shapes){
+			shape_uq_mc. TakeAndSaveSlice(0,output_dir + "slice_x_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc. TakeAndSaveSlice(1,output_dir + "slice_y_" + std::to_string(i) + ".txt",0);
+			shape_uq_mc. TakeAndSaveSlice(2,output_dir + "slice_z_" + std::to_string(i) + ".txt",0);
+			vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+
+			writer -> SetInputData(mass_filter_mc -> GetInput());
+
+			writer -> SetFileName(std::string({output_dir + "mc_shape_" + std::to_string(i) + ".obj"}).c_str());
+			writer -> Update();	
+
+
+		}
+	}
+
+
+
+
+
+
 
 
 
 }
-
 
 
 

@@ -98,6 +98,43 @@ Return the partial derivative of the shape's center of mass with respect to the 
   */
   const arma::mat::fixed<3,6> & GetPartialSigmaPartialI() const {return this -> precomputed_partialSigmapartialI;}
 
+
+/**
+  Runs a Monte Carlo on the shape and the volume, center-of-mass and inertia tensor parametrizaton
+  @param[in] path_to_shape path to reference shape
+  @param[in] density small body density in kg/m^3
+  @param[in] shape_in_meters true if reference shape has its units expressed in meters, false otherwise
+  @param[in] C_CC square root of the covariance of the shape vertices coordinates. Must be of dimensions (3N_C * 3N_C) where N_C is the
+  number of vertices in the reference shape
+  @param[in] N_samples number of shape outcomes to draw
+  @param[in] output_dir path ending in "/" where to save shape-related monte-carlo data. Only used
+  if last argument is larger than 0
+  @param[in] N_saved_shapes number of shape outcomes to save. must be lesser or equal than N_samples
+  @param[out] deviations holds N_samples 3*N_C column vectors storing the deviation applied to the coordinates of the 
+  reference shape at every sample
+  @param[out] all_volumes holds N_samples of the volume
+  @param[out] all_com holds N_samples of the center-of-mass
+  @param[out] all_inertia holds N_samples of the inertia tensor parametrization
+  */
+
+  static void RunMCUQVolumeCOMInertia(std::string path_to_shape,
+    const double & density,
+    const bool & shape_in_meters,
+    const arma::mat & C_CC,
+    const unsigned int & N_samples,
+    std::string output_dir,
+    int N_saved_shapes,
+    arma::mat & deviations,
+    arma::vec & all_volumes,
+    arma::mat &  all_com,
+    arma::mat & all_inertia);
+
+
+
+
+
+
+
 protected:
 
 
