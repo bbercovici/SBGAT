@@ -54,13 +54,13 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
     make install
 
 to apply the update (if any).
-<!-- 
+
 ## Changelog
-### [SBGAT 2.04.2](https://github.com/bbercovici/SBGAT/releases/tag/2.04.2)
+<!-- ### [SBGAT 2.04.2](https://github.com/bbercovici/SBGAT/releases/tag/2.04.2)
 
 #### Bug fixes:
-- `SBG -->ATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX
-
+- `SBGATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX
+ -->
 
 
 ### [SBGAT 2.04.1](https://github.com/bbercovici/SBGAT/releases/tag/2.04.1)
