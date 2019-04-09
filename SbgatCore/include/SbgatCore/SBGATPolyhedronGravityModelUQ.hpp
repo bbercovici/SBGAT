@@ -5,10 +5,11 @@
 @date January 2019
 
 @brief  Evaluation of the formal uncertainty in the potential (variance), acceleration (covariance) caused by a constant-density polyhedron
- @details Computes the potential variance, acceleration covariance associated to the gravity deriving from the polyhedron
+@details Computes the potential variance, acceleration covariance associated to the gravity deriving from the polyhedron
  of constant density assuming that the underlying shape vertices are outcomes of a Gaussian distribution 
  of known mean and covariance
 The input must be a topologically-closed polyhedron.
+
 See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
 for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 @copyright MIT License, Benjamin Bercovici and Jay McMahon
