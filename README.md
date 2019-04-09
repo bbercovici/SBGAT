@@ -72,7 +72,8 @@ to apply the update (if any).
 ### Improvement
 - `SBGATMassPropertiesUQ` now inherits from `SBGATFilter`
 - `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`
-- Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.- Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
+- Clicking on a facet in `SbgatGui` now results in displaying the facet center coordinates.
+- Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
 
 ## Regression
 - As of April 7th 2019, OpenMP is no longer found by CMake on Mac.
