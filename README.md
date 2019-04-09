@@ -56,6 +56,13 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
+### [SBGAT 2.04.2](https://github.com/bbercovici/SBGAT/releases/tag/2.04.2)
+
+#### Bug fixes:
+- `SBGATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX
+
+
+
 ### [SBGAT 2.04.1](https://github.com/bbercovici/SBGAT/releases/tag/2.04.1)
 
 #### New
@@ -65,7 +72,8 @@ to apply the update (if any).
 ### Improvement
 - `SBGATMassPropertiesUQ` now inherits from `SBGATFilter`
 - `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`
-- Clicking on a facet in SbgatGui now results in displaying the facet center coordinates.- Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
+- Clicking on a facet in `SbgatGui` now results in displaying the facet center coordinates.
+- Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
 
 ## Regression
 - As of April 7th 2019, OpenMP is no longer found by CMake on Mac.
