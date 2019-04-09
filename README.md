@@ -70,7 +70,9 @@ to apply the update (if any).
 - A Python script producing shape "slices" has been added
 
 ### Improvement
-- `SBGATMassPropertiesUQ` now inherits from `SBGATFilter`
+- `SBGATMassProperties` now inherits from `SBGATFilter`
+- `SBGATPolyhedronGravityModel` now inherits from `SBGATMassProperties`
+- `SBGATMassPropertiesUQ` now inherits from `SBGATFilterUQ`
 - `SBGATPolyhedronGravityModelUQ` now inherits from `SBGATMassPropertiesUQ`
 - Clicking on a facet in `SbgatGui` now results in displaying the facet center coordinates.
 - Populated `Examples` folder with illustrative snippets for  `SBGATPolyhedronGravityModelUQ` and `SBGATMassPropertiesUQ`. These tests should be run from a Python 3 process (`run ../master_script.py`) called from their `build` directory.
