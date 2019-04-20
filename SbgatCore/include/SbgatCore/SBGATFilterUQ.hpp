@@ -1,6 +1,6 @@
 /**
-@file SBGATFilterUQUQ.hpp
-@class  SBGATFilterUQUQ
+@file SBGATFilterUQ.hpp
+@class  SBGATFilterUQ
 @author Benjamin Bercovici
 @date January 2019
 

@@ -4294,7 +4294,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 
 
-double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold_mass_constant){
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const unsigned int & f , bool hold_mass_constant){
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
@@ -4307,7 +4307,7 @@ double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold
 }
 
 
-void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant){
+void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<unsigned int> & facets,bool hold_mass_constant){
 
 	
 	slope_variances = std::vector<double>(facets.size());

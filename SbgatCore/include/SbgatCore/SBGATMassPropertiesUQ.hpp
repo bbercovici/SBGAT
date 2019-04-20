@@ -1,6 +1,6 @@
 /**
-@file SBGATMassPropertiesUQUQ.hpp
-@class  SBGATMassPropertiesUQUQ
+@file SBGATMassPropertiesUQ.hpp
+@class  SBGATMassPropertiesUQ
 @author Benjamin Bercovici
 @date January 2019
 

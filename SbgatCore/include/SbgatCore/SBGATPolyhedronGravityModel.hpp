@@ -26,6 +26,7 @@
  of constant density by evaluating the so called Polyhedron Gravity Model as derived by Werner and Scheeres.
 The input must be a topologically-closed polyhedron. This class will always use results expressed in `meters` as their distance unit (e.g accelerations in m/s^2, potentials in m^2/s^2,...) . Unit consistency is enforced through the use of the SetScaleMeters()
 and SetScaleKiloMeters() method. 
+
 See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
 for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 @copyright MIT License, Benjamin Bercovici and Jay McMahon
