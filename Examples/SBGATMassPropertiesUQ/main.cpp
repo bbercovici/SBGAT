@@ -65,6 +65,8 @@ int main(){
 	// Computes the volume, center-of-mass,...
 	mass_filter -> Update();
 
+
+
 	// An instance of SBGATMassPropertiesUQ is created to perform
 	// uncertainty quantification in the inertias of the considered shape
 	SBGATMassPropertiesUQ mass_uq;

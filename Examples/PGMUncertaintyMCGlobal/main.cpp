@@ -60,6 +60,7 @@ int main(){
 	std::cout << "Building pgm ...\n";
 	pgm_filter -> Update();
 
+
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;

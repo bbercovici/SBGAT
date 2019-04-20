@@ -29,13 +29,13 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
 if (socket.gethostname() == "fortuna"):
-    base_location = "/orc_raid/bebe0705/PGMUncertaintyMCSlopes/"
+    base_location = "/orc_raid/bebe0705/PGMUncertaintyMCSlopesValidation/"
 else:
     base_location = "../"
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertaintyMCSlopes"
+SIM_PREFIX = "PGMUncertaintyMCSlopesValidation"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
@@ -88,6 +88,6 @@ for data in all_data:
         json.dump(data, outfile)
     print("\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
-    os.system("./PGMUncertaintyMCSlopes 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
+    os.system("./PGMUncertaintyMCSlopesValidation 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
 

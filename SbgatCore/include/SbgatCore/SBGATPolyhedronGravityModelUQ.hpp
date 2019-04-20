@@ -67,7 +67,7 @@ public:
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @return variance in slope (rad^2)
   */
-  double GetVarianceSlope(const int & f , bool hold_mass_constant = false);
+  double GetVarianceSlope(const unsigned int & f , bool hold_mass_constant = false);
 
 
 
@@ -77,7 +77,7 @@ public:
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @param[in] facets indices of facets where to evaluate the slope variance
   */
-  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant = false);
+  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<unsigned int> & facets,bool hold_mass_constant = false);
 
 
   /**
