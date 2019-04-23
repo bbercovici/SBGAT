@@ -51,6 +51,7 @@ namespace SBGAT_GUI {
 
 	class Mainwindow;
 	class ShapePropertiesWidget;
+	class ShapeUncertaintyWidget;
 
 /*!
 @class SurfacePGMWindow
@@ -103,6 +104,8 @@ body-frame accelerations and surface slopes
 		QPushButton * load_surface_pgm_button;
 
 		ShapePropertiesWidget * primary_shape_properties_widget;
+		ShapeUncertaintyWidget * primary_shape_uncertainty_widget;
+
 
 		std::string output_path;
 		

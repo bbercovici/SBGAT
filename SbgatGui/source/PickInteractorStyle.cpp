@@ -182,12 +182,15 @@ void PickInteractorStyle::OnLeftButtonDown(){
 					auto body_fixed_potentials = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_body_fixed_potentials();
 					auto inertial_acc_magnitudes = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_inertial_acc_magnitudes();
 					auto body_fixed_acc_magnitudes = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_body_fixed_acc_magnitudes();
+					auto slope_sds = this -> mainwindow -> get_wrapped_shape_data()[name] -> get_slope_sds();
 
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tSlope: " + std::to_string(slopes->GetValue(picker->GetCellId())) + " (deg)"));
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tInertial potential: " + std::to_string(inertial_potentials->GetValue(picker->GetCellId())) + " (m^2/s^2)"));
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tBody-fixed potential: " + std::to_string(body_fixed_potentials->GetValue(picker->GetCellId())) + " (m^2/s^2)"));
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tInertial acceleration magnitude: " + std::to_string(inertial_acc_magnitudes->GetValue(picker->GetCellId())) + " (m/s^2)"));
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tBody-fixed acceleration magnitude: " + std::to_string(body_fixed_acc_magnitudes->GetValue(picker->GetCellId())) + " (m/s^2)"));
+					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\tSlope standard deviation: " + std::to_string(slope_sds->GetValue(picker->GetCellId())) + " (deg)"));
+
 					this -> mainwindow -> log_console -> appendPlainText(QString::fromStdString("\n"));
 
 				}

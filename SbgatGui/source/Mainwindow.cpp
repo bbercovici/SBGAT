@@ -244,23 +244,23 @@ void Mainwindow::init_right_dockwidget(){
 
 void Mainwindow::select_facets(){
 
- PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
- PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
 
- this -> select_facets_button -> setEnabled(0);
- this -> select_points_button -> setEnabled(1);
+   this -> select_facets_button -> setEnabled(0);
+   this -> select_points_button -> setEnabled(1);
 
- std::string opening_line = "Switching to facet selection\n";
+   std::string opening_line = "Switching to facet selection\n";
 
- std::string closing_line(opening_line.length() - 1, '#');
- closing_line.append("\n");
+   std::string closing_line(opening_line.length() - 1, '#');
+   closing_line.append("\n");
 
- this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
- this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
- this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
- this -> facet_selection_mode = true;
+   this -> facet_selection_mode = true;
 
 };
 
@@ -324,19 +324,44 @@ void Mainwindow::open_settings_window() {
 }
 
 void Mainwindow::open_radar_window(){
-    RadarWindow radar_window(this);
-    radar_window.exec();
+
+
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute Simulated Radar Observations", "You must first load a shape model in order to compute radar observations");
+        return;
+    }
+    else{
+        RadarWindow radar_window(this);
+        radar_window.exec();
+    }
+
 }
 
 void Mainwindow::open_lightcurve_window(){
-    LCWindow lightcurve_window(this);
-    lightcurve_window.exec();
+
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute simulated light curve", "You must first load a shape model in order to compute lightcurves");
+        return;
+    }
+    else{
+        LCWindow lightcurve_window(this);
+        lightcurve_window.exec();
+    }
 }
 
 
 void Mainwindow::open_compute_surface_pgm_window(){
-    SurfacePGMWindow surface_pgm_window(this);
-    surface_pgm_window.exec();
+
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute Surface PGM", "You must first load a shape model in order to compute/load a surface pgm");
+        return;
+    }
+    else{
+
+        SurfacePGMWindow surface_pgm_window(this);
+        surface_pgm_window.exec();
+    }
+
 }
 
 
@@ -454,17 +479,30 @@ void Mainwindow::update_actions_availability() {
 
 void Mainwindow::open_compute_yorp_window(){
 
-    YORPWindow yorp_window(this);
-    yorp_window.exec();
+
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute YORP Fourier Coefficients", "You must first load a shape model in order to compute YORP Fourier Coefficients");
+        return;
+    }
+    else{
+        YORPWindow yorp_window(this);
+        yorp_window.exec();
+    }
 
 }
 
 
 void Mainwindow::open_compute_sharm_window(){
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute Gravity Spherical Harmonics", "You must first load a shape model in order to compute Gravity Spherical Harmonics");
+        return;
+    }
 
-    SHARMWindow sharm_window(this);
-    sharm_window.exec();
+    else{
 
+        SHARMWindow sharm_window(this);
+        sharm_window.exec();
+    }
 }
 
 
@@ -476,7 +514,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-     tr("Text file (*.txt)"));
+       tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -508,19 +546,19 @@ void Mainwindow::save_shape(){
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
-       int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-       std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+     std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-       vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+     vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
-       writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
+     writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
 
 
-       writer -> SetFileName(fileName.toStdString().c_str());
-       writer -> Update();
-       this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
+     writer -> SetFileName(fileName.toStdString().c_str());
+     writer -> Update();
+     this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
 
-   }
+ }
 
 }
 
@@ -816,8 +854,8 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
 
 void Mainwindow::toggle_prop_visibility() {
 
- int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
- std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
     // Showing/hiding small body shape model actor
      QPushButton * senderObj = qobject_cast<QPushButton*>(sender()); // This will give Sender object
@@ -911,104 +949,104 @@ void Mainwindow::save_geometric_measures(){
 
 void Mainwindow::compute_geometric_measures(){
 
- int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
- std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
- std::stringstream ss;
+   std::stringstream ss;
 
- ss.str(std::string());
- ss.precision(10);
+   ss.str(std::string());
+   ss.precision(10);
 
- std::string opening_line = "### Computing geometric measures of " + name + " ###";
- this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+   std::string opening_line = "### Computing geometric measures of " + name + " ###";
+   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
 
- std::chrono::time_point<std::chrono::system_clock> start, end;
- start = std::chrono::system_clock::now();
+   std::chrono::time_point<std::chrono::system_clock> start, end;
+   start = std::chrono::system_clock::now();
 
- vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
- mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
- mass_properties_filter -> Update();
- end = std::chrono::system_clock::now();
- std::chrono::duration<double> elapsed_seconds = end - start;
-
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface area (m^2) :"));
- this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume (m^3) :"));
- this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
+   vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
+   mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
+   mass_properties_filter -> Update();
+   end = std::chrono::system_clock::now();
+   std::chrono::duration<double> elapsed_seconds = end - start;
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius (m) :"));
- this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface area (m^2) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box (m) :"));
-
- double xmin,xmax, ymin, ymax, zmin, zmax;
- mass_properties_filter -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
-
- this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(xmin) + " "+ std::to_string(ymin) + " "+ std::to_string(zmin)));
- this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(xmax) + " "+ std::to_string(ymax) + " "+ std::to_string(zmax)));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass (m) :"));
- mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia tensor :"));
- mass_properties_filter -> GetNormalizedInertiaTensor().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
- 
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia moments :"));
- mass_properties_filter -> GetNormalizedInertiaMoments().t().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume (m^3) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia tensor (m^5) :"));
- mass_properties_filter -> GetUnitDensityInertiaTensor().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius (m) :"));
+   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box (m) :"));
+
+   double xmin,xmax, ymin, ymax, zmin, zmax;
+   mass_properties_filter -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(xmin) + " "+ std::to_string(ymin) + " "+ std::to_string(zmin)));
+   this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(xmax) + " "+ std::to_string(ymax) + " "+ std::to_string(zmax)));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass (m) :"));
+   mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia tensor :"));
+   mass_properties_filter -> GetNormalizedInertiaTensor().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia moments :"));
+   mass_properties_filter -> GetNormalizedInertiaMoments().t().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
 
 
- ss.str(std::string());
- ss.precision(10);
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia tensor (m^5) :"));
+   mass_properties_filter -> GetUnitDensityInertiaTensor().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia moments (m^5) :"));
- mass_properties_filter -> GetUnitDensityInertiaMoments().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal dimensions (m) :"));
- mass_properties_filter -> GetPrincipalDimensions().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
- ss.str(std::string());
- ss.precision(10);
-
- this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes :"));
- mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
- this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+   ss.str(std::string());
+   ss.precision(10);
 
 
- this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
-     + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia moments (m^5) :"));
+   mass_properties_filter -> GetUnitDensityInertiaMoments().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
 
- std::string closing_line(opening_line.length() - 1, '#');
- closing_line.append("\n");
- this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal dimensions (m) :"));
+   mass_properties_filter -> GetPrincipalDimensions().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+   ss.str(std::string());
+   ss.precision(10);
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes :"));
+   mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
+   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
+
+
+   this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
+       + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
+
+   std::string closing_line(opening_line.length() - 1, '#');
+   closing_line.append("\n");
+   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
 

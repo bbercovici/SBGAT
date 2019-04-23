@@ -99,6 +99,8 @@ void SelectMapperWindow::init(){
 
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Inertial acceleration"));
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Body-fixed acceleration"));
+			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Slope standard deviations"));
+
 		}
 	}
 
@@ -153,6 +155,11 @@ void SelectMapperWindow::accept(){
 		else if (current_mapper_index == 5){
 			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_body_fixed_acc_magnitudes();
 			unit = "(m/s^2)";
+			
+		}
+		else if (current_mapper_index == 6){
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_slope_sds();
+			unit = "(deg)";
 			
 		}
 

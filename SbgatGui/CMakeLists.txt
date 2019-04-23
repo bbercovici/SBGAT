@@ -127,6 +127,7 @@ add_executable(${EXE_NAME}
 	source/SelectMapperWindow.cpp
 	source/PickInteractorStyle.cpp
 	source/VertexEditionWindow.cpp
+	source/ShapeUncertaintyWidget.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/PickInteractorStyle.hpp
 	include/VertexEditionWindow.hpp
@@ -143,6 +144,8 @@ add_executable(${EXE_NAME}
 	include/ShapePropertiesWidget.hpp
 	include/SurfacePGMWindow.hpp
 	include/SelectMapperWindow.hpp
+	include/ShapeUncertaintyWidget.hpp
+
 
 	)
 

@@ -44,14 +44,8 @@ RadarWindow::RadarWindow(Mainwindow * parent) : ObsWindow(parent) {
 
 	auto wrapped_shape_data = this -> parent -> get_wrapped_shape_data();	
 	
-	if (wrapped_shape_data.size() == 0){
-		QMessageBox::warning(this, "Generate Doppler Radar Observations", "You must first load a shape model in order to compute radar observations");
-		collect_observations_button -> setDisabled(1);
-	}
-
-	else{
-		collect_observations_button -> setEnabled(1);
-	}
+	collect_observations_button -> setEnabled(1);
+	
 
 
 	this -> obs_specific_group -> setTitle("Radar");

@@ -37,7 +37,7 @@ int main(){
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 
-	std::vector<int > FACETS_TO_INVESTIGATE = input_data["FACETS_TO_INVESTIGATE"];
+	std::vector<unsigned int > FACETS_TO_INVESTIGATE = input_data["FACETS_TO_INVESTIGATE"];
 
 
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
@@ -83,7 +83,8 @@ int main(){
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
 	pgm_uq.SetPeriodErrorStandardDeviation(PERIOD_SD);
-
+	pgm_uq.PrecomputeMassPropertiesPartials();
+	
 	// Saving baseline slices
 	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
 	pgm_uq.TakeAndSaveSlice(1,OUTPUT_DIR + "baseline_slice_y.txt",0);
