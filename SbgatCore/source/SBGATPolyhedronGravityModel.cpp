@@ -673,7 +673,9 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 	inertial_potentials_json,
 	body_fixed_potentials_json,
 	inertial_acc_magnitudes_json,
-	body_fixed_acc_magnitudes_json;
+	body_fixed_acc_magnitudes_json,
+	slope_sds_json;
+
 
 	for (int i = 0; i < queried_elements.size(); ++i){
 		int index = queried_elements[i];
@@ -681,6 +683,12 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 		nlohmann::json slope = { 
 			{"index", index}, 
 			{"value", slopes[i]},
+			{"unit","deg"} 
+		};
+
+		nlohmann::json slope_sd = { 
+			{"index", index}, 
+			{"value", -1},
 			{"unit","deg"} 
 		};
 
@@ -710,6 +718,8 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 
 
 		slopes_json.push_back(slope);
+		slope_sds_json.push_back(slope_sd);
+
 		inertial_potentials_json.push_back(inertial_potential);
 		body_fixed_potentials_json.push_back(body_fixed_potential);
 		inertial_acc_magnitudes_json.push_back(inertial_acc_magnitude);
@@ -720,18 +730,159 @@ void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> se
 	surface_pgm_json["mass"] = mass;
 	surface_pgm_json["omega"] = omega_json;
 	surface_pgm_json["slopes"] = slopes_json;
+	surface_pgm_json["slope_sds"] = slope_sds_json;
+
 	surface_pgm_json["inertial_acc_magnitudes"] = inertial_acc_magnitudes_json;
 	surface_pgm_json["body_fixed_acc_magnitudes"] = body_fixed_acc_magnitudes_json;
 	surface_pgm_json["inertial_potentials"] = inertial_potentials_json;
 	surface_pgm_json["body_fixed_potentials"] = body_fixed_potentials_json;
 
 
+	std::ofstream o(path);
+	o << std::setw(4) << surface_pgm_json << std::endl;
+
+}
+
+
+
+void SBGATPolyhedronGravityModel::SaveSurfacePGM(vtkSmartPointer<vtkPolyData> selected_shape,
+	const std::vector<unsigned int> & queried_elements,
+	bool is_in_meters,
+	const double & mass,
+	const arma::vec::fixed<3> & omega,
+	const std::vector<double> & slopes,
+	const std::vector<double> & inertial_potentials,
+	const std::vector<double> & body_fixed_potentials,
+	const std::vector<double> & inertial_acc_magnitudes,
+	const std::vector<double> & body_fixed_acc_magnitudes,
+	const std::vector<double> & slope_sds,
+	std::string path){
+
+
+  // The surface gravity model is saved to a JSON file
+  // The JSON fieds are:
+  // - facets == number of facets of the input shape
+  // - vertices == number of vertices of the input shape
+  // - omega : { value : {omega_x,omega_y,omega_z},unit}
+  // - slopes - vector of slopes : {index, value, unit}
+  // - inertial_potentials - vector of inertial potentials : {index, value, unit}
+  // - body_fixed_potentials - vector of body-fixed potentials : {index, value, unit}
+  // - inertial_acc_magnitudes - vector of inertial acc_magnitudes : {index, value, unit}
+  // - body_fixed_acc_magnitudes - vector of body-fixed acc_magnitudes : {index, value, unit}
+  // - slope_sds - vector of slopes standard deviations : {index, value, unit}
+
+
+	nlohmann::json surface_pgm_json;
+	nlohmann::json omega_json = {
+		{"value",{omega(0),omega(1),omega(2)}},
+		{"unit","rad/s"}
+	};
+
+
+	surface_pgm_json["facets"] = selected_shape -> GetNumberOfCells();
+	surface_pgm_json["vertices"] = selected_shape -> GetNumberOfPoints();
+
+	std::string distance_unit,potential_unit,acceleration_unit;
+	distance_unit = "m";
+	potential_unit = "m^2/s^2";
+	acceleration_unit = "m/s^2";
+
+	
+
+	nlohmann::json slopes_json,
+	inertial_potentials_json,
+	body_fixed_potentials_json,
+	inertial_acc_magnitudes_json,
+	body_fixed_acc_magnitudes_json,
+	slope_sds_json;
+
+
+	for (int i = 0; i < queried_elements.size(); ++i){
+		int index = queried_elements[i];
+		
+		nlohmann::json slope = { 
+			{"index", index}, 
+			{"value", slopes[i]},
+			{"unit","deg"} 
+		};
+
+		nlohmann::json slope_sd = { 
+			{"index", index}, 
+			{"value", slope_sds[i]},
+			{"unit","deg"} 
+		};
+
+		nlohmann::json inertial_potential = { 
+			{"index", index}, 
+			{"value", inertial_potentials[i]},
+			{"unit",potential_unit} 
+		};
+
+		nlohmann::json body_fixed_potential = { 
+			{"index", index}, 
+			{"value", body_fixed_potentials[i]},
+			{"unit",potential_unit} 
+		};
+
+
+		nlohmann::json inertial_acc_magnitude = { 
+			{"index", index}, 
+			{"value", inertial_acc_magnitudes[i]},
+			{"unit",acceleration_unit} 
+		};
+		nlohmann::json body_fixed_acc_magnitude = { 
+			{"index", index}, 
+			{"value", body_fixed_acc_magnitudes[i]},
+			{"unit",acceleration_unit} 
+		};
+
+
+		slopes_json.push_back(slope);
+		slope_sds_json.push_back(slope_sd);
+
+		inertial_potentials_json.push_back(inertial_potential);
+		body_fixed_potentials_json.push_back(body_fixed_potential);
+		inertial_acc_magnitudes_json.push_back(inertial_acc_magnitude);
+		body_fixed_acc_magnitudes_json.push_back(body_fixed_acc_magnitude);
+
+	}
+
+	surface_pgm_json["mass"] = mass;
+	surface_pgm_json["omega"] = omega_json;
+	surface_pgm_json["slopes"] = slopes_json;
+	surface_pgm_json["slope_sds"] = slope_sds_json;
+
+	surface_pgm_json["inertial_acc_magnitudes"] = inertial_acc_magnitudes_json;
+	surface_pgm_json["body_fixed_acc_magnitudes"] = body_fixed_acc_magnitudes_json;
+	surface_pgm_json["inertial_potentials"] = inertial_potentials_json;
+	surface_pgm_json["body_fixed_potentials"] = body_fixed_potentials_json;
+
 
 	std::ofstream o(path);
 	o << std::setw(4) << surface_pgm_json << std::endl;
 
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -742,6 +893,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	std::vector<double> & body_fixed_potentials,
 	std::vector<double> & inertial_acc_magnitudes,
 	std::vector<double> & body_fixed_acc_magnitudes,
+	std::vector<double> & slope_sds,
 	std::string path){
 
   // The surface gravity model is saved to a JSON file
@@ -754,6 +906,7 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
   // - body_fixed_potentials - vector of body-fixed potentials : {index, value, unit}
   // - inertial_acc_magnitudes - vector of inertial acc_magnitudes : {index, value, unit}
   // - body_fixed_acc_magnitudes - vector of body-fixed acc_magnitudes : {index, value, unit}
+  // - slope_sds - vector of slope standard deviations : {index, value, unit}
 
 	// The JSON container is created
 	nlohmann::json surface_pgm_json;
@@ -769,6 +922,8 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 
 	inertial_acc_magnitudes.resize(static_cast<int>(surface_pgm_json["facets"]));
 	body_fixed_acc_magnitudes.resize(static_cast<int>(surface_pgm_json["facets"]));
+	slope_sds.resize(static_cast<int>(surface_pgm_json["facets"]));
+
 
 
 	for (int k = 0; k < slopes.size(); ++k){
@@ -776,7 +931,9 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 		inertial_potentials[k] = std::numeric_limits<double>::quiet_NaN();
 		body_fixed_potentials[k] = std::numeric_limits<double>::quiet_NaN();
 		inertial_acc_magnitudes[k] = std::numeric_limits<double>::quiet_NaN();
-		body_fixed_acc_magnitudes[k] = std::numeric_limits<double>::quiet_NaN();		
+		body_fixed_acc_magnitudes[k] = std::numeric_limits<double>::quiet_NaN();
+		slope_sds[k] = std::numeric_limits<double>::quiet_NaN();		
+
 	}
 
 
@@ -812,6 +969,20 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 	catch (nlohmann::detail::parse_error & e){
 		throw(std::runtime_error("Error loading slopes in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slopes`"));
 	}
+
+	nlohmann::json slope_sds_json;
+
+	try{
+		slope_sds_json = surface_pgm_json.at("slope_sds");
+		for (auto slope_sd : slope_sds_json){
+			slope_sds[slope_sd["index"]] = slope_sd["value"];
+		}
+	}
+	catch (nlohmann::detail::parse_error & e){
+		throw(std::runtime_error("Error loading slope sds in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slope_sds`"));
+	}
+
+
 
 	nlohmann::json inertial_potentials_json;
 	try{
