@@ -10,5 +10,5 @@ while(1):
         master_script.start_sim()
         break
     else: 
-    	print("PID 27590 is still running")
+        print("PID 27590 is still running")
         time.sleep(5) 
