@@ -32,6 +32,7 @@ SOFTWARE.
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QTabWidget>
+#include <QTableWidget>
 #include "ObsWindow.hpp"
 
 namespace SBGAT_GUI {
@@ -61,7 +62,7 @@ affecting the control points coordinates and rotation period of a considered sha
 	to set body density if true.
 	@param title widget title
 	*/
-		ShapeUncertaintyWidget(QDialog * parent,std::string title) ;
+		ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::string title) ;
 
 		/**
 		Returns user-set standard deviation in rotation periond
@@ -118,17 +119,24 @@ affecting the control points coordinates and rotation period of a considered sha
 		*/
 		int get_local_covariance_regularization_number() const;
 
+		QTableWidget * local_uncertainty_table_widget;
 
+		public slots:
+		void clear();
 
 		private slots:
 
 		void select_covariance_input_file();
+		void add_shape_uncertainty_region();
+		void remove_shape_uncertainty_region();
+
 
 
 		
 	protected:
+		SurfacePGMWindow * parent;
+		
 
-		void init();
 		QButtonGroup * uncertainty_type_button_group;
 		QTabWidget * tab_widget;
 
@@ -139,10 +147,15 @@ affecting the control points coordinates and rotation period of a considered sha
 		QDoubleSpinBox * global_correlation_distance_spinbox;
 
 		QSpinBox * global_covariance_regularization_spin_box;
+		QSpinBox * local_covariance_regularization_spin_box;
+
 
 
 
 		QPushButton * covariance_input_file_button;
+		QPushButton * add_region_button;
+		QPushButton * remove_region_button;
+
 
 
 

@@ -90,6 +90,9 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	connect(this -> open_output_file_dialog_button,SIGNAL(clicked()),this,
 		SLOT(open_output_file_dialog()));
 
+	connect(this -> primary_prop_combo_box,SIGNAL(currentIndexChanged(int)),this -> primary_shape_uncertainty_widget,SLOT(clear()));
+
+
 
 	window_layout -> addStretch(1);
 
@@ -212,6 +215,7 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		switch(this -> primary_shape_uncertainty_widget -> get_active_tab_index()){
 			case 1:
 			// The shape covariance is loaded from a file
+			// No regularization is applied
 			P_CC.load(this -> primary_shape_uncertainty_widget -> get_covariance_input_file());
 			if (P_CC.n_rows != 3 * pgm_filter -> GetN_vertices() || P_CC.n_cols != 3 * pgm_filter -> GetN_vertices()){
 				QMessageBox::warning(this, "Compute Surface PGM","The provided covariance matrix's dimensions do not match that of the considered shape. No output was produced");
@@ -237,9 +241,38 @@ void SurfacePGMWindow::compute_surface_pgm(){
 
 			break;
 			case 3:
-			QMessageBox::warning(this, "Compute Surface PGM","Not implemented yet");
-			early_exit = true;
-			break;
+			// The shape covariance is created from a local uncertainty description
+
+			if (this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount() == 0){
+				QMessageBox::warning(this, "Compute Surface PGM","There are no uncertainty regions for this shape");
+					this -> parent -> log_console -> appendPlainText(QString::fromStdString("The surface PGM computation was interrupted"));
+				
+				early_exit = true;
+				break;
+			}
+			else{
+
+				for (int i = 0; i < this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount(); ++i){
+					
+
+					int region_center = qobject_cast<QSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,0)) -> value();
+					double error_standard_dev = qobject_cast<QDoubleSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,1)) -> value();
+					double correlation_distance = qobject_cast<QDoubleSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,2)) -> value();
+
+					pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,error_standard_dev,correlation_distance);
+				
+				}
+
+				for (unsigned int k = 0; k < this -> primary_shape_uncertainty_widget -> get_local_covariance_regularization_number(); ++k){
+					int regularized_eigenvalues = pgm_uq.RegularizeCovariance();
+					this -> parent -> log_console -> appendPlainText(QString::fromStdString("- " + std::to_string(regularized_eigenvalues) + " P_CC eigenvalues were regularized"));
+					if (regularized_eigenvalues == 0) 
+						break;
+				}
+			}
+
+			
+			
 		}
 
 		if (early_exit){

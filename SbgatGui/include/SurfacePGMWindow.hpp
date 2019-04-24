@@ -73,7 +73,9 @@ body-frame accelerations and surface slopes
 	@param parent pointer to parent window.
 	*/
 		SurfacePGMWindow(Mainwindow * parent) ;
-
+		QComboBox * primary_prop_combo_box;
+		Mainwindow * parent;
+		
 		private slots:
 		
 		void compute_surface_pgm();
@@ -86,16 +88,14 @@ body-frame accelerations and surface slopes
 		void open_output_file_dialog();
 
 
-
+			
 
 	protected:
 
 
 		virtual void init();
 
-		Mainwindow * parent;
 
-		QComboBox * primary_prop_combo_box;
 
 		QDialogButtonBox * button_box;
 		QPushButton * open_output_file_dialog_button;
