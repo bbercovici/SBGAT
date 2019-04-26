@@ -183,7 +183,7 @@ int main(){
 	std::vector<double> sd_slopes(analytical_variances_slopes.size());
 	
 	for (unsigned int i = 0; i < analytical_variances_slopes.size(); ++i){
-		sd_slopes[i] = std::sqrt(analytical_variances_slopes[i]);
+		sd_slopes[i] = 180./arma::datum::pi * std::sqrt(analytical_variances_slopes[i]);
 	}
 
 
