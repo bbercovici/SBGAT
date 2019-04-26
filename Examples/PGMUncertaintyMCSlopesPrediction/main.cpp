@@ -167,19 +167,6 @@ int main(){
 		inertial_acc_magnitudes,
 		body_fixed_acc_magnitudes);
 
-	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
-		queried_elements,
-		UNIT_IN_METERS,
-		mass,
-		omega,
-		slopes,
-		inertial_potentials,
-		body_fixed_potentials,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes,
-		OUTPUT_DIR + "nominal_surface_pgm.json");
-
-
 	// Analytical UQ
 	std::vector<double> analytical_variances_slopes;
 
@@ -193,16 +180,29 @@ int main(){
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Done computing analytical uncertainties in " << elapsed_seconds.count() << " s\n";
 
-	arma::vec sd_slopes(analytical_variances_slopes.size());
+	std::vector<double> sd_slopes(analytical_variances_slopes.size());
+	
 	for (unsigned int i = 0; i < analytical_variances_slopes.size(); ++i){
-
-		sd_slopes(i) = std::sqrt(analytical_variances_slopes[i]);
+		sd_slopes[i] = std::sqrt(analytical_variances_slopes[i]);
 	}
 
-	sd_slopes.save(OUTPUT_DIR + "slopes_sd.txt",arma::raw_ascii);
+
+
+	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
+		queried_elements,
+		UNIT_IN_METERS,
+		mass,
+		omega,
+		slopes,
+		inertial_potentials,
+		body_fixed_potentials,
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes,
+		sd_slopes,
+		OUTPUT_DIR + "surface_pgm.json");
+
 
 	
-
 
 
 	return 0;

@@ -505,7 +505,7 @@ void SBGATPolyhedronGravityModel::Clear(){
 		}
 		delete[] this -> facet_dyads;
 
-	
+
 	//Edge dyads
 		for(int i = 0; i < this -> N_edges; ++i) {
 			delete[] this -> edge_dyads[i];   
@@ -939,101 +939,77 @@ void SBGATPolyhedronGravityModel::LoadSurfacePGM(double & mass,
 
 	nlohmann::json omega_json;
 
-	try{
-		omega_json = surface_pgm_json.at("omega");
-		omega(0) = omega_json["value"][0];
-		omega(1) = omega_json["value"][1];
-		omega(2) = omega_json["value"][2];
+	omega_json = surface_pgm_json.at("omega");
+	omega(0) = omega_json["value"][0];
+	omega(1) = omega_json["value"][1];
+	omega(2) = omega_json["value"][2];
 
-	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading angular velocity in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `omega`"));
-	}
+	
 
-	try{
-		mass = surface_pgm_json.at("mass");
-	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading mass in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `mass`"));
-	}
+	mass = surface_pgm_json.at("mass");
+	
 
 
 	nlohmann::json slopes_json;
 	
-	try{
-		slopes_json = surface_pgm_json.at("slopes");
-		for (auto slope : slopes_json){
-			slopes[slope["index"]] = slope["value"];
-		}
+	slopes_json = surface_pgm_json.at("slopes");
+	for (auto slope : slopes_json){
+		slopes[slope["index"]] = slope["value"];
 	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading slopes in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slopes`"));
-	}
-
+	
+	
 	nlohmann::json slope_sds_json;
 
-	try{
-		slope_sds_json = surface_pgm_json.at("slope_sds");
-		for (auto slope_sd : slope_sds_json){
+	slope_sds_json = surface_pgm_json.at("slope_sds");
+	for (auto slope_sd : slope_sds_json){
+		if(slope_sd["value"].is_null()){
+			slope_sds[slope_sd["index"]] = std::numeric_limits<double>::quiet_NaN();
+		}
+		else{
 			slope_sds[slope_sd["index"]] = slope_sd["value"];
 		}
 	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading slope sds in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `slope_sds`"));
-	}
-
 
 
 	nlohmann::json inertial_potentials_json;
-	try{
-		inertial_potentials_json = surface_pgm_json.at("inertial_potentials");
-		for (auto inertial_potential : inertial_potentials_json){
-			inertial_potentials[inertial_potential["index"]] = inertial_potential["value"];
-			
-		}
+	
+	inertial_potentials_json = surface_pgm_json.at("inertial_potentials");
+	for (auto inertial_potential : inertial_potentials_json){
+		inertial_potentials[inertial_potential["index"]] = inertial_potential["value"];
+
 	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading inertial potentials in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `inertial_potentials`"));
-	}
+	
 
 	nlohmann::json body_fixed_potentials_json;
-	try{
-		body_fixed_potentials_json = surface_pgm_json.at("body_fixed_potentials");
-		for (auto body_fixed_potential : body_fixed_potentials_json){
-			body_fixed_potentials[body_fixed_potential["index"]] = body_fixed_potential["value"];
-			
-		}
+	
+	body_fixed_potentials_json = surface_pgm_json.at("body_fixed_potentials");
+	for (auto body_fixed_potential : body_fixed_potentials_json){
+		body_fixed_potentials[body_fixed_potential["index"]] = body_fixed_potential["value"];
+
 	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading inertial potentials in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `body_fixed_potentials`"));
-	}
+	
+	
 
 	nlohmann::json inertial_acc_json;
 
-	try{
-		inertial_acc_json = surface_pgm_json.at("inertial_acc_magnitudes");
-		for (auto acc : inertial_acc_json){
-			inertial_acc_magnitudes[acc["index"]] = acc["value"];
-			
-		}
+	
+	inertial_acc_json = surface_pgm_json.at("inertial_acc_magnitudes");
+	for (auto acc : inertial_acc_json){
+		inertial_acc_magnitudes[acc["index"]] = acc["value"];
 
 	}
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading inertial accelerations in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `inertial_acc_magnitudes`"));
-	}
+
+	
 
 
 	nlohmann::json body_fixed_acc_magnitudes_json;
-	try{
-		body_fixed_acc_magnitudes_json = surface_pgm_json.at("body_fixed_acc_magnitudes");
-		for (auto acc : body_fixed_acc_magnitudes_json){
-			body_fixed_acc_magnitudes[acc["index"]] = acc["value"];
-			
-		}
-	}	
-	catch (nlohmann::detail::parse_error & e){
-		throw(std::runtime_error("Error loading body-fixed accelerations in SBGATPolyhedronGravityModel::LoadSurfacePGM. Can't find field `body_fixed_acc_magnitudes`"));
+	
+	body_fixed_acc_magnitudes_json = surface_pgm_json.at("body_fixed_acc_magnitudes");
+	for (auto acc : body_fixed_acc_magnitudes_json){
+		body_fixed_acc_magnitudes[acc["index"]] = acc["value"];
+
 	}
+	
 
 
 }
