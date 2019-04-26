@@ -119,6 +119,18 @@ affecting the control points coordinates and rotation period of a considered sha
 		*/
 		int get_local_covariance_regularization_number() const;
 
+		/**
+		Returns state of save_global_covariance_to_file_checkbox checkbox
+		*/
+		bool get_save_global_covariance_to_file_checkbox() const{return this -> save_global_covariance_to_file_checkbox -> isChecked();}
+
+		/**
+		Returns state of save_local_covariance_to_file_checkbox checkbox
+		*/
+		bool get_save_local_covariance_to_file_checkbox() const{return this -> save_local_covariance_to_file_checkbox -> isChecked();}
+
+
+
 		QTableWidget * local_uncertainty_table_widget;
 
 		public slots:
@@ -149,6 +161,8 @@ affecting the control points coordinates and rotation period of a considered sha
 		QSpinBox * global_covariance_regularization_spin_box;
 		QSpinBox * local_covariance_regularization_spin_box;
 
+		QCheckBox *	save_global_covariance_to_file_checkbox;
+		QCheckBox *	save_local_covariance_to_file_checkbox;
 
 
 

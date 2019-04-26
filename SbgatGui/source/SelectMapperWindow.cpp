@@ -174,6 +174,11 @@ void SelectMapperWindow::accept(){
 			double valuesRange[2];
 			data -> GetRange(valuesRange);
 
+			if (std::isnan(valuesRange[0]) || std::isnan(valuesRange[1])){
+				valuesRange[0] = 0;
+				valuesRange[1] = 90;
+			}
+
 			double min_data = valuesRange[0];
 			double max_data = valuesRange[1];
 

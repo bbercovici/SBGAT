@@ -141,12 +141,12 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	analytical_slope_sds;
 
 
-
 	int numCells = selected_shape -> GetNumberOfCells();
 	std::vector<unsigned int> queried_elements;
 	
 	for (unsigned int i = 0; i < static_cast<unsigned int>(numCells); ++i){
 		queried_elements.push_back(i);
+		analytical_slope_sds.push_back(std::numeric_limits<double>::quiet_NaN());
 	}
 
 	auto start = std::chrono::system_clock::now();
@@ -205,12 +205,12 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		pgm_uq.SetModel(pgm_filter);
 		pgm_uq.SetPeriodErrorStandardDeviation(0);
 		pgm_uq.PrecomputeMassPropertiesPartials();
-		std::vector<double> analytical_slope_variances;
 
 
 		// The shape covariance is extracted
-		bool early_exit = false;
 		arma::mat P_CC;
+
+		QString cov_path;
 
 		switch(this -> primary_shape_uncertainty_widget -> get_active_tab_index()){
 			case 1:
@@ -219,7 +219,7 @@ void SurfacePGMWindow::compute_surface_pgm(){
 			P_CC.load(this -> primary_shape_uncertainty_widget -> get_covariance_input_file());
 			if (P_CC.n_rows != 3 * pgm_filter -> GetN_vertices() || P_CC.n_cols != 3 * pgm_filter -> GetN_vertices()){
 				QMessageBox::warning(this, "Compute Surface PGM","The provided covariance matrix's dimensions do not match that of the considered shape. No output was produced");
-				early_exit = true;
+				return;
 			}
 			else{
 				pgm_uq.SetCovariance(P_CC);
@@ -227,6 +227,11 @@ void SurfacePGMWindow::compute_surface_pgm(){
 			break;
 			case 2:
 			// The shape covariance is created from a global uncertainty description
+			
+			if (this -> primary_shape_uncertainty_widget -> get_save_global_covariance_to_file_checkbox()){
+				cov_path = QFileDialog::getSaveFileName(this, tr("Save Shape Covariance To File"),"~/",tr("Text file (*.txt)"));
+			}
+
 			pgm_uq.ComputeVerticesCovarianceGlobal(this -> primary_shape_uncertainty_widget -> get_global_sigma(),
 				this -> primary_shape_uncertainty_widget -> get_global_correlation_distance());
 			
@@ -245,13 +250,15 @@ void SurfacePGMWindow::compute_surface_pgm(){
 
 			if (this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount() == 0){
 				QMessageBox::warning(this, "Compute Surface PGM","There are no uncertainty regions for this shape");
-					this -> parent -> log_console -> appendPlainText(QString::fromStdString("The surface PGM computation was interrupted"));
+				this -> parent -> log_console -> appendPlainText(QString::fromStdString("The surface PGM computation was interrupted"));
 				
-				early_exit = true;
+				return;
 				break;
 			}
 			else{
-
+				if (this -> primary_shape_uncertainty_widget -> get_save_local_covariance_to_file_checkbox()){
+					cov_path = QFileDialog::getSaveFileName(this, tr("Save Shape Covariance To File"),"~/",tr("Text file (*.txt)"));
+				}
 				for (int i = 0; i < this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount(); ++i){
 					
 
@@ -260,7 +267,7 @@ void SurfacePGMWindow::compute_surface_pgm(){
 					double correlation_distance = qobject_cast<QDoubleSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,2)) -> value();
 
 					pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,error_standard_dev,correlation_distance);
-				
+
 				}
 
 				for (unsigned int k = 0; k < this -> primary_shape_uncertainty_widget -> get_local_covariance_regularization_number(); ++k){
@@ -275,38 +282,16 @@ void SurfacePGMWindow::compute_surface_pgm(){
 			
 		}
 
-		if (early_exit){
-			return;
-		}
-
+		std::vector<double>	analytical_slope_variances;
 
 		pgm_uq.GetVarianceSlopes(analytical_slope_variances,queried_elements,false);
 
-
-
+		analytical_slope_sds.clear();
 		for (auto it = analytical_slope_variances.begin(); it != analytical_slope_variances.end(); ++it){
 			analytical_slope_sds.push_back(std::sqrt(*it));
 		}
 
-		SBGATPolyhedronGravityModel::SaveSurfacePGM(selected_shape,
-			queried_elements,
-			true,
-			mass,
-			omega,
-			slopes,
-			inertial_potentials,
-			body_fixed_potentials,
-			inertial_acc_magnitudes,
-			body_fixed_acc_magnitudes,
-			analytical_slope_sds,
-			this -> output_path );
-
-
-
-
-		QString cov_path = QFileDialog::getSaveFileName(this, tr("Save Shape Covariance To File"),
-			"~/",
-			tr("Text file (*.txt)"));
+		
 
 		if (cov_path.length() > 0){
 			pgm_uq.GetVerticesCovariance().save(cov_path.toStdString(),arma::raw_ascii);
@@ -314,34 +299,30 @@ void SurfacePGMWindow::compute_surface_pgm(){
 
 
 	}
-	else{
 
-		SBGATPolyhedronGravityModel::SaveSurfacePGM(selected_shape,
-			queried_elements,
-			true,
-			mass,
-			omega,
-			slopes,
-			inertial_potentials,
-			body_fixed_potentials,
-			inertial_acc_magnitudes,
-			body_fixed_acc_magnitudes,
-			this -> output_path );
-	}
+	SBGATPolyhedronGravityModel::SaveSurfacePGM(selected_shape,
+		queried_elements,
+		true,
+		mass,
+		omega,
+		slopes,
+		inertial_potentials,
+		body_fixed_potentials,
+		inertial_acc_magnitudes,
+		body_fixed_acc_magnitudes,
+		analytical_slope_sds,
+		this -> output_path );
+	
 
-
+	// Setting the wrapper fields with the computed quantities
 	std::shared_ptr<ModelDataWrapper> wrapper = this -> parent -> get_wrapped_shape_data()[selected_shape_name];
-
 	wrapper -> set_inertial_potentials(inertial_potentials);
 	wrapper -> set_body_fixed_potentials(body_fixed_potentials);
-
 	wrapper -> set_inertial_acc_magnitudes(inertial_acc_magnitudes);
 	wrapper -> set_body_fixed_acc_magnitudes(body_fixed_acc_magnitudes);
 	wrapper -> set_slopes(slopes);
-
-	if (this -> primary_shape_uncertainty_widget -> get_active_tab_index() != 0){
-		wrapper -> set_slope_sds(analytical_slope_sds);
-	}
+	wrapper -> set_slope_sds(analytical_slope_sds);
+	
 
 	wrapper -> get_mapper() -> ScalarVisibilityOff();
 

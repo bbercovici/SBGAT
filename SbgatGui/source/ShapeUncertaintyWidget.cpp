@@ -91,6 +91,11 @@ ShapeUncertaintyWidget::ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::st
 	this -> local_covariance_regularization_spin_box -> setMinimum(0);
 	this -> local_covariance_regularization_spin_box -> setValue(2);
 	
+
+	this -> save_global_covariance_to_file_checkbox = new QCheckBox(this);
+	this -> save_local_covariance_to_file_checkbox = new QCheckBox(this);
+
+
 	this -> local_uncertainty_table_widget = new QTableWidget(this);
 
 	this -> local_uncertainty_table_widget -> setColumnCount(3);
@@ -114,11 +119,21 @@ ShapeUncertaintyWidget::ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::st
 	uncertainty_global_layout -> addWidget(global_covariance_regularization_label,2,0,1,1);
 	uncertainty_global_layout -> addWidget(this -> global_covariance_regularization_spin_box,2,1,1,1);
 
+	uncertainty_global_layout -> addWidget(new QLabel("Save Covariance To File"),3,0,1,1);
+	uncertainty_global_layout -> addWidget(this -> save_global_covariance_to_file_checkbox,3,1,1,1);
+
+
+
+
 	uncertainty_local_layout -> addWidget(this -> local_uncertainty_table_widget,0,0,3,6);
 	uncertainty_local_layout -> addWidget(this -> add_region_button,3,0,1,3);
 	uncertainty_local_layout -> addWidget(this -> remove_region_button,3,3,1,3);
 	uncertainty_local_layout -> addWidget(local_covariance_regularization_label,4,0,1,3);
 	uncertainty_local_layout -> addWidget(this -> local_covariance_regularization_spin_box,4,3,1,3);
+
+	uncertainty_local_layout -> addWidget(new QLabel("Save Covariance To File"),3,0,1,1);
+	uncertainty_local_layout -> addWidget(this -> save_local_covariance_to_file_checkbox,3,1,1,1);
+
 
 	connect(this -> covariance_input_file_button,SIGNAL(clicked()),this,SLOT(select_covariance_input_file()));
 	connect(this -> add_region_button,SIGNAL(clicked()),this,SLOT(add_shape_uncertainty_region()));
@@ -155,7 +170,7 @@ void ShapeUncertaintyWidget::add_shape_uncertainty_region(){
 	QDoubleSpinBox * correlation_distance_spin_box = new QDoubleSpinBox( this -> local_uncertainty_table_widget );
 
 	standard_deviation_spin_box -> setMinimum(0);
-	correlation_distance_spin_box -> setMinimum(0);
+	correlation_distance_spin_box -> setMinimum(0.1);
 
 
 	this -> local_uncertainty_table_widget -> setRowCount( this -> local_uncertainty_table_widget -> rowCount() + 1 );

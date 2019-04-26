@@ -37,6 +37,7 @@ int main(){
 	std::string OUTPUT_DIR = input_data["OUTPUT_DIR"];
 	std::string UNCERTAINTY_TYPE = input_data["UNCERTAINTY_TYPE"];
 
+	std::vector<int > FACETS_TO_INVESTIGATE = input_data["FACETS_TO_INVESTIGATE"];
 
 
 	std::cout << "- Path to shape: " << PATH_SHAPE << std::endl;
@@ -50,7 +51,10 @@ int main(){
 	for(auto center : COV_REGION_CENTERS){
 		std::cout << "\t" << center << std::endl;
 	}
-	
+	std::cout << "- Facets to investigate:\n" ;
+	for(auto facet : FACETS_TO_INVESTIGATE){
+		std::cout << "\t" << facet << std::endl;
+	}
 
 	// Reading
 	vtkSmartPointer<vtkOBJReader> reader = vtkSmartPointer<vtkOBJReader>::New();
@@ -74,17 +78,11 @@ int main(){
 	pgm_filter -> SetOmega(2 * arma::datum::pi / PERIOD * arma::vec({0,0,1}));
 	pgm_filter -> Update();
 
-	double mass = DENSITY * pgm_filter -> GetVolume();
-	arma::vec::fixed<3> omega = pgm_filter -> GetOmega();
-	vtkSmartPointer<vtkPolyData> polydata = reader -> GetOutput();
-
 	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
 	// uncertainty quantification from the PGM associated to the shape
 	SBGATPolyhedronGravityModelUQ pgm_uq;
 	pgm_uq.SetModel(pgm_filter);
 	pgm_uq.SetPeriodErrorStandardDeviation(PERIOD_SD);
-
-	pgm_uq.PrecomputeMassPropertiesPartials();
 
 	// Saving baseline slices
 	pgm_uq.TakeAndSaveSlice(0,OUTPUT_DIR + "baseline_slice_x.txt",0);
@@ -142,67 +140,79 @@ int main(){
 	
 
 
-
-	std::vector<double> slopes;
-	std::vector<double> inertial_potentials;
-	std::vector<double> body_fixed_potentials;
-	std::vector<double> inertial_acc_magnitudes;
-	std::vector<double> body_fixed_acc_magnitudes;
-
-
-	std::vector<unsigned int> queried_elements;
-	for (int i = 0; i < pgm_filter -> GetN_facets() ; ++i){
-		queried_elements.push_back(i);
-	}
-
-
-	SBGATPolyhedronGravityModel::ComputeSurfacePGM(polydata,
-		queried_elements,
-		UNIT_IN_METERS,
-		DENSITY,
-		omega,
-		slopes,
-		inertial_potentials,
-		body_fixed_potentials,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes);
-
 	// Analytical UQ
 	std::vector<double> analytical_variances_slopes;
 
 	std::cout << "Computing analytical uncertainties ... ";
 	auto start = std::chrono::system_clock::now();
 
-	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,queried_elements,HOLD_MASS_CONSTANT);
+	pgm_uq.GetVarianceSlopes(analytical_variances_slopes,FACETS_TO_INVESTIGATE,HOLD_MASS_CONSTANT);
 
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
 	std::cout << "Done computing analytical uncertainties in " << elapsed_seconds.count() << " s\n";
 
-	std::vector<double> sd_slopes(analytical_variances_slopes.size());
+	// Running a Monte Carlo to compare against
+	std::vector<arma::vec> deviations;
+	std::vector<double> period_errors;
+	std::vector<double> densities;
+
+	std::vector < std::vector<double> > all_slopes;
+
+	std::cout << "Running MC ... ";
+
+	start = std::chrono::system_clock::now();
+	SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(PATH_SHAPE,
+		DENSITY,
+		pgm_filter -> GetOmega() ,
+		UNIT_IN_METERS,
+		HOLD_MASS_CONSTANT,
+		C_CC,
+		PERIOD_SD,
+		N_MONTE_CARLO, 
+		FACETS_TO_INVESTIGATE,
+		OUTPUT_DIR,
+		std::min(30,N_MONTE_CARLO),
+		deviations,
+		densities,
+		period_errors,
+		all_slopes);
+
+
+	end = std::chrono::system_clock::now();
+
+	elapsed_seconds = end-start;
+
+	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
+
 	
-	for (unsigned int i = 0; i < analytical_variances_slopes.size(); ++i){
-		sd_slopes[i] = std::sqrt(analytical_variances_slopes[i]);
+	std::vector<double> mc_variances_slopes(FACETS_TO_INVESTIGATE.size());
+
+	std::cout << "Computing MC dispersions...\n";
+	
+	for (int e = 0; e < mc_variances_slopes.size(); ++e){
+		arma::vec slopes_mc(N_MONTE_CARLO);
+		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
+			slopes_mc(sample) = all_slopes[sample][e];
+		}
+		mc_variances_slopes[e] = arma::var(slopes_mc);
+
+		slopes_mc.save(OUTPUT_DIR + "/slope_distribution_facet_" + std::to_string(FACETS_TO_INVESTIGATE[e]) + ".txt",arma::raw_ascii);
+	}
+
+	std::cout << "\t After " << N_MONTE_CARLO << " MC outcomes:\n";
+
+	for (int e = 0; e < FACETS_TO_INVESTIGATE.size(); ++e){
+		std::cout << "\tAt facet " << FACETS_TO_INVESTIGATE[e] << "\n";
+		std::cout << "\t\tSlope (rad): " << pgm_filter -> GetSlope(FACETS_TO_INVESTIGATE[e]) << std::endl;
+		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
+		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
+		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
+		
 	}
 
 
-
-	SBGATPolyhedronGravityModel::SaveSurfacePGM(polydata,
-		queried_elements,
-		UNIT_IN_METERS,
-		mass,
-		omega,
-		slopes,
-		inertial_potentials,
-		body_fixed_potentials,
-		inertial_acc_magnitudes,
-		body_fixed_acc_magnitudes,
-		sd_slopes,
-		OUTPUT_DIR + "surface_pgm.json");
-
-
-	
 
 
 	return 0;
