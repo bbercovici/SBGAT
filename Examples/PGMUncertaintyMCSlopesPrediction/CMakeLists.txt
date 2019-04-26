@@ -25,8 +25,8 @@
 
 # @file   CMakeLists.txt
 # @Author Benjamin Bercovici (bebe0705@colorado.edu)
-# @date   July, 2017
-# @brief  CMake listing enabling compilation and installation of the SbgatCore tests
+# @date   April, 2019
+# @brief  CMake listing 
 
 ################################################################################
 #
@@ -102,7 +102,7 @@ list(REMOVE_ITEM dirs "/Applications/Xcode.app/Contents/Developer/Platforms/MacO
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES ${dirs})
 
 # Add source files in root directory
-add_executable(${EXE_NAME} main.cpp )
+add_executable(${EXE_NAME} main.cpp)
 
 
 set(library_dependencies
