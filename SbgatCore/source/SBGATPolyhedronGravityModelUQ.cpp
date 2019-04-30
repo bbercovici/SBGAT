@@ -4367,7 +4367,7 @@ void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slop
 
 	#pragma omp parallel for
 	for (unsigned int f_index = 0; f_index < facets.size(); ++f_index){
-		slope_variances[f_index] = arma::dot(all_partials.row(f_index),augmented_P_CC * all_partials.row(f_index).t());
+		slope_variances[f_index] = std::pow(180./arma::datum::pi,2) * arma::dot(all_partials.row(f_index),augmented_P_CC * all_partials.row(f_index).t());
 	}
 
 

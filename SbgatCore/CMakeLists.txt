@@ -73,11 +73,6 @@ include_directories(${ARMADILLO_INCLUDE_DIRS})
 find_package(OrbitConversions REQUIRED)
 include_directories(${OC_INCLUDE_DIR})
 
-
-# Find ShapeUQLib
-find_package(ShapeUQLib REQUIRED)
-include_directories(${SHAPEUQLIB_INCLUDE_DIR})
-
 # Find OpenMP
 if (NOT NO_OMP)
 	find_package(OpenMP)
@@ -127,7 +122,6 @@ add_library(${LIB_NAME}
 	source/SBGATPolyhedronGravityModelUQ.cpp
 	source/SBGATMassProperties.cpp
 	source/SBGATMassPropertiesUQ.cpp
-	source/SBGATShapeUncertainty.cpp
 	source/SBGATSrpYorp.cpp
 	source/SBGATSphericalHarmo.cpp
 	source/SBGATObjWriter.cpp
@@ -147,7 +141,6 @@ set(library_dependencies
 	${YORPLIB_LIBRARY}
 	${SHARMLIB_LIBRARY}
 	${OC_LIBRARY}
-	${SHAPEUQLIB_LIBRARY}
 	)
 
 

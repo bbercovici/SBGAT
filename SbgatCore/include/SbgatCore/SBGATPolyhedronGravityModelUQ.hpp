@@ -65,15 +65,16 @@ public:
   Return the variance of the slope evaluated at the center of the designated facet. This method is NOT thread safe
   @param[in] f facet index
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
-  @return variance in slope (rad^2)
+  @return variance in slope (deg^2)
   */
   double GetVarianceSlope(const unsigned int & f , bool hold_mass_constant = false);
 
 
 
   /**
-  Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe
-  @param[out] slope_variances
+  Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe (i.e should not be called from multiple threads). 
+  However, it internaly relies on OpenMP to speed up computations
+  @param[out] slope_variances (deg^2)
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @param[in] facets indices of facets where to evaluate the slope variance
   */
