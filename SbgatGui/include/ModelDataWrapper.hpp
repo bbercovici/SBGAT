@@ -145,7 +145,7 @@ elements through a unique interface.
 	Accessor to consistent_grav_slope.
 	@return true gravity slopes have been computed
 	*/
-		bool get_grav_slopes() const;
+		bool get_consistent_grav_slope() const;
 
 	/**
 	Setter to consistent_global_acceleration
@@ -170,7 +170,7 @@ elements through a unique interface.
 	computed
 	*/
 
-		void set_grav_slopes(bool grav_slopes);
+		void set_consistent_grav_slope(bool grav_slopes);
 
 	/**
 	Sets the internal flag consistent_shape_model to false, 
@@ -214,6 +214,12 @@ elements through a unique interface.
 
 
 	/**
+	Set surface slope standard-deviations
+	*/
+		void set_slope_sds(std::vector<double> slope_sds);
+
+
+	/**
 	Set inertial surface gravity potentials
 	*/
 		void set_inertial_potentials(std::vector<double> potentials);
@@ -241,31 +247,37 @@ elements through a unique interface.
 
 
 	/**
-	Set surface slopes
+	Get surface slopes
 	*/
 		vtkSmartPointer<vtkFloatArray> get_slopes();
 
 
 	/**
-	Set inertial surface gravity potentials
+	Get surface slope standard-deviations
+	*/
+		vtkSmartPointer<vtkFloatArray> get_slope_sds();
+
+
+	/**
+	Get inertial surface gravity potentials
 	*/
 		vtkSmartPointer<vtkFloatArray> get_inertial_potentials();
 
 
 	/**
-	Set body-fixed surface gravity potentials
+	Get body-fixed surface gravity potentials
 	*/
 		vtkSmartPointer<vtkFloatArray> get_body_fixed_potentials();
 
 
 	/**
-	Set surface inertial acceleration magnitudes
+	Get surface inertial acceleration magnitudes
 	*/
 		vtkSmartPointer<vtkFloatArray> get_inertial_acc_magnitudes();
 
 
 	/**
-	Set surface body-fixed acceleration magnitudes
+	Get surface body-fixed acceleration magnitudes
 	*/
 		vtkSmartPointer<vtkFloatArray> get_body_fixed_acc_magnitudes();
 
@@ -307,6 +319,7 @@ elements through a unique interface.
 		vtkSmartPointer<vtkKdTreePointLocator> tree;
 
 		vtkSmartPointer<vtkFloatArray> slopes = nullptr;
+		vtkSmartPointer<vtkFloatArray> slope_sds = nullptr;
 		vtkSmartPointer<vtkFloatArray> inertial_potentials = nullptr;
 		vtkSmartPointer<vtkFloatArray> body_fixed_potentials = nullptr;
 

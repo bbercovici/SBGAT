@@ -99,6 +99,8 @@ void SelectMapperWindow::init(){
 
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Inertial acceleration"));
 			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Body-fixed acceleration"));
+			this -> mapper_combo_box -> insertItem(this -> mapper_combo_box -> count(),QString::fromStdString("Slope standard deviations"));
+
 		}
 	}
 
@@ -155,6 +157,11 @@ void SelectMapperWindow::accept(){
 			unit = "(m/s^2)";
 			
 		}
+		else if (current_mapper_index == 6){
+			data = wrapped_shape_data[this -> prop_combo_box -> currentText().toStdString()] -> get_slope_sds();
+			unit = "(deg)";
+			
+		}
 
 		
 
@@ -166,6 +173,11 @@ void SelectMapperWindow::accept(){
 
 			double valuesRange[2];
 			data -> GetRange(valuesRange);
+
+			if (std::isnan(valuesRange[0]) || std::isnan(valuesRange[1])){
+				valuesRange[0] = 0;
+				valuesRange[1] = 90;
+			}
 
 			double min_data = valuesRange[0];
 			double max_data = valuesRange[1];

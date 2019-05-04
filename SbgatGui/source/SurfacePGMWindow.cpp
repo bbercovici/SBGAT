@@ -24,13 +24,14 @@ SOFTWARE.
 #include <QScrollArea>
 
 #include "ShapePropertiesWidget.hpp"
+#include "ShapeUncertaintyWidget.hpp"
 #include "SurfacePGMWindow.hpp"
 
 #include <SBGATMassProperties.hpp>
 #include <SBGATTrajectory.hpp>
 #include <OrbitConversions.hpp>
 #include <SBGATPolyhedronGravityModel.hpp>
-
+#include <SBGATPolyhedronGravityModelUQ.hpp>
 using namespace SBGAT_GUI;
 
 SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
@@ -51,6 +52,7 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 
 	this -> primary_prop_combo_box = new QComboBox (this);
 	this -> primary_shape_properties_widget = new ShapePropertiesWidget(this ,"Shape properties");
+	this -> primary_shape_uncertainty_widget = new ShapeUncertaintyWidget(this ,"Shape uncertainty");
 
 
 	// Creating the button box
@@ -66,6 +68,8 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	window_layout -> addWidget(select_shape_widget);
 
 	window_layout -> addWidget(this -> primary_shape_properties_widget);
+	window_layout -> addWidget(this -> primary_shape_uncertainty_widget);
+
 	
 	button_widget_layout -> addWidget(this -> compute_surface_pgm_button);
 	button_widget_layout -> addWidget(this -> load_surface_pgm_button);
@@ -85,6 +89,9 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	connect(this -> load_surface_pgm_button, SIGNAL(clicked()), this, SLOT(load_surface_pgm()));
 	connect(this -> open_output_file_dialog_button,SIGNAL(clicked()),this,
 		SLOT(open_output_file_dialog()));
+
+	connect(this -> primary_prop_combo_box,SIGNAL(currentIndexChanged(int)),this -> primary_shape_uncertainty_widget,SLOT(clear()));
+
 
 
 	window_layout -> addStretch(1);
@@ -111,11 +118,8 @@ void SurfacePGMWindow::init(){
 
 void SurfacePGMWindow::compute_surface_pgm(){
 
-
-
 	std::string selected_shape_name = this -> primary_prop_combo_box -> currentText().toStdString();
 	vtkSmartPointer<vtkPolyData> selected_shape = this -> parent -> get_wrapped_shape_data()[selected_shape_name]-> get_polydata();
-
 
 	arma::vec::fixed<3> omega = this -> primary_shape_properties_widget -> get_spin();
 
@@ -133,13 +137,16 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	inertial_potentials,
 	body_fixed_potentials,
 	inertial_acc_magnitudes,
-	body_fixed_acc_magnitudes;
+	body_fixed_acc_magnitudes,
+	analytical_slope_sds;
+
 
 	int numCells = selected_shape -> GetNumberOfCells();
 	std::vector<unsigned int> queried_elements;
 	
 	for (unsigned int i = 0; i < static_cast<unsigned int>(numCells); ++i){
 		queried_elements.push_back(i);
+		analytical_slope_sds.push_back(std::numeric_limits<double>::quiet_NaN());
 	}
 
 	auto start = std::chrono::system_clock::now();
@@ -168,6 +175,131 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	mass_properties -> Update();
 	double mass = mass_properties -> GetVolume() * this -> primary_shape_properties_widget -> get_density();
 
+
+
+
+
+
+
+	
+
+
+	// An instance of SBGATPolyhedronGravityModelUQ is created to perform
+	// uncertainty quantification from the PGM associated to the shape
+	if (this -> primary_shape_uncertainty_widget -> get_active_tab_index() != 0){
+
+
+		// An instance of SBGATPolyhedronGravityModel is created to evaluate the PGM of 
+	// the considered polytdata
+		vtkSmartPointer<SBGATPolyhedronGravityModel> pgm_filter = vtkSmartPointer<SBGATPolyhedronGravityModel>::New();
+
+		pgm_filter -> SetInputData(selected_shape);
+		pgm_filter -> SetDensity(this -> primary_shape_properties_widget -> get_density());
+
+		pgm_filter -> SetScaleMeters();
+		pgm_filter -> SetOmega(omega);
+		pgm_filter -> Update();
+
+
+		SBGATPolyhedronGravityModelUQ pgm_uq;
+		pgm_uq.SetModel(pgm_filter);
+		pgm_uq.SetPeriodErrorStandardDeviation(0);
+		pgm_uq.PrecomputeMassPropertiesPartials();
+
+
+		// The shape covariance is extracted
+		arma::mat P_CC;
+
+		QString cov_path;
+
+		switch(this -> primary_shape_uncertainty_widget -> get_active_tab_index()){
+			case 1:
+			// The shape covariance is loaded from a file
+			// No regularization is applied
+			P_CC.load(this -> primary_shape_uncertainty_widget -> get_covariance_input_file());
+			if (P_CC.n_rows != 3 * pgm_filter -> GetN_vertices() || P_CC.n_cols != 3 * pgm_filter -> GetN_vertices()){
+				QMessageBox::warning(this, "Compute Surface PGM","The provided covariance matrix's dimensions do not match that of the considered shape. No output was produced");
+				return;
+			}
+			else{
+				pgm_uq.SetCovariance(P_CC);
+			}
+			break;
+			case 2:
+			// The shape covariance is created from a global uncertainty description
+			
+			if (this -> primary_shape_uncertainty_widget -> get_save_global_covariance_to_file_checkbox()){
+				cov_path = QFileDialog::getSaveFileName(this, tr("Save Shape Covariance To File"),"~/",tr("Text file (*.txt)"));
+			}
+
+			pgm_uq.ComputeVerticesCovarianceGlobal(this -> primary_shape_uncertainty_widget -> get_global_sigma(),
+				this -> primary_shape_uncertainty_widget -> get_global_correlation_distance());
+			
+
+			for (unsigned int k = 0; k < this -> primary_shape_uncertainty_widget -> get_global_covariance_regularization_number(); ++k){
+				int regularized_eigenvalues = pgm_uq.RegularizeCovariance();
+				this -> parent -> log_console -> appendPlainText(QString::fromStdString("- " + std::to_string(regularized_eigenvalues) + " P_CC eigenvalues were regularized"));
+				if (regularized_eigenvalues == 0) 
+					break;
+			}
+
+
+			break;
+			case 3:
+			// The shape covariance is created from a local uncertainty description
+
+			if (this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount() == 0){
+				QMessageBox::warning(this, "Compute Surface PGM","There are no uncertainty regions for this shape");
+				this -> parent -> log_console -> appendPlainText(QString::fromStdString("The surface PGM computation was interrupted"));
+				
+				return;
+				break;
+			}
+			else{
+				if (this -> primary_shape_uncertainty_widget -> get_save_local_covariance_to_file_checkbox()){
+					cov_path = QFileDialog::getSaveFileName(this, tr("Save Shape Covariance To File"),"~/",tr("Text file (*.txt)"));
+				}
+				for (int i = 0; i < this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> rowCount(); ++i){
+					
+
+					int region_center = qobject_cast<QSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,0)) -> value();
+					double error_standard_dev = qobject_cast<QDoubleSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,1)) -> value();
+					double correlation_distance = qobject_cast<QDoubleSpinBox*>(this -> primary_shape_uncertainty_widget -> local_uncertainty_table_widget -> cellWidget(i,2)) -> value();
+
+					pgm_uq.AddRadialUncertaintyRegionToCovariance(region_center,error_standard_dev,correlation_distance);
+
+				}
+
+				for (unsigned int k = 0; k < this -> primary_shape_uncertainty_widget -> get_local_covariance_regularization_number(); ++k){
+					int regularized_eigenvalues = pgm_uq.RegularizeCovariance();
+					this -> parent -> log_console -> appendPlainText(QString::fromStdString("- " + std::to_string(regularized_eigenvalues) + " P_CC eigenvalues were regularized"));
+					if (regularized_eigenvalues == 0) 
+						break;
+				}
+			}
+
+			
+			
+		}
+
+		std::vector<double>	analytical_slope_variances;
+
+		pgm_uq.GetVarianceSlopes(analytical_slope_variances,queried_elements,false);
+
+		analytical_slope_sds.clear();
+		for (auto it = analytical_slope_variances.begin(); it != analytical_slope_variances.end(); ++it){
+			analytical_slope_sds.push_back(std::sqrt(*it));
+		}
+
+		
+
+		if (cov_path.length() > 0){
+			pgm_uq.GetVerticesCovariance().save(cov_path.toStdString(),arma::raw_ascii);
+		}
+
+
+	}
+
 	SBGATPolyhedronGravityModel::SaveSurfacePGM(selected_shape,
 		queried_elements,
 		true,
@@ -178,18 +310,20 @@ void SurfacePGMWindow::compute_surface_pgm(){
 		body_fixed_potentials,
 		inertial_acc_magnitudes,
 		body_fixed_acc_magnitudes,
+		analytical_slope_sds,
 		this -> output_path );
+	
 
-
-
+	// Setting the wrapper fields with the computed quantities
 	std::shared_ptr<ModelDataWrapper> wrapper = this -> parent -> get_wrapped_shape_data()[selected_shape_name];
-
 	wrapper -> set_inertial_potentials(inertial_potentials);
 	wrapper -> set_body_fixed_potentials(body_fixed_potentials);
-
 	wrapper -> set_inertial_acc_magnitudes(inertial_acc_magnitudes);
 	wrapper -> set_body_fixed_acc_magnitudes(body_fixed_acc_magnitudes);
 	wrapper -> set_slopes(slopes);
+	wrapper -> set_slope_sds(analytical_slope_sds);
+	
+
 	wrapper -> get_mapper() -> ScalarVisibilityOff();
 
 	this -> parent -> get_renderer() -> RemoveActor2D(wrapper -> get_colorbar_actor());
@@ -206,6 +340,8 @@ void SurfacePGMWindow::compute_surface_pgm(){
 	closing_line.append("\n");
 
 	this -> parent -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+
+
 
 
 
@@ -254,7 +390,8 @@ void SurfacePGMWindow::load_surface_pgm(){
 	std::vector<double> slopes,inertial_potentials,
 	body_fixed_potentials,
 	inertial_acc_magnitudes,
-	body_fixed_acc_magnitudes;
+	body_fixed_acc_magnitudes,
+	slope_sds;
 	double mass;
 	arma::vec::fixed<3> omega;
 
@@ -269,6 +406,7 @@ void SurfacePGMWindow::load_surface_pgm(){
 				body_fixed_potentials,
 				inertial_acc_magnitudes,
 				body_fixed_acc_magnitudes,
+				slope_sds,
 				path.toStdString());
 		}
 
@@ -285,6 +423,8 @@ void SurfacePGMWindow::load_surface_pgm(){
 		}
 
 		wrapper -> set_slopes(slopes);
+		wrapper -> set_slope_sds(slope_sds);
+
 
 		wrapper -> set_inertial_potentials(inertial_potentials);
 		wrapper -> set_body_fixed_potentials(body_fixed_potentials);
@@ -297,7 +437,7 @@ void SurfacePGMWindow::load_surface_pgm(){
 		this -> parent -> get_renderer() -> RemoveActor2D(wrapper -> get_colorbar_actor());
 
 		this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
-		this -> parent -> log_console -> appendPlainText(QString::fromStdString("\n- Done load surface PGM from file " + path.toStdString()));
+		this -> parent -> log_console -> appendPlainText(QString::fromStdString("\n- Done loading surface PGM from file " + path.toStdString()));
 
 	}
 	catch(std::runtime_error & e ){

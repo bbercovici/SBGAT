@@ -7,6 +7,7 @@ import platform
 import sys
 import itertools
 import time
+import socket 
 
 
 def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,base_location,sim_name):
@@ -24,23 +25,31 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
     return all_cases_dictionnary_list
 
+
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
-if (platform.system() == 'Linux'):
-    base_location = "../"
+if (socket.gethostname() == "fortuna"):
+    base_location = "/orc_raid/bebe0705/PGMUncertaintyMCSlopesValidation/"
 else:
     base_location = "../"
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "SBGATMassPropertiesUQ"
+SIM_PREFIX = "PGMUncertaintyMCSlopesValidation"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"ERROR_STANDARD_DEV" : 10,
-"DENSITY" : 2000,
-"UNIT_IN_METERS" : True,
-"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj",
+"DENSITY" : 4500,
+"UNIT_IN_METERS" : False,
+"PERIOD" : 4.195948 * 3600,
+"PERIOD_SD" : 1e-5 * 4.195948 * 3600,
+"N_MONTE_CARLO" : 1000,
+"PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
+"CORRELATION_DISTANCE" : 75e3,
+"ERROR_STANDARD_DEV" : 10e1,
+"COV_REGION_CENTERS" : [0,1147],
+"UNCERTAINTY_TYPE" : "normal",
+"HOLD_MASS_CONSTANT" : False,
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -53,8 +62,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"CORRELATION_DISTANCE" : [100,200],
-"N_MONTE_CARLO" : [300,1000,3000],
+"FACETS_TO_INVESTIGATE" : [[1266,1268,0,100,500,1000,1500,2000]]
 }
 
 # There shouldn't be any reason to modify the following
@@ -80,5 +88,6 @@ for data in all_data:
         json.dump(data, outfile)
     print("\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
-    os.system("./" + SIM_PREFIX + " 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
+    os.system("./PGMUncertaintyMCSlopesValidation 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
+

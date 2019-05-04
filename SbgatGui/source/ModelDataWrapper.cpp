@@ -36,6 +36,8 @@ vtkSmartPointer<vtkPolyData> ModelDataWrapper::get_polydata() const {
 }
 
 
+
+
 vtkSmartPointer<vtkPolyDataMapper> ModelDataWrapper::get_mapper() const {
 	return this -> mapper;
 }
@@ -91,7 +93,7 @@ bool ModelDataWrapper::get_global_pgm_pot() const {
 }
 
 
-bool ModelDataWrapper::get_grav_slopes() const {
+bool ModelDataWrapper::get_consistent_grav_slope() const {
 	return this -> consistent_grav_slope;
 }
 
@@ -105,7 +107,7 @@ void ModelDataWrapper::set_global_pgm_pot(bool global_pgm_pot) {
 }
 
 
-void ModelDataWrapper::set_grav_slopes(bool grav_slopes) {
+void ModelDataWrapper::set_consistent_grav_slope(bool grav_slopes) {
 	this -> consistent_grav_slope = grav_slopes;
 }
 
@@ -148,7 +150,30 @@ void ModelDataWrapper::set_slopes(std::vector<double> slopes){
 
 	this -> slopes -> Modified();
 
-	
+}
+
+void ModelDataWrapper::set_slope_sds(std::vector<double> slope_sds){
+
+	// Create cell data
+	if (this -> slope_sds == nullptr){
+
+		this -> slope_sds = vtkSmartPointer<vtkFloatArray>::New();
+		
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> slope_sds -> InsertNextValue(slope_sds[i]);
+		}
+
+	}
+
+	else{
+		for (int i = 0; i < this -> polydata -> GetNumberOfCells(); i++){
+			this -> slope_sds -> SetValue(i,slope_sds[i]);
+			
+		}
+	}
+
+	this -> slope_sds -> Modified();
+
 }
 
 
@@ -174,8 +199,6 @@ void ModelDataWrapper::set_inertial_potentials(std::vector<double> potentials){
 	}
 	this -> inertial_potentials -> Modified();
 
-
-	
 }
 
 
@@ -276,6 +299,10 @@ vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_body_fixed_acc_magnitudes()
 	return this -> body_fixed_acc_magnitudes;
 }
 
+
+vtkSmartPointer<vtkFloatArray> ModelDataWrapper::get_slope_sds(){
+	return this -> slope_sds;
+}
 
 vtkSmartPointer<vtkScalarBarActor> ModelDataWrapper::get_colorbar_actor(){
 	return this -> colorbar_actor;

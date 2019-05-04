@@ -56,11 +56,17 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
-<!-- ### [SBGAT 2.04.2](https://github.com/bbercovici/SBGAT/releases/tag/2.04.2)
+
+### [SBGAT 2.05.1](https://github.com/bbercovici/SBGAT/releases/tag/2.05.1)
+
+#### New
+- Uncertainty quantification in the surface polyhedron gravity model can now be computed from within `SBGATGui`
+
+#### Improvements
+- Users now must load one shape model in `SBGATGui` before being able to open up any of the analyses/observations windows.
 
 #### Bug fixes:
 - `SBGATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX
- -->
 
 
 ### [SBGAT 2.04.1](https://github.com/bbercovici/SBGAT/releases/tag/2.04.1)
@@ -69,7 +75,11 @@ to apply the update (if any).
 - Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`, the latter being tailored for uncertainty quantification in the considered geophysical properties
 - A Python script producing shape "slices" has been added
 
+<<<<<<< HEAD
 ### Improvement
+=======
+### Improvements
+>>>>>>> develop
 - `SBGATMassProperties` now inherits from `SBGATFilter`
 - `SBGATPolyhedronGravityModel` now inherits from `SBGATMassProperties`
 - `SBGATMassPropertiesUQ` now inherits from `SBGATFilterUQ`

@@ -124,6 +124,9 @@ arma::mat::fixed<10,9> SBGATPolyhedronGravityModelUQ::PartialXfPartialTf(const a
 
 	partial.rows(4,9) = this -> PartialFfPartialTf(f);
 
+
+
+
 	return partial;
 
 
@@ -155,8 +158,17 @@ arma::mat::fixed<3,9> SBGATPolyhedronGravityModelUQ::PartialRadiusFfPartialTf() 
 
 arma::rowvec::fixed<9> SBGATPolyhedronGravityModelUQ::PartialOmegafPartialTf(const arma::vec::fixed<3> & pos,const int & f) const{
 
+	arma::vec::fixed<3> pos_f = this -> model -> GetFacetCenter(f);
+	
+	if(arma::norm(pos_f - pos) / arma::norm(pos_f) < 1e-10 ){
+		// If true, then the query point is the center of facet f
+		// The performance factor of facet f evaluated at this point will always remain equal to +/- 2pi 
+		// so this partial is set to zero 
+		return arma::zeros<arma::rowvec>(9);
+	}
 
 	double r0[3],r1[3],r2[3];
+
 
 	this -> model -> GetVerticesInFacet(f,r0,r1,r2);
 
@@ -228,6 +240,11 @@ arma::rowvec::fixed<2> SBGATPolyhedronGravityModelUQ::PartialAtan2PartialZf(cons
 	arma::rowvec::fixed<2> partial = 2 * (
 		((arma::norm(Zf) + arma::dot(e1,Zf)) * e2.t() - arma::dot(e2,Zf) * (e1.t() + Zf.t()/arma::norm(Zf)))
 		/(std::pow(arma::norm(Zf) + arma::dot(e1,Zf),2) + std::pow(arma::dot(e2,Zf),2)));
+	
+
+
+
+
 	return partial;
 
 }
@@ -1176,6 +1193,10 @@ arma::mat SBGATPolyhedronGravityModelUQ::PartialBodyFixedAccelerationfPartialC(c
 
 	arma::vec::fixed<3> facet_center = this -> model  -> GetFacetCenter(f);
 
+
+
+
+
 	return (this -> GetPartialAPartialC(facet_center,hold_mass_constant)
 		+ pgm_model -> GetGravityGradient(facet_center) * 1./3 * mat * this -> PartialTfPartialC(f)
 		+ RBK::tilde(pgm_model -> GetOmega()) * RBK::tilde(pgm_model -> GetOmega()) * (this -> precomputed_partialGpartialC - 
@@ -1198,6 +1219,8 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::GetPartialSlopePartialwPartialC(cons
 	double slope = std::acos(- arma::dot(arma::normalise(body_fixed_acc),arma::normalise(pgm_model -> GetNonNormalizedFacetNormal(f))));
 
 	double u = - std::cos(slope);
+
+
 
 
 	return (this -> PartialSlopePartialSlopeArgument(u) 
@@ -1239,7 +1262,7 @@ arma::rowvec SBGATPolyhedronGravityModelUQ::PartialSlopeArgumentPartialOmegaC(co
 	partial_mat.rows(0,2) = this -> PartialNormalizedVPartialNonNormalizedV(body_fixed_acc) * this -> PartialBodyFixedAccelerationfPartialOmegaC(f,hold_mass_constant);
 	partial_mat.submat(3,3,5,3 * N_C + 2) = this -> PartialNormalizedVPartialNonNormalizedV(Nf) * this -> PartialNfPartialTf(f) * this -> PartialTfPartialC(f);
 
-
+	
 	return (unit_vectors.t() * partial_mat);
 
 }
@@ -2050,10 +2073,21 @@ void SBGATPolyhedronGravityModelUQ::AddPartialSumAccePartialC(const arma::vec::f
 void SBGATPolyhedronGravityModelUQ::AddPartialSumAccfPartialC(const arma::vec::fixed<3> & pos,arma::mat & partial) const{
 	int N_f = vtkPolyData::SafeDownCast(this -> model -> GetInput()) -> GetNumberOfCells();
 
+	arma::vec::fixed<3> pos_47 = {1.2321e+02,   3.6164e+01 ,  9.9527e+01};
+
+
+
+
 	#pragma omp parallel for reduction(+:partial)
 	for (int f = 0; f < N_f; ++f){
+
+
+
 		partial += this -> PartialAccfPartialXf(pos,f) * this -> PartialXfPartialTf(pos,f) * this -> PartialTfPartialC(f);
+
 	}
+
+	
 
 }
 
@@ -2071,7 +2105,10 @@ arma::mat SBGATPolyhedronGravityModelUQ::GetPartialAPartialC(const arma::vec::fi
 	arma::mat partial = arma::zeros<arma::mat>(3,3 * N_C);
 
 	this -> AddPartialSumAccePartialC(pos,partial);
+
 	this -> AddPartialSumAccfPartialC(pos,partial);
+
+
 
 	if (hold_mass_constant){
 		SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
@@ -2143,6 +2180,9 @@ arma::mat::fixed<3,10> SBGATPolyhedronGravityModelUQ::PartialAccfPartialXf(const
 	partial.col(0) = Ff_mat * r_fi_0;
 	partial.cols(1,3) = omega_f * Ff_mat;
 	partial.cols(4,9) = omega_f * R_fi_0;
+
+
+	
 
 	return partial;
 
@@ -3394,7 +3434,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	const arma::mat & C_CC,
 	const double & period_standard_deviation,
 	const unsigned int & N_samples,
-	const int & facet,
+	const unsigned int & facet,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
@@ -3403,7 +3443,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	std::vector<double> & slopes){
 
 	std::vector< std::vector< double> > all_slopes(N_samples);
-	std::vector< int > all_facets = {facet};
+	std::vector< unsigned int > all_facets = {facet};
 	
 	slopes = std::vector<double>(N_samples);
 	period_errors = std::vector<double>(N_samples);
@@ -3685,7 +3725,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQSlopes(std::string path_to_shape,
 	const arma::mat & C_CC,
 	const double & period_standard_deviation,
 	const unsigned int & N_samples,
-	const std::vector<int > & all_facets,
+	const std::vector<unsigned int > & all_facets,
 	std::string output_dir,
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
@@ -4294,7 +4334,7 @@ void SBGATPolyhedronGravityModelUQ::TestPartialSlopeArgumentPartialOmegaC(std::s
 
 
 
-double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold_mass_constant){
+double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const unsigned int & f , bool hold_mass_constant){
 
 	SBGATPolyhedronGravityModel * pgm_model = SBGATPolyhedronGravityModel::SafeDownCast(this -> model);
 
@@ -4307,7 +4347,7 @@ double SBGATPolyhedronGravityModelUQ::GetVarianceSlope(const int & f , bool hold
 }
 
 
-void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant){
+void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<unsigned int> & facets,bool hold_mass_constant){
 
 	
 	slope_variances = std::vector<double>(facets.size());
@@ -4325,11 +4365,9 @@ void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slop
 		all_partials.row(f_index) = this -> GetPartialSlopePartialwPartialC(facets[f_index],hold_mass_constant);
 	}
 
-	arma::vec variances = arma::diagvec(all_partials * augmented_P_CC * all_partials.t());
-
 	#pragma omp parallel for
 	for (unsigned int f_index = 0; f_index < facets.size(); ++f_index){
-		slope_variances[f_index] = variances(f_index);
+		slope_variances[f_index] = std::pow(180./arma::datum::pi,2) * arma::dot(all_partials.row(f_index),augmented_P_CC * all_partials.row(f_index).t());
 	}
 
 

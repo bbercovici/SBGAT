@@ -51,6 +51,7 @@ namespace SBGAT_GUI {
 
 	class Mainwindow;
 	class ShapePropertiesWidget;
+	class ShapeUncertaintyWidget;
 
 /*!
 @class SurfacePGMWindow
@@ -72,7 +73,9 @@ body-frame accelerations and surface slopes
 	@param parent pointer to parent window.
 	*/
 		SurfacePGMWindow(Mainwindow * parent) ;
-
+		QComboBox * primary_prop_combo_box;
+		Mainwindow * parent;
+		
 		private slots:
 		
 		void compute_surface_pgm();
@@ -85,16 +88,14 @@ body-frame accelerations and surface slopes
 		void open_output_file_dialog();
 
 
-
+			
 
 	protected:
 
 
 		virtual void init();
 
-		Mainwindow * parent;
 
-		QComboBox * primary_prop_combo_box;
 
 		QDialogButtonBox * button_box;
 		QPushButton * open_output_file_dialog_button;
@@ -103,6 +104,8 @@ body-frame accelerations and surface slopes
 		QPushButton * load_surface_pgm_button;
 
 		ShapePropertiesWidget * primary_shape_properties_widget;
+		ShapeUncertaintyWidget * primary_shape_uncertainty_widget;
+
 
 		std::string output_path;
 		

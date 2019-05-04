@@ -5,10 +5,11 @@
 @date January 2019
 
 @brief  Evaluation of the formal uncertainty in the potential (variance), acceleration (covariance) caused by a constant-density polyhedron
- @details Computes the potential variance, acceleration covariance associated to the gravity deriving from the polyhedron
+@details Computes the potential variance, acceleration covariance associated to the gravity deriving from the polyhedron
  of constant density assuming that the underlying shape vertices are outcomes of a Gaussian distribution 
  of known mean and covariance
 The input must be a topologically-closed polyhedron.
+
 See Werner, R. A., & Scheeres, D. J. (1997). Exterior gravitation of a polyhedron derived and compared with harmonic and mascon gravitation representations of asteroid 4769 Castalia. Celestial Mechanics and Dynamical Astronomy, 65(3), 313–344. https://doi.org/10.1007/BF00053511
 for further details. Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 @copyright MIT License, Benjamin Bercovici and Jay McMahon
@@ -64,19 +65,20 @@ public:
   Return the variance of the slope evaluated at the center of the designated facet. This method is NOT thread safe
   @param[in] f facet index
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
-  @return variance in slope (rad^2)
+  @return variance in slope (deg^2)
   */
-  double GetVarianceSlope(const int & f , bool hold_mass_constant = false);
+  double GetVarianceSlope(const unsigned int & f , bool hold_mass_constant = false);
 
 
 
   /**
-  Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe
-  @param[out] slope_variances
+  Return the variance of the slope evaluated at the center of the designated facets. This method is NOT thread safe (i.e should not be called from multiple threads). 
+  However, it internaly relies on OpenMP to speed up computations
+  @param[out] slope_variances (deg^2)
   @param[in] hold_mass_constant if true, will make density vary as in drho = - rho V / dV so as to hold mass (mass = rho * V) constant. Default is false
   @param[in] facets indices of facets where to evaluate the slope variance
   */
-  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<int> & facets,bool hold_mass_constant = false);
+  void GetVarianceSlopes(std::vector<double> & slope_variances,const std::vector<unsigned int> & facets,bool hold_mass_constant = false);
 
 
   /**
@@ -243,7 +245,7 @@ public:
     const arma::mat & C_CC,
     const double & period_standard_deviation,
     const unsigned int & N_samples,
-    const std::vector<int > & all_facets,
+    const std::vector<unsigned int > & all_facets,
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
@@ -386,7 +388,7 @@ public:
     const arma::mat & C_CC,
     const double & period_standard_deviation,
     const unsigned int & N_samples,
-    const int & facet,
+    const unsigned int & facet,
     std::string output_dir,
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,

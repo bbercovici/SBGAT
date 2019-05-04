@@ -221,6 +221,8 @@ ShapePropertiesWidget::ShapePropertiesWidget(SurfacePGMWindow * parent,std::stri
 	this -> spin_raan_sbox -> setRange(-180,180);
 	this -> spin_inc_sbox -> setRange(-180,180);
 	this -> period_sbox -> setRange(1e-10,1e10);
+	this -> period_sbox -> setValue(12);
+
 
 	this -> spin_raan_sbox -> setValue(0);
 	this -> spin_inc_sbox -> setValue(0);
