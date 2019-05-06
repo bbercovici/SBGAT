@@ -79,7 +79,8 @@ SettingsWindow::SettingsWindow(Mainwindow * parent) {
 	this -> background_type_combo_box -> insertItem(1,"Skybox");
 
 	// Getting the current antialiasing settings
-	aa_frames_combo_box -> setCurrentIndex(this -> parent -> qvtkWidget -> GetRenderWindow() -> GetAAFrames());
+	// TODO deprecated, remove
+	// aa_frames_combo_box -> setCurrentIndex(this -> parent -> qvtkWidget -> GetRenderWindow() -> GetAAFrames());
 	antialiasing_group_layout -> addWidget(label_samples, 0, 0, 1, 1);
 	antialiasing_group_layout -> addWidget(aa_frames_combo_box, 0, 1, 1, 1);
 
@@ -172,72 +173,74 @@ void SettingsWindow::show_selected_background_type(int index){
 void SettingsWindow::accept() {
 
 	// Set new AA settings
-	this -> parent -> qvtkWidget -> GetRenderWindow() -> SetAAFrames(int(this -> aa_frames_combo_box -> currentText().toDouble()));
+	// TODO deprecated, remove
+	
+	// this -> parent -> qvtkWidget -> GetRenderWindow() -> SetAAFrames(int(this -> aa_frames_combo_box -> currentText().toDouble()));
 
 	if (open_skybox_directory_dialog_button -> text() != "" && this -> background_type_combo_box -> currentIndex() == 1
 		&& open_skybox_directory_dialog_button -> text().toStdString() != this -> parent -> get_skybox_pair().first){
 		std::string skybox_path = open_skybox_directory_dialog_button -> text().toStdString();
-		const std::string fpath[] = {
-			skybox_path + "/pX.png",
-			skybox_path + "/nX.png",
-			skybox_path + "/pY.png",
-			skybox_path + "/nY.png",
-			skybox_path + "/pZ.png",
-			skybox_path + "/nZ.png",
-		};
+	const std::string fpath[] = {
+		skybox_path + "/pX.png",
+		skybox_path + "/nX.png",
+		skybox_path + "/pY.png",
+		skybox_path + "/nY.png",
+		skybox_path + "/pZ.png",
+		skybox_path + "/nZ.png",
+	};
 
-		vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New() ;
-		texture->CubeMapOn();
-		texture->InterpolateOn();
-		texture->RepeatOff();
-		texture->EdgeClampOn();
+	vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New() ;
+	texture->CubeMapOn();
+	texture->InterpolateOn();
+	texture->RepeatOff();
+	texture->EdgeClampOn();
 
-		texture->MipmapOn();
+	texture->MipmapOn();
 
-		for (int i = 0; i < 6; i++){
-			vtkNew<vtkPNGReader> imgReader;
-			imgReader->SetFileName(fpath[i].c_str());
-			vtkNew<vtkImageFlip> flip;
-			flip->SetInputConnection(imgReader->GetOutputPort());
-			flip->SetFilteredAxis(1); 
-			texture->SetInputConnection(i, flip->GetOutputPort(0));
-		}
+	for (int i = 0; i < 6; i++){
+		vtkNew<vtkPNGReader> imgReader;
+		imgReader->SetFileName(fpath[i].c_str());
+		vtkNew<vtkImageFlip> flip;
+		flip->SetInputConnection(imgReader->GetOutputPort());
+		flip->SetFilteredAxis(1); 
+		texture->SetInputConnection(i, flip->GetOutputPort(0));
+	}
 
 
   // Create the skybox
-		vtkSmartPointer<vtkSkybox> skybox_actor = vtkSmartPointer<vtkSkybox>::New();
+	vtkSmartPointer<vtkSkybox> skybox_actor = vtkSmartPointer<vtkSkybox>::New();
 
-		skybox_actor -> SetTexture(texture);
+	skybox_actor -> SetTexture(texture);
 
-		this -> parent -> get_renderer() -> AddActor(skybox_actor);
-		this -> parent -> set_skybox_directory(skybox_path);
-		this -> parent -> set_skybox_actor(skybox_actor);
-	}
-	else if(this -> background_type_combo_box -> currentIndex() == 1 && 
-		open_skybox_directory_dialog_button -> text().toStdString() == this -> parent -> get_skybox_pair().first){
+	this -> parent -> get_renderer() -> AddActor(skybox_actor);
+	this -> parent -> set_skybox_directory(skybox_path);
+	this -> parent -> set_skybox_actor(skybox_actor);
+}
+else if(this -> background_type_combo_box -> currentIndex() == 1 && 
+	open_skybox_directory_dialog_button -> text().toStdString() == this -> parent -> get_skybox_pair().first){
 		//same skybox, do nothing
+}
+else{
+	if (this -> parent -> get_skybox_pair(). first != ""){
+		this -> parent -> get_renderer() -> RemoveActor(this -> parent -> get_skybox_pair(). second);
+		this -> parent -> set_skybox_directory("");
+		this -> parent -> set_skybox_actor(nullptr);
 	}
-	else{
-		if (this -> parent -> get_skybox_pair(). first != ""){
-			this -> parent -> get_renderer() -> RemoveActor(this -> parent -> get_skybox_pair(). second);
-			this -> parent -> set_skybox_directory("");
-			this -> parent -> set_skybox_actor(nullptr);
-		}
 
 
-	}
+}
 
 
 	// Updating the parent window with the new color settings and rendering
-	this -> parent -> get_renderer() -> SetBackground(
-		this -> rgb_button[0] / 255.,
-		this -> rgb_button[1] / 255.,
-		this -> rgb_button[2] / 255.);
-	this -> parent -> get_renderer() -> SetGradientBackground(this -> use_gradient_checkbox -> isChecked());
-	this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
+this -> parent -> get_renderer() -> SetBackground(
+	this -> rgb_button[0] / 255.,
+	this -> rgb_button[1] / 255.,
+	this -> rgb_button[2] / 255.);
+this -> parent -> get_renderer() -> SetGradientBackground(this -> use_gradient_checkbox -> isChecked());
+this -> parent -> qvtkWidget -> GetRenderWindow() -> Render();
 
 
-	QDialog::accept();
+QDialog::accept();
 
 }
 

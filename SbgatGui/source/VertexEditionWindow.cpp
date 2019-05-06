@@ -46,6 +46,8 @@ SOFTWARE.
 #include <vtkPolyDataNormals.h>
 #include <vtkPointData.h>
 
+#include <vtkRenderWindowInteractor.h>
+
 
 using namespace SBGAT_GUI;
 
