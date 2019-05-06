@@ -23,6 +23,7 @@ SOFTWARE.
 
 #include <QApplication>
 #include "Mainwindow.hpp"
+#include <QSurfaceFormat>
 
 int main( int argc, char** argv ) {
 
