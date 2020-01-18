@@ -76,6 +76,7 @@ SOFTWARE.
 #include "SurfacePGMWindow.hpp"
 #include "SelectMapperWindow.hpp"
 #include "VertexEditionWindow.hpp"
+#include "MassPropertiesWindow.hpp"
 
 
 using namespace SBGAT_GUI;
@@ -244,23 +245,23 @@ void Mainwindow::init_right_dockwidget(){
 
 void Mainwindow::select_facets(){
 
-   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
-   PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
+ PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonDown();
+ PickInteractorStyle::SafeDownCast(this -> qvtkWidget -> GetRenderWindow() -> GetInteractor() -> GetInteractorStyle()) -> OnLeftButtonUp();
 
-   this -> select_facets_button -> setEnabled(0);
-   this -> select_points_button -> setEnabled(1);
+ this -> select_facets_button -> setEnabled(0);
+ this -> select_points_button -> setEnabled(1);
 
-   std::string opening_line = "Switching to facet selection\n";
+ std::string opening_line = "Switching to facet selection\n";
 
-   std::string closing_line(opening_line.length() - 1, '#');
-   closing_line.append("\n");
+ std::string closing_line(opening_line.length() - 1, '#');
+ closing_line.append("\n");
 
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
+ this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
 
 
-   this -> facet_selection_mode = true;
+ this -> facet_selection_mode = true;
 
 };
 
@@ -371,67 +372,62 @@ void Mainwindow::createActions() {
     this -> open_settings_window_action -> setStatusTip(tr("Open settings window"));
     connect(this -> open_settings_window_action, &QAction::triggered, this, &Mainwindow::open_settings_window);
 
-    this -> save_shape_action = new QAction(tr("Save shape"), this);
+    this -> save_shape_action = new QAction(tr("Save Shape"), this);
     this -> save_shape_action -> setStatusTip(tr("Save vtkPolyData to OBJ shape model"));
     connect(this -> save_shape_action, &QAction::triggered, this, &Mainwindow::save_shape);
 
-    this -> add_shape_action = new QAction(tr("Load shape"), this);
+    this -> add_shape_action = new QAction(tr("Load Shape"), this);
     this -> add_shape_action -> setStatusTip(tr("Load obj file holding the facet/vertex description of a shape of interest"));
     connect(this -> add_shape_action, &QAction::triggered, this, &Mainwindow::add_shape);
 
-    this -> clear_console_action = new QAction(tr("Clear log"), this);
+    this -> clear_console_action = new QAction(tr("Clear Log"), this);
     this -> clear_console_action -> setStatusTip(tr("Clears the log console"));
     connect(this -> clear_console_action, &QAction::triggered, this, &Mainwindow::clear_console);
 
-    this -> open_compute_yorp_window_action = new QAction(tr("Compute YORP Fourier coefficients"), this);
+    this -> open_compute_yorp_window_action = new QAction(tr("Compute YORP Fourier Coefficients"), this);
     this -> open_compute_yorp_window_action -> setStatusTip(tr("Computes the Fourier decomposition of YORP force/torques"));
     connect(this -> open_compute_yorp_window_action, &QAction::triggered, this, &Mainwindow::open_compute_yorp_window);
 
 
-    this -> open_compute_sharm_window_action = new QAction(tr("Compute gravity spherical harmonics"), this);
+    this -> open_compute_sharm_window_action = new QAction(tr("Compute Gravity Spherical Harmonics"), this);
     this -> open_compute_sharm_window_action -> setStatusTip(tr("Computes the spherical harmonics coefficients of the exterior gravity field"));
     connect(this -> open_compute_sharm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_sharm_window);
 
 
-    this -> open_radar_window_action = new QAction(tr("Generate simulated radar observations"), this);
+    this -> open_radar_window_action = new QAction(tr("Generate Simulated Radar Observations"), this);
     this -> open_radar_window_action -> setStatusTip(tr("Generates simulated range/range-rate observations emulating a doppler radar"));
     connect(this -> open_radar_window_action, &QAction::triggered, this, &Mainwindow::open_radar_window);
 
 
-    this -> open_lightcurve_window_action = new QAction(tr("Generate simulated light curve"), this);
+    this -> open_lightcurve_window_action = new QAction(tr("Generate Simulated Light Curve"), this);
     this -> open_lightcurve_window_action -> setStatusTip(tr("Generates simulated light curve"));
     connect(this -> open_lightcurve_window_action, &QAction::triggered, this, &Mainwindow::open_lightcurve_window);
 
 
-    this -> align_shape_action = new QAction(tr("Align shape"), this);
+    this -> align_shape_action = new QAction(tr("Align Shape"), this);
     this -> align_shape_action -> setStatusTip(tr("Align selected shape model with barycenter/principal axis"));
     connect(this -> align_shape_action, &QAction::triggered, this, &Mainwindow::align_shape);
 
 
-    this -> save_console_action = new QAction(tr("Save log"), this);
+    this -> save_console_action = new QAction(tr("Save Log"), this);
     this -> save_console_action -> setStatusTip(tr("Saves log console to a file"));
     connect(this -> save_console_action, &QAction::triggered, this, &Mainwindow::save_console);
 
 
-    this -> compute_geometric_measures_action = new QAction(tr("Compute geometric measures"), this);
-    this -> compute_geometric_measures_action -> setStatusTip(tr("Compute geometric measures of the selected prop to the console"));
-    connect(this -> compute_geometric_measures_action, &QAction::triggered, this, &Mainwindow::compute_geometric_measures);
+    this -> open_mass_properties_window_action = new QAction(tr("Compute Mass Properties"), this);
+    this -> open_mass_properties_window_action -> setStatusTip(tr("Compute mass properties of the selected shape"));
+    connect(this -> open_mass_properties_window_action, &QAction::triggered, this, &Mainwindow::open_mass_properties_window);
 
 
-    this -> save_geometric_measures_action = new QAction(tr("Save geometric measures"), this);
-    this -> save_geometric_measures_action -> setStatusTip(tr("Save geometric measures of the selected prop to a file"));
-    connect(this -> save_geometric_measures_action, &QAction::triggered, this, &Mainwindow::save_geometric_measures);
-
-
-    this -> open_compute_surface_pgm_window_action = new QAction(tr("Compute/Load surface PGM"), this);
+    this -> open_compute_surface_pgm_window_action = new QAction(tr("Compute/Load Surface PGM"), this);
     this -> open_compute_surface_pgm_window_action -> setStatusTip(tr("Evaluate or loads a surface Polyhedron Gravity Model"));
     connect(this -> open_compute_surface_pgm_window_action, &QAction::triggered, this, &Mainwindow::open_compute_surface_pgm_window);
 
-    this -> open_rendering_properties_window_action =new QAction(tr("Rendering properties"), this);
+    this -> open_rendering_properties_window_action =new QAction(tr("Rendering Properties"), this);
     this -> open_rendering_properties_window_action -> setStatusTip(tr("Open window enabling one to change the rendering properties"));
     connect(this -> open_rendering_properties_window_action, &QAction::triggered, this, &Mainwindow::open_rendering_properties_window);
 
-    this -> open_select_mapper_window_action = new QAction(tr("Set results overlay"), this);
+    this -> open_select_mapper_window_action = new QAction(tr("Set Results Overlay"), this);
     this -> open_select_mapper_window_action -> setStatusTip(tr("Open window enabling one to set a mapper to represent surface data for a given shape"));
     connect(this -> open_select_mapper_window_action, &QAction::triggered, this, &Mainwindow::open_select_mapper_window);
 
@@ -448,22 +444,32 @@ void Mainwindow::open_select_mapper_window(){
 
 
 
+void Mainwindow::open_mass_properties_window(){
+
+
+    if(this -> wrapped_shape_data .size() == 0){
+        QMessageBox::warning(this, "Compute Mass Properties", "You must first load a shape model in order to evaluate mass properties");
+        return;
+    }
+    else{
+        MassPropertiesWindow mass_properties_window(this);
+        mass_properties_window.exec();
+    }
+
+    
+}
 
 
 
 void Mainwindow::update_actions_availability() {
 
     if (this -> wrapped_shape_data.size() == 0){
-        this -> compute_geometric_measures_action -> setEnabled(false);
-        this -> save_geometric_measures_action -> setEnabled(false);
 
         this -> align_shape_action -> setEnabled(false);
         this -> save_shape_action -> setEnabled(false);
     }
 
     else{
-        this -> compute_geometric_measures_action -> setEnabled(true);
-        this -> save_geometric_measures_action -> setEnabled(true);
 
         int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
         std::string name = this -> prop_table -> item(selected_row_index, 0)-> text() .toStdString();
@@ -514,7 +520,7 @@ void Mainwindow::clear_console() {
 void Mainwindow::save_console() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save to file"), "",
-       tr("Text file (*.txt)"));
+     tr("Text file (*.txt)"));
     if (fileName != "") {
         QFile file(fileName);
 
@@ -546,19 +552,19 @@ void Mainwindow::save_shape(){
     QString fileName = QFileDialog::getSaveFileName(this,tr("Save shape"), QString::fromStdString(default_name), tr("Wavefront file (*.obj)"));
 
     if (fileName.isEmpty() == false) {
-     int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-     std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+       int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+       std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
-     vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
+       vtkSmartPointer<SBGATObjWriter> writer = vtkSmartPointer<SBGATObjWriter>::New();
 
-     writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
+       writer -> SetInputData( this -> wrapped_shape_data[name] -> get_polydata());
 
 
-     writer -> SetFileName(fileName.toStdString().c_str());
-     writer -> Update();
-     this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
+       writer -> SetFileName(fileName.toStdString().c_str());
+       writer -> Update();
+       this -> prop_table ->setItem(selected_row_index, 1, new QTableWidgetItem(""));
 
- }
+   }
 
 }
 
@@ -854,8 +860,8 @@ void Mainwindow::add_prop_to_table_widget(std::string name) {
 
 void Mainwindow::toggle_prop_visibility() {
 
-   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
+ int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
+ std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
 
     // Showing/hiding small body shape model actor
      QPushButton * senderObj = qobject_cast<QPushButton*>(sender()); // This will give Sender object
@@ -926,131 +932,6 @@ void Mainwindow::remove_prop() {
 }
 
 
-void Mainwindow::save_geometric_measures(){
-
-    int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-    std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save to JSON file"), QString::fromStdString("./" + name + "_measures.json"),tr("JSON file (*.json)"));
-    if (fileName != "") {
-        SBGATMassProperties::ComputeAndSaveMassProperties(this -> wrapped_shape_data[name] -> get_polydata(),fileName.toStdString());
-        
-        std::string displayed_line = "- Saved geometric measures of " + name + " to " + fileName.toStdString();
-        std::string closing_line(displayed_line.length() - 1, '#');
-
-        this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-        this -> log_console -> appendPlainText(QString::fromStdString(displayed_line));
-        closing_line.append("\n");
-        this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-
-    }
-
-}
-
-void Mainwindow::compute_geometric_measures(){
-
-   int selected_row_index = this -> prop_table -> selectionModel() -> currentIndex().row();
-   std::string name = this -> prop_table -> item(selected_row_index, 0) -> text() .toStdString();
-
-   std::stringstream ss;
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   std::string opening_line = "### Computing geometric measures of " + name + " ###";
-   this -> log_console -> appendPlainText(QString::fromStdString(opening_line));
-
-   std::chrono::time_point<std::chrono::system_clock> start, end;
-   start = std::chrono::system_clock::now();
-
-   vtkSmartPointer<SBGATMassProperties> mass_properties_filter = vtkSmartPointer<SBGATMassProperties>::New();
-   mass_properties_filter -> SetInputData(this -> wrapped_shape_data[name] -> get_polydata());
-   mass_properties_filter -> Update();
-   end = std::chrono::system_clock::now();
-   std::chrono::duration<double> elapsed_seconds = end - start;
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Surface area (m^2) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetSurfaceArea ()));
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Volume (m^3) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetVolume()));
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Average radius (m) :"));
-   this -> log_console -> appendPlainText(" " + QString::number(mass_properties_filter -> GetAverageRadius()));
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Bounding box (m) :"));
-
-   double xmin,xmax, ymin, ymax, zmin, zmax;
-   mass_properties_filter -> GetBoundingBox(xmin,xmax,ymin,ymax,zmin,zmax);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("-- Min: " + std::to_string(xmin) + " "+ std::to_string(ymin) + " "+ std::to_string(zmin)));
-   this -> log_console -> appendPlainText(QString::fromStdString("-- Max: " + std::to_string(xmax) + " "+ std::to_string(ymax) + " "+ std::to_string(zmax)));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Center of mass (m) :"));
-   mass_properties_filter -> GetCenterOfMass().t().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia tensor :"));
-   mass_properties_filter -> GetNormalizedInertiaTensor().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Normalized inertia moments :"));
-   mass_properties_filter -> GetNormalizedInertiaMoments().t().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia tensor (m^5) :"));
-   mass_properties_filter -> GetUnitDensityInertiaTensor().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-
-   ss.str(std::string());
-   ss.precision(10);
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Unit-density inertia moments (m^5) :"));
-   mass_properties_filter -> GetUnitDensityInertiaMoments().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal dimensions (m) :"));
-   mass_properties_filter -> GetPrincipalDimensions().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-   ss.str(std::string());
-   ss.precision(10);
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\b- Principal axes :"));
-   mass_properties_filter -> GetPrincipalAxes().raw_print(ss);
-   this -> log_console -> appendPlainText(QString::fromStdString(ss.str()));
-
-
-   this -> log_console -> appendPlainText(QString::fromStdString("\n- Done computing in ")
-       + QString::number(elapsed_seconds.count()) +  QString::fromStdString(" s"));
-
-   std::string closing_line(opening_line.length() - 1, '#');
-   closing_line.append("\n");
-   this -> log_console -> appendPlainText(QString::fromStdString(closing_line));
-
-
-
-}
 
 
 void Mainwindow::open_rendering_properties_window(){
@@ -1074,11 +955,7 @@ void Mainwindow::createMenus() {
     this -> SmallBodyMenu -> addSeparator();
     this -> SmallBodyMenu -> addAction(this -> align_shape_action);
 
-    this -> MeasuresMenu = menuBar() -> addMenu(tr("&Measures"));
-    this -> MeasuresMenu -> addAction(this -> compute_geometric_measures_action);
-    this -> MeasuresMenu -> addAction(this -> save_geometric_measures_action);
-
-
+    
 
     this -> ObservationsMenu = menuBar() -> addMenu(tr("&Observations"));
     this -> ObservationsMenu -> addAction(this -> open_radar_window_action);
@@ -1087,6 +964,7 @@ void Mainwindow::createMenus() {
 
 
     this -> AnalysesMenu = menuBar() -> addMenu(tr("&Analyses"));
+    this -> AnalysesMenu -> addAction(this -> open_mass_properties_window_action);
     this -> AnalysesMenu -> addAction(this -> open_compute_yorp_window_action);
     this -> AnalysesMenu -> addAction(this -> open_compute_sharm_window_action);
     this -> AnalysesMenu -> addAction(this -> open_compute_surface_pgm_window_action);

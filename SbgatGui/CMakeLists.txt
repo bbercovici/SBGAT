@@ -116,6 +116,7 @@ add_executable(${EXE_NAME}
 	source/ModelDataWrapper.cpp
 	source/SettingsWindow.cpp 
 	source/YORPWindow.cpp
+	source/AnalysesWindow.cpp
 	source/SHARMWindow.cpp
 	source/RadarWindow.cpp
 	source/LCWindow.cpp
@@ -128,6 +129,7 @@ add_executable(${EXE_NAME}
 	source/PickInteractorStyle.cpp
 	source/VertexEditionWindow.cpp
 	source/ShapeUncertaintyWidget.cpp
+	source/MassPropertiesWindow.cpp
 	include/RenderingPropertiesWindow.hpp
 	include/PickInteractorStyle.hpp
 	include/VertexEditionWindow.hpp
@@ -138,6 +140,7 @@ add_executable(${EXE_NAME}
 	include/SHARMWindow.hpp
 	include/RadarWindow.hpp
 	include/LCWindow.hpp
+	include/AnalysesWindow.hpp
 	include/RadarVisualizer.hpp
 	include/LCVisualizer.hpp
 	include/ObsWindow.hpp
@@ -145,6 +148,7 @@ add_executable(${EXE_NAME}
 	include/SurfacePGMWindow.hpp
 	include/SelectMapperWindow.hpp
 	include/ShapeUncertaintyWidget.hpp
+	include/MassPropertiesWindow.hpp
 
 
 	)

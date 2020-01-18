@@ -224,19 +224,13 @@ through the user interface layer brought by Qt.}
 		QAction * open_alignment_window_action;
 
 
-
 	/**
-	When triggered, prints geometry measures of the selected small body shape to the console
+	When triggered, opens window permitting evaluation of mass properties
 	*/
-		QAction * compute_geometric_measures_action;
+		QAction * open_mass_properties_window_action;
 
 
-	/**
-	When triggered, opens a window asking for a file where to save the mass properties of the selected shape model
-	*/
-		QAction * save_geometric_measures_action;
-
-
+	
 	/**
 	When triggered, opens settings window.
 	*/
@@ -404,16 +398,11 @@ through the user interface layer brought by Qt.}
 		void align_shape();
 
 		/**
-		Computes and displays a number of geometry measures associated with the selected small body shape 
+		Opens the window allowing the evaluation of mass properties
 		*/
-		void compute_geometric_measures();
+		void open_mass_properties_window();
 
 
-
-		/**
-		Saves to a JSON file a number of geometry measures associated with the selected small body shape 
-		*/
-		void save_geometric_measures();
 
 		/**
 	Shows/hides the selected small body shape from the lateral widget.
@@ -515,7 +504,6 @@ through the user interface layer brought by Qt.}
 
 		QMenu * SettingsMenu;
 		QMenu * SmallBodyMenu;
-		QMenu * MeasuresMenu;
 		QMenu * ObservationsMenu;
 		QMenu * AnalysesMenu;
 		QMenu * ConsoleMenu;

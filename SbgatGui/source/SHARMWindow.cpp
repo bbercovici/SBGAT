@@ -26,21 +26,16 @@ SOFTWARE.
 
 using namespace SBGAT_GUI;
 
-SHARMWindow::SHARMWindow(Mainwindow * parent) {
+SHARMWindow::SHARMWindow(Mainwindow * parent) : AnalysesWindow(parent) {
 
-	this -> parent = parent;
 	this -> setWindowTitle("Gravity Spherical Harmonics Computation");
 
 
-	QVBoxLayout * sharm_layout = new QVBoxLayout(this);
-
-	QGroupBox * shape_model_group = new QGroupBox(tr("Shape"));
 	QGroupBox * properties_group = new QGroupBox(tr("Shape properties"));
 	QGroupBox * settings_group = new QGroupBox(tr("Expansion settings"));
 	QGroupBox * output_group = new QGroupBox(tr("JSON output"));
 
 	
-	QGridLayout * shape_model_group_layout = new QGridLayout(shape_model_group);
 	QGridLayout * settings_group_layout = new QGridLayout(settings_group);
 	QGridLayout * properties_group_layout = new QGridLayout(properties_group);
 	QGridLayout * output_group_layout = new QGridLayout(output_group);
@@ -51,21 +46,15 @@ SHARMWindow::SHARMWindow(Mainwindow * parent) {
 	this -> normalized_button = new QRadioButton("Normalized", choose_normalization_widget);
 	this -> non_normalized_button = new QRadioButton("Non-Normalized", choose_normalization_widget);
 
-	QLabel * shape_label = new QLabel("Shape model",this);
 	QLabel * density_label = new QLabel("Density (kg/m^3)",this);
 	QLabel * ref_radius_label = new QLabel("Reference radius (m)",this);
 	QLabel * degree_label = new QLabel("Expansion degree",this);
-
-	this -> prop_combo_box = new QComboBox (this);
 
 	this -> density_sbox = new QDoubleSpinBox(this);
 	this -> ref_radius_sbox = new QDoubleSpinBox(this);
 	this -> degree_combo_box = new QComboBox (this);
 
 	this ->  open_output_file_dialog_button = new QPushButton("Select output file",this);
-
-	shape_model_group_layout -> addWidget(shape_label,0,0,1,1);
-	shape_model_group_layout -> addWidget(this -> prop_combo_box,0,1,1,1);
 
 	properties_group_layout -> addWidget(density_label,0,0,1,1);
 	properties_group_layout -> addWidget(this -> density_sbox,0,1,1,1);
@@ -90,11 +79,10 @@ SHARMWindow::SHARMWindow(Mainwindow * parent) {
 	this -> button_box = new QDialogButtonBox(QDialogButtonBox::Ok
 		| QDialogButtonBox::Cancel);
 
-	sharm_layout -> addWidget(shape_model_group);
-	sharm_layout -> addWidget(properties_group);
-	sharm_layout -> addWidget(settings_group);
-	sharm_layout -> addWidget(output_group);
-	sharm_layout -> addWidget(button_box);
+	analyses_layout -> addWidget(properties_group);
+	analyses_layout -> addWidget(settings_group);
+	analyses_layout -> addWidget(output_group);
+	analyses_layout -> addWidget(button_box);
 
 
 	connect(this -> prop_combo_box, SIGNAL(currentIndexChanged(int)),this,SLOT(changed_selected_shape()));

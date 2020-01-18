@@ -3396,8 +3396,12 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
 	std::vector<double> & densities,
-	std::vector<arma::vec::fixed<3> > & accelerations){
+	std::vector<arma::vec::fixed<3> > & accelerations,
+	std::vector<bool > & inside_outside){
+
 	std::vector< std::vector < arma::vec::fixed<3> > > all_accelerations(N_samples);
+	std::vector< std::vector < bool > > inside_outside(N_samples);
+
 	std::vector< arma::vec::fixed<3> > all_positions = {position};
 	accelerations = std::vector<arma::vec::fixed<3> >(N_samples);
 	deviations = std::vector<arma::vec>(N_samples);
@@ -3416,7 +3420,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 		N_saved_shapes,
 		deviations,
 		densities,
-		all_accelerations);
+		all_accelerations,
+		all_inside_outside);
 
 	for (unsigned int i = 0; i < N_samples; ++i){
 		accelerations[i] = all_accelerations[i][0];
@@ -3615,7 +3620,8 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 	int N_saved_shapes,
 	std::vector<arma::vec> & deviations,
 	std::vector<double> & densities,
-	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations){
+	std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
+	std::vector<std::vector<bool> > & all_inside_outside){
 
 	if (all_accelerations.size() == 0)
 		all_accelerations = std::vector< std::vector < arma::vec::fixed<3> > >(N_samples);
@@ -3691,6 +3697,7 @@ void SBGATPolyhedronGravityModelUQ::RunMCUQAccelerationInertial(std::string path
 
 		for (auto pos : all_positions){
 			all_accelerations[i].push_back(pgm_filter_mc -> GetAcceleration(pos));
+			all_inside_outside[i].push_back(pgm_filter_mc -> Contains(pos));
 		}
 
 

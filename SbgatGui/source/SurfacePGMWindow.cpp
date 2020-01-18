@@ -32,25 +32,21 @@ SOFTWARE.
 #include <OrbitConversions.hpp>
 #include <SBGATPolyhedronGravityModel.hpp>
 #include <SBGATPolyhedronGravityModelUQ.hpp>
+
 using namespace SBGAT_GUI;
 
-SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
+SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) : AnalysesWindow(parent){
 
-	this -> parent = parent;
 	this -> setWindowTitle("Compute/Load Surface PGM");
 
-	QVBoxLayout * window_layout = new QVBoxLayout(this);
 	QWidget * select_shape_widget = new QWidget(this);
 	QWidget * button_widget = new QWidget(this);
 
-	QHBoxLayout * select_shape_layout = new QHBoxLayout(select_shape_widget);
 	QHBoxLayout * button_widget_layout = new QHBoxLayout(button_widget);
-
 
 	this -> compute_surface_pgm_button = new QPushButton("Compute Surface PGM",this);
 	this -> load_surface_pgm_button = new QPushButton("Load Surface PGM",this);
 
-	this -> primary_prop_combo_box = new QComboBox (this);
 	this -> primary_shape_properties_widget = new ShapePropertiesWidget(this ,"Shape properties");
 	this -> primary_shape_uncertainty_widget = new ShapeUncertaintyWidget(this ,"Shape uncertainty");
 
@@ -62,23 +58,17 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	this ->  open_output_file_dialog_button = new QPushButton("Select output file",this);
 
 
-	select_shape_layout -> addWidget(new QLabel("Shape model",this));
-	select_shape_layout -> addWidget(this -> primary_prop_combo_box);
-
-	window_layout -> addWidget(select_shape_widget);
-
-	window_layout -> addWidget(this -> primary_shape_properties_widget);
-	window_layout -> addWidget(this -> primary_shape_uncertainty_widget);
+	this -> analyses_layout -> addWidget(this -> primary_shape_properties_widget);
+	this -> analyses_layout -> addWidget(this -> primary_shape_uncertainty_widget);
 
 	
 	button_widget_layout -> addWidget(this -> compute_surface_pgm_button);
 	button_widget_layout -> addWidget(this -> load_surface_pgm_button);
 
-	window_layout -> addWidget(this -> open_output_file_dialog_button);
-	window_layout -> addWidget(button_widget);
+	this -> analyses_layout -> addWidget(this -> open_output_file_dialog_button);
+	this -> analyses_layout -> addWidget(button_widget);
 
-	window_layout -> addWidget(this -> button_box);
-
+	this -> analyses_layout -> addWidget(this -> button_box);
 
 
 	this -> compute_surface_pgm_button -> setEnabled(false);
@@ -90,11 +80,11 @@ SurfacePGMWindow::SurfacePGMWindow(Mainwindow * parent) {
 	connect(this -> open_output_file_dialog_button,SIGNAL(clicked()),this,
 		SLOT(open_output_file_dialog()));
 
-	connect(this -> primary_prop_combo_box,SIGNAL(currentIndexChanged(int)),this -> primary_shape_uncertainty_widget,SLOT(clear()));
+	connect(this -> prop_combo_box,SIGNAL(currentIndexChanged(int)),this -> primary_shape_uncertainty_widget,SLOT(clear()));
 
 
 
-	window_layout -> addStretch(1);
+	analyses_layout -> addStretch(1);
 
 
 }
@@ -106,7 +96,7 @@ void SurfacePGMWindow::init(){
 	
 	if (wrapped_shape_data.size() != 0 ){
 		for (auto it = wrapped_shape_data.begin(); it != wrapped_shape_data.end(); ++it){
-			this -> primary_prop_combo_box -> insertItem(this -> primary_prop_combo_box -> count(),QString::fromStdString(it -> first));
+			this -> prop_combo_box -> insertItem(this -> prop_combo_box -> count(),QString::fromStdString(it -> first));
 		}
 	}
 
@@ -118,7 +108,7 @@ void SurfacePGMWindow::init(){
 
 void SurfacePGMWindow::compute_surface_pgm(){
 
-	std::string selected_shape_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	std::string selected_shape_name = this -> prop_combo_box -> currentText().toStdString();
 	vtkSmartPointer<vtkPolyData> selected_shape = this -> parent -> get_wrapped_shape_data()[selected_shape_name]-> get_polydata();
 
 	arma::vec::fixed<3> omega = this -> primary_shape_properties_widget -> get_spin();
@@ -357,7 +347,7 @@ void SurfacePGMWindow::open_output_file_dialog(){
 
 	std::string default_name;
 
-	std::string name = this -> primary_prop_combo_box -> currentText().toStdString();
+	std::string name = this -> prop_combo_box -> currentText().toStdString();
 	auto shape_data = this -> parent -> get_wrapped_shape_data();
 	
 	if ( shape_data.find(name)!= shape_data.end()){
@@ -377,7 +367,7 @@ void SurfacePGMWindow::open_output_file_dialog(){
 }
 
 void SurfacePGMWindow::load_surface_pgm(){
-	std::string selected_shape_name = this -> primary_prop_combo_box -> currentText().toStdString();
+	std::string selected_shape_name = this -> prop_combo_box -> currentText().toStdString();
 
 	QString path = QFileDialog::getOpenFileName(this, tr("Open Surface PGM File"),
 		"~",

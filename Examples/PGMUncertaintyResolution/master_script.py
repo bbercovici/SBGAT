@@ -7,7 +7,7 @@ import platform
 import sys
 import itertools
 import time
-
+import socket 
 
 def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,base_location,sim_name):
 
@@ -24,26 +24,27 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
     return all_cases_dictionnary_list
 
+
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
-if (platform.system() == 'Linux'):
-    base_location = "../"
+if (socket.gethostname() == "fortuna"):
+    base_location = "/orc_raid/bebe0705/PGMUncertaintyResolution/"
 else:
     base_location = "../"
 
-
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertainty_revision_1_large_uncertainty"
+SIM_PREFIX = "PGMUncertaintyResolution_Revision_1"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"ERROR_STANDARD_DEV" : 20,
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
-"STEP_SIZE" : 10.,
-"PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj",
+"ITOKAWA_8_SHAPE": "../../../resources/shape_models/itokawa_8_scaled.obj",
+"ITOKAWA_32_SHAPE": "../../../resources/shape_models/itokawa_32_scaled.obj",
+"PROJECTION_AXIS" : 0,
+"UNCERTAINTY_TYPE" : "global",
 "HOLD_MASS_CONSTANT" : False,
-"PROJECTION_AXIS" : 0
+"ERROR_STANDARD_DEV" : 2.33
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -56,8 +57,7 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"CORRELATION_DISTANCE" : [250],
-"N_MONTE_CARLO" : [300,1000,3000],
+"CORRELATION_DISTANCE" : [0,25,50,75,100]
 }
 
 # There shouldn't be any reason to modify the following
@@ -83,5 +83,6 @@ for data in all_data:
         json.dump(data, outfile)
     print("\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
-    os.system("./PGMUncertainty 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
+    os.system("./PGMUncertaintyResolution 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
    
+

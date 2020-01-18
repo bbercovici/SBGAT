@@ -196,6 +196,7 @@ public:
   @param[out] densities holds N_samples density samples. If hold_mass_constant is true, then the density samples
   will vary accordingly to the constant mass constraint
   @param[out] all_accelerations holds N_samples vectors, each storing the acceleration evaluated at the specified points
+  @param[out] all_inside_outside hold N_samples vector, each storing whether the field point is outside/inside the shape
   */
 
   static void RunMCUQAccelerationInertial(std::string path_to_shape,
@@ -209,7 +210,8 @@ public:
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
     std::vector<double> & densities,
-    std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations);
+    std::vector<std::vector<arma::vec::fixed<3> >> & all_accelerations,
+    std::vector<std::vector<bool> > & all_inside_outside);
 
 
 
@@ -355,7 +357,8 @@ public:
     int N_saved_shapes,
     std::vector<arma::vec> & deviations,
     std::vector<double> & densities,
-    std::vector<arma::vec::fixed<3> > & accelerations);
+    std::vector<arma::vec::fixed<3> > & accelerations,
+    std::vector<bool> & inside_outside);
 
 
   /**

@@ -201,14 +201,25 @@ int main(){
 	std::vector<double> densities;
 
 
+	// arma::vec::fixed<3> e0 = {1,0,0};
+	// arma::vec::fixed<3> e1 = {0,1,0};
+	// arma::vec::fixed<3> e2 = {0,0,1};
+	// arma::vec::fixed<3> e3 = arma::normalise(arma::vec({1,1,0}));
+	// arma::vec::fixed<3> e4 = arma::normalise(arma::vec({0,1,1}));
+	// arma::vec::fixed<3> e5 = arma::normalise(arma::vec({1,0,1}));
+	// arma::vec::fixed<3> e6 = arma::normalise(arma::vec({-1,1,0}));
+	// arma::vec::fixed<3> e7 = arma::normalise(arma::vec({0,-1,1}));
+	// arma::vec::fixed<3> e8 = arma::normalise(arma::vec({1,0,-1}));
+
+
 	arma::vec::fixed<3> e0 = {1,0,0};
-	arma::vec::fixed<3> e1 = {0,1,0};
-	arma::vec::fixed<3> e2 = {0,0,1};
-	arma::vec::fixed<3> e3 = arma::normalise(arma::vec({1,1,0}));
-	arma::vec::fixed<3> e4 = arma::normalise(arma::vec({0,1,1}));
+	arma::vec::fixed<3> e1 = {0,0.8,0};
+	arma::vec::fixed<3> e2 = {0,0,0.8};
+	arma::vec::fixed<3> e3 = 0.8 * arma::normalise(arma::vec({1,1,0}));
+	arma::vec::fixed<3> e4 = 0.8 * arma::normalise(arma::vec({0,1,1}));
 	arma::vec::fixed<3> e5 = arma::normalise(arma::vec({1,0,1}));
-	arma::vec::fixed<3> e6 = arma::normalise(arma::vec({-1,1,0}));
-	arma::vec::fixed<3> e7 = arma::normalise(arma::vec({0,-1,1}));
+	arma::vec::fixed<3> e6 = 0.8 * arma::normalise(arma::vec({-1,1,0}));
+	arma::vec::fixed<3> e7 = 0.8 * arma::normalise(arma::vec({0,-1,1}));
 	arma::vec::fixed<3> e8 = arma::normalise(arma::vec({1,0,-1}));
 
 
@@ -250,7 +261,8 @@ int main(){
 		std::min(30,N_MONTE_CARLO),
 		deviations,
 		densities,
-		all_accelerations);
+		all_accelerations,
+		all_inside_outside);
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
@@ -262,6 +274,8 @@ int main(){
 	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
 	arma::vec rel_value_cov_difference_analytical_vs_mc(all_positions.size());
 	arma::mat all_positions_arma(3,all_positions.size());
+	arma::vec all_inside_outside_arma = arma::zeros<arma::vec>(all_positions.size());
+
 
 #pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
@@ -270,6 +284,10 @@ int main(){
 
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
 			accelerations_mc.col(sample) = all_accelerations[sample][e];
+			if (all_inside_outside[sample][e] == true){
+				all_inside_outside_arma(e) += 1;
+			}
+
 		}
 
 		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
@@ -296,31 +314,29 @@ int main(){
 	
 	// For every point in the grid, evaluate the analytical acceleration covariance and 
 	// run a monte carlo to get a statistical covariance to compare against
-	boost::progress_display progress(grid.size());
+	// boost::progress_display progress(grid.size());
 
-	#pragma omp parallel for
-	for (int p = 0; p < grid.size(); ++p){
+	// #pragma omp parallel for
+	// for (int p = 0; p < grid.size(); ++p){
 
-		int i = indices[p][0];
-		int j = indices[p][1];
+	// 	int i = indices[p][0];
+	// 	int j = indices[p][1];
 
-		const arma::vec::fixed<3> & grid_point = grid[p];
+	// 	const arma::vec::fixed<3> & grid_point = grid[p];
 
-		arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
-		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
+	// 	arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
+	// 	arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
 		
-		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
-		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
-		uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100;
+	// 	reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
+	// 	trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
+	// 	uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100;
 
-		++progress;
-	}
-
+	// 	++progress;
+	// }
 
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 	std::cout << "\n-- Done evaluating over grid in " << elapsed_seconds.count() << " s\n";
-
 
 	trace_sqrt_cov.save(OUTPUT_DIR + "trace_sqrt_cov.txt",arma::raw_ascii);
 	reference_acceleration.save(OUTPUT_DIR + "reference_acceleration.txt",arma::raw_ascii);
@@ -331,7 +347,7 @@ int main(){
 	rel_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "rel_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	KL_divergence_analytical_vs_mc.save(OUTPUT_DIR + "KL_divergence_analytical_vs_mc.txt",arma::raw_ascii);
 	all_positions_arma.save(OUTPUT_DIR + "all_positions_arma.txt",arma::raw_ascii);
-
+	all_inside_outside_arma.save(OUTPUT_DIR + "all_inside_outside_arma.txt",arma::raw_ascii);
 
 	return 0;
 }

@@ -1155,14 +1155,30 @@ void SBGATMassPropertiesUQ::RunMCUQVolumeCOMInertia(std::string path_to_shape,
 	}
 
 
+}
+
+
+void SBGATMassPropertiesUQ::GetMassPropertiesUncertainties(double & volume_variance,
+	arma::mat::fixed<3,3> & cov_com,
+	arma::mat::fixed<6,6> & cov_I,
+	arma::mat::fixed<3,3> & cov_sigma) const{
 
 
 
+	const arma::rowvec & partialVolumePartialC = this -> GetPartialVolumePartialC();
+	const arma::mat & partialIPartialC = this -> GetPartialIPartialC();
+	const arma::mat & partialComPartialC = this -> GetPartialComPartialC();
+	const arma::mat & partialSigmaPartialC = this -> GetPartialSigmaPartialC();
 
-
+	
+	volume_variance = arma::dot(partialVolumePartialC.t(),this -> P_CC * partialVolumePartialC.t());
+	cov_com = partialComPartialC * this -> P_CC * partialComPartialC.t();
+	cov_I = partialIPartialC * this -> P_CC * partialIPartialC.t();
 
 
 }
+
+
 
 
 

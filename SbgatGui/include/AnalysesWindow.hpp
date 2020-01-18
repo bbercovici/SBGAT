@@ -22,90 +22,54 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_SURFACEPGM_WINDOW
-#define HEADER_SURFACEPGM_WINDOW
+#ifndef HEADER_ANALYSESWINDOW
+#define HEADER_ANALYSESWINDOW
 
 #include <QMainWindow>
 #include <QGroupBox>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QVBoxLayout>
 #include <QPushButton>
 #include <QDialog>
 #include <QFileDialog>
 #include <QMessageBox>
 
-#include <QLabel>
-#include <QLineEdit>
-
-#include <QVBoxLayout>
-#include <QDialogButtonBox>
-#include <QDoubleSpinBox>
-#include <QSpinBox>
-#include <QRadioButton>
-
-
 #include "Mainwindow.hpp"
-#include "AnalysesWindow.hpp"
 
 namespace SBGAT_GUI {
 
 	class Mainwindow;
-	class ShapePropertiesWidget;
-	class ShapeUncertaintyWidget;
 
 /*!
-@class SurfacePGMWindow
+@class AnalysesWindow
 \author Benjamin Bercovici
-\date October, 2018
-\brief SurfacePGMWindow class defining a window where a user 
-evaluate the Polyhedron Gravity Model of a shape model
-\details Enables computation of surface potential, inertial accelerations, 
-body-frame accelerations and surface slopes
+\date July 22, 2017
+\brief AnalysesWindow a window superclass
+
 */
 
-	class SurfacePGMWindow : public AnalysesWindow  {
+	class AnalysesWindow : public QDialog {
 		Q_OBJECT
 
 	public:
 
 	/**
-	Creates the window
+	Creates the settings window
 	@param parent pointer to parent window.
 	*/
-		SurfacePGMWindow(Mainwindow * parent) ;
-				
-		private slots:
+		AnalysesWindow(Mainwindow * parent);
+
+		Mainwindow * parent;
 		
-		void compute_surface_pgm();
-		void load_surface_pgm();
-
-		/**
-		Opens a dialog letting the user choose the output file for the computed surface polyhedron gravity model
-		*/
-
-		void open_output_file_dialog();
-
-
-			
-
+		QComboBox * prop_combo_box;
+		
 	protected:
 
-
-		virtual void init();
-
-
-		QDialogButtonBox * button_box;
-		QPushButton * open_output_file_dialog_button;
-
-		QPushButton * compute_surface_pgm_button;
-		QPushButton * load_surface_pgm_button;
-
-		ShapePropertiesWidget * primary_shape_properties_widget;
-		ShapeUncertaintyWidget * primary_shape_uncertainty_widget;
+		QVBoxLayout * analyses_layout;
 
 
-		std::string output_path;
-		
+
 	};
 }
 #endif

@@ -56,6 +56,20 @@ Check each of SBGAT's dependencies repository and SBGAT's repository itself for 
 to apply the update (if any).
 
 ## Changelog
+
+### [SBGAT 2.06.1](https://github.com/bbercovici/SBGAT/releases/tag/2.06.1)
+
+#### New
+
+
+#### Improvements
+- Added  method in `SBGATMassPropertiesUQ` to directly obtain the uncertainties in the mass properties
+
+#### Bug fixes:
+- Fixed layout of local shape uncertainty input fields
+
+
+
 ### [SBGAT 2.05.1](https://github.com/bbercovici/SBGAT/releases/tag/2.05.1)
 
 #### New
@@ -63,6 +77,7 @@ to apply the update (if any).
 
 #### Improvements
 - Users now must load one shape model in `SBGATGui` before being able to open up any of the analyses/observations windows.
+- Removed deprecated AA functionalities
 
 #### Bug fixes:
 - `SBGATMassPropertiesUQ`'s master script has been corrected with the proper SIM_PREFIX

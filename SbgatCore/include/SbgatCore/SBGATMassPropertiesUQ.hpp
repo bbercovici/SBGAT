@@ -48,7 +48,7 @@ Return the partial derivative of the shape's center of mass with respect to the 
 
 
   /**
-  Return the partial derivative of the 6 unique components of the inertia tensor {I(0,0),I(1,1),I(2,2),I(0,1),I(0,2),I(1,2)}
+  Return the partial derivative of the 6 unique components of the unit density inertia tensor {I(0,0),I(1,1),I(2,2),I(0,1),I(0,2),I(1,2)}
   with respect to the shape coordinates
   @return partial derivative
   */
@@ -130,6 +130,20 @@ Return the partial derivative of the shape's center of mass with respect to the 
     arma::mat & all_inertia);
 
 
+
+  /**
+  Returns the uncertainties in the volume, center-of-mass, inertia tensor parametrization 
+  and principal axes orientation. The mass properties partial relative to the shape
+  must be computed with PrecomputeMassPropertiesPartials() before calling this method
+  @param[out] volume_variance volume variance (m^6)
+  @param[out] cov_com covariance coordinates center-of-mass (m^2)
+  @param[out] cov_I unit-density inertia tensor parametrization (m^10)
+  @param[out] cov_sigma principal-axes mrp covariance (-)
+  */
+  void GetMassPropertiesUncertainties(double & volume_variance,
+    arma::mat::fixed<3,3> & cov_com,
+    arma::mat::fixed<6,6> & cov_I,
+    arma::mat::fixed<3,3> & cov_sigma) const;
 
 
 

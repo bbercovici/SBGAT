@@ -1,6 +1,6 @@
 /** MIT License
 
-Copyright (c) 2018 Benjamin Bercovici and Jay McMahon
+Copyright (c) 2019 Benjamin Bercovici and Jay McMahon
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@ SOFTWARE.
 */
 
 
-#ifndef HEADER_SURFACEPGM_WINDOW
-#define HEADER_SURFACEPGM_WINDOW
+#ifndef HEADER_MASSPROPERTIES_WINDOW
+#define HEADER_MASSPROPERTIES_WINDOW
 
 #include <QMainWindow>
 #include <QGroupBox>
@@ -54,16 +54,15 @@ namespace SBGAT_GUI {
 	class ShapeUncertaintyWidget;
 
 /*!
-@class SurfacePGMWindow
+@class MassPropertiesWindow
 \author Benjamin Bercovici
 \date October, 2018
-\brief SurfacePGMWindow class defining a window where a user 
-evaluate the Polyhedron Gravity Model of a shape model
-\details Enables computation of surface potential, inertial accelerations, 
-body-frame accelerations and surface slopes
+\brief MassPropertiesWindow class defining a window where a user 
+evaluate shape models mass properties (volume, surface area, inertia,...)
+and associated uncertainty
 */
 
-	class SurfacePGMWindow : public AnalysesWindow  {
+	class MassPropertiesWindow : public AnalysesWindow {
 		Q_OBJECT
 
 	public:
@@ -72,21 +71,13 @@ body-frame accelerations and surface slopes
 	Creates the window
 	@param parent pointer to parent window.
 	*/
-		SurfacePGMWindow(Mainwindow * parent) ;
-				
+		MassPropertiesWindow(Mainwindow * parent) ;
+		
 		private slots:
 		
-		void compute_surface_pgm();
-		void load_surface_pgm();
+		void compute_mass_properties();
 
-		/**
-		Opens a dialog letting the user choose the output file for the computed surface polyhedron gravity model
-		*/
-
-		void open_output_file_dialog();
-
-
-			
+		
 
 	protected:
 
@@ -95,14 +86,10 @@ body-frame accelerations and surface slopes
 
 
 		QDialogButtonBox * button_box;
-		QPushButton * open_output_file_dialog_button;
+		QCheckBox * save_to_file_checkbox;
 
-		QPushButton * compute_surface_pgm_button;
-		QPushButton * load_surface_pgm_button;
-
-		ShapePropertiesWidget * primary_shape_properties_widget;
+		QPushButton * compute_mass_properties_button;
 		ShapeUncertaintyWidget * primary_shape_uncertainty_widget;
-
 
 		std::string output_path;
 		

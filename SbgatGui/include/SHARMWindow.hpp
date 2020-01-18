@@ -42,6 +42,7 @@ SOFTWARE.
 
 #include "Mainwindow.hpp"
 
+#include "AnalysesWindow.hpp"
 
 namespace SBGAT_GUI {
 
@@ -54,13 +55,13 @@ namespace SBGAT_GUI {
 \brief SHARMWindow class defining a window where a user can specificy the inputs to 
 a spherical harmonics gravity coefficients computation
 
-\details This class inherits from QDialog and enables the
+\details This class inherits from AnalysesWindow and enables the
 user to set a number of options used in the spherical harmonics gravity coefficients calculation.
 The calculation can only take place if a spacecraft or a small body shape model is available and if an output directory 
 has been specified
 */
 
-	class SHARMWindow : public QDialog {
+	class SHARMWindow : public AnalysesWindow {
 		Q_OBJECT
 
 	public:
@@ -97,9 +98,6 @@ has been specified
 
 		void init();
 
-		Mainwindow * parent;
-
-		QComboBox * prop_combo_box;
 
 		QDialogButtonBox * button_box;
 

@@ -46,7 +46,8 @@ by the physical parameters of a shape
 \details TODO
 */	
 
-class SurfacePGMWindow;
+	class SurfacePGMWindow;
+	class MassPropertiesWindow;
 	
 
 	class ShapePropertiesWidget : public QGroupBox {
@@ -71,6 +72,12 @@ class SurfacePGMWindow;
 	*/
 		ShapePropertiesWidget(SurfacePGMWindow * parent,std::string title);
 
+		/**
+	Creates the widget for use in MassPropertiesWindow
+	@param parent pointer to parent window.
+	@param title widget title
+	*/
+		ShapePropertiesWidget(MassPropertiesWindow * parent,std::string title);
 
 
 		/**

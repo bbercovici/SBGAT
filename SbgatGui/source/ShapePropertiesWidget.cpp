@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include "ShapePropertiesWidget.hpp"
 #include "SurfacePGMWindow.hpp"
+#include "MassPropertiesWindow.hpp"
 #include <QRadioButton>
 
 using namespace SBGAT_GUI;
@@ -226,6 +227,26 @@ ShapePropertiesWidget::ShapePropertiesWidget(SurfacePGMWindow * parent,std::stri
 
 	this -> spin_raan_sbox -> setValue(0);
 	this -> spin_inc_sbox -> setValue(0);
+
+	this -> density_sbox -> setRange(1e-10,1e10);
+	this -> density_sbox -> setDecimals(6);
+	this -> density_sbox -> setValue(2000);
+}
+
+
+ShapePropertiesWidget::ShapePropertiesWidget(MassPropertiesWindow * parent,std::string title){
+	
+	QGridLayout * attitude_box_layout = new QGridLayout(this);
+
+	QLabel * density_label = new QLabel("Density of central body (kg/m^3)",this);
+
+	this -> setTitle(QString::fromStdString(title));
+
+	this -> density_sbox = new QDoubleSpinBox(this);
+	
+	attitude_box_layout -> addWidget(density_label,0,0,1,1);
+	attitude_box_layout -> addWidget(this -> density_sbox,0,1,1,1);
+
 
 	this -> density_sbox -> setRange(1e-10,1e10);
 	this -> density_sbox -> setDecimals(6);

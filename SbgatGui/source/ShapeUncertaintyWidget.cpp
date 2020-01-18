@@ -23,7 +23,7 @@ SOFTWARE.
 
 
 #include "ShapeUncertaintyWidget.hpp"
-#include "SurfacePGMWindow.hpp"
+#include "AnalysesWindow.hpp"
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QDoubleSpinBox>
@@ -32,7 +32,7 @@ SOFTWARE.
 
 using namespace SBGAT_GUI;
 
-ShapeUncertaintyWidget::ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::string title){
+ShapeUncertaintyWidget::ShapeUncertaintyWidget(AnalysesWindow * parent,std::string title){
 	
 	this -> parent = parent;
 	QGridLayout * shape_uncertainty_group_layout = new QGridLayout(this);
@@ -123,16 +123,14 @@ ShapeUncertaintyWidget::ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::st
 	uncertainty_global_layout -> addWidget(this -> save_global_covariance_to_file_checkbox,3,1,1,1);
 
 
-
-
 	uncertainty_local_layout -> addWidget(this -> local_uncertainty_table_widget,0,0,3,6);
 	uncertainty_local_layout -> addWidget(this -> add_region_button,3,0,1,3);
 	uncertainty_local_layout -> addWidget(this -> remove_region_button,3,3,1,3);
 	uncertainty_local_layout -> addWidget(local_covariance_regularization_label,4,0,1,3);
 	uncertainty_local_layout -> addWidget(this -> local_covariance_regularization_spin_box,4,3,1,3);
 
-	uncertainty_local_layout -> addWidget(new QLabel("Save Covariance To File"),3,0,1,1);
-	uncertainty_local_layout -> addWidget(this -> save_local_covariance_to_file_checkbox,3,1,1,1);
+	uncertainty_local_layout -> addWidget(new QLabel("Save Covariance To File"),5,0,1,1);
+	uncertainty_local_layout -> addWidget(this -> save_local_covariance_to_file_checkbox,5,3,1,1);
 
 
 	connect(this -> covariance_input_file_button,SIGNAL(clicked()),this,SLOT(select_covariance_input_file()));
@@ -164,7 +162,7 @@ void ShapeUncertaintyWidget::select_covariance_input_file(){
 void ShapeUncertaintyWidget::add_shape_uncertainty_region(){
 	QSpinBox * facet_center_index_spinbox = new QSpinBox(this -> local_uncertainty_table_widget);
 	facet_center_index_spinbox -> setMinimum(0);
-	facet_center_index_spinbox -> setMaximum(static_cast<int>(this -> parent -> parent -> get_wrapped_shape_data()[this -> parent -> primary_prop_combo_box -> currentText().toStdString()] -> get_polydata() -> GetNumberOfCells()) - 1);
+	facet_center_index_spinbox -> setMaximum(static_cast<int>(this -> parent -> parent -> get_wrapped_shape_data()[this -> parent -> prop_combo_box -> currentText().toStdString()] -> get_polydata() -> GetNumberOfCells()) - 1);
 
 	QDoubleSpinBox * standard_deviation_spin_box = new QDoubleSpinBox( this -> local_uncertainty_table_widget );
 	QDoubleSpinBox * correlation_distance_spin_box = new QDoubleSpinBox( this -> local_uncertainty_table_widget );
@@ -177,8 +175,6 @@ void ShapeUncertaintyWidget::add_shape_uncertainty_region(){
 	this -> local_uncertainty_table_widget -> setCellWidget ( this -> local_uncertainty_table_widget -> rowCount() - 1, 0, facet_center_index_spinbox );
 	this -> local_uncertainty_table_widget -> setCellWidget ( this -> local_uncertainty_table_widget -> rowCount() - 1, 1, standard_deviation_spin_box );
 	this -> local_uncertainty_table_widget -> setCellWidget ( this -> local_uncertainty_table_widget -> rowCount() - 1, 2, correlation_distance_spin_box );
-
-
 
 }
 

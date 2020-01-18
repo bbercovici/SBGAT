@@ -47,7 +47,7 @@ affecting the control points coordinates and rotation period of a considered sha
 \details TODO
 */	
 
-	class SurfacePGMWindow;
+	class AnalysesWindow;
 	
 
 	class ShapeUncertaintyWidget : public QGroupBox {
@@ -62,7 +62,7 @@ affecting the control points coordinates and rotation period of a considered sha
 	to set body density if true.
 	@param title widget title
 	*/
-		ShapeUncertaintyWidget(SurfacePGMWindow * parent,std::string title) ;
+		ShapeUncertaintyWidget(AnalysesWindow * parent,std::string title) ;
 
 		/**
 		Returns user-set standard deviation in rotation periond
@@ -143,11 +143,10 @@ affecting the control points coordinates and rotation period of a considered sha
 		void remove_shape_uncertainty_region();
 
 
-
-		
 	protected:
-		SurfacePGMWindow * parent;
-		
+
+		AnalysesWindow * parent;
+
 
 		QButtonGroup * uncertainty_type_button_group;
 		QTabWidget * tab_widget;
