@@ -229,10 +229,12 @@ int main(){
 
 	// Running a Monte Carlo on a subset of the grid
 	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
+	std::vector<std::vector<bool>> all_inside_outside;
+
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 	std::vector<double> densities;
-
+	
 	arma::vec::fixed<3> e0 = {1,0,0};
 	arma::vec::fixed<3> e1 = {0,1,0};
 	arma::vec::fixed<3> e2 = {0,0,1};
@@ -282,7 +284,8 @@ int main(){
 		std::min(60,N_MONTE_CARLO),
 		deviations,
 		densities,
-		all_accelerations);
+		all_accelerations,
+		all_inside_outside);
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> elapsed_seconds = end-start;
@@ -294,6 +297,14 @@ int main(){
 	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
 	arma::vec rel_value_cov_difference_analytical_vs_mc(all_positions.size());
 	arma::mat all_positions_arma(3,all_positions.size());
+	arma::vec all_inside_outside_arma = arma::zeros<arma::vec>(all_positions.size());
+	arma::vec densities_arma(N_MONTE_CARLO);
+
+	
+
+	for (int s = 0; s < N_MONTE_CARLO; ++s){
+		densities_arma(s) = densities[s];
+	}
 
 #pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
@@ -302,6 +313,9 @@ int main(){
 
 		for (int sample = 0; sample < N_MONTE_CARLO; ++sample){
 			accelerations_mc.col(sample) = all_accelerations[sample][e];
+			if (all_inside_outside[sample][e] == true){
+				all_inside_outside_arma(e) += 1;
+			}
 		}
 
 		arma::mat mc_covariances_acc = arma::cov(accelerations_mc.t());
@@ -342,7 +356,7 @@ int main(){
 		const arma::vec::fixed<3> & grid_point = grid[p];
 
 		arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
-		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point);
+		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
 		
 		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
 		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
@@ -366,6 +380,10 @@ int main(){
 	rel_value_cov_difference_analytical_vs_mc.save(OUTPUT_DIR + "rel_value_cov_difference_analytical_vs_mc.txt",arma::raw_ascii);
 	KL_divergence_analytical_vs_mc.save(OUTPUT_DIR + "KL_divergence_analytical_vs_mc.txt",arma::raw_ascii);
 	all_positions_arma.save(OUTPUT_DIR + "all_positions_arma.txt",arma::raw_ascii);
+
+	all_inside_outside_arma.save(OUTPUT_DIR + "all_inside_outside_arma.txt",arma::raw_ascii);
+	densities_arma.save(OUTPUT_DIR + "densities.txt",arma::raw_ascii);
+
 
 	return 0;
 }

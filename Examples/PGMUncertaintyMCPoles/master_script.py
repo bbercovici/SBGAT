@@ -27,13 +27,14 @@ def generate_all_cases_dictionnary_list(base_dictionnary,all_cases_dictionnary,b
 
 # Replace the paths after 'base_location' with the existing directory under which the input/ and /output sub-directories
 # will be created and populated
-if (socket.gethostname() == "fortuna"):
-    base_location = "/orc_raid/bebe0705/PGMUncertaintyMCPoles/"
+if (platform.system() == 'Linux'):
+    base_location = "../"
 else:
     base_location = "../"
 
+
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertaintyMCPolesFixedRegion"
+SIM_PREFIX = "PGMUncertaintyMCPolesFixedRegion_revision_1"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
@@ -43,8 +44,7 @@ base_dictionnary = {
 "PATH_SHAPE" : "../../../resources/shape_models/psyche.obj",
 "PROJECTION_AXIS" : 0,
 "UNCERTAINTY_TYPE" : "normal",
-"N_MONTE_CARLO" : 5000,
-"HOLD_MASS_CONSTANT" : False
+"N_MONTE_CARLO" : 5000
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -56,15 +56,25 @@ base_dictionnary = {
 # which means that a total of six (two times three) simulations will be run
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
+# all_cases_dictionnary = {
+# "CORRELATION_DISTANCE" : [25e3,50e3,75e3],
+# "ERROR_STANDARD_DEV" : [10e3],
+# "COV_REGION_CENTERS" : [[0],[1147],[0,1147]]
+# }
+
+
 all_cases_dictionnary = {
-"CORRELATION_DISTANCE" : [25e3,50e3,75e3],
+"CORRELATION_DISTANCE" : [75e3],
 "ERROR_STANDARD_DEV" : [10e3],
-"COV_REGION_CENTERS" : [[0],[1147],[0,1147]]
+"COV_REGION_CENTERS" : [[0,1147]],
+"HOLD_MASS_CONSTANT" : [True,False]
 }
 
 # There shouldn't be any reason to modify the following
 all_data = generate_all_cases_dictionnary_list(base_dictionnary,
 all_cases_dictionnary,base_location,SIM_PREFIX)
+
+os.chdir("build")
 os.system("cmake .. && make")
 for data in all_data:
 

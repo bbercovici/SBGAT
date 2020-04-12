@@ -57,6 +57,7 @@ to apply the update (if any).
 
 ## Changelog
 
+<<<<<<< HEAD
 ### [SBGAT 2.06.1](https://github.com/bbercovici/SBGAT/releases/tag/2.06.1)
 
 #### New
@@ -70,6 +71,8 @@ to apply the update (if any).
 
 
 
+=======
+>>>>>>> 93e935baff49eb742470d7d593931f0573f0c062
 ### [SBGAT 2.05.1](https://github.com/bbercovici/SBGAT/releases/tag/2.05.1)
 
 #### New
@@ -89,7 +92,11 @@ to apply the update (if any).
 - Introduced two new base classes, `SBGATFilter` and `SBGATFilterUQ`, the latter being tailored for uncertainty quantification in the considered geophysical properties
 - A Python script producing shape "slices" has been added
 
+<<<<<<< HEAD
+### Improvement
+=======
 ### Improvements
+>>>>>>> develop
 - `SBGATMassProperties` now inherits from `SBGATFilter`
 - `SBGATPolyhedronGravityModel` now inherits from `SBGATMassProperties`
 - `SBGATMassPropertiesUQ` now inherits from `SBGATFilterUQ`

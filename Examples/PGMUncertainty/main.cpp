@@ -196,6 +196,7 @@ int main(){
 
 	// Running a Monte Carlo on a subset of the grid
 	std::vector<std::vector<arma::vec::fixed<3> > > all_accelerations;
+	std::vector<std::vector<bool>> all_inside_outside;
 	std::vector<std::vector<double > > all_potentials;
 	std::vector<arma::vec> deviations;
 	std::vector<double> densities;
@@ -268,7 +269,7 @@ int main(){
 	std::chrono::duration<double> elapsed_seconds = end-start;
 
 	std::cout << "Done running MC in " << elapsed_seconds.count() << " s\n";
-
+		
 // Computing MC Dispersions
 	arma::vec KL_divergence_analytical_vs_mc(all_positions.size());
 	arma::vec abs_value_cov_difference_analytical_vs_mc(all_positions.size());
@@ -277,7 +278,7 @@ int main(){
 	arma::vec all_inside_outside_arma = arma::zeros<arma::vec>(all_positions.size());
 
 
-#pragma omp parallel for
+	#pragma omp parallel for
 	for (int e = 0; e < all_positions.size(); ++e){
 
 		arma::mat accelerations_mc(3,N_MONTE_CARLO);
@@ -296,6 +297,7 @@ int main(){
 		arma::vec reference_acc = pgm_filter -> GetAcceleration(all_positions[e]);
 
 		arma::mat cov_analytical = pgm_uq.GetCovarianceAcceleration(all_positions[e],HOLD_MASS_CONSTANT);
+
 		KL_divergence_analytical_vs_mc(e) = SBGATFilterUQ::KLDivergence(reference_acc,mc_mean_acc,	cov_analytical,mc_covariances_acc);
 
 		abs_value_cov_difference_analytical_vs_mc(e) = arma::abs(arma::vectorise(cov_analytical - mc_covariances_acc)).max();
@@ -314,25 +316,25 @@ int main(){
 	
 	// For every point in the grid, evaluate the analytical acceleration covariance and 
 	// run a monte carlo to get a statistical covariance to compare against
-	// boost::progress_display progress(grid.size());
+	boost::progress_display progress(grid.size());
 
-	// #pragma omp parallel for
-	// for (int p = 0; p < grid.size(); ++p){
+	#pragma omp parallel for
+	for (int p = 0; p < grid.size(); ++p){
 
-	// 	int i = indices[p][0];
-	// 	int j = indices[p][1];
+		int i = indices[p][0];
+		int j = indices[p][1];
 
-	// 	const arma::vec::fixed<3> & grid_point = grid[p];
+		const arma::vec::fixed<3> & grid_point = grid[p];
 
-	// 	arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
-	// 	arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
+		arma::vec::fixed<3> reference_acceleration_vector = pgm_filter -> GetAcceleration(grid_point);
+		arma::mat::fixed<3,3> covariance_acceleration_analytical = pgm_uq.GetCovarianceAcceleration(grid_point,HOLD_MASS_CONSTANT);
 		
-	// 	reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
-	// 	trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
-	// 	uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100;
+		reference_acceleration(i,j) = arma::norm(reference_acceleration_vector);
+		trace_sqrt_cov(i,j) = std::sqrt(arma::trace(covariance_acceleration_analytical)) ;
+		uncertainty_over_reference_acc_percentage(i,j) = trace_sqrt_cov(i,j) / reference_acceleration(i,j) * 100;
 
-	// 	++progress;
-	// }
+		++progress;
+	}
 
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;

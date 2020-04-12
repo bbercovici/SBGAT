@@ -33,17 +33,16 @@ else:
 
 
 # SIM_PREFIX will be added to the name of every folder to be put in input/ and output/ 
-SIM_PREFIX = "PGMUncertainty_revision_1_large_uncertainty"
+SIM_PREFIX = "PGMUncertainty_revision_1_uq_grid"
 
 # Dictionnary storing simulation inputs to be kept constant
 base_dictionnary = {
-"ERROR_STANDARD_DEV" : 20,
+"ERROR_STANDARD_DEV" : 10,
 "DENSITY" : 2000,
 "UNIT_IN_METERS" : True,
 "STEP_SIZE" : 10.,
 "PATH_SHAPE" : "../../../resources/shape_models/itokawa_8_scaled.obj",
 "HOLD_MASS_CONSTANT" : False,
-"PROJECTION_AXIS" : 0
 }
 
 # Dictionnary storing simulation inputs to be looped over
@@ -56,13 +55,16 @@ base_dictionnary = {
 # and saved in input/ and output/, with the names of the subfolder prefixed by SIM_PREFIX"
 
 all_cases_dictionnary = {
-"CORRELATION_DISTANCE" : [250],
-"N_MONTE_CARLO" : [300,1000,3000],
+"CORRELATION_DISTANCE" : [100,200],
+"N_MONTE_CARLO" : [10],
+"PROJECTION_AXIS" : [0,1]
 }
 
 # There shouldn't be any reason to modify the following
 all_data = generate_all_cases_dictionnary_list(base_dictionnary,
 all_cases_dictionnary,base_location,SIM_PREFIX)
+
+os.chdir("build")
 os.system("cmake .. && make")
 for data in all_data:
 
@@ -81,7 +83,8 @@ for data in all_data:
         json.dump(data, outfile)
     with open(data["OUTPUT_DIR"] + 'input_file.json', 'w') as outfile:
         json.dump(data, outfile)
-    print("\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
+    print("\n\n\t - Running case " +  data["INPUT_DIR"].split("/")[-2])
     os.system("> " + data["OUTPUT_DIR"] + "log.txt")
     os.system("./PGMUncertainty 2>&1 | tee -a " + data["OUTPUT_DIR"] + "log.txt" )
+os.chdir("../")
    
