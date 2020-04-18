@@ -207,8 +207,8 @@ int main(){
 	for (int e = 0; e < FACETS_TO_INVESTIGATE.size(); ++e){
 		std::cout << "\tAt facet " << FACETS_TO_INVESTIGATE[e] << "\n";
 		std::cout << "\t\tSlope (rad): " << pgm_filter -> GetSlope(FACETS_TO_INVESTIGATE[e]) << std::endl;
-		std::cout << "\t\tMC variance in slope: " << mc_variances_slopes[e] << std::endl;
-		std::cout << "\t\tAnalytical variance in slope: " << analytical_variances_slopes[e] << std::endl;
+		std::cout << "\t\tMC variance in slope (rad): " << mc_variances_slopes[e] << std::endl;
+		std::cout << "\t\tAnalytical variance in slope (rad): " << analytical_variances_slopes[e] << std::endl;
 		std::cout << "\t\tError (%): " << (mc_variances_slopes[e] - analytical_variances_slopes[e])/analytical_variances_slopes[e] * 100 << std::endl;
 		
 	}

@@ -30,7 +30,7 @@ SOFTWARE.
 #include <SBGATObsRadar.hpp>
 #include <SBGATObsLightcurve.hpp>
 #include <SBGATFrameGraph.hpp>
-#include <SBGATShapeUncertainty.hpp>
+// #include <SBGATShapeUncertainty.hpp>
 #include <SBGATTransformShape.hpp>
 #include <SBGATObjWriter.hpp>
 #include <SBGATPolyhedronGravityModelUQ.hpp>

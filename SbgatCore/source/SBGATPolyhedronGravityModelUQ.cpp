@@ -7,7 +7,7 @@
 #include <vtkFloatArray.h>
 #include <vtkPointData.h>
 #include <SBGATObjWriter.hpp>
-
+#include <tgmath.h>
 
 #include <json.hpp>
 
@@ -4381,7 +4381,23 @@ void SBGATPolyhedronGravityModelUQ::GetVarianceSlopes(std::vector<double> & slop
 		slope_variances[f_index] = arma::dot(all_partials.row(f_index),augmented_P_CC * all_partials.row(f_index).t());
 	}
 
+	// Need to correct the computed variance in case the distribution needs to be folded
 
+	#pragma omp parallel for
+	for (unsigned int f_index = 0; f_index < facets.size(); ++f_index){
+
+
+		// Slope. Defines the unfolded mean of the distribution
+		double slope = pgm_model -> GetSlope(facets[f_index]);
+
+		// Mean slope, after folding about the zero-slope (horizontal ground, gravity going down)
+
+		double mean_slope_folded = std::sqrt(slope_variances[f_index]) * std::sqrt(2 / arma::datum::pi) * std::exp( - std::pow(slope,2) / (2 * slope_variances[f_index]))
+		+ slope * erf(slope / std::sqrt(2 * slope_variances[f_index]));
+
+		// Corrected variance adjusted for folding about 0
+		slope_variances[f_index] = std::pow(slope,2) + slope_variances[f_index] - std::pow(mean_slope_folded,2);
+	}
 }
 
 
